@@ -39,8 +39,9 @@ class QdrantStore:
                     ]
                 )
             )
-        except Exception:
-            pass
+        except Exception as e:
+            # Antes isto era silencioso e deixava vetores de ficheiros apagados no índice.
+            raise RuntimeError(f"Falha ao remover vetores de '{rel_file_path}' do Qdrant: {e}") from e
 
     def upsert_chunks(self, chunks: List[Dict[str, Any]], vectors: List[List[float]]) -> None:
         points = []

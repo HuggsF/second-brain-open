@@ -38,12 +38,18 @@ def sync():
             f"• Arquivos Novos: {result['added']}\n"
             f"• Arquivos Modificados: {result['modified']}\n"
             f"• Arquivos Removidos: {result['deleted']}\n"
-            f"• Blocos Indexados: {result['chunks_indexed']}",
-            title="Sincronização Concluída",
-            border_style="green"
+            f"• Blocos Indexados: {result['chunks_indexed']}\n"
+            f"• Falhas: {result.get('failed', 0)}",
+            title="Sincronização Concluída" if not result.get("failed") else "Sincronização com falhas",
+            border_style="green" if not result.get("failed") else "red"
         ))
+        if result.get("failed"):
+            raise SystemExit(1)
+    except SystemExit:
+        raise
     except Exception as e:
         console.print(f"[bold red]Erro ao sincronizar:[/bold red] {e}")
+        raise SystemExit(1)
 
 @cli.command()
 @click.argument("question")

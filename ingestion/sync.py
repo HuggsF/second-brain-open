@@ -36,14 +36,21 @@ class SyncEngine:
         if total_changes == 0:
             if verbose:
                 console.print("[green][OK] Vault já está 100% sincronizado. Nenhuma alteração detectada.[/green]")
-            return {"added": 0, "modified": 0, "deleted": 0, "chunks_indexed": 0}
+            return {"added": 0, "modified": 0, "deleted": 0, "chunks_indexed": 0, "failed": 0}
 
         if verbose:
             console.print(f"[bold cyan]Detectadas alterações:[/bold cyan] {len(added)} novos, {len(modified)} modificados, {len(deleted)} removidos.")
 
-        # 1. Tratar arquivos deletados
+        failed = []
+
+        # 1. Tratar arquivos deletados (se falhar, o manifesto não avança e o próximo sync repete)
         for rel_path in deleted:
-            self.store.delete_by_file_path(rel_path)
+            try:
+                self.store.delete_by_file_path(rel_path)
+            except Exception as e:
+                failed.append(rel_path)
+                console.print(f"[bold red]Erro ao remover {rel_path} do índice:[/bold red] {e}")
+                continue
             self.manifest_manager.remove_file(rel_path)
             if verbose:
                 console.print(f"  [red][-] Removido do índice:[/red] {rel_path}")
@@ -55,12 +62,15 @@ class SyncEngine:
         for file_path in files_to_index:
             rel_path = str(file_path.relative_to(settings.vault_dir).as_posix())
             
-            # Se for modificado, expurga vetores antigos antes
-            if file_path in modified:
-                self.store.delete_by_file_path(rel_path)
-
             chunks = self.chunker.chunk_file(file_path, settings.vault_dir)
             if not chunks:
+                if file_path in modified:
+                    try:
+                        self.store.delete_by_file_path(rel_path)
+                    except Exception as e:
+                        failed.append(rel_path)
+                        console.print(f"[bold red]Erro ao limpar {rel_path} do índice:[/bold red] {e}")
+                        continue
                 self.manifest_manager.update_file_hash(file_path, settings.vault_dir)
                 continue
 
@@ -74,15 +84,27 @@ class SyncEngine:
                     break
 
             if len(vectors) == len(chunks):
-                self.store.upsert_chunks(chunks, vectors)
+                try:
+                    # Só agora, com os vetores novos prontos, troca o conhecimento antigo pelo novo.
+                    if file_path in modified:
+                        self.store.delete_by_file_path(rel_path)
+                    self.store.upsert_chunks(chunks, vectors)
+                except Exception as e:
+                    failed.append(rel_path)
+                    console.print(f"[bold red]Erro ao indexar {rel_path}:[/bold red] {e}")
+                    continue
                 self.manifest_manager.update_file_hash(file_path, settings.vault_dir)
                 total_chunks_indexed += len(chunks)
                 if verbose:
                     console.print(f"  [green][+] Indexado:[/green] {rel_path} ({len(chunks)} blocos)")
+            else:
+                failed.append(rel_path)
 
         return {
             "added": len(added),
             "modified": len(modified),
             "deleted": len(deleted),
-            "chunks_indexed": total_chunks_indexed
+            "chunks_indexed": total_chunks_indexed,
+            "failed": len(failed),
+            "failed_files": failed,
         }
