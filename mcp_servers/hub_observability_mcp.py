@@ -4,16 +4,21 @@ import json
 import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 import paramiko
 from dotenv import load_dotenv
 from fastmcp import FastMCP
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from core.trace_middleware import TraceMiddleware
 
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / '.env')
 PIN = ROOT / '.runtime' / 'known_hosts'
 EXPECTED = '3cf7250afe30931a54621093638e1b0f76f64169'
 mcp = FastMCP('Hub observations (read only)')
+mcp.add_middleware(TraceMiddleware('Hub observations (read only)'))
 
 
 def command_for(environment):
@@ -63,8 +68,8 @@ def normalize(report, environment):
 
 
 @mcp.tool()
-def observe_hub(environment: Literal['production','hml']) -> dict:
-    """Read PM2, health and aggregate SQLite counters. No order or fiscal payloads."""
+def observe_hub(environment: Literal['production','hml'], task_id: Optional[str] = None) -> dict:
+    """Read PM2, health and aggregate SQLite counters. No order or fiscal payloads. Task_id: optional label that groups this call with others of the same task."""
     command = command_for(environment)
     client = paramiko.SSHClient()
     try:

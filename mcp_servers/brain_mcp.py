@@ -1,28 +1,35 @@
 import re
 from typing import Optional, Dict, Any, List
 from fastmcp import FastMCP
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from core.trace_middleware import TraceMiddleware
 from config import settings
 from core.retriever import BrainRetriever
 from core.qdrant_store import QdrantStore
 
 mcp = FastMCP("KIOSK Second Brain")
+mcp.add_middleware(TraceMiddleware('KIOSK Second Brain'))
 
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,63}$")
 
 @mcp.tool()
-def search_knowledge_base(query: str, category: Optional[str] = None) -> List[Dict[str, Any]]:
+def search_knowledge_base(query: str, category: Optional[str] = None, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Pesquisa a base de conhecimento técnica e arquitetural da holding KIOSK Brands.
     Categorias válidas: 'adrs', 'systems', 'domain', 'daily'.
+    task_id: optional label that groups this call with others of the same task
     """
     retriever = BrainRetriever()
     result = retriever.query(query, limit=5, category=category)
     return result["sources"]
 
 @mcp.tool()
-def get_adr(adr_identifier: str) -> str:
+def get_adr(adr_identifier: str, task_id: Optional[str] = None) -> str:
     """
     Recupera o conteúdo completo de uma Architecture Decision Record (ADR) pelo número ou nome (ex: '001' ou 'salesforce').
+    task_id: optional label that groups this call with others of the same task
     """
     adrs_dir = settings.adrs_dir
     if not _SAFE_NAME.match(adr_identifier or "") or ".." in adr_identifier:
@@ -35,9 +42,10 @@ def get_adr(adr_identifier: str) -> str:
     return matches[0].read_text(encoding="utf-8")
 
 @mcp.tool()
-def get_system_architecture(system_name: str) -> str:
+def get_system_architecture(system_name: str, task_id: Optional[str] = None) -> str:
     """
     Recupera a documentação técnica de um sistema específico da holding: 'sap', 'sults', 'holmes', 'salesforce'.
+    task_id: optional label that groups this call with others of the same task
     """
     name = (system_name or "").lower().strip()
     if not _SAFE_NAME.match(name) or ".." in name:
@@ -50,9 +58,10 @@ def get_system_architecture(system_name: str) -> str:
     return system_file.read_text(encoding="utf-8")
 
 @mcp.tool()
-def get_brain_status() -> Dict[str, Any]:
+def get_brain_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Retorna o status do Qdrant e a quantidade de vetores indexados no Second Brain.
+    task_id: optional label that groups this call with others of the same task
     """
     store = QdrantStore()
     return store.get_stats()

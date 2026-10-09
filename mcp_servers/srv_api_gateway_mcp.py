@@ -8,6 +8,10 @@ from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 import paramiko
 from fastmcp import FastMCP
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from core.trace_middleware import TraceMiddleware
 
 # Carregar variáveis de ambiente
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,6 +23,7 @@ PORT = int(os.getenv("SRV_API_PORT", "22"))
 KEY_PATH = os.getenv("SRV_API_KEY_PATH", r"C:\KIOSK\SRV-API_key.pem")
 
 mcp = FastMCP("SRV-API Gateway")
+mcp.add_middleware(TraceMiddleware('SRV-API Gateway'))
 
 RUNTIME_DIR = BASE_DIR / ".runtime"
 KNOWN_HOSTS = RUNTIME_DIR / "known_hosts"
@@ -88,9 +93,10 @@ def _exec_command(cmd: str, timeout: int = 30, tool: str = "exec") -> Dict[str, 
             client.close()
 
 @mcp.tool()
-def srv_api_health_check() -> Dict[str, Any]:
+def srv_api_health_check(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Testa a conectividade com o servidor SRV-API e retorna informações de uptime e sistema operacional.
+    task_id: optional label that groups this call with others of the same task
     """
     res = _exec_command("hostname; uname -a; uptime", tool="health_check")
     return {
@@ -100,9 +106,10 @@ def srv_api_health_check() -> Dict[str, Any]:
     }
 
 @mcp.tool()
-def srv_api_resource_usage() -> Dict[str, Any]:
+def srv_api_resource_usage(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Retorna o uso de recursos do servidor: memória RAM (free -h), espaço em disco (df -h) e carga de CPU.
+    task_id: optional label that groups this call with others of the same task
     """
     cmd = "echo '=== MEMORIA ===' && free -h && echo '=== DISCO ===' && df -h / && echo '=== CPU / CARGA ===' && uptime"
     res = _exec_command(cmd, tool="resource_usage")
@@ -112,9 +119,10 @@ def srv_api_resource_usage() -> Dict[str, Any]:
     }
 
 @mcp.tool()
-def srv_api_list_services() -> Dict[str, Any]:
+def srv_api_list_services(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Lista os containers Docker ativos (ou serviços em execução) no servidor SRV-API.
+    task_id: optional label that groups this call with others of the same task
     """
     cmd = "if command -v docker >/dev/null 2>&1; then docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'; else systemctl list-units --type=service --state=running | head -n 25; fi"
     res = _exec_command(cmd, tool="list_services")
@@ -124,12 +132,13 @@ def srv_api_list_services() -> Dict[str, Any]:
     }
 
 @mcp.tool()
-def srv_api_view_logs(service_name: str, lines: int = 50) -> str:
+def srv_api_view_logs(service_name: str, lines: int = 50, task_id: Optional[str] = None) -> str:
     """
     Recupera as últimas linhas de log de um container Docker ou serviço systemd no servidor.
     Args:
         service_name: Nome do container ou serviço (ex: 'api', 'nginx', 'postgres')
         lines: Quantidade de linhas a visualizar (padrão: 50)
+    task_id: optional label that groups this call with others of the same task
     """
     if not _SAFE_NAME.match(service_name or ""):
         return "Erro: service_name inválido (use só letras, números, '.', '_', '-', '@'; máx. 64 caracteres)."
@@ -177,7 +186,7 @@ def _check_read_only(command: str) -> str:
 
 
 @mcp.tool()
-def srv_api_run_safe_command(command: str) -> Dict[str, Any]:
+def srv_api_run_safe_command(command: str, task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Executa comandos de INSPEÇÃO (só leitura) no servidor remoto, sem encadeamento de shell.
     Aceita: ls, cat, head, tail, ps, df, du, free, uptime, hostname, uname, whoami, date, journalctl,
@@ -186,6 +195,7 @@ def srv_api_run_safe_command(command: str) -> Dict[str, Any]:
     Todas as chamadas ficam em .runtime/gateway-audit.jsonl.
     Args:
         command: Comando simples, ex: 'ls -la /var/www', 'docker ps', 'ps aux'
+    task_id: optional label that groups this call with others of the same task
     """
     forbidden = ["rm -rf", "mkfs", "dd if=", ":(){ :|:& };:", "shutdown", "reboot", "init 0"]
     for danger in forbidden:
