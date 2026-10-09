@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -6,6 +7,8 @@ from unittest import mock
 import yaml
 
 from core import evidence
+from core.evidence import Definitions, Playbook, Rule
+from core.evidence_store import EvidenceStore
 
 RULE = {"id": "RULE-001", "title": "Emissao exige NF real", "status": "active",
         "source": "vault/systems/x.md:45", "domain": "logistica"}
@@ -105,6 +108,177 @@ class TestLoadDefinitions(unittest.TestCase):
         path.parent.mkdir(parents=True)
         path.write_bytes(b"\xef\xbb\xbf" + text.encode("utf-8"))
         self.assertEqual(evidence.load_definitions(self.root).errors, [])
+
+
+def make_defs(rule_status="active", playbook_status="active", validates=("RULE-001",)):
+    rules = {"RULE-001": Rule("RULE-001", "Emissao exige NF", rule_status, "vault/x.md:1", "hub", "rules/r.md")}
+    playbooks = {"PB-001": Playbook("PB-001", "Suite do Hub", playbook_status, list(validates), "local", ["hub"], "playbooks/p.md")}
+    return Definitions(rules, playbooks, [])
+
+
+OK_ARGS = dict(playbook_id="PB-001", result="pass", summary="26 scenarios approved", evidence_ref="vault/x.md:47", environment="local")
+TOKEN = "ghp_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"
+
+
+class TestValidate(unittest.TestCase):
+    def check(self, **over):
+        return evidence.validate_execution(make_defs(), **{**OK_ARGS, **over})
+
+    def test_happy_path_returns_clean_fields(self):
+        clean, error = self.check()
+        self.assertIsNone(error)
+        self.assertEqual((clean["summary"], clean["evidence_ref"]), ("26 scenarios approved", "vault/x.md:47"))
+
+    def test_unknown_and_retired_playbook(self):
+        self.assertIn("PB-404", self.check(playbook_id="PB-404")[1])
+        clean, error = evidence.validate_execution(make_defs(playbook_status="retired"), **OK_ARGS)
+        self.assertIsNone(clean)
+        self.assertIn("retired", error)
+
+    def test_bad_result_and_environment(self):
+        self.assertIn("result", self.check(result="maybe")[1])
+        self.assertIn("environment", self.check(environment="prod")[1])
+        self.assertIn("environment", self.check(environment="hml")[1])  # the playbook is local, hml does not match
+        defs = make_defs()
+        defs.playbooks["PB-001"].environment = "hml"
+        self.assertIsNone(evidence.validate_execution(defs, **{**OK_ARGS, "environment": "local"})[1])  # local is always allowed
+
+    def test_summary_length_limits(self):
+        self.assertIn("summary", self.check(summary="")[1])
+        self.assertIn("summary", self.check(summary="x" * 501)[1])
+        self.assertIsNone(self.check(summary="x" * 500)[1])
+
+    def test_evidence_ref_shapes(self):
+        for good in ("vault/x.md:47", "vault/x.md:45-61", "https://github.com/o/r/pull/1", "DEM-12"):
+            self.assertIsNone(self.check(evidence_ref=good)[1], good)
+        for bad in ("", "just words", "C:\\x.md:3", "x" * 301):
+            self.assertIn("evidence_ref", self.check(evidence_ref=bad)[1], bad)
+
+    def test_control_characters_are_removed(self):
+        clean, error = self.check(summary="a\x00b\x07c\nd\te", evidence_ref="vault/x\x00.md:3")
+        self.assertIsNone(error)
+        self.assertEqual(clean["summary"], "abc d e")
+        self.assertEqual(clean["evidence_ref"], "vault/x.md:3")
+
+    def test_sensitive_data_is_refused_without_echoing_it(self):
+        cases = [("token", TOKEN), ("cpf", "123.456.789-09"), ("cpf", "12345678909"), ("nf-key", "3" * 44)]
+        for name, value in cases:
+            for field in ("summary", "evidence_ref"):
+                over = {field: f"x {value} y" if field == "summary" else f"https://h.example/{value}"}
+                clean, error = self.check(**over)
+                self.assertIsNone(clean, (name, field))
+                self.assertIn(name, error)
+                self.assertIn(field, error)
+                self.assertNotIn(value, error)
+
+    def test_private_key_header_is_refused(self):
+        self.assertIn("token", self.check(summary="-----BEGIN PRIVATE KEY-----")[1])
+
+
+class TestQueries(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.store = EvidenceStore(Path(self.tmp.name) / "evidence.db")
+        self.defs = make_defs()
+        self.defs.playbooks["PB-002"] = Playbook("PB-002", "Sem execucoes", "active", ["RULE-001"], "hml", [], "playbooks/q.md")
+
+    def record(self, n=1, pb="PB-001", result="pass"):
+        for i in range(n):
+            self.store.record(playbook_id=pb, result=result, environment="local", evidence_ref="vault/x.md:1",
+                              summary=f"run {i}", source="reported", recorded_by="mcp", ts=f"2026-10-09T12:00:{i:02d}.000-03:00")
+
+    def test_rule_evidence_with_and_without_executions(self):
+        self.record(2)
+        out = evidence.rule_evidence(self.defs, self.store, "RULE-001")
+        self.assertEqual(out["rule"]["id"], "RULE-001")
+        by_id = {p["id"]: p for p in out["playbooks"]}
+        self.assertEqual([e["summary"] for e in by_id["PB-001"]["executions"]], ["run 1", "run 0"])
+        self.assertNotIn("note", by_id["PB-001"])
+        self.assertEqual(by_id["PB-002"]["executions"], [])
+        self.assertEqual(by_id["PB-002"]["note"], "sem evidência ainda")
+
+    def test_unknown_rule_lists_known_ids(self):
+        out = evidence.rule_evidence(self.defs, self.store, "RULE-404")
+        self.assertIn("RULE-001", out["error"])
+
+    def test_limit_is_clamped(self):
+        self.record(25)
+        out = evidence.rule_evidence(self.defs, self.store, "RULE-001", limit=999)
+        self.assertEqual(len(next(p for p in out["playbooks"] if p["id"] == "PB-001")["executions"]), 20)
+        out = evidence.rule_evidence(self.defs, self.store, "RULE-001", limit=0)
+        self.assertEqual(len(next(p for p in out["playbooks"] if p["id"] == "PB-001")["executions"]), 1)
+
+    def test_list_rules_shape(self):
+        self.assertIsNone(evidence.list_rules(self.defs, self.store)[0]["latest"])
+        self.record(2, result="fail")
+        (row,) = evidence.list_rules(self.defs, self.store)
+        self.assertEqual((row["id"], row["status"], row["playbooks"]), ("RULE-001", "active", ["PB-001", "PB-002"]))
+        self.assertEqual((row["latest"]["result"], row["latest"]["playbook_id"]), ("fail", "PB-001"))
+
+
+class TestLint(unittest.TestCase):
+    def test_clean_definitions_have_no_problems(self):
+        self.assertEqual(evidence.lint(make_defs()), [])
+
+    def test_loader_errors_are_reported(self):
+        defs = make_defs()
+        defs.errors.append("rules/a.md: invalid id 'RULE-1'")
+        self.assertEqual(evidence.lint(defs), ["rules/a.md: invalid id 'RULE-1'"])
+
+    def test_playbook_validating_an_unknown_rule(self):
+        problems = evidence.lint(make_defs(validates=("RULE-001", "RULE-009")))
+        self.assertTrue(any("PB-001" in p and "RULE-009" in p for p in problems))
+
+    def test_active_rule_without_active_playbook(self):
+        problems = evidence.lint(make_defs(playbook_status="draft"))
+        self.assertTrue(any("RULE-001" in p and "active playbook" in p for p in problems))
+
+    def test_active_playbook_validating_a_retired_rule(self):
+        problems = evidence.lint(make_defs(rule_status="retired"))
+        self.assertTrue(any("PB-001" in p and "retired" in p and "RULE-001" in p for p in problems))
+
+    def test_execution_for_an_unknown_playbook(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = EvidenceStore(Path(tmp) / "evidence.db")
+            store.record(playbook_id="PB-404", result="pass", environment="local", evidence_ref="vault/x.md:1",
+                         summary="s", source="reported", recorded_by="mcp")
+            problems = evidence.lint(make_defs(), store)
+        self.assertTrue(any("PB-404" in p for p in problems))
+
+
+class TestImportSeed(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.store = EvidenceStore(self.root / "evidence.db")
+        self.defs = make_defs()
+        self.seed = self.root / "seed.json"
+
+    def row(self, key="k1", pb="PB-001", **over):
+        return {"import_key": key, "playbook_id": pb, "ts": "2026-10-08T00:00:00-03:00", "result": "pass",
+                "environment": "local", "evidence_ref": "vault/x.md:47", "summary": "26 scenarios approved", **over}
+
+    def test_twice_adds_once_then_skips(self):
+        self.seed.write_text(json.dumps([self.row()]), encoding="utf-8")
+        self.assertEqual(evidence.import_seed(self.defs, self.store, self.seed), (1, 0))
+        self.assertEqual(evidence.import_seed(self.defs, self.store, self.seed), (0, 1))
+        (stored,) = self.store.latest("PB-001")
+        self.assertEqual((stored["source"], stored["recorded_by"], stored["import_key"]), ("imported", "cli", "k1"))
+
+    def test_unknown_playbook_or_invalid_row_is_skipped_without_raising(self):
+        rows = [self.row("k1", pb="PB-404"), self.row("k2", result="maybe"), self.row("k3")]
+        self.seed.write_text(json.dumps(rows), encoding="utf-8")
+        self.assertEqual(evidence.import_seed(self.defs, self.store, self.seed), (1, 2))
+
+    def test_malformed_seed_file_raises_a_clear_error(self):
+        self.seed.write_text("{not json", encoding="utf-8")
+        with self.assertRaises(ValueError):
+            evidence.import_seed(self.defs, self.store, self.seed)
+        self.seed.write_text(json.dumps({"not": "a list"}), encoding="utf-8")
+        with self.assertRaises(ValueError):
+            evidence.import_seed(self.defs, self.store, self.seed)
 
 
 if __name__ == "__main__":
