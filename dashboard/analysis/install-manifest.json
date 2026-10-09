@@ -1,0 +1,131 @@
+{
+  "kind": "local-frontend-install",
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "4cecf6b4426436d92ffbab36c4ff473978679b94d7e1bf46b7ff4b38999efd9c"
+    },
+    {
+      "path": "style.css",
+      "sha256": "f0cbb339d293688e86be3e0313a735cb2100236ba065833bf5ab23f7ea4caf2d"
+    },
+    {
+      "path": "app.js",
+      "sha256": "6a4ccc5d83391190f016f9925dbd8e2f2156ba597bc7e4453792c6b4184a67f3"
+    },
+    {
+      "path": "schema.js",
+      "sha256": "04d578749f5a652450b8cc7000efdd66219ddeec279a4951d92326b7fb908453"
+    },
+    {
+      "path": "core.js",
+      "sha256": "d534c2370bd7f99df421ff2b22d2a8063a651b67062592eb440dbec1398db5e7"
+    },
+    {
+      "path": "markdown.js",
+      "sha256": "31b9f5c00608630bdb6435ba5ea0ee3ecf29105be113bc5c55e34dfbde5ade6b"
+    },
+    {
+      "path": "graph-ui.js",
+      "sha256": "ecbf6926cd39647ec04bc31723a6fc81c93e6734a26298a29a77266235aa85a7"
+    },
+    {
+      "path": "workbench.js",
+      "sha256": "aaa033144ce7bd7eedc295cb2e84f99e02a5b9db32d7b0638229ef7037450f4d"
+    },
+    {
+      "path": "graph-catalog.json",
+      "sha256": "987505b34e2023f10085f7e678a762e76ef73ced6e91492766085ac8547eeb9c"
+    },
+    {
+      "path": "graph-data.js",
+      "sha256": "c691b3da0a5cfbb79b118c322e245f317f39a6e91fb70a9098c20543cb116511"
+    },
+    {
+      "path": "build_graph.py",
+      "sha256": "96d17e074b51f038979cf9f0ba29bc274ff9a0137329f223a9adb446eac2966e"
+    },
+    {
+      "path": "icon.svg",
+      "sha256": "b364a95a89f34968d2150945d9eb95699abefc3052f4f62f898450f7bb49ed42"
+    },
+    {
+      "path": "analysis/360-audit.md",
+      "sha256": "56e55f8596e931d2081ff01081b4988115e345106e719cf394d4f0b1ef6edfe2"
+    },
+    {
+      "path": "analysis/benchmark-2026-10-08.md",
+      "sha256": "c501a08653be26803d26e40a81d0e2683705de84eb3bdd7d4ed5b4fb0600048f"
+    },
+    {
+      "path": "analysis/benchmark.json",
+      "sha256": "c91c19ff62e17db28b76738379d137a2daabae28ae5bb75e142f0afcf925a738"
+    },
+    {
+      "path": "analysis/final-independent-review.md",
+      "sha256": "188d24338604df6bb022e991a6b0dfcaa813b7000d2a393056f54589d9f682c4"
+    },
+    {
+      "path": "analysis/graphrag-multiagent-contract.md",
+      "sha256": "44f4850393380c928057ca5e5dc8476390d70eeb88e126cf56861ae0393ff8ef"
+    },
+    {
+      "path": "analysis/install-backup.json",
+      "sha256": "5a4b1ee77054a850341cc6d9bb3c76ff34af1f90ef75a4315574ecdab17a5255"
+    },
+    {
+      "path": "analysis/mobile-plan.jpg",
+      "sha256": "9bb37efbd0c596e73870d1f6e3028a699f4cfd4c54c3a45807b76ff2c2d1f3a3"
+    },
+    {
+      "path": "analysis/mobile-reader.jpg",
+      "sha256": "1086c79426d37b538870f7cd6f0b6085ea84b51493ebacc9208ca468d41ba86f"
+    },
+    {
+      "path": "analysis/WAVES.md",
+      "sha256": "a6d4d48eb65e80695506a6af121f8a9f0549b4acf69d904701b97bde422349d6"
+    },
+    {
+      "path": "tests/bad-snapshot.html",
+      "sha256": "eb51d39eaf83c44e1d97232fc83ed5810c768bd23827346a171ba18d03ccf978"
+    },
+    {
+      "path": "tests/bad-snapshot.js",
+      "sha256": "341daccd1cef884850ff70a9d69d30d8b795f07ce79e4341aa7e437e9334c560"
+    },
+    {
+      "path": "tests/core.test.cjs",
+      "sha256": "f995a3ff36fe2a07afb13cabb6f99ec4ac3d412fd16973b9bcccd846ad2482f9"
+    },
+    {
+      "path": "tests/integration.test.cjs",
+      "sha256": "d8941a8fc8161a104ebbc254ef9de372b5799fa8a0c3a1732a161c231b6e13c8"
+    },
+    {
+      "path": "tests/markdown.test.cjs",
+      "sha256": "a98ecd1c243f113e999ba47110baaefec191e5b3ea1024c795b49577eec1cabb"
+    },
+    {
+      "path": "tests/test_build_graph.py",
+      "sha256": "1e813ffd7224b2c29fc1d3b74d4e33494277c4020764e54165c1b7238f647d15"
+    },
+    {
+      "path": "serve.py",
+      "sha256": "a6a001c07b2aa27453b4c43057ce5403163f9c2e3374273d45838d2e922d71d9"
+    },
+    {
+      "path": "analysis/desktop-overview.jpg",
+      "sha256": "17fc7d7b0fc78c1b86696a3208bcb2abc1468177f4a2596f4beb8db27d6ba7ac"
+    },
+    {
+      "path": "analysis/desktop-graph.jpg",
+      "sha256": "6edc19e4e90243da938b62330497cf556c80672f22208e1f6526bb0c32ac6bab"
+    },
+    {
+      "path": "analysis/qa-evidence.json",
+      "sha256": "7a029b3a907d7e1faa4abbf9297252046f87c5090ccd84706c4ad71163d22977"
+    }
+  ],
+  "backup": "C:\\KIOSK\\second-brain\\.frontend-backups\\20261008T171642Z",
+  "snapshot_id": "14c2611be182bcc20dea772f9e79139e4c848ab3a72614bc0e738e104fc315c2"
+}

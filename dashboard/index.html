@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Explore fontes, relações e planos do Second Brain da KIOSK, com evidências locais.">
+  <title>KIOSK · Second Brain</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="live.css">
+  <script src="graph-data.js" defer></script>
+  <script src="schema.js" defer></script>
+  <script src="core.js" defer></script>
+  <script src="markdown.js" defer></script>
+  <script src="graph-ui.js" defer></script>
+  <script src="workbench.js" defer></script>
+  <script src="live-adapter.js" defer></script>
+  <script src="observability-ui.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Ir para o conteúdo</a>
+  <aside class="rail" aria-label="Navegação principal">
+    <a class="brand" href="#page=overview"><span class="brand-mark" aria-hidden="true">K</span><span>KIOSK<span class="brand-sub">SECOND BRAIN</span></span></a>
+    <div class="workspace-label">WORKSPACE <span class="local-dot">LOCAL</span></div>
+    <nav id="navigation" aria-label="Áreas do workspace"></nav>
+    <div class="rail-bottom"><span class="eyebrow">CONHECIMENTO COM CONTEXTO</span><p>Da fonte à decisão.<br>Uma relação por vez.</p><span class="small muted">Snapshot local · sem telemetria</span></div>
+  </aside>
+  <div class="shell">
+    <header class="topbar">
+      <span class="breadcrumb">Workspace <span aria-hidden="true">/</span> <strong id="page-name">Visão geral</strong></span>
+      <div class="top-actions"><button id="search-open" class="search-trigger" aria-haspopup="dialog"><span aria-hidden="true">⌕</span> Buscar fontes e entidades <kbd>Ctrl K</kbd></button><button id="theme" class="icon-button" aria-label="Alternar tema">◐</button><button id="help-open" class="icon-button" aria-label="Ajuda e atalhos" aria-haspopup="dialog">?</button></div>
+    </header>
+    <main id="main" tabindex="-1"><div class="empty"><h1>Carregando conhecimento…</h1><p>Preparando o snapshot local.</p></div></main>
+    <footer class="footer"><span id="snapshot-label">Snapshot local</span><span>Fontes e evidências ≠ estado ao vivo</span></footer>
+  </div>
+  <div id="notice" class="notice" role="status" aria-live="polite"></div>
+  <dialog id="search-dialog" aria-labelledby="search-title">
+    <div class="dialog-head"><h2 id="search-title">Buscar no conhecimento</h2><button class="icon-button" id="search-close" aria-label="Fechar busca">×</button></div>
+    <label class="sr-only" for="global-query">Busca global</label><input type="search" id="global-query" placeholder="Pedido, rastreio, rollback…" autocomplete="off">
+    <p class="small muted">Texto completo e entidades · acentos não alteram os resultados · Esc para fechar</p><div id="global-results" class="search-results"></div>
+  </dialog>
+  <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-head"><h2 id="help-title">Explore com confiança</h2><button id="help-close" class="icon-button" aria-label="Fechar ajuda">×</button></div><p>Comece pelas fontes ou escolha uma vista do grafo. Cada entidade e relação aponta para a documentação que a sustenta.</p><dl class="help-list"><dt>Ctrl / ⌘ + K</dt><dd>Abrir busca</dd><dt>Tab · Enter · Espaço</dt><dd>Navegar e selecionar</dd><dt>Esc</dt><dd>Fechar diálogos</dd><dt>No grafo</dt><dd>Arraste para mover. Use os botões para zoom ou explore a lista equivalente.</dd></dl><p class="callout">As consultas recuperam texto e relações locais. Os planos de agentes podem ser validados e exportados; a execução exige um backend, ainda não conectado.</p><a href="analysis/360-audit.md">Análise 360 e plano de evolução</a></dialog>
+  <noscript><p>Ative JavaScript para explorar o dashboard. As fontes originais continuam disponíveis no vault local.</p></noscript>
+</body>
+</html>

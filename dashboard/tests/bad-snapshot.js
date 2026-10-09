@@ -1,0 +1,1 @@
+window.KIOSK_GRAPH = {nodes:[],edges:[],views:[null],documents:{},snapshot_id:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};

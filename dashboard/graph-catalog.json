@@ -1,0 +1,531 @@
+{
+  "version": 1,
+  "views": [
+    {
+      "id": "flow",
+      "label": "Fluxo logístico"
+    },
+    {
+      "id": "infra",
+      "label": "Infraestrutura"
+    },
+    {
+      "id": "domain",
+      "label": "Entidades e contratos"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "shopify",
+      "label": "Shopify",
+      "type": "Sistema",
+      "domain": "ecommerce",
+      "evidence": "relatado",
+      "document": "systems/discovery-gaps-bling-yampi.md",
+      "views": {
+        "flow": [
+          30,
+          60
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "yampi",
+      "label": "Yampi",
+      "type": "Sistema",
+      "domain": "ecommerce",
+      "evidence": "relatado",
+      "document": "systems/discovery-gaps-bling-yampi.md",
+      "issues": [
+        "DEM-08"
+      ],
+      "views": {
+        "flow": [
+          240,
+          60
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "bling",
+      "label": "Bling",
+      "type": "Sistema",
+      "domain": "erp",
+      "evidence": "implementado",
+      "document": "systems/bling-api-v3-especificacao-pedidos.md",
+      "issues": [
+        "DEM-07"
+      ],
+      "views": {
+        "flow": [
+          450,
+          60
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "hub",
+      "label": "Hub Logístico",
+      "type": "Sistema",
+      "domain": "hub",
+      "evidence": "implementado",
+      "document": "systems/protecoes-processamento-emissao-hub.md",
+      "issues": [
+        "DEM-09",
+        "DEM-10",
+        "DEM-15"
+      ],
+      "views": {
+        "flow": [
+          450,
+          250
+        ]
+      },
+      "valid_at": "2026-10-08",
+      "deployment": {
+        "label": "Implantado · auditoria fiscal com pendências",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "source": "systems/deploy-validacao-hub-2026-10-08.md",
+        "verified_at": "2026-10-08"
+      }
+    },
+    {
+      "id": "jt",
+      "label": "J&T Express",
+      "type": "Sistema",
+      "domain": "logistics",
+      "evidence": "implementado",
+      "document": "systems/protecoes-processamento-emissao-hub.md",
+      "views": {
+        "flow": [
+          240,
+          250
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "corpem",
+      "label": "Corpem",
+      "type": "Sistema",
+      "domain": "logistics",
+      "evidence": "parcial",
+      "document": "systems/backlog-analise-hub-logistico.md",
+      "issues": [
+        "DEM-12"
+      ],
+      "views": {
+        "flow": [
+          30,
+          250
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "actions",
+      "label": "GitHub Actions",
+      "type": "Serviço",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/proposta-pipeline-ci-cd-github-actions.md",
+      "views": {
+        "infra": [
+          30,
+          60
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "srv",
+      "label": "SRV-API",
+      "type": "Servidor",
+      "domain": "infra",
+      "evidence": "documentado",
+      "document": "systems/srv-api.md",
+      "views": {
+        "infra": [
+          240,
+          60
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "prod",
+      "label": "Produção",
+      "type": "Ambiente",
+      "domain": "infra",
+      "evidence": "documentado",
+      "document": "systems/hub-producao.md",
+      "views": {
+        "infra": [
+          450,
+          60
+        ]
+      },
+      "valid_at": "2026-10-08",
+      "deployment": {
+        "label": "Implantado · auditoria fiscal com pendências",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "source": "systems/deploy-validacao-hub-2026-10-08.md",
+        "verified_at": "2026-10-08"
+      }
+    },
+    {
+      "id": "hml",
+      "label": "Homologação",
+      "type": "Ambiente",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/hub-homologacao.md",
+      "issues": [
+        "DEM-11"
+      ],
+      "views": {
+        "infra": [
+          450,
+          250
+        ]
+      },
+      "valid_at": "2026-10-08",
+      "deployment": {
+        "label": "Implantado · auditoria fiscal com pendências",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "source": "systems/deploy-validacao-hub-2026-10-08.md",
+        "verified_at": "2026-10-08"
+      }
+    },
+    {
+      "id": "dbprod",
+      "label": "hub.db",
+      "type": "Banco",
+      "domain": "infra",
+      "evidence": "documentado",
+      "document": "systems/hub-producao.md",
+      "views": {
+        "infra": [
+          240,
+          250
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "dbhml",
+      "label": "hub-homolog.db",
+      "type": "Banco",
+      "domain": "infra",
+      "evidence": "documentado",
+      "document": "systems/hub-homologacao.md",
+      "views": {
+        "infra": [
+          30,
+          250
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "pedido",
+      "label": "Pedido universal",
+      "type": "Entidade",
+      "domain": "hub",
+      "evidence": "implementado",
+      "document": "systems/bling-api-v3-especificacao-pedidos.md",
+      "views": {
+        "domain": [
+          30,
+          35
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "loja",
+      "label": "Loja",
+      "type": "Entidade",
+      "domain": "hub",
+      "evidence": "implementado",
+      "document": "systems/protecoes-processamento-emissao-hub.md",
+      "views": {
+        "domain": [
+          240,
+          35
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "job",
+      "label": "Job da fila",
+      "type": "Entidade",
+      "domain": "hub",
+      "evidence": "implementado",
+      "document": "systems/protecoes-processamento-emissao-hub.md",
+      "views": {
+        "domain": [
+          450,
+          35
+        ]
+      },
+      "valid_at": "2026-10-08",
+      "deployment": {
+        "label": "Implantado · auditoria fiscal com pendências",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "source": "systems/deploy-validacao-hub-2026-10-08.md",
+        "verified_at": "2026-10-08"
+      }
+    },
+    {
+      "id": "emissao",
+      "label": "Intenção de emissão",
+      "type": "Entidade",
+      "domain": "logistics",
+      "evidence": "implementado",
+      "document": "systems/protecoes-processamento-emissao-hub.md",
+      "views": {
+        "domain": [
+          450,
+          185
+        ]
+      },
+      "valid_at": "2026-10-08",
+      "deployment": {
+        "label": "Implantado · auditoria fiscal com pendências",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "source": "systems/deploy-validacao-hub-2026-10-08.md",
+        "verified_at": "2026-10-08"
+      }
+    },
+    {
+      "id": "volume",
+      "label": "Volume",
+      "type": "Entidade",
+      "domain": "logistics",
+      "evidence": "proposto",
+      "document": "systems/backlog-analise-hub-logistico.md",
+      "issues": [
+        "DEM-13"
+      ],
+      "views": {
+        "domain": [
+          240,
+          185
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "separacao",
+      "label": "Ordem de separação",
+      "type": "Contrato",
+      "domain": "logistics",
+      "evidence": "proposto",
+      "document": "systems/backlog-analise-hub-logistico.md",
+      "issues": [
+        "DEM-12"
+      ],
+      "views": {
+        "domain": [
+          30,
+          185
+        ]
+      },
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "adapter",
+      "label": "Adapter Corpem",
+      "type": "Adapter",
+      "domain": "logistics",
+      "evidence": "parcial",
+      "document": "systems/backlog-analise-hub-logistico.md",
+      "views": {
+        "domain": [
+          30,
+          335
+        ]
+      },
+      "valid_at": "2026-10-08"
+    }
+  ],
+  "edges": [
+    {
+      "id": "relation-0",
+      "source": "shopify",
+      "target": "yampi",
+      "relation": "checkout",
+      "view": "flow",
+      "evidence": "relatado",
+      "source_file": "systems/discovery-gaps-bling-yampi.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-1",
+      "source": "yampi",
+      "target": "bling",
+      "relation": "cria pedido",
+      "view": "flow",
+      "evidence": "relatado",
+      "source_file": "systems/discovery-gaps-bling-yampi.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-2",
+      "source": "bling",
+      "target": "hub",
+      "relation": "webhook / consulta",
+      "view": "flow",
+      "evidence": "implementado",
+      "source_file": "systems/protecoes-processamento-emissao-hub.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-3",
+      "source": "hub",
+      "target": "jt",
+      "relation": "emite / reaproveita",
+      "view": "flow",
+      "evidence": "implementado",
+      "source_file": "systems/protecoes-processamento-emissao-hub.md",
+      "valid_at": "2026-10-08",
+      "deployment": {
+        "label": "Implantado · auditoria fiscal com pendências",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "source": "systems/deploy-validacao-hub-2026-10-08.md",
+        "verified_at": "2026-10-08"
+      }
+    },
+    {
+      "id": "relation-4",
+      "source": "hub",
+      "target": "corpem",
+      "relation": "POST opcional",
+      "view": "flow",
+      "evidence": "parcial",
+      "source_file": "systems/backlog-analise-hub-logistico.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-5",
+      "source": "actions",
+      "target": "srv",
+      "relation": "deploy HML",
+      "view": "infra",
+      "evidence": "implementado",
+      "source_file": "systems/proposta-pipeline-ci-cd-github-actions.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-6",
+      "source": "srv",
+      "target": "prod",
+      "relation": "hospeda",
+      "view": "infra",
+      "evidence": "documentado",
+      "source_file": "systems/hub-producao.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-7",
+      "source": "srv",
+      "target": "hml",
+      "relation": "hospeda",
+      "view": "infra",
+      "evidence": "documentado",
+      "source_file": "systems/hub-homologacao.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-8",
+      "source": "prod",
+      "target": "dbprod",
+      "relation": "utiliza",
+      "view": "infra",
+      "evidence": "documentado",
+      "source_file": "systems/hub-producao.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-9",
+      "source": "hml",
+      "target": "dbhml",
+      "relation": "utiliza",
+      "view": "infra",
+      "evidence": "documentado",
+      "source_file": "systems/hub-homologacao.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-10",
+      "source": "pedido",
+      "target": "job",
+      "relation": "enfileira",
+      "view": "domain",
+      "evidence": "implementado",
+      "source_file": "systems/protecoes-processamento-emissao-hub.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-11",
+      "source": "job",
+      "target": "emissao",
+      "relation": "registra",
+      "view": "domain",
+      "evidence": "implementado",
+      "source_file": "systems/protecoes-processamento-emissao-hub.md",
+      "valid_at": "2026-10-08",
+      "deployment": {
+        "label": "Implantado · auditoria fiscal com pendências",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "source": "systems/deploy-validacao-hub-2026-10-08.md",
+        "verified_at": "2026-10-08"
+      }
+    },
+    {
+      "id": "relation-12",
+      "source": "pedido",
+      "target": "loja",
+      "relation": "pertence a",
+      "view": "domain",
+      "evidence": "implementado",
+      "source_file": "systems/protecoes-processamento-emissao-hub.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-13",
+      "source": "pedido",
+      "target": "volume",
+      "relation": "possui",
+      "view": "domain",
+      "evidence": "proposto",
+      "source_file": "systems/backlog-analise-hub-logistico.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-14",
+      "source": "volume",
+      "target": "separacao",
+      "relation": "composição a definir",
+      "view": "domain",
+      "evidence": "proposto",
+      "source_file": "systems/backlog-analise-hub-logistico.md",
+      "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-15",
+      "source": "separacao",
+      "target": "adapter",
+      "relation": "traduz para WMS",
+      "view": "domain",
+      "evidence": "proposto",
+      "source_file": "systems/backlog-analise-hub-logistico.md",
+      "valid_at": "2026-10-08"
+    }
+  ]
+}

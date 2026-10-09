@@ -1,0 +1,3 @@
+.live-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.live-card{padding:24px;min-width:0}.live-card h2{margin-top:0}.live-card p{overflow-wrap:anywhere}.live-metrics{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;margin:24px 0}.live-metrics dt{color:var(--muted)}.live-metrics dd{margin:0;font-weight:600;text-align:right}.live-warning{border-left:3px solid #d9a44a;padding:8px 12px}.live-card details{margin-top:20px}.live-card li{margin:8px 0}@media(max-width:850px){.live-grid{grid-template-columns:1fr}.live-card{padding:18px}}
+
+@media(max-width:650px){#navigation{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;overflow:visible}.nav-item{min-width:0;text-align:center;overflow-wrap:anywhere}}

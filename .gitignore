@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.brain_hashes.json
+.test_manifest.json
+qdrant_storage/
+ollama_data/
+*.log
+
+# Local BFF secrets and observations
+.runtime/
+.frontend-backups/

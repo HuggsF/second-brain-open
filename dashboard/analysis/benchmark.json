@@ -1,0 +1,670 @@
+{
+  "schema_version": 1,
+  "title": "Benchmark documental de plataformas web de agentes e RAG",
+  "date": "2026-10-08",
+  "timezone": "America/Sao_Paulo",
+  "scope": {
+    "inclusion": "Aplicação com interface web oficial utilizável, agentes executáveis e recuperação de conhecimento documentada; integrações oficiais documentadas com providers externos são aceitas.",
+    "generic_mcp_alone_qualifies": false,
+    "source_policy": "Fontes primárias e revisão de código delimitado, somente leitura.",
+    "compared_configuration": "Interface padrão entregue e seus provedores de conhecimento oficialmente documentados; sem adicionar front-ends próprios aos concorrentes.",
+    "ranking": "Estrelas GitHub, snapshot da API; popularidade não compõe o score.",
+    "measurement_kind": "documentary_task_affordance_coverage",
+    "empirical_competitor_ux_tested": false,
+    "third_party_repositories_executed": false,
+    "external_mutations": false
+  },
+  "search": {
+    "api_url": "https://api.github.com/search/repositories",
+    "query": "stars:>200000 fork:false archived:false",
+    "sort": "stars",
+    "order": "desc",
+    "per_page": 100,
+    "captured_at_utc": "2026-10-08T16:14:04.272262+00:00",
+    "total_count": 29,
+    "incomplete_results": false,
+    "results": [
+      {
+        "repository": "codecrafters-io/build-your-own-x",
+        "stars": 552167
+      },
+      {
+        "repository": "sindresorhus/awesome",
+        "stars": 516422
+      },
+      {
+        "repository": "public-apis/public-apis",
+        "stars": 486901
+      },
+      {
+        "repository": "freeCodeCamp/freeCodeCamp",
+        "stars": 456931
+      },
+      {
+        "repository": "EbookFoundation/free-programming-books",
+        "stars": 398691
+      },
+      {
+        "repository": "openclaw/openclaw",
+        "stars": 391627
+      },
+      {
+        "repository": "donnemartin/system-design-primer",
+        "stars": 373609
+      },
+      {
+        "repository": "nilbuild/developer-roadmap",
+        "stars": 369152
+      },
+      {
+        "repository": "jwasham/coding-interview-university",
+        "stars": 362512
+      },
+      {
+        "repository": "vinta/awesome-python",
+        "stars": 326031
+      },
+      {
+        "repository": "awesome-selfhosted/awesome-selfhosted",
+        "stars": 324830
+      },
+      {
+        "repository": "obra/superpowers",
+        "stars": 296649
+      },
+      {
+        "repository": "practical-tutorials/project-based-learning",
+        "stars": 286258
+      },
+      {
+        "repository": "mattpocock/skills",
+        "stars": 280851
+      },
+      {
+        "repository": "996icu/996.ICU",
+        "stars": 277269
+      },
+      {
+        "repository": "affaan-m/ECC",
+        "stars": 275342
+      },
+      {
+        "repository": "NousResearch/hermes-agent",
+        "stars": 252153
+      },
+      {
+        "repository": "torvalds/linux",
+        "stars": 251450
+      },
+      {
+        "repository": "react/react",
+        "stars": 250935
+      },
+      {
+        "repository": "trimstray/the-book-of-secret-knowledge",
+        "stars": 248679
+      },
+      {
+        "repository": "deepseek-ai/deepseek-harness",
+        "stars": 245783
+      },
+      {
+        "repository": "TheAlgorithms/Python",
+        "stars": 225271
+      },
+      {
+        "repository": "multica-ai/andrej-karpathy-skills",
+        "stars": 217568
+      },
+      {
+        "repository": "vuejs/vue",
+        "stars": 212796
+      },
+      {
+        "repository": "anomalyco/opencode",
+        "stars": 212340
+      },
+      {
+        "repository": "ossu/computer-science",
+        "stars": 209975
+      },
+      {
+        "repository": "n8n-io/n8n",
+        "stars": 206887
+      },
+      {
+        "repository": "DigitalPlatDev/FreeDomain",
+        "stars": 203159
+      },
+      {
+        "repository": "tensorflow/tensorflow",
+        "stars": 200736
+      }
+    ]
+  },
+  "status_definitions": {
+    "documented_present": "Explicitamente descrito em fonte oficial ou demonstrado em código delimitado da revisão fixada; não equivale a usabilidade medida.",
+    "documented_absent_in_scoped_ui": "Não fornecido pela interface padrão delimitada e revisada para o subcritério; não afirma impossibilidade de extensão, ausência de arquitetura de grafo ou ausência em qualquer configuração futura.",
+    "not_evaluated": "Evidência insuficiente; intervalo inclusivo [0, peso].",
+    "conflicting_documentation": "Fontes oficiais conflitantes; intervalo inclusivo [0, peso] sem presumir falha."
+  },
+  "criteria": [
+    {
+      "id": "navigation",
+      "label": "Navegação",
+      "weight": 14,
+      "subcriteria": [
+        {
+          "id": "nav_context",
+          "weight": 7,
+          "description": "Navegação organizada e contexto ativo"
+        },
+        {
+          "id": "nav_destinations",
+          "weight": 7,
+          "description": "Destinos e deep links identificáveis"
+        }
+      ]
+    },
+    {
+      "id": "graph",
+      "label": "Grafo de conhecimento",
+      "weight": 18,
+      "subcriteria": [
+        {
+          "id": "graph_visual",
+          "weight": 6,
+          "description": "Visualização navegável de conhecimento"
+        },
+        {
+          "id": "graph_filters",
+          "weight": 6,
+          "description": "Filtros explícitos de nós e relações"
+        },
+        {
+          "id": "graph_neighborhood",
+          "weight": 6,
+          "description": "Exploração de vizinhança e caminhos"
+        }
+      ]
+    },
+    {
+      "id": "provenance",
+      "label": "Provenance",
+      "weight": 16,
+      "subcriteria": [
+        {
+          "id": "prov_content",
+          "weight": 8,
+          "description": "Fonte e conteúdo identificável"
+        },
+        {
+          "id": "prov_origin_freshness",
+          "weight": 8,
+          "description": "Origem e atualização verificáveis na interface"
+        }
+      ]
+    },
+    {
+      "id": "search",
+      "label": "Busca",
+      "weight": 12,
+      "subcriteria": [
+        {
+          "id": "search_usable",
+          "weight": 6,
+          "description": "Busca utilizável"
+        },
+        {
+          "id": "search_verifiable",
+          "weight": 6,
+          "description": "Escopo e resultados que permitam verificar o achado"
+        }
+      ]
+    },
+    {
+      "id": "accessibility",
+      "label": "Acessibilidade",
+      "weight": 14,
+      "subcriteria": [
+        {
+          "id": "a11y_keyboard",
+          "weight": 7,
+          "description": "Percurso por teclado"
+        },
+        {
+          "id": "a11y_semantics",
+          "weight": 7,
+          "description": "Semântica, foco e contraste verificados"
+        }
+      ]
+    },
+    {
+      "id": "mobile",
+      "label": "Mobile",
+      "weight": 10,
+      "subcriteria": [
+        {
+          "id": "mobile_adaptation",
+          "weight": 5,
+          "description": "Adaptação prevista"
+        },
+        {
+          "id": "mobile_task",
+          "weight": 5,
+          "description": "Tarefas concluídas em viewport móvel"
+        }
+      ]
+    },
+    {
+      "id": "persistence",
+      "label": "Persistência",
+      "weight": 8,
+      "subcriteria": [
+        {
+          "id": "persist_context",
+          "weight": 4,
+          "description": "Contexto selecionado sobrevive a navegação e reload"
+        },
+        {
+          "id": "persist_work",
+          "weight": 4,
+          "description": "Estado de trabalho relevante preservado"
+        }
+      ]
+    },
+    {
+      "id": "states",
+      "label": "Estados",
+      "weight": 8,
+      "subcriteria": [
+        {
+          "id": "states_distinct",
+          "weight": 4,
+          "description": "Vazio, carregamento e erro distinguíveis"
+        },
+        {
+          "id": "states_recovery",
+          "weight": 4,
+          "description": "Recuperação sem perda ou falsa confirmação"
+        }
+      ]
+    }
+  ],
+  "repositories": [
+    {
+      "rank": 1,
+      "name": "OpenClaw",
+      "repository": "openclaw/openclaw",
+      "url": "https://github.com/openclaw/openclaw",
+      "api_url": "https://api.github.com/repos/openclaw/openclaw",
+      "stars": 391627,
+      "captured_at_utc": "2026-10-08T16:12:20.067652+00:00",
+      "branch": "main",
+      "revision": "dc203b5e486d3b931face78556019797dbe3f376",
+      "commit_at_utc": "2026-10-08T16:10:41Z",
+      "qualification": "Web Control UI, agentes isolados, busca híbrida de memória e camada Memory Wiki documentados.",
+      "dependencies": [
+        "Embeddings exigem provedor configurado",
+        "Memory Wiki é plugin integrado"
+      ],
+      "sources": [
+        "https://docs.openclaw.ai/web/control-ui",
+        "https://docs.openclaw.ai/concepts/memory",
+        "https://docs.openclaw.ai/concepts/multi-agent",
+        "https://github.com/openclaw/openclaw/blob/dc203b5e486d3b931face78556019797dbe3f376/ui/src/pages/agents/memory/view.ts#L1056"
+      ],
+      "subcriterion_status": {
+        "nav_context": "documented_present",
+        "nav_destinations": "documented_present",
+        "graph_visual": "documented_absent_in_scoped_ui",
+        "graph_filters": "documented_absent_in_scoped_ui",
+        "graph_neighborhood": "documented_absent_in_scoped_ui",
+        "prov_content": "documented_present",
+        "prov_origin_freshness": "not_evaluated",
+        "search_usable": "documented_present",
+        "search_verifiable": "not_evaluated",
+        "a11y_keyboard": "not_evaluated",
+        "a11y_semantics": "not_evaluated",
+        "mobile_adaptation": "not_evaluated",
+        "mobile_task": "not_evaluated",
+        "persist_context": "documented_present",
+        "persist_work": "not_evaluated",
+        "states_distinct": "documented_present",
+        "states_recovery": "not_evaluated"
+      },
+      "criterion_intervals": {
+        "navigation": [
+          14,
+          14
+        ],
+        "graph": [
+          0,
+          0
+        ],
+        "provenance": [
+          8,
+          16
+        ],
+        "search": [
+          6,
+          12
+        ],
+        "accessibility": [
+          0,
+          14
+        ],
+        "mobile": [
+          0,
+          10
+        ],
+        "persistence": [
+          4,
+          8
+        ],
+        "states": [
+          4,
+          8
+        ]
+      },
+      "total_interval": [
+        36,
+        82
+      ],
+      "graph_evidence": {
+        "scope": "Painel padrão Memory Wiki de memória/claims revisado, sem interfaces adicionais próprias.",
+        "observation": "Clusters, cards, contagens, páginas e preview; não um explorador interativo de nós/relações com filtros e vizinhança.",
+        "url": "https://github.com/openclaw/openclaw/blob/dc203b5e486d3b931face78556019797dbe3f376/ui/src/pages/agents/memory/view.ts#L1056",
+        "limitation": "Zero para o explorador interativo específico; não para memória estruturada ou geração de diagramas."
+      }
+    },
+    {
+      "rank": 2,
+      "name": "Hermes Agent",
+      "repository": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "api_url": "https://api.github.com/repos/NousResearch/hermes-agent",
+      "stars": 252153,
+      "captured_at_utc": "2026-10-08T16:12:20.067652+00:00",
+      "branch": "main",
+      "revision": "38880bd2f1e90dbc9a1aeec03af62539ee64719a",
+      "commit_at_utc": "2026-10-08T14:18:00Z",
+      "qualification": "Dashboard web oficial, profiles e agentes, recuperação de sessões FTS5 e providers externos de memória semântica documentados.",
+      "dependencies": [
+        "RAG semântico e ingestão de documentos dependem de providers externos, por exemplo OpenViking",
+        "Chat web incorpora TUI via PTY e exige POSIX"
+      ],
+      "sources": [
+        "https://hermes-agent.nousresearch.com/docs/user-guide/features/web-dashboard/",
+        "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory/",
+        "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers/",
+        "https://github.com/NousResearch/hermes-agent/blob/38880bd2f1e90dbc9a1aeec03af62539ee64719a/web/src/App.tsx#L159",
+        "https://github.com/NousResearch/hermes-agent/blob/38880bd2f1e90dbc9a1aeec03af62539ee64719a/ui-tui/src/components/journey.tsx#L294",
+        "https://github.com/NousResearch/hermes-agent/blob/38880bd2f1e90dbc9a1aeec03af62539ee64719a/ui-tui/src/components/journey.tsx#L448"
+      ],
+      "subcriterion_status": {
+        "nav_context": "documented_present",
+        "nav_destinations": "documented_present",
+        "graph_visual": "documented_present",
+        "graph_filters": "documented_absent_in_scoped_ui",
+        "graph_neighborhood": "documented_absent_in_scoped_ui",
+        "prov_content": "documented_present",
+        "prov_origin_freshness": "not_evaluated",
+        "search_usable": "documented_present",
+        "search_verifiable": "documented_present",
+        "a11y_keyboard": "not_evaluated",
+        "a11y_semantics": "not_evaluated",
+        "mobile_adaptation": "documented_present",
+        "mobile_task": "not_evaluated",
+        "persist_context": "documented_present",
+        "persist_work": "not_evaluated",
+        "states_distinct": "documented_present",
+        "states_recovery": "not_evaluated"
+      },
+      "criterion_intervals": {
+        "navigation": [
+          14,
+          14
+        ],
+        "graph": [
+          6,
+          6
+        ],
+        "provenance": [
+          8,
+          16
+        ],
+        "search": [
+          12,
+          12
+        ],
+        "accessibility": [
+          0,
+          14
+        ],
+        "mobile": [
+          5,
+          10
+        ],
+        "persistence": [
+          4,
+          8
+        ],
+        "states": [
+          4,
+          8
+        ]
+      },
+      "total_interval": [
+        53,
+        88
+      ],
+      "graph_evidence": {
+        "scope": "Journey no TUI real incorporado ao chat web, reconhecido como capacidade da interface web.",
+        "observation": "Gráfico/timeline de aprendizagem e seleção/leitura de nós; controles de leitura, edição, exclusão e navegação por teclado; sem filtros de relações e exploração por hops nos controles delimitados.",
+        "urls": [
+          "https://github.com/NousResearch/hermes-agent/blob/38880bd2f1e90dbc9a1aeec03af62539ee64719a/ui-tui/src/components/journey.tsx#L294",
+          "https://github.com/NousResearch/hermes-agent/blob/38880bd2f1e90dbc9a1aeec03af62539ee64719a/ui-tui/src/components/journey.tsx#L448"
+        ],
+        "limitation": "Não zerar o grafo por não existir uma GraphPage em web/src/pages. O TUI web fornece visualização de aprendizagem real."
+      }
+    },
+    {
+      "rank": 3,
+      "name": "DeepSeek Harness",
+      "repository": "deepseek-ai/deepseek-harness",
+      "url": "https://github.com/deepseek-ai/deepseek-harness",
+      "api_url": "https://api.github.com/repos/deepseek-ai/deepseek-harness",
+      "stars": 245783,
+      "captured_at_utc": "2026-10-08T16:15:03.885449+00:00",
+      "branch": "master",
+      "revision": "5badb15009ae1756c3afe0ae0cef1faafc290ccc",
+      "commit_at_utc": "2026-10-03T03:48:13Z",
+      "archived": false,
+      "qualification": "UI web oficial dsh web, agentes/subagentes e integração oficial documentada com providers de recuperação de memória MCP.",
+      "dependencies": [
+        "Memória MCP externa e desativada por padrão",
+        "Reference-memory fornece knowledge graph e busca por substring, sem embeddings",
+        "Servidores/providers precisam de instalação e configuração independentes"
+      ],
+      "sources": [
+        "https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/README.md",
+        "https://deepseek-harness.github.io/deepseek-harness/en/guide/mcp-memory",
+        "https://deepseek-harness.github.io/deepseek-harness/en/reference/subsystems/subagent",
+        "https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/docs/subsystems/sidebar-right.md#L139"
+      ],
+      "subcriterion_status": {
+        "nav_context": "documented_present",
+        "nav_destinations": "not_evaluated",
+        "graph_visual": "documented_absent_in_scoped_ui",
+        "graph_filters": "documented_absent_in_scoped_ui",
+        "graph_neighborhood": "documented_absent_in_scoped_ui",
+        "prov_content": "documented_present",
+        "prov_origin_freshness": "not_evaluated",
+        "search_usable": "not_evaluated",
+        "search_verifiable": "not_evaluated",
+        "a11y_keyboard": "not_evaluated",
+        "a11y_semantics": "not_evaluated",
+        "mobile_adaptation": "not_evaluated",
+        "mobile_task": "not_evaluated",
+        "persist_context": "conflicting_documentation",
+        "persist_work": "conflicting_documentation",
+        "states_distinct": "documented_present",
+        "states_recovery": "not_evaluated"
+      },
+      "criterion_intervals": {
+        "navigation": [
+          7,
+          14
+        ],
+        "graph": [
+          0,
+          0
+        ],
+        "provenance": [
+          8,
+          16
+        ],
+        "search": [
+          0,
+          12
+        ],
+        "accessibility": [
+          0,
+          14
+        ],
+        "mobile": [
+          0,
+          10
+        ],
+        "persistence": [
+          0,
+          8
+        ],
+        "states": [
+          4,
+          8
+        ]
+      },
+      "total_interval": [
+        19,
+        82
+      ],
+      "graph_evidence": {
+        "scope": "Composição web padrão e providers de memória MCP oficialmente documentados, sem renderizador de grafo próprio adicionado.",
+        "observation": "Grafo no servidor MCP, acessado por ferramentas; catálogo de painéis entregue contém guide, arquivos/document preview, browser e subagentchat; não fornece explorador nativo do grafo do provider.",
+        "url": "https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/docs/subsystems/sidebar-right.md#L139",
+        "limitation": "Não significa ausência de knowledge graph no backend nem impossibilidade de criar plugin ou artefato de visualização."
+      },
+      "conflicts": [
+        {
+          "criterion": "persistence",
+          "description": "Linha11 afirma reload restaurar layouts; seção Not built linha150 afirma estado apenas em memória. Não presumir falha sem verificar implementação.",
+          "urls": [
+            "https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/docs/subsystems/sidebar-right.md#L11",
+            "https://github.com/deepseek-ai/deepseek-harness/blob/5badb15009ae1756c3afe0ae0cef1faafc290ccc/docs/subsystems/sidebar-right.md#L150"
+          ]
+        }
+      ]
+    }
+  ],
+  "comparison_condition": {
+    "maximum_competitor_documentary_upper_bound": 88,
+    "local_target": "local_verified_task_coverage > 88",
+    "minimum_integer_score": 89,
+    "local_score": 100,
+    "independent_local_review_required": true,
+    "permitted_conclusion": "Superou o limite documental de cobertura das tarefas escolhidas, sob os mesmos subcritérios e com evidência local suficiente.",
+    "not_permitted_conclusions": [
+      "UX empiricamente superior sem testar as mesmas tarefas nos concorrentes",
+      "Plataforma superior em execução, escalabilidade, qualidade de RAG ou arquitetura",
+      "Grafo externo por substring equivale a GraphRAG semântico completo",
+      "Dados simulados e agentes locais determinísticos equivalem a execução multiagente real"
+    ],
+    "local_measurement": "17 binary task-affordance criteria, independently reviewed;33 automated tests and local browser QA; not global UX superiority",
+    "local_evidence": [
+      "final-independent-review.md",
+      "qa-evidence.json",
+      "WAVES.md"
+    ]
+  },
+  "architecture_separate_axis": [
+    "Schema de entidades/relações",
+    "Identidade e provenance",
+    "Recuperação híbrida e travessia real do grafo",
+    "Citações",
+    "Isolamento de agentes",
+    "Contratos de execução",
+    "Cancelamento e retomada",
+    "Permissões",
+    "Métricas"
+  ],
+  "other_candidates": [
+    {
+      "repository": "n8n-io/n8n",
+      "stars": 206887,
+      "status": "qualified_below_top3"
+    },
+    {
+      "repository": "Significant-Gravitas/AutoGPT",
+      "stars": 187684,
+      "status": "web_agents_present_specific_rag_not_confirmed"
+    },
+    {
+      "repository": "langgenius/dify",
+      "stars": 158094,
+      "status": "qualified_below_top3"
+    },
+    {
+      "repository": "langflow-ai/langflow",
+      "stars": 155577,
+      "status": "qualified_below_top3"
+    },
+    {
+      "repository": "open-webui/open-webui",
+      "stars": 154214,
+      "status": "qualified_below_top3"
+    },
+    {
+      "repository": "infiniflow/ragflow",
+      "stars": 91839,
+      "status": "qualified_below_top3"
+    },
+    {
+      "repository": "lobehub/lobehub",
+      "stars": 83059,
+      "status": "qualified_below_top3"
+    },
+    {
+      "repository": "Mintplex-Labs/anything-llm",
+      "stars": 66824,
+      "status": "qualified_below_top3"
+    },
+    {
+      "repository": "FlowiseAI/Flowise",
+      "stars": 55493,
+      "status": "excluded_archived",
+      "archived": true
+    },
+    {
+      "repository": "LibreChat-AI/LibreChat",
+      "stars": 45410,
+      "status": "qualified_below_top3"
+    },
+    {
+      "repository": "anomalyco/opencode",
+      "stars": 212340,
+      "status": "web_agents_present_specific_knowledge_retrieval_not_confirmed"
+    },
+    {
+      "repository": "obra/superpowers",
+      "stars": 296649,
+      "status": "excluded_not_complete_web_platform"
+    },
+    {
+      "repository": "affaan-m/ECC",
+      "stars": 275342,
+      "status": "excluded_not_complete_web_platform"
+    }
+  ]
+}

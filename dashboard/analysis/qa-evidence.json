@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "zone": "America/Sao_Paulo",
+  "scope": "Task-affordance coverage; not overall UX superiority, WCAG certification or backend execution.",
+  "automated": {
+    "node": {
+      "passed": 29,
+      "failed": 0,
+      "command": "node --test --test-isolation=none tests/core.test.cjs tests/markdown.test.cjs tests/integration.test.cjs"
+    },
+    "python": {
+      "passed": 4,
+      "failed": 0,
+      "command": "python tests/test_build_graph.py",
+      "note": "Windows sandbox ACL prevented temporary fixtures; authorized escalated rerun passed."
+    }
+  },
+  "desktop": [
+    {
+      "id": "keyboard-svg",
+      "result": "pass",
+      "evidence": "Enter on Hub SVG node retained aria-label Hub Logístico, Implementado no código and inspector Hub Logístico."
+    },
+    {
+      "id": "global-search-filters",
+      "result": "pass",
+      "evidence": "ERP domain filter then global J&T search opened J&T inspector and reset domain to all; 6 entities visible."
+    },
+    {
+      "id": "dialog-shortcuts",
+      "result": "pass",
+      "evidence": "Ctrl+K focused global-query; Escape closed dialog and returned focus to search-open after explicit handler fix."
+    },
+    {
+      "id": "skip-link",
+      "result": "pass",
+      "evidence": "Enter focused main; existing graph hash with view/from/to/node remained intact."
+    },
+    {
+      "id": "graph-path",
+      "result": "pass",
+      "evidence": "Shopify → Yampi → Bling → Hub Logístico → J&T Express; 4 documented relations."
+    },
+    {
+      "id": "graph-empty",
+      "result": "pass",
+      "evidence": "zzzzsemresultado produced 0 nodes/0 relations and cleared hidden selection; button Limpar filtros."
+    },
+    {
+      "id": "retrieval-reader",
+      "result": "pass",
+      "evidence": "Enter for rastreio cancelado retrieved 6 citations; F1 opened daily/2026-10-08.md lines19–24 hash4b346782b9e9ae9adb24cd3a51f594e30e5e55ecd211f2ebe2e3e584c7e37937 at test snapshot."
+    },
+    {
+      "id": "favorites-history",
+      "result": "pass",
+      "evidence": "Favorite persisted across reload (aria-pressed=true); browser Back restored Contexto recuperado."
+    },
+    {
+      "id": "invalid-plan",
+      "result": "pass",
+      "evidence": "research depends write created cycle, persisted across reload, Exportar JSON blocked with notice; Restaurar modelo returned valid state."
+    },
+    {
+      "id": "draft-plan",
+      "result": "pass",
+      "evidence": "Edited step name persisted across reload."
+    },
+    {
+      "id": "malformed-snapshot",
+      "result": "pass",
+      "evidence": "tests/bad-snapshot.html with null view showed recovery heading; global search showed unavailable. Console errors[]; test tab closed."
+    },
+    {
+      "id": "unknown-source",
+      "result": "pass",
+      "evidence": "#page=knowledge&doc=__proto__ showed Fonte não encontrada no snapshot, no TypeError."
+    },
+    {
+      "id": "theme",
+      "result": "pass",
+      "evidence": "Light theme survived reload, then restored dark. Read actual CSS tokens matched independent contrast calculation."
+    },
+    {
+      "id": "console",
+      "result": "pass",
+      "evidence": "Actual dashboard error logs[] at conclusion of tested flows."
+    }
+  ],
+  "mobile": {
+    "viewport": {
+      "width": 375,
+      "height": 812
+    },
+    "result": "pass",
+    "tasks": [
+      "default graph list; Enter Hub, focus neighborhood, Enter Bling retained focus data-node=bling; 3entities/2relations",
+      "source Bling opened; 2 semantic tables; Markdown14px; document scrollWidth360 <= viewport375",
+      "source-card activation focused Leitor de fonte; reader top0; source+hash+line-range screenshot mobile-reader.jpg",
+      "query zzzzqueryneverexists showed no textual evidence; rollback produção returned6citations, body scrollWidth360",
+      "agent plan renamed, survived reload with valid3steps210s; no execution; body scrollWidth360",
+      "viewport override reset after testing"
+    ],
+    "screenshots": [
+      "mobile-reader.jpg",
+      "mobile-plan.jpg"
+    ]
+  },
+  "accessibility": {
+    "scope": "Native DOM semantics, tested keyboard/focus and token contrasts in both themes. No screen-reader/user study or full WCAG audit.",
+    "table": "Real th scope=col; accessible form labels, dialogs and buttons in DOM snapshots.",
+    "contrast": {
+      "dark": {
+        "text": 14.78,
+        "muted": 8.13,
+        "accent": 12.8
+      },
+      "light": {
+        "text": 15.19,
+        "muted": 6.62,
+        "accent": 6.7
+      }
+    },
+    "minimumNormalTextRatio": 4.5
+  },
+  "limitations": [
+    "Benchmark references evaluated from pinned primary docs/source, not same empirical task suite.",
+    "No embeddings/LLM answer, agent execution or live telemetry connected.",
+    "No large-catalog performance/load study; current19entities16relations.",
+    "Snapshots are local documentary evidence, never live production health."
+  ],
+  "recorded_at": "2026-10-08 17:05:52 UTC",
+  "installed_validation": {
+    "snapshot_id": "14c2611be182bcc20dea772f9e79139e4c848ab3a72614bc0e738e104fc315c2",
+    "sources": 33,
+    "entities": 19,
+    "relations": 16,
+    "node_tests": 29,
+    "relation_filter": "POST opcional:6entities1relation; clearing:6entities5relations",
+    "console_errors": 0,
+    "server": "http://127.0.0.1:8847/dashboard/",
+    "pid": 38720,
+    "screenshots": [
+      "desktop-overview.jpg",
+      "desktop-graph.jpg"
+    ],
+    "note": "Screenshots captured at normal viewport; full-page screenshot unsupported, standard screenshot used."
+  }
+}
