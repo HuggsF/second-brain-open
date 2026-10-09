@@ -152,8 +152,9 @@ the agent unchanged.
 
 ## 9. Risks and open points
 
-- O1. Whether the FastMCP 4.0.11 context exposes the client name for D3 is verified in the first
-  test of step 2; if it does not, `caller` stays `unknown` and the spec is not changed.
+- O1. Resolved: FastMCP 4.0.11 exposes the client name at
+  `context.fastmcp_context.session.client_params.client_info.name`; `caller` is `unknown` only
+  when that lookup fails.
 - O2. An agent that never passes `task_id` produces one trace per call. That is accepted
   (case A) and visible in `cli.py trace --recent`.
 - O3. The log is not tamper-evident. Out of scope; it is evidence for the owner, not for third

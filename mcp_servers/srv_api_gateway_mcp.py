@@ -1,13 +1,14 @@
-import json
 import os
 import re
 import sys
-import time
 from pathlib import Path
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 import paramiko
 from fastmcp import FastMCP
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from core.trace_middleware import TraceMiddleware
+from core.tracing import emit_child
 
 # Carregar variáveis de ambiente
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,27 +20,15 @@ PORT = int(os.getenv("SRV_API_PORT", "22"))
 KEY_PATH = os.getenv("SRV_API_KEY_PATH", r"C:\KIOSK\SRV-API_key.pem")
 
 mcp = FastMCP("SRV-API Gateway")
+mcp.add_middleware(TraceMiddleware('SRV-API Gateway'))
 
 RUNTIME_DIR = BASE_DIR / ".runtime"
 KNOWN_HOSTS = RUNTIME_DIR / "known_hosts"
-AUDIT_LOG = RUNTIME_DIR / "gateway-audit.jsonl"
 # Comandos arbitrários só com opt-in explícito no .env (SRV_API_ALLOW_ARBITRARY=1).
 ALLOW_ARBITRARY = os.getenv("SRV_API_ALLOW_ARBITRARY", "0") == "1"
 
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.@-]{0,63}$")
 MAX_LOG_LINES = 500
-
-
-def _audit(tool: str, command: str, outcome: str, exit_code: Optional[int] = None) -> None:
-    """Registra cada chamada (quando, qual ferramenta, qual comando, resultado). Nunca interrompe a chamada."""
-    try:
-        RUNTIME_DIR.mkdir(exist_ok=True)
-        entry = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "tool": tool,
-                 "command": command[:500], "outcome": outcome, "exit_code": exit_code}
-        with open(AUDIT_LOG, "a", encoding="utf-8") as f:
-            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-    except Exception:
-        pass
 
 
 def _get_ssh_client() -> paramiko.SSHClient:
@@ -60,7 +49,7 @@ def _get_ssh_client() -> paramiko.SSHClient:
     client.save_host_keys(str(KNOWN_HOSTS))
     return client
 
-def _exec_command(cmd: str, timeout: int = 30, tool: str = "exec") -> Dict[str, Any]:
+def _exec_command(cmd: str, timeout: int = 30) -> Dict[str, Any]:
     client = None
     try:
         client = _get_ssh_client()
@@ -68,7 +57,7 @@ def _exec_command(cmd: str, timeout: int = 30, tool: str = "exec") -> Dict[str, 
         out = stdout.read().decode("utf-8", errors="replace")
         err = stderr.read().decode("utf-8", errors="replace")
         exit_code = stdout.channel.recv_exit_status()
-        _audit(tool, cmd, "executed", exit_code)
+        emit_child("ssh.exec", "ok" if exit_code == 0 else "error", {"command": cmd, "exit_code": exit_code})
         return {
             "success": exit_code == 0,
             "exit_code": exit_code,
@@ -76,7 +65,7 @@ def _exec_command(cmd: str, timeout: int = 30, tool: str = "exec") -> Dict[str, 
             "stderr": err.strip()
         }
     except Exception as e:
-        _audit(tool, cmd, f"error: {type(e).__name__}", -1)
+        emit_child("ssh.exec", "error", {"command": cmd}, error_type=type(e).__name__)
         return {
             "success": False,
             "exit_code": -1,
@@ -88,11 +77,12 @@ def _exec_command(cmd: str, timeout: int = 30, tool: str = "exec") -> Dict[str, 
             client.close()
 
 @mcp.tool()
-def srv_api_health_check() -> Dict[str, Any]:
+def srv_api_health_check(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Testa a conectividade com o servidor SRV-API e retorna informações de uptime e sistema operacional.
+    task_id: optional label that groups this call with others of the same task
     """
-    res = _exec_command("hostname; uname -a; uptime", tool="health_check")
+    res = _exec_command("hostname; uname -a; uptime")
     return {
         "status": "online" if res["success"] else "error",
         "host": HOST,
@@ -100,36 +90,39 @@ def srv_api_health_check() -> Dict[str, Any]:
     }
 
 @mcp.tool()
-def srv_api_resource_usage() -> Dict[str, Any]:
+def srv_api_resource_usage(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Retorna o uso de recursos do servidor: memória RAM (free -h), espaço em disco (df -h) e carga de CPU.
+    task_id: optional label that groups this call with others of the same task
     """
     cmd = "echo '=== MEMORIA ===' && free -h && echo '=== DISCO ===' && df -h / && echo '=== CPU / CARGA ===' && uptime"
-    res = _exec_command(cmd, tool="resource_usage")
+    res = _exec_command(cmd)
     return {
         "success": res["success"],
         "output": res["stdout"] if res["success"] else res["stderr"]
     }
 
 @mcp.tool()
-def srv_api_list_services() -> Dict[str, Any]:
+def srv_api_list_services(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Lista os containers Docker ativos (ou serviços em execução) no servidor SRV-API.
+    task_id: optional label that groups this call with others of the same task
     """
     cmd = "if command -v docker >/dev/null 2>&1; then docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'; else systemctl list-units --type=service --state=running | head -n 25; fi"
-    res = _exec_command(cmd, tool="list_services")
+    res = _exec_command(cmd)
     return {
         "success": res["success"],
         "services": res["stdout"] if res["success"] else res["stderr"]
     }
 
 @mcp.tool()
-def srv_api_view_logs(service_name: str, lines: int = 50) -> str:
+def srv_api_view_logs(service_name: str, lines: int = 50, task_id: Optional[str] = None) -> str:
     """
     Recupera as últimas linhas de log de um container Docker ou serviço systemd no servidor.
     Args:
         service_name: Nome do container ou serviço (ex: 'api', 'nginx', 'postgres')
         lines: Quantidade de linhas a visualizar (padrão: 50)
+    task_id: optional label that groups this call with others of the same task
     """
     if not _SAFE_NAME.match(service_name or ""):
         return "Erro: service_name inválido (use só letras, números, '.', '_', '-', '@'; máx. 64 caracteres)."
@@ -138,7 +131,7 @@ def srv_api_view_logs(service_name: str, lines: int = 50) -> str:
     except (TypeError, ValueError):
         return "Erro: 'lines' deve ser um número inteiro."
     cmd = f"if command -v docker >/dev/null 2>&1 && docker ps -a --format '{{{{.Names}}}}' | grep -qw '{service_name}'; then docker logs --tail {lines} {service_name}; else journalctl -u {service_name} -n {lines} --no-pager 2>&1 || echo 'Serviço não encontrado'; fi"
-    res = _exec_command(cmd, tool="view_logs")
+    res = _exec_command(cmd)
     return res["stdout"] if res["success"] else f"Erro ao ler logs: {res['stderr']}"
 
 # Comandos de inspeção aceites por omissão (só leitura). Defesa em camadas, não uma fronteira de segurança:
@@ -177,20 +170,21 @@ def _check_read_only(command: str) -> str:
 
 
 @mcp.tool()
-def srv_api_run_safe_command(command: str) -> Dict[str, Any]:
+def srv_api_run_safe_command(command: str, task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Executa comandos de INSPEÇÃO (só leitura) no servidor remoto, sem encadeamento de shell.
     Aceita: ls, cat, head, tail, ps, df, du, free, uptime, hostname, uname, whoami, date, journalctl,
     grep, wc, find (sem -exec/-delete), docker (ps, logs, inspect, stats, images, top, version, info)
     e systemctl (status, list-units, is-active, ...). Tudo o resto é recusado e registado.
-    Todas as chamadas ficam em .runtime/gateway-audit.jsonl.
+    Todas as chamadas ficam em .runtime/trace-log.jsonl.
     Args:
         command: Comando simples, ex: 'ls -la /var/www', 'docker ps', 'ps aux'
+    task_id: optional label that groups this call with others of the same task
     """
     forbidden = ["rm -rf", "mkfs", "dd if=", ":(){ :|:& };:", "shutdown", "reboot", "init 0"]
     for danger in forbidden:
         if danger in command:
-            _audit("run_safe_command", command, f"blocked: {danger}")
+            emit_child("ssh.refused", "refused", {"command": command, "reason": f"blocked: {danger}"})
             return {
                 "success": False,
                 "exit_code": -1,
@@ -201,7 +195,7 @@ def srv_api_run_safe_command(command: str) -> Dict[str, Any]:
     if not ALLOW_ARBITRARY:
         reason = _check_read_only(command)
         if reason:
-            _audit("run_safe_command", command, f"refused: {reason}")
+            emit_child("ssh.refused", "refused", {"command": command, "reason": reason})
             return {
                 "success": False,
                 "exit_code": -1,
@@ -209,7 +203,7 @@ def srv_api_run_safe_command(command: str) -> Dict[str, Any]:
                 "stderr": f"Recusado: {reason}. Fora da inspeção é preciso autorização humana e SRV_API_ALLOW_ARBITRARY=1 no .env."
             }
 
-    return _exec_command(command, tool="run_safe_command")
+    return _exec_command(command)
 
 if __name__ == "__main__":
     mcp.run()

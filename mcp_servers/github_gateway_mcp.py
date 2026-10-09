@@ -4,6 +4,10 @@ from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
 import httpx
 from fastmcp import FastMCP
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from core.trace_middleware import TraceMiddleware
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -11,6 +15,7 @@ load_dotenv(BASE_DIR / ".env")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
 mcp = FastMCP("GitHub Gateway")
+mcp.add_middleware(TraceMiddleware('GitHub Gateway'))
 
 def _get_headers() -> Dict[str, str]:
     headers = {
@@ -23,9 +28,10 @@ def _get_headers() -> Dict[str, str]:
     return headers
 
 @mcp.tool()
-def github_check_status() -> Dict[str, Any]:
+def github_check_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Verifica se o token do GitHub configurado no .env é válido e retorna o usuário autenticado.
+    task_id: optional label that groups this call with others of the same task
     """
     if not GITHUB_TOKEN:
         return {
@@ -55,12 +61,13 @@ def github_check_status() -> Dict[str, Any]:
         return {"status": "error", "message": str(e)}
 
 @mcp.tool()
-def github_list_repositories(org_name: Optional[str] = None, per_page: int = 30) -> List[Dict[str, Any]]:
+def github_list_repositories(org_name: Optional[str] = None, per_page: int = 30, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Lista os repositórios disponíveis na conta ou em uma organização específica do GitHub.
     Args:
         org_name: (Opcional) Nome da organização da holding (ex: 'kiosk-brands'). Se omitido, lista da conta do usuário.
         per_page: Quantidade máxima de repositórios a retornar (padrão: 30).
+    task_id: optional label that groups this call with others of the same task
     """
     if not GITHUB_TOKEN:
         return [{"error": "GITHUB_TOKEN não encontrado no .env"}]
@@ -89,12 +96,13 @@ def github_list_repositories(org_name: Optional[str] = None, per_page: int = 30)
         return [{"error": str(e)}]
 
 @mcp.tool()
-def github_get_repository_details(owner: str, repo: str) -> Dict[str, Any]:
+def github_get_repository_details(owner: str, repo: str, task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Recupera detalhes aprofundados de um repositório específico (branches, último commit, linguagens).
     Args:
         owner: Proprietário ou organização (ex: 'kioskbrands' ou seu usuário).
         repo: Nome do repositório.
+    task_id: optional label that groups this call with others of the same task
     """
     if not GITHUB_TOKEN:
         return {"error": "GITHUB_TOKEN não configurado"}
@@ -132,12 +140,13 @@ def github_get_repository_details(owner: str, repo: str) -> Dict[str, Any]:
         return {"error": str(e)}
 
 @mcp.tool()
-def github_search_code(query: str, owner: Optional[str] = None) -> List[Dict[str, Any]]:
+def github_search_code(query: str, owner: Optional[str] = None, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Busca por termos de código (ex: 'Service Layer', 'SAP', 'Saurus') nos repositórios da conta.
     Args:
         query: Termo de busca (ex: 'hub-sap', 'HCO003').
         owner: (Opcional) Filtrar por usuário ou organização.
+    task_id: optional label that groups this call with others of the same task
     """
     if not GITHUB_TOKEN:
         return [{"error": "GITHUB_TOKEN não configurado"}]
@@ -166,13 +175,14 @@ def github_search_code(query: str, owner: Optional[str] = None) -> List[Dict[str
         return [{"error": str(e)}]
 
 @mcp.tool()
-def github_list_contents(owner: str, repo: str, path: str = "") -> List[Dict[str, Any]]:
+def github_list_contents(owner: str, repo: str, path: str = "", task_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Lista os arquivos e diretórios de um repositório no GitHub para auditoria de estrutura.
     Args:
         owner: Dono do repositório (ex: 'userTI10').
         repo: Nome do repositório (ex: 'projetodeengenharia').
         path: Caminho relativo dentro do repositório (opcional, padrão: raiz "").
+    task_id: optional label that groups this call with others of the same task
     """
     if not GITHUB_TOKEN:
         return [{"error": "GITHUB_TOKEN não configurado"}]

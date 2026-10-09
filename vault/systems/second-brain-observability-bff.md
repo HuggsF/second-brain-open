@@ -49,3 +49,7 @@ Parar somente o processo do BFF iniciado nesta wave. Restaurar os arquivos alter
 ## Validação da wave
 
 Seis testes Python do BFF e 30 testes Node do dashboard aprovados. Integração FastMCP executada realmente nos dois ambientes com host pinado. Validada em navegador a sessão, as coletas reais, os alertas e o histórico. Observação recente de produção indicou erros em UPDATE do Bling, que exigem investigação independente; nenhum reparo automático é executado.
+
+## Log de rastreio das chamadas MCP
+
+Todas as ferramentas dos quatro servidores MCP gravam um registo em `.runtime/trace-log.jsonl` (ver ADR-004): `trace_id` e `span_id` no formato W3C, ferramenta, duração, estado e argumentos resumidos sem segredos. O parâmetro opcional `task_id` agrupa as chamadas de uma tarefa. O BFF ainda não lê este log; os próximos passos (árvore de evidências, mapa e vista dos agentes) vão consumi-lo. Consulta: `cli.py trace <trace_id>` ou `cli.py trace --recent N`.
