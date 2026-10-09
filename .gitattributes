@@ -1,0 +1,3 @@
+# The dashboard hashes vault notes byte for byte (citation hashes in graph-data.js), and the
+# notes on disk are CRLF (Windows). Keep CRLF on every checkout, whatever core.autocrlf says.
+vault/** text eol=crlf
