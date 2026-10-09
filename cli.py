@@ -147,8 +147,9 @@ def _trace_log_path():
 
 def _by_start(records: list) -> list:
     """A call is written when it ends but stamped with when it started; order by that stamp
-    (stable), so a call is listed before the child events that happened inside it."""
-    return sorted(records, key=lambda r: str(r.get("ts", "")))
+    (stable; at an equal stamp the call precedes its children), so a call is listed before the
+    child events that happened inside it."""
+    return sorted(records, key=lambda r: (str(r.get("ts", "")), 1 if r.get("parent_span_id") else 0))
 
 
 def _trace_line(record: dict, with_trace_id: bool = False) -> str:

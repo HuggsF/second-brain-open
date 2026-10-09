@@ -55,6 +55,15 @@ class TestTraceCommand(unittest.TestCase):
         self.assertIn("error", lines[2])
         self.assertNotIn("get_adr", result.output)
 
+    def test_call_is_listed_before_its_child_when_timestamps_tie(self):
+        same = "2026-10-09T12:00:00.500-03:00"
+        tracing.write_record(record(TRACE_A, "2" * 16, "t", event="ssh.refused", status="refused", parent="1" * 16, ts=same), self.log)
+        tracing.write_record(record(TRACE_A, "1" * 16, "t", ms=1, ts=same), self.log)
+        lines = [l for l in self.runner.invoke(cli_module.cli, ["trace", TRACE_A]).output.splitlines() if l.strip()]
+        self.assertEqual(len(lines), 2)
+        self.assertIn("call", lines[0])
+        self.assertIn("ssh.refused", lines[1])
+
     def test_trace_unknown_id_exits_1(self):
         self.seed()
         result = self.runner.invoke(cli_module.cli, ["trace", "c" * 32])
