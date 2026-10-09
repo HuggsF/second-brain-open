@@ -1,4 +1,6 @@
 import unittest
+from unittest.mock import patch
+from qdrant_client import QdrantClient
 from pathlib import Path
 from config import settings
 from core.hasher import ManifestManager
@@ -29,11 +31,31 @@ class TestSecondBrainCore(unittest.TestCase):
             test_manifest.unlink()
 
     def test_qdrant_connection_and_collection(self):
-        store = QdrantStore()
+        client = QdrantClient(location=":memory:")
+        self.addCleanup(client.close)
+        with patch("core.qdrant_store.QdrantClient", return_value=client):
+            store = QdrantStore()
+
         store.ensure_collection(vector_size=768)
         stats = store.get_stats()
-        self.assertNotIn("error", stats, f"Qdrant deve estar online: {stats.get('error')}")
+        self.assertNotIn("error", stats, f"Colecao local deve existir: {stats.get('error')}")
         self.assertEqual(stats["collection"], settings.qdrant_collection)
+        self.assertEqual(stats["points_count"], 0)
+        collection = client.get_collection(settings.qdrant_collection)
+        self.assertEqual(collection.config.params.vectors.size, 768)
+
+        independent_client = QdrantClient(location=":memory:")
+        self.addCleanup(independent_client.close)
+        with patch("core.qdrant_store.QdrantClient", return_value=independent_client):
+            independent_store = QdrantStore()
+        independent_store.ensure_collection(vector_size=768)
+
+        store.upsert_chunks(
+            [{"id": "offline-test-chunk", "content": "Local test content", "metadata": {}}],
+            [[1.0] + [0.0] * 767],
+        )
+        self.assertEqual(store.get_stats()["points_count"], 1)
+        self.assertEqual(independent_store.get_stats()["points_count"], 0)
 
 if __name__ == "__main__":
     unittest.main()
