@@ -24,7 +24,7 @@ test('actual citations match original line ranges and byte hashes',()=>{
    assert.equal(source.sha256,citation.sha256);
    assert.equal(source.text.split(/\r?\n/).slice(citation.lineStart-1,citation.lineEnd).join('\n'),citation.text);
    assert.ok(citation.lineStart>=1&&citation.lineEnd<=source.lines);
-   const bytes=fs.readFileSync(path.join(process.env.BRAIN_VAULT||'C:/KIOSK/second-brain/vault',citation.document));
+   const bytes=fs.readFileSync(path.join(process.env.BRAIN_VAULT||path.join(__dirname,'..','..','vault'),citation.document));
    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),citation.sha256,citation.document);
   }
   assert.ok(result.nodes.every(id=>graph.nodes.some(n=>n.id===id)));
