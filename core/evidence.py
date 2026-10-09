@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import yaml
 
 from config import settings
+from core import tracing
 from core.evidence_store import EvidenceStore, EvidenceStoreError
 
 RESULTS = ("pass", "fail", "error", "skipped")
@@ -153,11 +154,7 @@ def load_definitions(vault_dir: Optional[Path] = None) -> Definitions:
 # --- execution validation -------------------------------------------------------------------------
 
 _REF_SHAPE = re.compile(r"^(https?://\S+|[\w./-]+:\d+(?:-\d+)?|[A-Z][A-Z0-9]*-\d+)$")
-_SENSITIVE = (
-    ("token", re.compile(r"ghp_[A-Za-z0-9]{10,}|github_pat_[A-Za-z0-9_]{10,}|-----BEGIN")),
-    ("cpf", re.compile(r"(?<!\d)\d{3}\.\d{3}\.\d{3}-\d{2}(?!\d)|(?<!\d)\d{11}(?!\d)")),
-    ("nf-key", re.compile(r"(?<!\d)\d{44}(?!\d)")),
-)
+_SENSITIVE = tracing.SENSITIVE_VALUES  # one table for the evidence guard and the log redaction
 SUMMARY_MAX = 500
 EVIDENCE_REF_MAX = 300
 LIMIT_MAX = 20

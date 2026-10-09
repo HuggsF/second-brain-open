@@ -54,6 +54,19 @@ def derive_trace_id(task_id: object) -> Tuple[str, Optional[str]]:
 
 _MAX_DEPTH = 4
 
+# Values that must never reach a log or the evidence store, whatever the argument is called.
+SENSITIVE_VALUES = (
+    ("token", re.compile(r"ghp_[A-Za-z0-9]{10,}|github_pat_[A-Za-z0-9_]{10,}|-----BEGIN[^\n]*")),
+    ("cpf", re.compile(r"(?<!\d)\d{3}\.\d{3}\.\d{3}-\d{2}(?!\d)|(?<!\d)\d{11}(?!\d)")),
+    ("nf-key", re.compile(r"(?<!\d)\d{44}(?!\d)")),
+)
+
+
+def mask_sensitive(text: str) -> str:
+    for _, pattern in SENSITIVE_VALUES:
+        text = pattern.sub("[redacted]", text)
+    return text
+
 
 def _is_secret_key(name: str) -> bool:
     return any(part in name.lower() for part in _SECRET_PARTS)
@@ -63,7 +76,7 @@ def _summarise(value: Any, limit: int, depth: int = 0) -> Any:
     if value is None or isinstance(value, (bool, int, float)):
         return value
     if isinstance(value, str):
-        return value[:limit]
+        return mask_sensitive(value)[:limit]
     if isinstance(value, dict) and depth < _MAX_DEPTH:
         return {
             str(k): "[redacted]" if _is_secret_key(str(k)) else _summarise(v, limit, depth + 1)
@@ -73,7 +86,7 @@ def _summarise(value: Any, limit: int, depth: int = 0) -> Any:
         return [_summarise(v, limit, depth + 1) for v in value]
     if isinstance(value, (dict, list, tuple)):
         return "[nested value omitted]"  # too deep to inspect safely: never repr() it
-    return repr(value)[:limit]
+    return mask_sensitive(repr(value))[:limit]
 
 
 def redact_args(args: Optional[Dict[str, Any]]) -> Dict[str, Any]:

@@ -82,6 +82,16 @@ class TestRedact(unittest.TestCase):
         deep = {"a": {"b": {"c": {"d": {"e": {"token": "DEEPSECRET"}}}}}}
         self.assertNotIn("DEEPSECRET", json.dumps(tracing.redact_args({"x": deep})))
 
+    def test_redact_masks_sensitive_values_whatever_the_key(self):
+        token = "ghp_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"
+        out = tracing.redact_args({"summary": f"x {token} y", "note": "cpf 123.456.789-09", "ref": "k" + "3" * 44,
+                                   "nested": {"text": f"also {token}"}, "plain": "keep me"})
+        text = json.dumps(out)
+        self.assertNotIn(token, text)
+        self.assertNotIn("123.456.789-09", text)
+        self.assertNotIn("3" * 44, text)
+        self.assertEqual(out["plain"], "keep me")
+
     def test_redact_drops_task_id(self):
         self.assertNotIn("task_id", tracing.redact_args({"task_id": "DEM-1", "q": "x"}))
 

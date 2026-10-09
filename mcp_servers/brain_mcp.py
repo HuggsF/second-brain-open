@@ -8,8 +8,10 @@ from core.trace_middleware import TraceMiddleware
 from config import settings
 from core.retriever import BrainRetriever
 from core.qdrant_store import QdrantStore
+from core import evidence, tracing
+from core.evidence_store import EvidenceStore, EvidenceStoreError
 
-mcp = FastMCP("KIOSK Second Brain")
+mcp =FastMCP("KIOSK Second Brain")
 mcp.add_middleware(TraceMiddleware('KIOSK Second Brain'))
 
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,63}$")
@@ -65,6 +67,55 @@ def get_brain_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     store = QdrantStore()
     return store.get_stats()
+
+@mcp.tool()
+def list_rules(task_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Lista as regras de negócio (vault/rules) com os playbooks que as validam e a data e o resultado da última execução.
+    task_id: optional label that groups this call with others of the same task
+    """
+    try:
+        return evidence.list_rules(evidence.load_definitions(), EvidenceStore())
+    except EvidenceStoreError as exc:
+        return [{"error": str(exc)}]
+
+@mcp.tool()
+def get_rule_evidence(rule_id: str, limit: int = 5, task_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Devolve uma regra (ex: 'RULE-001'), os playbooks que a validam e as últimas execuções de cada um (limit de 1 a 20).
+    Playbook sem execuções traz a nota 'sem evidência ainda'.
+    task_id: optional label that groups this call with others of the same task
+    """
+    try:
+        return evidence.rule_evidence(evidence.load_definitions(), EvidenceStore(), rule_id, limit)
+    except EvidenceStoreError as exc:
+        return {"error": str(exc)}
+
+@mcp.tool()
+def record_test_execution(
+    playbook_id: str, result: str, summary: str, evidence_ref: str, environment: str, task_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Regista o resultado de um teste que alguém já executou (não executa nada). result: pass, fail, error ou skipped;
+    environment: hml, production ou local; summary: até 500 caracteres; evidence_ref: caminho:linha, URL http(s) ou id de ticket.
+    Nunca inclua dados de pedidos, CPF, chaves ou tokens: só referência e resumo. A execução fica ligada ao trace_id desta chamada.
+    task_id: optional label that groups this call with others of the same task
+    """
+    clean, error = evidence.validate_execution(
+        evidence.load_definitions(), playbook_id, result, summary, evidence_ref, environment)
+    if error:
+        return {"error": error}
+    call = tracing.current_call.get()
+    trace_id = call.trace_id if call else None
+    try:
+        new_id = EvidenceStore().record(
+            playbook_id=playbook_id, result=result, environment=environment,
+            evidence_ref=clean["evidence_ref"], summary=clean["summary"], source="reported",
+            recorded_by=call.caller if call else "cli", trace_id=trace_id,
+            task_label=call.task_label if call else None)
+    except EvidenceStoreError as exc:
+        return {"error": str(exc)}
+    return {"recorded": new_id, "trace_id": trace_id}
 
 if __name__ == "__main__":
     mcp.run()
