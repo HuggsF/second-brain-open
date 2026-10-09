@@ -42,6 +42,13 @@ class TestIds(unittest.TestCase):
             self.assertRegex(tid1, r"^[0-9a-f]{32}$")
             self.assertNotEqual(tid1, tid2, repr(value))
 
+    def test_task_label_and_trace_id_never_carry_a_sensitive_value(self):
+        tid1, label1 = tracing.derive_trace_id("cpf 123.456.789-09")
+        tid2, label2 = tracing.derive_trace_id("cpf 987.654.321-00")
+        self.assertNotIn("123.456.789-09", label1)
+        self.assertIn("[redacted]", label1)
+        self.assertEqual(tid1, tid2)  # derived from the masked text: the id is not a hash of the CPF
+
     def test_label_is_clean_and_capped(self):
         _, label = tracing.derive_trace_id("x\ny" + "z" * 200)
         self.assertNotIn("\n", label)
@@ -81,6 +88,46 @@ class TestRedact(unittest.TestCase):
     def test_redact_bounds_very_deep_nesting(self):
         deep = {"a": {"b": {"c": {"d": {"e": {"token": "DEEPSECRET"}}}}}}
         self.assertNotIn("DEEPSECRET", json.dumps(tracing.redact_args({"x": deep})))
+
+    def test_redact_masks_sensitive_values_whatever_the_key(self):
+        token = "ghp_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"
+        out = tracing.redact_args({"summary": f"x {token} y", "note": "cpf 123.456.789-09", "ref": "k" + "3" * 44,
+                                   "nested": {"text": f"also {token}"}, "plain": "keep me"})
+        text = json.dumps(out)
+        self.assertNotIn(token, text)
+        self.assertNotIn("123.456.789-09", text)
+        self.assertNotIn("3" * 44, text)
+        self.assertEqual(out["plain"], "keep me")
+
+    def test_redact_masks_values_hidden_by_control_characters(self):
+        out = tracing.redact_args({"s": "cpf 123\x00456\x00789\x0009", "k": "nf " + "3\x01" * 44})
+        self.assertNotIn("456", out["s"])
+        self.assertNotIn("3333", out["k"])
+        self.assertIn("[redacted]", out["s"] + out["k"])
+
+    def test_redact_masks_a_pem_block_including_its_body(self):
+        pem = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----\ndone"
+        out = tracing.redact_args({"summary": pem})["summary"]
+        self.assertNotIn("MIIEvQ", out)
+        self.assertNotIn("END PRIVATE", out)
+        self.assertIn("[redacted]", out)
+
+    def test_redact_masks_printed_formats_of_cpf_and_nf_key(self):
+        groups = " ".join(["3333"] * 11)
+        dotted = ".".join(["3333"] * 11)
+        for value in ("123 456 789 09", "123-456-789-09", groups, dotted, "123.4​56.789-09", "１２３.456.789-09"):
+            out = tracing.redact_args({"note": f"x {value} y"})["note"]
+            self.assertNotRegex(out, r"456|3333", value)
+
+    def test_redact_keeps_ordinary_numbers_readable(self):
+        out = tracing.redact_args({"ref": "vault/x.md:47", "ts": "2026-10-09T12:00:00.000-03:00", "t": "PR #13, 2026-10-08, 36 cenarios"})
+        self.assertEqual(out, {"ref": "vault/x.md:47", "ts": "2026-10-09T12:00:00.000-03:00", "t": "PR #13, 2026-10-08, 36 cenarios"})
+
+    def test_find_sensitive_names_the_rule(self):
+        self.assertEqual(tracing.find_sensitive("123 456 789 09"), "cpf")
+        self.assertEqual(tracing.find_sensitive(" ".join(["3333"] * 11)), "nf-key")
+        self.assertEqual(tracing.find_sensitive("ghp_" + "a1B2c3D4e5F6g7H8i9J0"), "token")
+        self.assertIsNone(tracing.find_sensitive("vault/x.md:47"))
 
     def test_redact_drops_task_id(self):
         self.assertNotIn("task_id", tracing.redact_args({"task_id": "DEM-1", "q": "x"}))

@@ -20,6 +20,8 @@ from ingestion.sync import SyncEngine
 from core.retriever import BrainRetriever
 from core.qdrant_store import QdrantStore
 from core import tracing
+from core import evidence as evidence_core
+from core.evidence_store import EvidenceStore, EvidenceStoreError
 
 console = Console(force_terminal=True)
 
@@ -194,6 +196,68 @@ def trace(trace_id, recent):
         return
     for record in records:
         click.echo(_trace_line(record, with_trace_id=True))
+
+
+_NO_EVIDENCE = "sem evidência ainda"
+
+
+def _evidence_context():
+    """(definitions, execution store, seed file); a function so tests can replace it."""
+    return (evidence_core.load_definitions(), EvidenceStore(),
+            settings.base_dir / "evidence" / "seed-executions.json")
+
+
+def _execution_line(row: dict) -> str:
+    trace = f"trace={str(row['trace_id'])[:8]}" if row.get("trace_id") else ""
+    summary = str(row.get("summary", ""))[:120]
+    return "    " + "  ".join(p for p in (row["ts"], row["result"], row["source"], row["environment"], trace, summary) if p)
+
+
+@cli.command()
+@click.argument("rule_id", required=False)
+@click.option("--lint", "do_lint", is_flag=True, help="Verifica regras, playbooks e execuções; sai com 1 se houver problemas")
+@click.option("--import-seed", "do_import", is_flag=True, help="Importa as execuções históricas de evidence/seed-executions.json")
+def evidence(rule_id, do_lint, do_import):
+    """Árvore de evidências: regras, playbooks e execuções (sem argumentos lista as regras)."""
+    if sum(bool(x) for x in (rule_id, do_lint, do_import)) > 1:
+        raise click.UsageError("use apenas um entre RULE_ID, --lint e --import-seed")
+    try:
+        defs, store, seed_path = _evidence_context()
+        if do_lint:
+            problems = evidence_core.lint(defs, store)
+            for problem in problems:
+                click.echo(problem)
+            if not problems:
+                click.echo("sem problemas")
+            raise SystemExit(1 if problems else 0)
+        if do_import:
+            added, skipped = evidence_core.import_seed(defs, store, seed_path)
+            click.echo(f"Execuções importadas: {added}; ignoradas: {skipped}")
+            return
+        if rule_id:
+            data = evidence_core.rule_evidence(defs, store, rule_id, 5)
+            if "error" in data:
+                click.echo(data["error"])
+                raise SystemExit(1)
+            rule = data["rule"]
+            click.echo(f"{rule['id']}  {rule['status']}  {rule['title']}")
+            click.echo(f"  origem: {rule['source']}")
+            for playbook in data["playbooks"]:
+                click.echo(f"  {playbook['id']}  {playbook['status']}  {playbook['environment']}  {playbook['title']}")
+                for row in playbook["executions"]:
+                    click.echo(_execution_line(row))
+                if playbook.get("note"):
+                    click.echo(f"    {playbook['note']}")
+            return
+        for rule in evidence_core.list_rules(defs, store):
+            parts = []
+            for playbook_id in rule["playbooks"]:
+                latest = rule["playbook_latest"][playbook_id]
+                parts.append(f"{playbook_id}={latest['result']}({latest['environment']})" if latest else f"{playbook_id}={_NO_EVIDENCE}")
+            click.echo(f"{rule['id']}  {rule['status']}  {rule['title']}  [{rule['state']}]  " + "  ".join(parts))
+    except (EvidenceStoreError, ValueError) as exc:
+        click.echo(f"Erro: {exc}")
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,11 @@
+[
+  {
+    "import_key": "hub-npm-test-36-scenarios-pr13",
+    "playbook_id": "PB-001",
+    "ts": "2026-10-08T00:00:00-03:00",
+    "result": "pass",
+    "environment": "local",
+    "evidence_ref": "vault/systems/protecoes-processamento-emissao-hub.md:53",
+    "summary": "After PR #13: 36 JavaScript scenarios and 3 Python tests approved locally, npm test also approved on isolated Linux releases (note dated 2026-10-08)"
+  }
+]
