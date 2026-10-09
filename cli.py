@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 
 if sys.platform == "win32":
     try:
@@ -18,6 +19,7 @@ from config import settings
 from ingestion.sync import SyncEngine
 from core.retriever import BrainRetriever
 from core.qdrant_store import QdrantStore
+from core import tracing
 
 console = Console(force_terminal=True)
 
@@ -138,6 +140,54 @@ def pull_models(embed_model: str, chat_model: str):
                         console.print(f"[bold red]Falha ao baixar modelo {model_name}: HTTP {resp.status_code}[/bold red]")
         except Exception as e:
             console.print(f"[bold red]Erro ao conectar ao Ollama:[/bold red] {e}")
+
+def _trace_log_path():
+    return tracing.TRACE_LOG
+
+
+def _trace_line(record: dict, with_trace_id: bool = False) -> str:
+    """One metadata-only line per record; argument values are never printed."""
+    duration = record.get("duration_ms")
+    parts = [
+        str(record.get("ts", "")),
+        (str(record.get("trace_id", ""))[:8] if with_trace_id else ""),
+        str(record.get("server", "")),
+        str(record.get("tool", "")),
+        str(record.get("event", "")),
+        str(record.get("status", "")),
+        (f"{duration}ms" if duration is not None else ""),
+        (f"task={record['task_label']}" if record.get("task_label") else ""),
+    ]
+    line = "  ".join(p for p in parts if p)
+    return ("  " + line) if record.get("parent_span_id") else line
+
+
+@cli.command()
+@click.argument("trace_id", required=False)
+@click.option("--recent", "recent", type=int, default=None, help="Lista os últimos N registos (padrão 20 sem TRACE_ID)")
+def trace(trace_id, recent):
+    """Mostra a cadeia de chamadas MCP de uma tarefa (TRACE_ID) ou os registos mais recentes."""
+    path = _trace_log_path()
+    if trace_id and recent is not None:
+        raise click.UsageError("use TRACE_ID ou --recent, não ambos")
+    if trace_id:
+        if not re.fullmatch(r"[0-9a-f]{32}", trace_id):
+            click.echo("Identificador inválido: esperado 32 caracteres hexadecimais minúsculos.")
+            raise SystemExit(1)
+        records = tracing.read_trace(trace_id, path)
+        if not records:
+            click.echo(f"Nenhum registo para {trace_id}")
+            raise SystemExit(1)
+        for record in records:
+            click.echo(_trace_line(record))
+        return
+    records = tracing.read_recent(20 if recent is None else recent, path)
+    if not records:
+        click.echo("Registo vazio: nenhuma chamada MCP registada.")
+        return
+    for record in records:
+        click.echo(_trace_line(record, with_trace_id=True))
+
 
 if __name__ == "__main__":
     cli()
