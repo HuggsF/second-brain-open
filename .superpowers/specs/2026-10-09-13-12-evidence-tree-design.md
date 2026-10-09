@@ -133,9 +133,11 @@ Source note: `vault/systems/protecoes-processamento-emissao-hub.md`.
   validates RULE-001, environment `hml`. No executions yet.
 - `PB-003` In homologation jobs stay pending and no external call is made, validates RULE-002,
   environment `hml`. No executions yet.
-- One imported execution: `PB-001`, `pass`, summary "npm test: 26 scenarios approved, CI Node 18/20",
-  `evidence_ref` `vault/systems/protecoes-processamento-emissao-hub.md:47`, `source=imported`,
-  `recorded_by=cli`. Nothing else is imported: no result is invented for PB-002 or PB-003.
+- One imported execution: `PB-001`, `pass`, summary "After PR #13: 36 JavaScript scenarios and 3 Python
+  tests approved locally, npm test also approved on isolated Linux releases", `evidence_ref`
+  `vault/systems/protecoes-processamento-emissao-hub.md:53` (the update that follows the NF protections;
+  the 26 scenarios on line 47 predate them and are not imported), `source=imported`, `recorded_by=cli`.
+  Nothing else is imported: no result is invented for PB-002 or PB-003.
 
 ### 5.8 Data flow
 

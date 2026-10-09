@@ -53,7 +53,12 @@ class TestRealSeed(unittest.TestCase):
         (entry,) = json.loads(SEED.read_text(encoding="utf-8"))
         path, line = entry["evidence_ref"].rsplit(":", 1)
         text = (settings.base_dir / path).read_text(encoding="utf-8-sig").splitlines()[int(line) - 1]
-        self.assertIn("26 cenários aprovados", text)
+        self.assertIn("36 cenários JavaScript", text)
+        self.assertIn("3 testes Python", text)
+        self.assertIn(":53", entry["evidence_ref"])
+        self.assertIn("36", entry["summary"])
+        note = (settings.base_dir / path).read_text(encoding="utf-8-sig").splitlines()
+        self.assertIn("PR #13", note[int(line) - 2] + note[int(line) - 3])  # the cited line sits under the PR #13 update heading
 
     def test_all_new_notes_use_crlf(self):
         notes = sorted((settings.vault_dir / "rules").glob("*.md")) + sorted((settings.vault_dir / "playbooks").glob("*.md"))

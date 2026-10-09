@@ -21,4 +21,4 @@ Suíte inteira aprovada, sem cenários ignorados. Reprovação em qualquer cená
 
 ## Registro
 
-O Second Brain não executa a suíte: quem a roda registra o resultado com a ferramenta MCP `record_test_execution`. A única execução existente foi importada da nota [[protecoes-processamento-emissao-hub]] (linha 47), com data aproximada.
+O Second Brain não executa a suíte: quem a roda registra o resultado com a ferramenta MCP `record_test_execution`. A única execução existente foi importada da nota [[protecoes-processamento-emissao-hub]] (linha 53, atualização do PR #13 de 08/10/2026: 36 cenários JavaScript e 3 testes Python aprovados após as proteções de NF), com a data da atualização e hora desconhecida.

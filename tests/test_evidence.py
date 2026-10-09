@@ -171,6 +171,20 @@ class TestValidate(unittest.TestCase):
                 self.assertIn(field, error)
                 self.assertNotIn(value, error)
 
+    def test_printed_formats_and_hidden_characters_are_refused(self):
+        groups = " ".join(["3333"] * 11)
+        for name, value in (("cpf", "123 456 789 09"), ("cpf", "123-456-789-09"), ("cpf", "123\x00456\x00789\x0009"),
+                            ("cpf", "123.4​56.789-09"), ("nf-key", groups), ("nf-key", ".".join(["3333"] * 11))):
+            clean, error = self.check(summary=f"x {value} y")
+            self.assertIsNone(clean, value)
+            self.assertIn(name, error)
+            self.assertNotRegex(error, r"456|3333")
+
+    def test_ordinary_summaries_are_not_refused(self):
+        for text in ("npm test: 36 JavaScript scenarios and 3 Python tests approved (PR #13, 2026-10-08)",
+                     "26 scenarios approved, CI Node 18/20", "ran 2026-10-09 12:00, 5 jobs pending"):
+            self.assertIsNone(self.check(summary=text)[1], text)
+
     def test_private_key_header_is_refused(self):
         self.assertIn("token", self.check(summary="-----BEGIN PRIVATE KEY-----")[1])
 
@@ -209,12 +223,38 @@ class TestQueries(unittest.TestCase):
         out = evidence.rule_evidence(self.defs, self.store, "RULE-001", limit=0)
         self.assertEqual(len(next(p for p in out["playbooks"] if p["id"] == "PB-001")["executions"]), 1)
 
-    def test_list_rules_shape(self):
-        self.assertIsNone(evidence.list_rules(self.defs, self.store)[0]["latest"])
-        self.record(2, result="fail")
+    def test_list_rules_shape_and_per_playbook_latest(self):
         (row,) = evidence.list_rules(self.defs, self.store)
         self.assertEqual((row["id"], row["status"], row["playbooks"]), ("RULE-001", "active", ["PB-001", "PB-002"]))
-        self.assertEqual((row["latest"]["result"], row["latest"]["playbook_id"]), ("fail", "PB-001"))
+        self.assertEqual(row["playbook_latest"], {"PB-001": None, "PB-002": None})
+        self.assertEqual(row["state"], "sem evidência ainda")
+        self.record(2, result="fail")
+        (row,) = evidence.list_rules(self.defs, self.store)
+        latest = row["playbook_latest"]["PB-001"]
+        self.assertEqual((latest["result"], latest["environment"], latest["source"]), ("fail", "local", "reported"))
+        self.assertIsNone(row["playbook_latest"]["PB-002"])
+
+    def test_state_shows_a_failing_playbook_even_if_another_passed_later(self):
+        self.record(1, pb="PB-002", result="fail")
+        self.store.record(playbook_id="PB-001", result="pass", environment="local", evidence_ref="vault/x.md:1", summary="later pass",
+                          source="reported", recorded_by="mcp", ts="2026-10-09T13:00:00.000-03:00")
+        self.assertEqual(evidence.list_rules(self.defs, self.store)[0]["state"], "falha")
+
+    def test_state_is_partial_until_every_active_playbook_passes(self):
+        self.record(1, pb="PB-001", result="pass")
+        self.assertEqual(evidence.list_rules(self.defs, self.store)[0]["state"], "parcial")
+        self.record(1, pb="PB-002", result="pass")
+        self.assertEqual(evidence.list_rules(self.defs, self.store)[0]["state"], "ok")
+
+    def test_state_ignores_playbooks_that_are_not_active(self):
+        self.defs.playbooks["PB-002"].status = "draft"
+        self.record(1, pb="PB-001", result="pass")
+        self.assertEqual(evidence.list_rules(self.defs, self.store)[0]["state"], "ok")
+
+    def test_rule_without_playbooks_says_no_evidence_yet(self):
+        self.defs.playbooks.clear()
+        (row,) = evidence.list_rules(self.defs, self.store)
+        self.assertEqual((row["playbooks"], row["state"]), ([], "sem evidência ainda"))
 
 
 class TestLint(unittest.TestCase):

@@ -73,6 +73,30 @@ class TestEvidenceTools(unittest.TestCase):
         self.assertNotIn(TOKEN, raw)
         self.assertNotIn("123.456.789-09", raw)
 
+    def test_refused_recording_is_traced_as_refused_and_returns_the_trace_id(self):
+        out = self.call("record_test_execution", {**GOOD, "result": "maybe"})
+        self.assertIn("result", out["error"])
+        records = tracing.read_recent(10, self.log)
+        call_record = next(r for r in records if r["tool"] == "record_test_execution" and r["event"] == "call")
+        child = next(r for r in records if r["event"] == "evidence.refused")
+        self.assertEqual(call_record["status"], "refused")
+        self.assertEqual((child["parent_span_id"], child["trace_id"]), (call_record["span_id"], call_record["trace_id"]))
+        self.assertEqual(out["trace_id"], call_record["trace_id"])
+
+    def test_sensitive_value_with_control_characters_never_reaches_the_log(self):
+        out = self.call("record_test_execution", {**GOOD, "summary": "cpf 123\x00456\x00789\x0009"})
+        self.assertIn("sensitive", out["error"])
+        raw = self.log.read_text(encoding="utf-8")
+        self.assertNotIn("123\\u0000456", raw)  # JSON writes a NUL as the six characters \u0000
+        self.assertNotIn("456\\u0000789", raw)
+        self.assertIn("[redacted]", raw)
+
+    def test_task_id_with_a_sensitive_value_is_masked_everywhere(self):
+        self.call("record_test_execution", {**GOOD, "task_id": "cpf 123.456.789-09"})
+        (row,) = EvidenceStore().latest("PB-001")
+        self.assertNotIn("123.456.789-09", str(row))
+        self.assertNotIn("123.456.789-09", self.log.read_text(encoding="utf-8"))
+
     def test_get_rule_evidence_and_list_rules_shapes(self):
         self.call("record_test_execution", GOOD)
         out = self.call("get_rule_evidence", {"rule_id": "RULE-001"})
@@ -80,7 +104,8 @@ class TestEvidenceTools(unittest.TestCase):
         (playbook,) = out["playbooks"]
         self.assertEqual((playbook["id"], len(playbook["executions"])), ("PB-001", 1))
         rows = self.call("list_rules")
-        self.assertEqual((rows[0]["id"], rows[0]["playbooks"], rows[0]["latest"]["result"]), ("RULE-001", ["PB-001"], "pass"))
+        self.assertEqual((rows[0]["id"], rows[0]["playbooks"], rows[0]["state"]), ("RULE-001", ["PB-001"], "ok"))
+        self.assertEqual(rows[0]["playbook_latest"]["PB-001"]["result"], "pass")
         self.assertIn("RULE-001", self.call("get_rule_evidence", {"rule_id": "RULE-404"})["error"])
 
     def test_rule_without_executions_says_no_evidence_yet(self):

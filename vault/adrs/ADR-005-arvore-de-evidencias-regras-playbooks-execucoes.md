@@ -16,7 +16,7 @@ A análise 360 do Second Brain (perfil Piloto, 2026-10-09) apontou que as regras
 2. O Second Brain **só registra e liga**; não executa teste algum. Quem roda o teste (pessoa ou agente) informa o resultado pela ferramenta MCP `record_test_execution`.
 3. Cada execução guarda resultado, ambiente, uma referência (`caminho:linha`, URL ou id de ticket), um resumo de até 500 caracteres e o `trace_id` da chamada que a registrou. **Nunca guarda o conteúdo de pedidos**; uma trava recusa tokens, CPF e chave de NF, e a mesma tabela mascara esses valores no log de rastreio.
 4. Consulta: `list_rules`, `get_rule_evidence` (MCP) e `cli.py evidence [RULE_ID]`. `cli.py evidence --lint` reprova playbook sem regra, regra ativa sem playbook ativo e referência quebrada. Regra sem execução mostra "sem evidência ainda", nunca um "passou".
-5. Dados iniciais reais, tirados de `protecoes-processamento-emissao-hub.md`: RULE-001 (emissão exige NF real), RULE-002 (homologação não chama ERP, J&T ou WMS), três playbooks e uma execução importada (26 cenários do `npm test`), marcada `imported`.
+5. Dados iniciais reais, tirados de `protecoes-processamento-emissao-hub.md`: RULE-001 (emissão exige NF real), RULE-002 (homologação não chama ERP, J&T ou WMS), três playbooks e uma execução importada (36 cenários JavaScript e 3 testes Python aprovados após o PR #13, linha 53 da nota), marcada `imported`.
 6. As notas do vault ficam em CRLF no disco (`.gitattributes`), porque o dashboard calcula hash byte a byte das notas.
 
 ## Alternativas descartadas

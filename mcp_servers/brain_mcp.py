@@ -101,12 +101,13 @@ def record_test_execution(
     Nunca inclua dados de pedidos, CPF, chaves ou tokens: só referência e resumo. A execução fica ligada ao trace_id desta chamada.
     task_id: optional label that groups this call with others of the same task
     """
+    call = tracing.current_call.get()
+    trace_id = call.trace_id if call else None
     clean, error = evidence.validate_execution(
         evidence.load_definitions(), playbook_id, result, summary, evidence_ref, environment)
     if error:
-        return {"error": error}
-    call = tracing.current_call.get()
-    trace_id = call.trace_id if call else None
+        tracing.emit_child("evidence.refused", "refused", {"reason": error})  # marks the call as refused in the trace
+        return {"error": error, "trace_id": trace_id}
     try:
         new_id = EvidenceStore().record(
             playbook_id=playbook_id, result=result, environment=environment,

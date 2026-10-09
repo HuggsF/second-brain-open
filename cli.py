@@ -250,9 +250,11 @@ def evidence(rule_id, do_lint, do_import):
                     click.echo(f"    {playbook['note']}")
             return
         for rule in evidence_core.list_rules(defs, store):
-            latest = rule["latest"]
-            state = f"{latest['result']} {latest['ts']} ({latest['playbook_id']})" if latest else _NO_EVIDENCE
-            click.echo(f"{rule['id']}  {rule['status']}  {rule['title']}  playbooks={','.join(rule['playbooks'])}  {state}")
+            parts = []
+            for playbook_id in rule["playbooks"]:
+                latest = rule["playbook_latest"][playbook_id]
+                parts.append(f"{playbook_id}={latest['result']}({latest['environment']})" if latest else f"{playbook_id}={_NO_EVIDENCE}")
+            click.echo(f"{rule['id']}  {rule['status']}  {rule['title']}  [{rule['state']}]  " + "  ".join(parts))
     except (EvidenceStoreError, ValueError) as exc:
         click.echo(f"Erro: {exc}")
         raise SystemExit(1)

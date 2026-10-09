@@ -154,7 +154,7 @@ def load_definitions(vault_dir: Optional[Path] = None) -> Definitions:
 # --- execution validation -------------------------------------------------------------------------
 
 _REF_SHAPE = re.compile(r"^(https?://\S+|[\w./-]+:\d+(?:-\d+)?|[A-Z][A-Z0-9]*-\d+)$")
-_SENSITIVE = tracing.SENSITIVE_VALUES  # one table for the evidence guard and the log redaction
+_NO_EVIDENCE = "sem evidência ainda"
 SUMMARY_MAX = 500
 EVIDENCE_REF_MAX = 300
 LIMIT_MAX = 20
@@ -167,10 +167,8 @@ def _clean_text(value: str) -> str:
 
 
 def _sensitive(text: str, field_name: str) -> Optional[str]:
-    for name, pattern in _SENSITIVE:
-        if pattern.search(text):
-            return f"possible sensitive data ({name}) in {field_name}"  # never echo the value
-    return None
+    name = tracing.find_sensitive(text)  # the same matcher that masks the trace log
+    return f"possible sensitive data ({name}) in {field_name}" if name else None  # never echo the value
 
 
 def validate_execution(
@@ -221,7 +219,7 @@ def rule_evidence(defs: Definitions, store: EvidenceStore, rule_id: str, limit: 
         entry: Dict[str, Any] = {"id": playbook.id, "title": playbook.title, "status": playbook.status,
                                  "environment": playbook.environment, "executions": executions}
         if not executions:
-            entry["note"] = "sem evidência ainda"
+            entry["note"] = _NO_EVIDENCE
         playbooks.append(entry)
     return {
         "rule": {"id": rule.id, "title": rule.title, "status": rule.status, "source": rule.source, "domain": rule.domain},
@@ -230,18 +228,31 @@ def rule_evidence(defs: Definitions, store: EvidenceStore, rule_id: str, limit: 
 
 
 def list_rules(defs: Definitions, store: EvidenceStore) -> List[Dict[str, Any]]:
+    """One row per rule: its playbooks, the latest execution of EACH playbook and an overall state.
+
+    state: "falha" if any active playbook's latest execution failed or errored; "ok" if every active
+    playbook's latest execution passed; "parcial" if some active playbook has no execution yet (or only
+    a skipped one); "sem evidência ainda" if no active playbook has any execution.
+    """
     out = []
     for rule in sorted(defs.rules.values(), key=lambda r: r.id):
-        playbook_ids = sorted(p.id for p in defs.playbooks.values() if rule.id in p.validates)
-        newest = None
-        for playbook_id in playbook_ids:
-            for row in store.latest(playbook_id, 1):
-                if newest is None or (row["ts"], row["id"]) > (newest["ts"], newest["id"]):
-                    newest = row
-        out.append({
-            "id": rule.id, "title": rule.title, "status": rule.status, "playbooks": playbook_ids,
-            "latest": None if newest is None else {"ts": newest["ts"], "result": newest["result"], "playbook_id": newest["playbook_id"]},
-        })
+        playbooks = sorted((p for p in defs.playbooks.values() if rule.id in p.validates), key=lambda p: p.id)
+        latest: Dict[str, Optional[Dict[str, Any]]] = {}
+        for playbook in playbooks:
+            rows = store.latest(playbook.id, 1)
+            latest[playbook.id] = None if not rows else {
+                k: rows[0][k] for k in ("ts", "result", "source", "environment")}
+        results = [latest[p.id]["result"] if latest[p.id] else None for p in playbooks if p.status == "active"]
+        if not any(r is not None for r in results):
+            state = _NO_EVIDENCE
+        elif any(r in ("fail", "error") for r in results):
+            state = "falha"
+        elif all(r == "pass" for r in results):
+            state = "ok"
+        else:
+            state = "parcial"
+        out.append({"id": rule.id, "title": rule.title, "status": rule.status,
+                    "playbooks": [p.id for p in playbooks], "playbook_latest": latest, "state": state})
     return out
 
 
