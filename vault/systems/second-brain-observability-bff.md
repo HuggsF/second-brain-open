@@ -53,3 +53,7 @@ Seis testes Python do BFF e 30 testes Node do dashboard aprovados. Integração 
 ## Log de rastreio das chamadas MCP
 
 Todas as ferramentas dos quatro servidores MCP gravam um registo em `.runtime/trace-log.jsonl` (ver ADR-004): `trace_id` e `span_id` no formato W3C, ferramenta, duração, estado e argumentos resumidos sem segredos. O parâmetro opcional `task_id` agrupa as chamadas de uma tarefa. O BFF ainda não lê este log; os próximos passos (árvore de evidências, mapa e vista dos agentes) vão consumi-lo. Consulta: `cli.py trace <trace_id>` ou `cli.py trace --recent N`.
+
+## Árvore de evidências
+
+Regras de negócio (`vault/rules/`) e playbooks (`vault/playbooks/`) são notas versionadas; as execuções dos testes ficam no registro local `.runtime/evidence.db`, cada uma ligada ao `trace_id` da chamada que a registrou (ver ADR-005). O BFF ainda não lê este registro. Consulta: `cli.py evidence [RULE_ID]`, `cli.py evidence --lint` e as ferramentas MCP `list_rules`, `get_rule_evidence` e `record_test_execution`.

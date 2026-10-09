@@ -32,7 +32,7 @@ Follow every numbered item; do not paraphrase a subset.
 
 ## 3. Proof commands and local gates
 
-- Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli`
+- Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed`
 - Dashboard JS: `node --test --test-isolation=none dashboard/tests/*.test.cjs` (Node 24)
   and `.\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py`.
 - `integration.test.cjs` compares citation hashes with the current vault bytes: after any vault
@@ -56,6 +56,7 @@ Follow every numbered item; do not paraphrase a subset.
   `dashboard/graph-catalog.json` match the note.
 - Behaviour change in an MCP server → a test in `tests/` covers it, including the refusal path.
 - A new MCP tool → accepts an optional `task_id`; `tests/test_trace_servers.py` fails if it does not.
+- A new business rule → an `active` playbook validates it and `cli.py evidence --lint` passes.
 - A change to how agents may act on a host → the "Never" section here is updated in the same commit.
 
 ## 6. Durable files
@@ -79,6 +80,8 @@ Follow every numbered item; do not paraphrase a subset.
   `get_system_architecture`. The question that sends an agent here: "how does X work?".
   Written by hand; indexed by `sync`.
 - `vault/domain/` — brand and business rules. `vault/daily/` — dated session notes.
+- `vault/rules/` and `vault/playbooks/` — one note per business rule or test scenario; read by
+  `get_rule_evidence` and `cli.py evidence`. Executions live in `.runtime/evidence.db`, never in the vault.
 - 360 analysis of this repository: `C:/KIOSK/analise-360/second-brain-2026-10-09/relatorio.md`.
 
 ## 9. Where a new fact goes
