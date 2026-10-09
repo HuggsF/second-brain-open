@@ -9,6 +9,9 @@ import re
 import secrets
 import sys
 import unicodedata
+from contextvars import ContextVar
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
@@ -145,3 +148,59 @@ def read_trace(trace_id: str, path: Optional[Path] = None) -> List[Dict[str, Any
 def read_recent(n: int, path: Optional[Path] = None) -> List[Dict[str, Any]]:
     records = list(_iter_records(path))
     return records[-n:] if n > 0 else []
+
+
+@dataclass
+class CallState:
+    """The tool call currently being traced; child events attach to it."""
+    trace_id: str
+    span_id: str
+    server: str
+    tool: str
+    refused: bool = False
+    path: Optional[Path] = None
+    caller: str = "unknown"
+    task_label: Optional[str] = None
+
+
+current_call: ContextVar[Optional[CallState]] = ContextVar("trace_current_call", default=None)
+
+
+def now_iso() -> str:
+    return datetime.now(timezone.utc).astimezone().isoformat(timespec="milliseconds")
+
+
+def emit_child(
+    event: str,
+    status: str,
+    args: Optional[Dict[str, Any]] = None,
+    error_type: Optional[str] = None,
+    path: Optional[Path] = None,
+) -> None:
+    """Record an event inside the current call (same trace, parent = the call). No-op outside a call."""
+    try:
+        state = current_call.get()
+        if state is None:
+            return
+        if event == "ssh.refused":
+            state.refused = True
+        write_record(
+            {
+                "schema_version": 1,
+                "ts": now_iso(),
+                "trace_id": state.trace_id,
+                "span_id": new_span_id(),
+                "parent_span_id": state.span_id,
+                "task_label": state.task_label,
+                "server": state.server,
+                "tool": state.tool,
+                "event": event,
+                "status": status,
+                "caller": state.caller,
+                "args": redact_args(args),
+                "error_type": error_type,
+            },
+            path or state.path,
+        )
+    except Exception as exc:
+        print(f"trace: could not emit child event ({type(exc).__name__})", file=sys.stderr)
