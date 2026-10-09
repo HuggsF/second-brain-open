@@ -33,6 +33,7 @@ class TraceMiddleware(Middleware):
                 path=self.path or tracing.TRACE_LOG,
                 caller=_caller(context),
                 task_label=label,
+                started_at=tracing.now_iso(),
             )
         except Exception as exc:
             print(f"trace: could not start record ({type(exc).__name__})", file=sys.stderr)
@@ -44,7 +45,7 @@ class TraceMiddleware(Middleware):
             tracing.write_record(
                 {
                     "schema_version": 1,
-                    "ts": tracing.now_iso(),
+                    "ts": state.started_at,  # when the call started; child events are later
                     "trace_id": state.trace_id,
                     "span_id": state.span_id,
                     "parent_span_id": None,

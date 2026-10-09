@@ -100,6 +100,7 @@ class TestTraceMiddleware(unittest.TestCase):
         self.assertEqual(child["trace_id"], parent["trace_id"])
         self.assertNotEqual(child["span_id"], parent["span_id"])
         self.assertEqual(parent["status"], "refused")
+        self.assertLessEqual(parent["ts"], child["ts"])  # a call's ts is when it started
 
     def test_secret_arguments_are_redacted_in_log(self):
         call(build_server(self.path), "ok", {"a": "x", "api_key": "super-secret-value"})

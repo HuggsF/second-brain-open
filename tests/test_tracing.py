@@ -68,6 +68,20 @@ class TestRedact(unittest.TestCase):
         out = tracing.redact_args({"b": b"\xff", "o": object()})
         json.dumps(out)
 
+    def test_redact_masks_secrets_inside_nested_values(self):
+        original = {"opts": {"api_key": "SUPERSECRET", "ok": "fine"}, "items": [{"token": "TOK123"}, "plain"]}
+        out = tracing.redact_args(original)
+        text = json.dumps(out)
+        self.assertNotIn("SUPERSECRET", text)
+        self.assertNotIn("TOK123", text)
+        self.assertEqual(out["opts"]["ok"], "fine")
+        self.assertEqual(out["items"][1], "plain")
+        self.assertEqual(original["opts"]["api_key"], "SUPERSECRET")
+
+    def test_redact_bounds_very_deep_nesting(self):
+        deep = {"a": {"b": {"c": {"d": {"e": {"token": "DEEPSECRET"}}}}}}
+        self.assertNotIn("DEEPSECRET", json.dumps(tracing.redact_args({"x": deep})))
+
     def test_redact_drops_task_id(self):
         self.assertNotIn("task_id", tracing.redact_args({"task_id": "DEM-1", "q": "x"}))
 
@@ -127,6 +141,15 @@ class TestRead(unittest.TestCase):
             with open(path, "a", encoding="utf-8") as f:
                 f.write("not json\n")
             self.assertEqual(len(tracing.read_trace("a" * 32, path)), 1)
+
+    def test_unicode_line_separators_do_not_lose_records(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _log(tmp)
+            tracing.write_record(_rec("a" * 32, 1, args={"q": "x y z"}), path)
+            tracing.write_record(_rec("a" * 32, 2), path)
+            got = tracing.read_trace("a" * 32, path)
+            self.assertEqual([r["n"] for r in got], [1, 2])
+            self.assertEqual(got[0]["args"]["q"], "x y z")
 
     def test_read_recent_returns_last_n(self):
         with tempfile.TemporaryDirectory() as tmp:

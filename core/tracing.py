@@ -52,11 +52,27 @@ def derive_trace_id(task_id: object) -> Tuple[str, Optional[str]]:
     return new_trace_id(), None
 
 
-def _summarise(value: Any, limit: int) -> Any:
+_MAX_DEPTH = 4
+
+
+def _is_secret_key(name: str) -> bool:
+    return any(part in name.lower() for part in _SECRET_PARTS)
+
+
+def _summarise(value: Any, limit: int, depth: int = 0) -> Any:
     if value is None or isinstance(value, (bool, int, float)):
         return value
     if isinstance(value, str):
         return value[:limit]
+    if isinstance(value, dict) and depth < _MAX_DEPTH:
+        return {
+            str(k): "[redacted]" if _is_secret_key(str(k)) else _summarise(v, limit, depth + 1)
+            for k, v in value.items()
+        }
+    if isinstance(value, (list, tuple)) and depth < _MAX_DEPTH:
+        return [_summarise(v, limit, depth + 1) for v in value]
+    if isinstance(value, (dict, list, tuple)):
+        return "[nested value omitted]"  # too deep to inspect safely: never repr() it
     return repr(value)[:limit]
 
 
@@ -67,7 +83,7 @@ def redact_args(args: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         name = str(key)
         if name == "task_id":
             continue
-        if any(part in name.lower() for part in _SECRET_PARTS):
+        if _is_secret_key(name):
             out[name] = "[redacted]"
         else:
             out[name] = _summarise(value, _COMMAND_LIMIT if name == "command" else _DEFAULT_LIMIT)
@@ -132,7 +148,7 @@ def _iter_records(path: Optional[Path]) -> Iterator[Dict[str, Any]]:
             text = source.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        for line in text.splitlines():
+        for line in text.split("\n"):  # not splitlines(): U+2028/U+2029 are not escaped by json.dumps
             try:
                 record = json.loads(line)
             except ValueError:
@@ -161,6 +177,7 @@ class CallState:
     path: Optional[Path] = None
     caller: str = "unknown"
     task_label: Optional[str] = None
+    started_at: str = ""
 
 
 current_call: ContextVar[Optional[CallState]] = ContextVar("trace_current_call", default=None)

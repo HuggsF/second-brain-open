@@ -145,6 +145,12 @@ def _trace_log_path():
     return tracing.TRACE_LOG
 
 
+def _by_start(records: list) -> list:
+    """A call is written when it ends but stamped with when it started; order by that stamp
+    (stable), so a call is listed before the child events that happened inside it."""
+    return sorted(records, key=lambda r: str(r.get("ts", "")))
+
+
 def _trace_line(record: dict, with_trace_id: bool = False) -> str:
     """One metadata-only line per record; argument values are never printed."""
     duration = record.get("duration_ms")
@@ -174,14 +180,14 @@ def trace(trace_id, recent):
         if not re.fullmatch(r"[0-9a-f]{32}", trace_id):
             click.echo("Identificador inválido: esperado 32 caracteres hexadecimais minúsculos.")
             raise SystemExit(1)
-        records = tracing.read_trace(trace_id, path)
+        records = _by_start(tracing.read_trace(trace_id, path))
         if not records:
             click.echo(f"Nenhum registo para {trace_id}")
             raise SystemExit(1)
         for record in records:
             click.echo(_trace_line(record))
         return
-    records = tracing.read_recent(20 if recent is None else recent, path)
+    records = _by_start(tracing.read_recent(20 if recent is None else recent, path))
     if not records:
         click.echo("Registo vazio: nenhuma chamada MCP registada.")
         return

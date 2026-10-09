@@ -31,11 +31,13 @@ class TestTraceCommand(unittest.TestCase):
         self.runner = CliRunner()
 
     def seed(self):
+        # Physical order as the middleware writes it: a child event lands before its call,
+        # and a call's ts is its START, so sorting by ts restores parent-before-child.
         rows = [
-            record(TRACE_A, "1" * 16, "srv_api_run_safe_command", ms=42, label="DEM-12", args={"command": "ls /secret-path"}),
-            record(TRACE_A, "2" * 16, "srv_api_run_safe_command", event="ssh.exec", parent="1" * 16, args={"command": "ls /secret-path", "exit_code": 0}),
-            record(TRACE_B, "3" * 16, "get_adr", ms=3, args={"adr_identifier": "ADR-003"}),
-            record(TRACE_A, "4" * 16, "srv_api_view_logs", status="error", ms=7),
+            record(TRACE_A, "2" * 16, "srv_api_run_safe_command", event="ssh.exec", parent="1" * 16, ts="2026-10-09T12:00:00.002-03:00", args={"command": "ls /secret-path", "exit_code": 0}),
+            record(TRACE_A, "1" * 16, "srv_api_run_safe_command", ms=42, label="DEM-12", ts="2026-10-09T12:00:00.001-03:00", args={"command": "ls /secret-path"}),
+            record(TRACE_B, "3" * 16, "get_adr", ms=3, ts="2026-10-09T12:00:01.000-03:00", args={"adr_identifier": "ADR-003"}),
+            record(TRACE_A, "4" * 16, "srv_api_view_logs", status="error", ms=7, ts="2026-10-09T12:00:02.000-03:00"),
         ]
         for row in rows:
             tracing.write_record(row, self.log)
