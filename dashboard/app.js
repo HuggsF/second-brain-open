@@ -184,7 +184,7 @@ function knowledge(main){
  const layout=el('div',{class:'knowledge-layout'},el('section',{'aria-label':'Fontes do vault'},count,results),reader);
  function list(){
   results.replaceChildren();
-  let refs=route.q?C.search(G,route.q,{kind:'document',category:route.category,limit:50}):Object.entries(G.documents).filter(([ref])=>route.category==='all'||ref.split('/')[0]===route.category).map(([ref,d])=>({document:ref,label:d.title,snippet:d.text.split(/\r?\n/).find(l=>l.trim()&&!l.startsWith('#'))||'',lineStart:1,lineEnd:1}));
+  let refs=route.q?C.search(G,route.q,{kind:'document',category:route.category,limit:50}):Object.entries(G.documents).filter(([ref])=>route.category==='all'||ref.split('/')[0]===route.category).map(([ref,d])=>({document:ref,label:d.title,snippet:C.stripFrontmatter(d.text).split(/\r?\n/).find(l=>l.trim()&&!l.startsWith('#'))||'',lineStart:1,lineEnd:1}));
   if(route.favorites==='1')refs=refs.filter(r=>saved.favorites.includes(r.document));
   count.textContent=refs.length+' fontes'+(route.q?' encontradas':'')+(route.favorites==='1'?' favoritas':'');
   if(!refs.length){results.append(empty('Nenhuma fonte encontrada','Tente outro termo ou remova os filtros.',button('Limpar filtros',()=>navigate({q:'',category:'all',favorites:null,doc:null}),'subtle')));return;}

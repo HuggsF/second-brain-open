@@ -258,5 +258,10 @@
     return { ok: errors.length === 0, errors };
   }
 
-  return Object.freeze({ normalize, search, neighborhood, shortestPath, retrieve, validatePlan });
+  function stripFrontmatter(text) {
+    // Leading YAML block only (ADR-014); a later '---' is a Markdown rule and stays.
+    return String(text).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
+  }
+
+  return Object.freeze({ normalize, search, neighborhood, shortestPath, retrieve, validatePlan, stripFrontmatter });
 });

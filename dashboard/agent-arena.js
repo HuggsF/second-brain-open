@@ -1348,7 +1348,7 @@ function render(main, U) {
             `├── Extensão: ${doc.lines} linhas · Categoria: ${doc.category}\n` +
             `├── Título: "${doc.title}"\n` +
             `└── Conteúdo lido:\n` +
-            `│   ${doc.text.slice(0, 160).replace(/\r?\n/g, ' ')}...`;
+            `│   ${U.core.stripFrontmatter(doc.text).slice(0, 160).replace(/\r?\n/g, ' ')}...`;
           step.realSuccess = true;
           return;
         }

@@ -4,7 +4,16 @@ import argparse
 import hashlib
 import json
 import math
+import re
 from datetime import datetime, timezone
+
+FRONTMATTER = re.compile(r'\A---\r?\n.*?\r?\n---\r?\n', re.DOTALL)
+
+
+def _title(content, fallback):
+    """First H1 of the note body; YAML comments in the frontmatter also start with '# '."""
+    body = FRONTMATTER.sub('', content, count=1)
+    return next((ln.lstrip('#').strip() for ln in body.splitlines() if ln.startswith('# ')), fallback)
 
 try:
     import yaml  # PyYAML
@@ -30,7 +39,7 @@ def _load_templates(vault):
     templates = []
     for tpl in sorted(templates_dir.glob('*.md')):
         content = tpl.read_text(encoding='utf-8-sig')
-        title = next((ln.lstrip('#').strip() for ln in content.splitlines() if ln.startswith('# ')), tpl.stem)
+        title = _title(content, tpl.stem)
         templates.append({
             'id': tpl.stem,
             'title': title,
@@ -79,7 +88,7 @@ def build(root, catalog, output):
             raise ValueError('Document exceeds 1MB: ' + source.name)
         content = raw.decode('utf-8-sig')
         ref = source.relative_to(vault).as_posix()
-        title = next((ln.lstrip('#').strip() for ln in content.splitlines() if ln.startswith('# ')), source.stem)
+        title = _title(content, source.stem)
         documents[ref] = {'text': content, 'title': title, 'category': ref.split('/')[0] if '/' in ref else 'general',
                           'sha256': hashlib.sha256(raw).hexdigest(), 'lines': len(content.split('\n')),
                           'modified_at': datetime.fromtimestamp(resolved.stat().st_mtime, timezone.utc).isoformat()}
