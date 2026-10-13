@@ -23,20 +23,32 @@ STATUS_TIMEOUT_SECONDS = 5  # sondagem de /api/tags: curta, independente do time
 
 
 class _Deadline:
-    """Envolve o cliente: depois do prazo total do run_task, nova chamada ao modelo vira timeout."""
+    """Envolve o cliente durante um run_task.
+
+    Depois do prazo total, nova chamada ao modelo vira timeout. Também guarda, só para este
+    run_task, o provedor da última resposta e o custo real somado resposta a resposta (preço do
+    provedor que respondeu cada uma).
+    """
 
     def __init__(self, client, seconds: float):
         self._client = client
         self._end = _clock() + seconds
+        self.last_provider = None
+        self.actual_usd = 0.0
+        if hasattr(client, "last_provider"):
+            client.last_provider = None  # cliente reutilizado: nada da tarefa anterior
 
     def chat(self, model, system, user, schema):
         if _clock() >= self._end:
             raise LocalModelError("timeout", "prazo total da tarefa")
-        return self._client.chat(model, system, user, schema)
-
-    @property
-    def last_provider(self):
-        return getattr(self._client, "last_provider", None)
+        done = self._client.chat(model, system, user, schema)
+        spec = getattr(self._client, "last_provider", None)
+        if spec is not None:
+            self.last_provider = spec
+            price = spec.price or {}
+            self.actual_usd += (done.tokens_in * _price(price, "input")
+                                + done.tokens_out * _price(price, "output")) / 1e6
+        return done
 
 
 def deadline_seconds(profile: Profile) -> float:
@@ -110,16 +122,14 @@ def _price(ref: dict, key: str) -> float:
 
 
 def _cost(model: str, tier: str, tin: int, tout: int, ms: int, profile: Profile | None,
-          provider_spec=None) -> dict:
+          provider_spec=None, actual_usd: float = 0.0) -> dict:
     ref = (profile.paid_reference if profile else None) or {}
     usd = (tin * _price(ref, "input") + tout * _price(ref, "output")) / 1e6
     cost = {"model": model, "tier": tier, "tokens_in": tin, "tokens_out": tout, "ms": ms,
             "paid_equivalent_usd": usd}
     if provider_spec is not None:
         cost["provider"] = provider_spec.name
-        p = provider_spec.price or {}
-        actual = (tin * _price(p, "input") + tout * _price(p, "output")) / 1e6
-        cost["actual_usd"] = actual
+        cost["actual_usd"] = actual_usd
     return cost
 
 
@@ -140,6 +150,7 @@ def _ask(task, system, user, schema, profile, client):
         try:
             done = client.chat(model, system, prompt_user, schema)
         except LocalModelError as exc:
+            ms += int(getattr(exc, "ms", 0) or 0)  # tempo gasto nas tentativas que falharam
             return "escalate", exc.reason, {}, (tin, tout, ms)
         except Exception:
             return "error", None, {}, (tin, tout, ms)
@@ -236,11 +247,11 @@ def _execute(task, text, template, target_words, source, profile, client):
         modelled = True
     if not modelled or (used == (0, 0, 0) and reason == "input_too_large"):
         return status, reason, payload, det
-    # Determine provider info from client chain
-    lp = client.last_provider
+    lp = client.last_provider  # provedor da última resposta deste run_task, ou None
     if lp is not None:
         tier = "cloud" if lp.kind == "openai_compatible" else "local"
-        return status, reason, payload, _cost(lp.model, tier, *used, profile, provider_spec=lp)
+        return status, reason, payload, _cost(lp.model, tier, *used, profile, provider_spec=lp,
+                                              actual_usd=client.actual_usd)
     return status, reason, payload, _cost(model, "local", *used, profile)
 
 
