@@ -1,9 +1,11 @@
 """Cadeia de provedores: especificacao, parse e construcao de cliente."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 
 from config import settings
+from core.local_tasks.ollama_client import LocalModelError
 
 KINDS = ("openai_compatible", "ollama")
 STRUCTURED = ("json_schema", "json_object", "none")
@@ -78,3 +80,71 @@ def parse_providers(name: str, raw, defaults: dict) -> tuple[ProviderSpec, ...]:
             price=price,
         ))
     return tuple(specs)
+
+
+class FallbackClient:
+    """Tenta provedores em ordem; guarda quem respondeu em ``last_provider``."""
+
+    def __init__(self, entries: list[tuple[ProviderSpec, object]]):
+        self.entries = list(entries)
+        self.last_provider: ProviderSpec | None = None
+
+    def chat(self, model: str, system: str, user: str, schema: dict):
+        last_error: LocalModelError | None = None
+        tried = False
+        for spec, client in self.entries:
+            # Pula provedor openai_compatible cuja chave esta ausente ou vazia no ambiente
+            if spec.kind == "openai_compatible" and spec.api_key_env:
+                key = os.environ.get(spec.api_key_env, "")
+                if not key:
+                    continue
+            tried = True
+            try:
+                result = client.chat(spec.model, system, user, schema)
+                self.last_provider = spec
+                return result
+            except LocalModelError as exc:
+                last_error = exc
+                continue
+        if last_error is not None:
+            raise last_error
+        if not tried:
+            raise LocalModelError("local_unavailable", "no usable provider")
+        raise LocalModelError("local_unavailable", "no provider responded")
+
+
+def build_client(profile):
+    """Constroi o cliente conforme o perfil. Sem providers: OllamaClient como antes."""
+    from core.local_tasks.ollama_client import OllamaClient
+    from core.local_tasks.openai_compat_client import OpenAICompatClient
+
+    if not profile.providers:
+        return OllamaClient(
+            timeout=profile.timeout_seconds,
+            keep_alive=profile.keep_alive,
+        )
+    entries = []
+    for spec in profile.providers:
+        if spec.kind == "ollama":
+            client = OllamaClient(
+                base_url=spec.base_url,
+                timeout=spec.timeout_seconds,
+                keep_alive=spec.keep_alive,
+            )
+        else:
+            client = OpenAICompatClient(
+                base_url=spec.base_url,
+                api_key_env=spec.api_key_env,
+                timeout=spec.timeout_seconds,
+                structured=spec.structured,
+                extra=spec.extra,
+            )
+        entries.append((spec, client))
+    return FallbackClient(entries)
+
+
+def deadline_timeout(profile) -> int:
+    """Maior timeout entre os provedores, ou timeout_seconds do perfil sem providers."""
+    if not profile.providers:
+        return profile.timeout_seconds
+    return max(spec.timeout_seconds for spec in profile.providers)
