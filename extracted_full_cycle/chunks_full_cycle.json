@@ -1,0 +1,162 @@
+[
+  {
+    "id": "FC-001",
+    "source": "MBA Full Cycle - Módulo 06 - Prompt Engineering",
+    "topic": "Role Prompting & Técnicas Fundamentais",
+    "team_target": ["DEV", "ARQUITETURA"],
+    "chunk": "Role Prompting é a técnica de atribuir uma persona ao modelo para guiar suas respostas. Combinado com Few-shot (2-3 exemplos), produz outputs consistentes. Chain of Thought (CoT) força raciocínio passo a passo, reduzindo alucinações em 40-60%. CoT Self-Consistency executa múltiplas respostas e vota na melhor, aumentando confiabilidade em tarefas de classificação.",
+    "actionable": "Todos os system prompts dos agentes MCP devem iniciar com Role Prompting explícito definindo persona, domínio de expertise e contexto KIOSK."
+  },
+  {
+    "id": "FC-002",
+    "source": "MBA Full Cycle - Módulo 06 - Prompt Engineering",
+    "topic": "Tree of Thought & Skeleton of Thought",
+    "team_target": ["ARQUITETURA"],
+    "chunk": "Tree of Thought (ToT) explora múltiplos caminhos de raciocínio em paralelo, ideal para decisões arquiteturais com 3+ alternativas. Skeleton of Thought (SoT) gera a estrutura do documento primeiro e depois preenche cada seção em paralelo, produzindo documentos extensos mais rapidamente. SoT é ideal para geração de PRDs, HLDs e FDDs.",
+    "actionable": "Usar SoT para gerar PRDs de features KIOSK: primeiro o esqueleto das 12 seções, depois preencher cada seção independentemente."
+  },
+  {
+    "id": "FC-003",
+    "source": "MBA Full Cycle - Módulo 06 - Prompt Engineering",
+    "topic": "ReAct & Prompt Chaining com LangChain",
+    "team_target": ["DEV"],
+    "chunk": "ReAct combina Raciocínio + Ação: o modelo pensa ('Thought'), decide uma ação ('Action'), executa com ferramentas ('Observation') e itera. Prompt Chaining com LangChain conecta prompts sequencialmente onde o output de um é input do próximo. Usado para pipelines: Análise → Diagnóstico → Recomendação → Ação.",
+    "actionable": "Implementar ReAct pattern nos agentes MCP que interagem com APIs externas (Bling, SAP) para raciocínio antes de cada chamada."
+  },
+  {
+    "id": "FC-004",
+    "source": "MBA Full Cycle - Módulo 06 - Prompt Engineering",
+    "topic": "Context Window & Sliding Window",
+    "team_target": ["DEV", "DEVOPS", "QA", "ARQUITETURA"],
+    "chunk": "Todo LLM possui janela de contexto (limite de tokens). Ao ultrapassar, o modelo esquece o início (sliding window). Trade-off: mais contexto = melhor precisão, menos espaço para geração. Estratégias: Truncamento (cortar histórico), Sumarização (resumir), Prompt Caching (cachear prefixos estáticos reduz custo em 60-90%), Batch Prompting (agrupar queries).",
+    "actionable": "Criar um chat por tarefa. Instruir agentes a consultarem apenas documentos relevantes. Ativar Prompt Caching para system prompts estáticos."
+  },
+  {
+    "id": "FC-005",
+    "source": "MBA Full Cycle - Módulo 06 - Prompt Engineering",
+    "topic": "Gestão e Versionamento de Prompts",
+    "team_target": ["DEV", "ARQUITETURA"],
+    "chunk": "Prompts são ativos de software e devem ser versionados como código. Usar arquivo prompt.yaml como registry centralizado com: id, nome, versão (semver), categoria, tags e path do arquivo. LangSmith Prompt Hub permite push/pull de prompts com controle de versão. Testes automatizados validam que novas versões não degradam métricas.",
+    "actionable": "Criar vault/prompts/prompt-registry.yaml catalogando todos os system prompts dos 4 agentes MCP com versionamento semântico."
+  },
+  {
+    "id": "FC-006",
+    "source": "MBA Full Cycle - Módulo 06 - Prompt Engineering",
+    "topic": "Query Reformulation: HyDE & ITER-RETGEN",
+    "team_target": ["DEV", "ARQUITETURA"],
+    "chunk": "HyDE (Hypothetical Document Embedding) gera um documento hipotético a partir da query do usuário e usa seus embeddings para buscar documentos reais similares. Melhora recall quando a query é vaga ou usa termos diferentes dos documentos. ITER-RETGEN é iterativo: busca → gera resposta parcial → refina query → busca novamente → completa. Ideal para perguntas complexas que precisam de múltiplas fontes.",
+    "actionable": "Implementar HyDE no endpoint de busca do dashboard do Second Brain para melhorar recall em queries vagas sobre arquitetura."
+  },
+  {
+    "id": "FC-007",
+    "source": "MBA Full Cycle - Módulo 06 - Prompt Engineering",
+    "topic": "Prompt Evaluation: Métricas & LLM-as-Judge",
+    "team_target": ["QA", "DEV"],
+    "chunk": "Pipeline de avaliação de prompts: 1) Criar Golden Dataset (input + expected_output), 2) Executar prompt, 3) Aplicar evaluators (binário, score 1-5, pairwise), 4) Calcular Precision (≥0.85), Recall (≥0.80), F1 (≥0.82), 5) Comparar com baseline. LLM-as-Judge usa um LLM avaliador para julgar outputs de outro LLM, útil quando não há resposta correta única. Pairwise Evaluator compara 2 versões do prompt lado a lado.",
+    "actionable": "Criar golden datasets para cada agente MCP e implementar pipeline de eval automatizado que roda antes de deploy de novas versões de prompts."
+  },
+  {
+    "id": "FC-008",
+    "source": "MBA Full Cycle - Módulo 07 - Design Docs com IA",
+    "topic": "PRD de Feature — Estrutura de 12 Seções",
+    "team_target": ["ARQUITETURA", "DEV"],
+    "chunk": "PRD de Feature é o documento que conecta negócio e engenharia. 12 seções obrigatórias: 1) Resumo, 2) Contexto e Problema (público-alvo, cenários, local de implantação, problemas), 3) Objetivos e Métricas (tabela Objetivo|Métrica|Meta), 4) Escopo (incluso/fora), 5) Requisitos Funcionais (nome, fluxo principal, alternativas, erros, prioridade), 6) Requisitos Não-Funcionais (P95, uptime, segurança, observabilidade), 7) Arquitetura (abordagem, componentes, integrações), 8) Decisões e Trade-offs, 9) Dependências, 10) Riscos e Mitigação, 11) Critérios de Aceitação, 12) Testes.",
+    "actionable": "Toda nova feature KIOSK (Hub, Bling, Touti) deve ter PRD formal com as 12 seções antes de iniciar desenvolvimento."
+  },
+  {
+    "id": "FC-009",
+    "source": "MBA Full Cycle - Módulo 07 - Design Docs com IA",
+    "topic": "Diagramas C4 + Mermaid com IA",
+    "team_target": ["ARQUITETURA"],
+    "chunk": "Hierarquia C4: C1 (System Context — sistema + atores + externos), C2 (Containers — apps, bancos, filas), C3 (Component — componentes internos), C4 (Code — classes e interfaces). O MBA ensina geração automatizada via prompts que produzem output em PlantUML ou Mermaid. Mermaid suporta: Flowchart, Sequence Diagram, Class Diagram, ER Diagram, State Diagram. Todos renderizáveis em Markdown.",
+    "actionable": "Adicionar diagramas C4 (ao menos C1 e C2) em todos os HLDs e FDDs do vault. Usar Mermaid para renderização no dashboard."
+  },
+  {
+    "id": "FC-010",
+    "source": "MBA Full Cycle - Módulo 07 - Design Docs com IA",
+    "topic": "ADRs — MADRs e Agente de Mapeamento",
+    "team_target": ["ARQUITETURA"],
+    "chunk": "MADRs (Markdown Any Decision Record) estendem ADRs clássicos com: status (Proposto|Aceito|Depreciado|Substituído), metadados estruturados, fluxos de aprovação. Boas práticas: ADR por decisão (não por reunião), linguagem assertiva, alternativas com prós/contras. O MBA demonstra um agente que analisa o codebase e identifica potenciais ADRs não documentados. Quando usar: mudança de banco, framework ou padrão arquitetural. Quando NÃO usar: mudanças triviais de estilo.",
+    "actionable": "Rodar agente de mapeamento de ADRs no codebase KIOSK para identificar decisões técnicas não documentadas nos servidores MCP e integrações."
+  },
+  {
+    "id": "FC-011",
+    "source": "MBA Full Cycle - Módulo 07 - Design Docs com IA",
+    "topic": "Engineering Guidelines na Era da IA",
+    "team_target": ["DEV", "DEVOPS", "QA"],
+    "chunk": "Software Development Guidelines são documentos vivos que definem: 1) Project Stack (linguagens, frameworks, versões), 2) Coding Standards (formatação, naming), 3) Testing Strategy (tipos, cobertura mínima), 4) Git Workflow (branches, commits), 5) Pre-commit Hooks (linters, validações), 6) Deployment (CI/CD), 7) Security, 8) Observability. Na era da IA, guidelines também são consumidas por agentes como contexto para gerar código consistente.",
+    "actionable": "Criar vault/architecture/engineering-guidelines.md como documento formal de guidelines consumível tanto por humanos quanto pelos agentes MCP."
+  },
+  {
+    "id": "FC-012",
+    "source": "MBA Full Cycle - Módulo 08 - Desenvolvimento de Aplicações com IA",
+    "topic": "Project Skills e Progressive Disclosure",
+    "team_target": ["DEV", "ARQUITETURA"],
+    "chunk": "Skills são unidades modulares de conhecimento com SKILL.md (frontmatter YAML + instruções). Progressive Disclosure revela informação conforme necessidade (evita overwhelm). Conditional Details são detalhes que aparecem apenas quando o contexto exige. Agents.md define comportamento global; Skills são mais modulares e reutilizáveis. Repositórios: Anthropic Skills (oficial), Superpowers, AgentSkills.io, Skills.sh.",
+    "actionable": "Criar skills personalizadas para os 4 agentes KIOSK em .agents/skills/ com progressive disclosure de contexto técnico por domínio."
+  },
+  {
+    "id": "FC-013",
+    "source": "MBA Full Cycle - Módulo 08 - Desenvolvimento de Aplicações com IA",
+    "topic": "Spec Driven Development (SDD)",
+    "team_target": ["DEV", "ARQUITETURA"],
+    "chunk": "Spec Driven Development inverte o ciclo: escrever a especificação técnica ANTES do código. A IA gera código a partir da spec. Ciclo: Spec → Geração → Review → Testes → Iteração. O README.md deve ser diferenciado: índice completo de documentação, instruções de execução, links para ADRs e PRDs. Scripts de inicialização devem configurar todo o ambiente automaticamente.",
+    "actionable": "Para cada nova feature KIOSK, criar spec técnica (FDD) antes de iniciar codificação. README.md do Second Brain deve indexar toda a documentação."
+  },
+  {
+    "id": "FC-014",
+    "source": "MBA Full Cycle - Módulo 03 - Quick Wins com IA",
+    "topic": "Context Engineering & PRPs",
+    "team_target": ["DEV", "ARQUITETURA"],
+    "chunk": "Context Engineering é a construção de sistemas que fornecem informações e ferramentas corretas no formato ideal para a LLM. Vai além de Prompt Engineering ao organizar contextos dinâmicos, integrar múltiplas fontes e formatar para o modelo. PRPs (Product Requirement Prompts) = PRD + inteligência de código curada + agente — o pacote mínimo para a IA gerar código pronto para produção na primeira tentativa. Estrutura: Purpose, Principles, Goal, Context (docs, codebase tree, gotchas), Blueprint, Tasks, Validation Loop, Anti-Patterns.",
+    "actionable": "Criar template de PRP no vault e usar como padrão para features complexas que envolvam múltiplos agentes ou integrações."
+  },
+  {
+    "id": "FC-015",
+    "source": "MBA Full Cycle - Módulo 03 - Docker Offload",
+    "topic": "Docker Compose for AI Agents",
+    "team_target": ["DEVOPS"],
+    "chunk": "Docker Compose for Agents simplifica a configuração de ambientes de desenvolvimento com IA. Permite containerizar: bancos de dados (PostgreSQL, Redis), brokers de mensageria (RabbitMQ, Kafka), servidores MCP, e os próprios agentes de IA. Benefícios: ambiente reproduzível, isolamento, facilidade de onboarding.",
+    "actionable": "Atualizar docker-compose.yml do Second Brain para incluir todos os serviços MCP, banco vetorial e serviços de observabilidade em um único compose."
+  },
+  {
+    "id": "FC-016",
+    "source": "MBA Full Cycle - Módulo 05 - Fundamentos de IA Generativa",
+    "topic": "Alucinação: Causas e Mitigação",
+    "team_target": ["DEV", "QA"],
+    "chunk": "Alucinação ocorre quando o LLM gera informações factualmente incorretas com alta confiança. Causas: dados de treinamento ruidosos, falta de contexto, ambiguidade na query, token sampling estocástico. Estratégias de mitigação: 1) Fornecer contexto rico e específico (RAG), 2) Reduzir temperatura para respostas factuais, 3) Usar structured outputs com schema rígido, 4) Implementar guardrails de validação pós-geração, 5) Grounding com fontes verificáveis, 6) LLM-as-Judge para detectar inconsistências.",
+    "actionable": "Implementar guardrails de validação nos 4 agentes MCP: validar outputs contra schema esperado antes de retornar ao usuário."
+  },
+  {
+    "id": "FC-017",
+    "source": "MBA Full Cycle - Módulo 05 - Fundamentos de IA Generativa",
+    "topic": "Arquitetura RAG (Retrieval Augmented Generation)",
+    "team_target": ["DEV", "ARQUITETURA"],
+    "chunk": "RAG combina busca (retrieval) com geração (generation): 1) Query do usuário → 2) Busca semântica no vector store (embeddings) → 3) Top-K chunks recuperados → 4) Chunks + query injetados como contexto no prompt → 5) LLM gera resposta grounded nos documentos. Otimizações: chunk overlap, reranking, filtros de metadados, busca híbrida (BM25 + embeddings). O MBA demonstra implementação completa com LangChain e PostgreSQL/pgvector.",
+    "actionable": "O pipeline de busca do Second Brain já usa RAG básico. Evoluir com: reranking de chunks, filtros de metadados por time/módulo, e busca híbrida."
+  },
+  {
+    "id": "FC-018",
+    "source": "MBA Full Cycle - Módulo 02 - Comunicação e Resiliência",
+    "topic": "REST vs gRPC vs GraphQL + Mensageria",
+    "team_target": ["DEV", "DEVOPS", "ARQUITETURA"],
+    "chunk": "REST com JSON: APIs públicas e integração com parceiros (Bling, SAP). gRPC com Protobuf + HTTP/2: comunicação interna serviço-a-serviço (multiplexação, binário, contratos tipados). GraphQL: quando frontend precisa de queries flexíveis. Mensageria: RabbitMQ para tarefas com ACK individual; Kafka para event sourcing com log imutável e múltiplos consumidores. Websockets para comunicação bidirecional real-time; SSE para push unidirecional (dashboards).",
+    "actionable": "Manter REST para APIs externas dos MCP servers. Avaliar gRPC para comunicação entre MCP servers internos. SSE para updates do dashboard."
+  },
+  {
+    "id": "FC-019",
+    "source": "MBA Full Cycle - Módulo 02 - DevOps e SRE",
+    "topic": "SLI, SLO, SLA e Error Budget",
+    "team_target": ["DEVOPS", "QA"],
+    "chunk": "SLI (Service Level Indicator): métrica observável (ex: latência P95). SLO (Service Level Objective): meta interna (ex: P95 < 250ms, 99.5% uptime). SLA (Service Level Agreement): compromisso contratual (ex: 99.0% uptime). Error Budget = 100% - SLO (ex: 0.5% de downtime permitido/mês). Quando error budget é consumido, freeze de deploys até recuperação. O time de QA é guardião do SLO.",
+    "actionable": "Definir SLOs formais para cada MCP server do Second Brain: latência P95, taxa de erro, uptime. Implementar error budget no pipeline de deploy."
+  },
+  {
+    "id": "FC-020",
+    "source": "MBA Full Cycle - Módulo 03 - Agentes de IA",
+    "topic": "Orquestração de Subagentes Claude",
+    "team_target": ["DEV", "ARQUITETURA"],
+    "chunk": "Subagentes permitem dividir tarefas complexas em subtarefas especializadas. Cada subagente recebe contexto específico e limitado. O orquestrador coordena execução e consolida resultados. Benefícios: paralelização, isolamento de contexto, especialização. O MBA demonstra subagentes Claude Code para: análise de codebase, geração de testes, review de PRs, documentação.",
+    "actionable": "Implementar pattern de subagentes nos workflows mais complexos do Second Brain (ex: ingestão multi-source → análise → chunks → vault)."
+  }
+]

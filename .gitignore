@@ -11,3 +11,9 @@ ollama_data/
 # Local BFF secrets and observations
 .runtime/
 .frontend-backups/
+
+# Raw downloads and scraping dumps
+downloads_drive/
+downloads_pm3/
+dump_drive.html
+chrome_drive_dump.html

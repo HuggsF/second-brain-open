@@ -1,0 +1,550 @@
+--- PÁGINA 1 ---
+Medindo e provando
+resultado de produtos
+com IA
+Lucca Kazan
+
+--- PÁGINA 2 ---
+AI Lead Product Manager
+Lucca Kazan
+linkedin.com/in/luccakazan
+Agentic AI, Search and Recommendation,
+Facial Recognition, Antifraud, Data
+
+--- PÁGINA 3 ---
+Conteúdo desta aula
+02. 
+North Start
+Metrics
+03. 
+L1 Metrics
+01. 
+Introdução
+05. 
+Métricas para
+LLMs e Agents
+Desafios e principais
+métricas
+HHH Framework
+Benchmarks
+04. 
+L2 Metrics
+Matriz de
+classificação
+Precisão/ Recall/
+Acurácia/F1-score
+Armadilhas nas
+métricas
+
+--- PÁGINA 4 ---
+Introdução
+
+
+--- PÁGINA 5 ---
+AI é probabilística
+(e isso muda tudo!)
+Não basta saber se funcionou.
+Precisamos mensurar também se o
+resultado foi satisfatório, o quão
+satisfatório e com que frequência.
+Um mesmo input pode gerar saídas
+diferentes.
+Ex.: um AI Agent pode sugerir ações
+diferentes para o mesmo usuário,
+dependendo do contexto.
+
+--- PÁGINA 6 ---
+Papel do PM com AI
+O conceito de PM se mantém, mas a
+necessidade de tradução entre
+negócio e tecnologia se intensifica.
+Definimos métricas para:
+Conectar e direcionar os diversos
+stakeholders de forma concreta.
+Reforçar que uma ideia tenha valor
+de negócio.
+Direcionar o foco dos times de
+desenvolvimento.
+Mensurar o sucesso e a qualidade do
+produto.
+
+
+--- PÁGINA 7 ---
+Métricas em camadas
+North Star Metric (NSM)
+Valor de negócio no topo
+L1 Metrics
+Valor da feature unindo as visões
+L2 Metrics
+Performance técnica na base
+
+--- PÁGINA 8 ---
+North Star Metrics
+
+
+--- PÁGINA 9 ---
+O que é uma North
+Star Metric (NSM)?
+É a métrica principal que define o
+sucesso do produto no longo prazo
+Representa o valor real entregue
+ao usuário.
+Serve como uma bússola: mantém
+todos os times alinhados no
+mesmo objetivo.
+
+--- PÁGINA 10 ---
+Tipo do Produto North Star
+Recomendação Receita por sessão
+Antifraude Perda financeira porfraude
+Reconhecimento facial Experiência do usuário
+Diagnóstico médico Vidas salvas
+Suporte ao cliente Taxa de satisfação
+Exemplos práticos
+
+--- PÁGINA 11 ---
+Como definir uma
+boa NSM?
+1.Expressa valor para o usuário.
+2.Representa visão e estratégia.
+3.É um indicador de sucesso.
+4.É acionável.
+5.É compreensível.
+6.É mensurável.
+7.Não é uma métrica de vaidade.
+
+--- PÁGINA 12 ---
+L1 Metrics
+
+
+--- PÁGINA 13 ---
+O que são L1 Metrics?
+Se a NSM é o “onde chegar”, 
+as L1 são o “caminho para chegar”.
+Refletem o sucesso de cada
+funcionalidade, produto ou jornada
+de forma mais direta.
+São mais sensíveis às ações do time
+(leading metric).
+Se mantêm focadas no valor gerado
+ao usuário.
+Conectam ações do time à North Star
+Metric.
+
+--- PÁGINA 14 ---
+Tipo do Produto North Star L1 Metric
+Recomendação Receita por sessão CTR dos produtos sugeridos
+Antifraude Perda financeira porfraude % de transações fraudulentasaprovadas
+Reconhecimento facial Experiência do usuário % de usuários bloqueadosincorretamente
+Diagnóstico médico Vidas salvas % de riscos identificados emestágio inicial
+Suporte ao cliente Taxa de satisfação % de resolução na primeirainteração
+Exemplos práticos
+
+--- PÁGINA 15 ---
+Como definir uma
+boa L1 Metric?
+1. Focada em um objetivo específico.
+2. Acionável pelo time.
+3. Mais sensível às ações do time.
+4. É facilmente mensurável.
+5. Depende de menos variáveis.
+6. Reflete valor ao usuário.
+7. Impacta na North Star Metric.
+
+--- PÁGINA 16 ---
+L2 Metrics
+
+
+--- PÁGINA 17 ---
+O que são L2 Metrics?
+Se as L1 definem o caminho, as L2
+avaliam o motor que vai nos levar.
+Refletem a qualidade do modelo/
+sistema AI.
+Devem ser o mais independentes
+possível de fatores externos.
+Podem ser mais técnicas.
+PMs devem saber interpretar o
+significado dos números no negócio.
+
+--- PÁGINA 18 ---
+Matriz de
+confusão
+
+
+--- PÁGINA 19 ---
+Matriz de confusão
+AI, este usuário é fraude?
+
+
+--- PÁGINA 20 ---
+Negativo
+Matriz de confusão
+AI, este usuário é fraude?
+Positivo
+
+--- PÁGINA 21 ---
+Base da verdade (é fraude?)
+PositivoNegativo
+Positivo Negativo
+Matriz de confusão
+Classificação do modelo (é fraude?)
+
+
+--- PÁGINA 22 ---
+Verdadeiro
+Positivo
+(VP)
+Falso
+Positivo
+(FP)
+Verdadeiro
+Negativo
+(VN)
+Falso
+Negativo
+(FN)
+Positivo
+Negativo
+Negativo
+Matriz de confusão
+Classificação do modelo (é fraude?)
+Positivo
+Base da verdade (é fraude?)
+
+--- PÁGINA 23 ---
+Métricas de
+classificação
+
+
+--- PÁGINA 24 ---
+ 
+Acurácia
+ 
+Precisão
+ 
+Recall
+ 
+F1-Score
+Balanço entre
+ambos
+ 
+Média harmônica
+entre precision e
+recall?
+2VP / (2VP + FP +
+FN)
+Foco nos falsos
+positivos
+Dos usuários
+classificados
+como fraude,
+quantos de fato
+eram?
+VP / (VP + FP)
+Foco nos falsos
+negativos
+ 
+De todos os
+usuários-fraude,
+quantos foram
+identificados?
+VP / (VP + FN)
+Foco nos
+acertos totais
+ 
+De todas as
+classificações do
+modelo, quantas
+foram corretas?
+(VP + VN) / Total
+
+--- PÁGINA 25 ---
+Como PMs usam
+estas métricas?
+Nem sempre precisamos calcular,
+mas precisamos saber interpretar.
+Usamos as métricas para:
+Direcionar o foco do produto
+[”Precisamos melhorar a experiência
+do usuário legítimo” => “Precisamos
+aumentar a precisão do modelo de
+detecção de fraude”]
+Discutir trade-offs com engenharia
+[“Para aumentar a precisão,
+precisamos diminuir o recall”=>
+“Vamos ter mais fraude”]
+Avaliar modelos internos e externos
+
+--- PÁGINA 26 ---
+Armadilhas
+nas métricas
+
+
+--- PÁGINA 27 ---
+Cuidado com a Acurácia
+Parece a métrica mais prática,
+mas pode ser enganosa.
+Dados não balanceados
+Ex.: apenas 1% dos usuários são fraude.
+Prever sempre “não fraude” = 99% de
+acurácia.
+Métricas não contextualizadas
+Ex.: modelo de recomendação mostra
+acurácia no “Top 10” em vez de no “Top
+5”.
+O modelo não é melhor, só teve mais
+chances de acertar.
+
+--- PÁGINA 28 ---
+Como evitar armadilhas?
+Aprofunde-se nas metodologias
+padrão de cada contexto.
+Contextos específicos costumam
+adotar boas práticas para escapar das
+armadilhas.
+Antifraude foca em FP e FN; Recsys
+sempre específica um ranking.
+Pesquise por papers e publicações
+técnicas de universidades e outras
+empresas.
+Seja criterioso com os detalhes das
+métricas e metodologias, não aceite
+métricas de vaidade.
+
+--- PÁGINA 29 ---
+Tipo do
+Produto North Star L1 Metric L2 Metric
+Exemplos práticos
+Recomendação Receita por sessão CTR dos produtossugeridos Acurácia nas top 5recomendações
+Antifraude Perda financeirapor fraude % de transaçõesfraudulentas aprovadas Recall do modelo (semdiminuir a precisão)
+Reconhecimento
+facial
+Experiência do
+usuário
+% de usuários bloqueados
+incorretamente
+Precisão do modelo (sem
+diminuir o recall)
+Diagnóstico
+médico Vidas salvas % de riscos identificadosem estágio inicial Recall do modelo
+Suporte ao
+cliente Taxa de satisfação % de resolução naprimeira interação Métricas para LLM e Agents?
+
+--- PÁGINA 30 ---
+LLMs e Agents
+
+
+--- PÁGINA 31 ---
+O que é um acerto
+para você?
+LLMs e Agents não têm uma única
+“resposta certa”.
+Dois agentes podem resolver o
+mesmo problema com abordagens
+completamente diferentes.
+Métricas tradicionais não são capazes
+de representar essa subjetividade.
+A relação entre performance do
+modelo e resultado fica muito
+distante.
+Escreva um poema
+para meu gato
+No topo do sofá, Rei
+da manhã,
+teu miado é lei, tua
+pata é afã.
+Entre fios e sombras,
+desliza sutil
+com olhos de ouro e
+charme infantil.
+Sombra na janela,
+ um salto e o mundo
+desperta —
+ gato em poesia.
+Tem bigode torto,
+orelha amassada,
+ cara de briga mal
+terminada.
+ Seu miado? Um grito
+de horror!
+ Mas dorme no colo
+com tanto amor…
+ que até esqueço seu
+mau odor.
+
+--- PÁGINA 32 ---
+O que medir 
+nestes casos?
+Foco no resultado:
+ A tarefa foi concluída?
+ A resposta foi útil, honesta e segura?
+ O usuário ficou satisfeito?
+*O uso extensivo de Foundational Models
+(OpenAI, Gemini, Llama, Claude) reduz a
+necessidade de métricas técnicas no dia a dia.
+
+--- PÁGINA 33 ---
+Feedback
+Como o usuário avaliou a
+resposta?
+Harmless
+O resultado foi seguro/
+dentro das políticas?
+Principais Métricas
+No dia a dia de PMs
+Taxa de sucesso
+A tarefa foi concluída com
+sucesso?
+Honest
+O resultado foi correto/
+alucinou nas respostas?
+Benchmarks 
+Com qual foundational
+model começar?
+Helpfull
+O resultado foi
+útil/relevante à pergunta?
+
+
+--- PÁGINA 34 ---
+HHH Framework
+
+
+--- PÁGINA 35 ---
+Por que usar HHH?
+Precisamos de um método que:
+Converta respostas subjetivas em
+classificações objetivas.
+Seja capaz de abranger as diversas
+nuanças de cada contexto.
+Possa ser aplicado por humanos e
+em escala por LLMs.
+Bônus: leva o time a criar definições
+de qualidade para o contexto.
+
+--- PÁGINA 36 ---
+ 
+Helpfull
+ 
+Honest
+ 
+Harmless
+Fabricou
+informações
+incorretas?
+Citou informações
+não verificáveis?
+Se baseou em
+racionais ou cálculos
+incorretos? 
+Apresenta
+conteúdo inseguro
+(discurso de ódio,
+tóxico, abusivo)?
+Revela informações
+privadas de
+usuários ou da
+empresa?
+Desvia do problema
+em questão?
+É muito
+verbosa/não direto
+ao ponto?
+Deixa informações
+importantes de
+fora?
+Como aplicar o HHH?
+Um juíz (humano especialista ou LLM) responde perguntas
+para avaliar cada interação do Agent ou LLM.
+O resultado do Agent/LLM:
+
+--- PÁGINA 37 ---
+Como fica o teste A/B?
+O que não muda
+O que muda
+Métricas de impacto no negócio (NSM
+e L1) são medidas da mesma forma.
+A contabilização dos dados segue
+sendo determinística:
+O usuário clicou na
+recomendação.
+O usuário comprou R$XX.
+A comparação de L2 metrics
+precisam de uma fonte de verdade
+para definir acerto.
+Essa fonte de verdade pode ser
+definida por uma anotação humana
+ou de AI.
+
+
+--- PÁGINA 38 ---
+Benchmarks
+
+
+--- PÁGINA 39 ---
+Por que usar
+Benchmarks?
+Estabelecem um padrão de avaliação
+e aceleram processos:
+Comunicação de performance para
+stakeholders e mercado.
+Avaliação e pré-seleção de modelos
+base (GPT-4o vs o3-mini vs Claude
+3.7).
+Comparação de modelos fine-tuned.
+
+
+--- PÁGINA 40 ---
+BIG-Bench
+Raciocínio avançado e
+execução de tarefas.
+Truthful QA 0-shot
+Aderência à verdade e
+factualidade.
+Benchmarks conhecidos
+MATH 500
+Resolução de problemas
+matemáticos.
+APPS
+Geração de código em
+diversas linguagens.
+MMLU
+Conhecimento em múltiplas
+disciplinas.
+LMSYS
+Arena de chatbots
+julgados por humanos.
+Não deixe de buscar Benchmarks para problemas e questões específicas.
+
+
+--- PÁGINA 41 ---
+ 
+Artificial Analysis
+ 
+Hugging Face 
+ 
+Stanford HELM 
+Focado nos modelos
+OSS da plataforma.
+https://huggingface.co/spaces/o
+pen-llm-
+leaderboard/open_llm_leaderboa
+rd#/ 
+Focado nos
+principais modelos
+OSS.
+https://crfm.stanford.edu/helm/
+classic/latest/#/leaderboard
+Mais completo e
+user friendly.
+https://artificialanalysis.ai/
+Leaderboards
+Bases com resultados dos principais foundational models
+
+--- PÁGINA 42 ---
+Em produtos de IA, medir é o que
+transforma experimentos em
+evolução real.
+
+--- PÁGINA 43 ---

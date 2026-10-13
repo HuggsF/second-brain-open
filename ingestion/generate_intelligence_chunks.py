@@ -1,0 +1,556 @@
+"""
+Generates structured intelligence chunks from the core System Design course (Days 0 to 28)
+mapped specifically to the 4 specialist teams: DEV, DEVOPS, QA, and ARCHITECTURE.
+Outputs both extracted_system_design/chunks_system_design.json and dashboard/system-design-chunks.js.
+"""
+
+import json
+from pathlib import Path
+
+CHUNKS = [
+    {
+        "id": "SD-CHUNK-00-METHOD",
+        "day": "Day 0 - System Design",
+        "title": "Metodologia de System Design & Estimativas de Ordem de Grandeza",
+        "team": "architecture",
+        "team_label": "Arquitetura & Produto",
+        "core_teaching": "Sistemas distribuídos exigem separação formal entre Requisitos Funcionais (o que o sistema faz) e Não-Funcionais (latência, throughput, tolerância a falhas). Antes de escolher qualquer tecnologia, realize estimativas back-of-the-envelope de tráfego (RPS), armazenamento em 5 anos e largura de banda.",
+        "golden_rules": [
+            "Defina primeiro a razão Leitura vs Escrita (Read-heavy ou Write-heavy).",
+            "Sempre projete a infraestrutura para suportar 3x a 5x o pico normal de tráfego diário.",
+            "Contratos de dados e esquemas devem ser acordados antes de qualquer linha de código."
+        ],
+        "anti_patterns": [
+            "Começar escolhendo frameworks ou bancos antes de mapear volume de dados e latência.",
+            "Ignorar o crescimento acumulado de armazenamento ao longo de 12 a 36 meses."
+        ],
+        "kiosk_application": "Usado na modelagem de novas integrações de franquias e estimativas de pedidos na holding KIOSK."
+    },
+    {
+        "id": "SD-CHUNK-01-NET",
+        "day": "Day 1 - Protocolos de Rede",
+        "title": "Camadas OSI, Latência RTT, HTTP/2 e HTTP/3",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "Decisões em Layer 4 (TCP/UDP) são baseadas em IP/Porta (menor overhead de CPU, altíssimo throughput). Decisões em Layer 7 analisam headers, cookies e URLs. HTTP/2 multiplexa streams sobre a mesma conexão TCP; HTTP/3 (QUIC/UDP) elimina o Head-of-Line blocking do transporte.",
+        "golden_rules": [
+            "Use terminação TLS e HTTP/2 na borda para conexões de franqueados e clientes móveis.",
+            "Mantenha Keep-Alive agressivo para reutilizar conexões TCP entre microsserviços internos.",
+            "Monitore o RTT (Round Trip Time) para identificar gargalos de rede antes de culpar a aplicação."
+        ],
+        "anti_patterns": [
+            "Abrir e fechar conexão TCP a cada requisição HTTP síncrona interna.",
+            "Ignorar o impacto do handshake TLS em redes móveis de baixa qualidade."
+        ],
+        "kiosk_application": "Terminação TLS no Nginx/Envoy na frente do Hub e SRV-API com conexões Keep-Alive persistentes."
+    },
+    {
+        "id": "SD-CHUNK-02-STORAGE",
+        "day": "Day 2 - Storage, Raid e I-O",
+        "title": "Dimensões de Armazenamento: IOPS, Throughput e RAID 10",
+        "team": "architecture",
+        "team_label": "Arquitetura & Infra",
+        "core_teaching": "Storage em banco transacional (OLTP) é limitado por IOPS e latência de disco (random I/O); pipelines analíticos são limitados por Throughput/Bandwidth (sequential I/O). Discos NVMe operam em microssegundos; SATA em milissegundos. RAID 10 é o padrão de ouro que une velocidade e tolerância a falhas.",
+        "golden_rules": [
+            "Em bancos de dados relacionais transacionais de produção, use RAID 10 em discos NVMe.",
+            "Monitore %util e iowait no Linux para saber se o disco é o gargalo da latência.",
+            "Separe volumes de dados do volume de WAL/logs de escrita para evitar disputa de I/O."
+        ],
+        "anti_patterns": [
+            "Usar RAID 5 para bancos com alto volume de escrita (overhead severo de paridade).",
+            "Misturar tráfego de backup pesado no mesmo disco do banco transacional durante o expediente."
+        ],
+        "kiosk_application": "Dimensionamento de I/O nos servidores de banco de dados do Hub e relatórios da Touti."
+    },
+    {
+        "id": "SD-CHUNK-03-CAP",
+        "day": "Day 3 - Teorema CAP, Databases ACID e BASE",
+        "title": "Teorema CAP, Extensão PACELC e Trade-offs de Consistência",
+        "team": "architecture",
+        "team_label": "Arquitetura & Tech Lead",
+        "core_teaching": "Em partições de rede (P), escolha entre Consistência (C) e Disponibilidade (A). No modelo PACELC: Se há Partição (P), escolha entre (A) e (C); Else (E), escolha entre Latência (L) e Consistência (C). Sistemas fiscais/financeiros exigem PC/EC; catálogos e buscas preferem PA/EL.",
+        "golden_rules": [
+            "Operações com impacto financeiro ou fiscal (emissão de NF, débito) DEVEM ser consistentes (PC/EC).",
+            "Visualizações de produtos, buscas e grafos do Second Brain adotam consistência eventual (PA/EL).",
+            "Declare o posicionamento CAP/PACELC em cada nova ADR escrita no Vault."
+        ],
+        "anti_patterns": [
+            "Acreditar que um banco NoSQL pode ser 100% consistente e 100% disponível sob partição de rede.",
+            "Usar consistência eventual cega em rotinas de conciliação de saldo e faturamento."
+        ],
+        "kiosk_application": "ADR-012: Emissão fiscal e reserva de estoque usam PC/EC; Cockpit 360 e busca usam PA/EL."
+    },
+    {
+        "id": "SD-CHUNK-04-DATABASES",
+        "day": "Day 4 - Databases, Modelos de Dados e Indexação",
+        "title": "B-Trees vs LSM-Trees, Índices Invertidos e Read vs Write-Intensive",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "B-Trees (PostgreSQL, MySQL) são otimizadas para leitura rápida O(log N) em dados estruturados transacionais. LSM-Trees (RocksDB, Cassandra) são otimizadas para escrita intensiva sequencial com compactação em background. Índices invertidos (Elasticsearch) mapeiam termos para documentos.",
+        "golden_rules": [
+            "Use B-Trees com chaves indexadas para o modelo transacional principal de pedidos.",
+            "Use Elasticsearch com analisadores fonéticos/N-grams para busca textual de produtos e pedidos.",
+            "Não crie índices em excesso em tabelas de alto volume de escrita (cada índice penaliza o INSERT)."
+        ],
+        "anti_patterns": [
+            "Fazer buscas textuais com LIKE '%termo%' no PostgreSQL em tabelas com milhões de linhas.",
+            "Usar bancos orientados a documentos schemaless para dados altamente relacionais com integridade referencial."
+        ],
+        "kiosk_application": "PostgreSQL no Hub para ordens e pedidos; Elasticsearch/SQLite para busca e grafo do Second Brain."
+    },
+    {
+        "id": "SD-CHUNK-05-CACHE",
+        "day": "Day 5 - Estratégias de Cache",
+        "title": "Padrão Cache-Aside, Mitigação de Cache Stampede e Evicção LRU",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "Cache-Aside consulta a memória (Redis); em caso de miss, busca no banco e preenche com TTL. Para evitar Cache Stampede (quando chave quente expira e centenas de threads sobrecarregam o banco simultaneamente), use Mutex Lock distribuído no miss ou antecipação probabilística (XFetch).",
+        "golden_rules": [
+            "Sempre defina TTL em todas as chaves gravadas no cache (nunca cacheie indefinidamente).",
+            "Use Mutex Lock no Redis quando houver cache miss de chaves caras de recomputar.",
+            "Armazene valores sentinela nulos com TTL curto (30s) para evitar Cache Penetration de IDs inexistentes."
+        ],
+        "anti_patterns": [
+            "Usar o Redis como banco de dados primário sem persistência durável configurada.",
+            "Invalidar o cache inteiro com FLUSHALL em ambiente produtivo durante horário de pico."
+        ],
+        "kiosk_application": "Cache de tabelas de franqueados, tokens de API de transportadoras e cotações de frete."
+    },
+    {
+        "id": "SD-CHUNK-06-DDD",
+        "day": "Day 6 - Microserviços, Monolitos e Domínios",
+        "title": "Domain-Driven Design (DDD), Bounded Contexts e Lei de Conway",
+        "team": "architecture",
+        "team_label": "Arquitetura & Tech Lead",
+        "core_teaching": "A arquitetura de software reflete a estrutura de comunicação da empresa (Lei de Conway). Quebre sistemas através de Bounded Contexts estritos com Linguagem Ubíqua própria. Comunicação entre contextos diferentes deve usar Anti-Corruption Layer (ACL) para evitar contaminação de modelo.",
+        "golden_rules": [
+            "Mantenha o contexto de Logística e Despacho separado do contexto de Faturamento e ERP.",
+            "Use Anti-Corruption Layers para traduzir entidades externas do Bling, SAP e Salesforce.",
+            "Não divida microsserviços por tabela de banco, mas por limites transacionais de negócio."
+        ],
+        "anti_patterns": [
+            "Criar nanosserviços com acoplamento temporal que exigem 5 chamadas HTTP em cadeia para salvar 1 entidade.",
+            "Compartilhar o mesmo banco de dados relacional entre múltiplos microsserviços autônomos."
+        ],
+        "kiosk_application": "Segregação limpa entre Hub Logístico, Módulo de Franquias e Conectores de ERP das marcas."
+    },
+    {
+        "id": "SD-CHUNK-07-LOADBALANCER",
+        "day": "Day 7 - Load Balancers e Proxies Reversos",
+        "title": "Algoritmos de Balanceamento, Envoy Proxy e Outlier Detection",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "Balanceadores distribuem carga e executam healthchecks ativos e passivos. Para cargas de processamento variável (100ms a 3s), use Least Requests / Least Connections. Use Ring Hash para afinidade de chave de cache. O Envoy ejeta automaticamente instâncias com 5xx consecutivas via Outlier Detection.",
+        "golden_rules": [
+            "Substitua Round Robin por Least Connections em APIs com tempo de resposta heterogêneo.",
+            "Configure Outlier Detection passivo para ejetar réplicas doentes sem depender apenas de healthcheck síncrono.",
+            "Use proxies reversos para centralizar gzip/brotli, headers de segurança e terminação SSL."
+        ],
+        "anti_patterns": [
+            "Confiar apenas em healthchecks simples que retornam 200 OK estático mesmo quando o banco de dados caiu.",
+            "Usar sessões pegajosas (sticky sessions) sem mecanismo de fallback transparente."
+        ],
+        "kiosk_application": "Configuração de balanceamento no proxy reverso do Hub de Emissão de Etiquetas."
+    },
+    {
+        "id": "SD-CHUNK-08-GATEWAY",
+        "day": "Day 8 - API Gateways",
+        "title": "API Gateways, Rate Limiting (Token vs Leaky Bucket) e Kong",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "API Gateways centralizam autenticação (JWT/OAuth), autorização, roteamento dinâmico e controle de tráfego. Token Bucket permite pequenas rajadas (bursts) úteis; Leaky Bucket força saída estritamente linear, ideal para proteger limites contratuais de chamadas a terceiros (ex: Bling API v3).",
+        "golden_rules": [
+            "Proteja chamadas a APIs parceiras sensíveis com Rate Limiting do tipo Token Bucket local.",
+            "Centralize validação de tokens JWT no Gateway para não sobrecarregar microsserviços com auth repetida.",
+            "Retorne HTTP 429 Too Many Requests com header Retry-After informando o tempo de espera ao cliente."
+        ],
+        "anti_patterns": [
+            "Colocar regras de negócio complexas ou código de domínio dentro do script do API Gateway.",
+            "Não limitar tráfego de entrada em endpoints públicos de webhooks."
+        ],
+        "kiosk_application": "Gestão de vazão das chamadas à Bling API v3 em produção para respeitar o limite de requisições."
+    },
+    {
+        "id": "SD-CHUNK-09-BFF",
+        "day": "Day 09 - Backend for Frontends (BFFs)",
+        "title": "BFF Pattern, API Composition e Isolamento de Blast Radius",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "Em vez de uma API única genérica servir mobile, web e PDV, cada canal possui seu BFF próprio. O BFF executa chamadas paralelas em backend, sintetiza os dados em um único payload sob medida e reduz drasticamente a latência móvel. Falhas no BFF do PDV não afetam a operação web.",
+        "golden_rules": [
+            "Construa o BFF focado na experiência de tela do cliente (Single Round-Trip).",
+            "Mantenha o BFF sem estado próprio de negócio; ele apenas compõe e agrega dados dos microsserviços core.",
+            "Trate falhas parciais graciosamente: se um card secundário falhar, retorne o resto da tela normalmente."
+        ],
+        "anti_patterns": [
+            "Criar uma API móvel que obriga o celular a fazer 8 requisições sequenciais para renderizar 1 página.",
+            "Compartilhar o mesmo BFF entre múltiplos canais radicalmente diferentes."
+        ],
+        "kiosk_application": "Observability BFF e Cockpit 360 alimentando o Dashboard do Second Brain."
+    },
+    {
+        "id": "SD-CHUNK-10-SERVICEMESH",
+        "day": "Day 10 - Service Mesh Pattern",
+        "title": "Service Mesh, mTLS, Control vs Data Plane e Revolução eBPF",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "Service Mesh separa a infraestrutura de comunicação da lógica da aplicação. O Data Plane intercepta o tráfego aplicando mTLS e telemetria; o Control Plane distribui políticas. A evolução com eBPF (Cilium/Ambient Mesh) transfere essa lógica para o kernel Linux, eliminando o overhead de sidecars manuais.",
+        "golden_rules": [
+            "Adote mTLS automático para encriptar todo o tráfego serviço-a-serviço na rede interna.",
+            "Avalie abordagens proxyless/eBPF para evitar gastar 100MB de RAM por sidecar em ambientes pequenos.",
+            "Use o Mesh para capturar métricas de rede L7 (RED method) sem alterar 1 linha do código da aplicação."
+        ],
+        "anti_patterns": [
+            "Implementar Service Mesh completo com dezenas de sidecars para clusters com apenas 3 serviços.",
+            "Tratar o Mesh como substituto de boas práticas de resiliência no código da aplicação."
+        ],
+        "kiosk_application": "Comunicação interna segura e telemetria de tráfego entre Hub, SRV-API e Second Brain."
+    },
+    {
+        "id": "SD-CHUNK-11-CONCURRENCY",
+        "day": "Day 11 - Principios de Concorrência e Paralelismo",
+        "title": "Concorrência, Mutexes, Locks, Deadlocks e Prevenção de Duplicidades",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "Concorrência trata de múltiplos fluxos de execução disputando recursos. Para prevenir Lost Updates, use locks atômicos no banco. Para prevenir Deadlocks, sempre adquira múltiplos locks na mesma ordem alfabética. Para prevenir duplicidade de emissões de frete (DEM-17), exija travas de semáforo via Idempotency-Key.",
+        "golden_rules": [
+            "Todo endpoint que emite etiquetas ou notas DEVE verificar e gravar Idempotency-Key atômica.",
+            "Locks devem ser liberados em blocos finally/defer para nunca ficarem retidos após exceções.",
+            "Prefira Optimistic Locking com coluna version em tabelas de leitura massiva."
+        ],
+        "anti_patterns": [
+            "Ler saldo em um SELECT e gravar em um UPDATE posterior sem lock de linha ou transação atômica.",
+            "Adquirir Lock A depois B no Serviço 1, e Lock B depois A no Serviço 2 (deadlock certo)."
+        ],
+        "kiosk_application": "Eliminação definitiva de duplicidade de etiquetas de frete na integração J&T e Touti."
+    },
+    {
+        "id": "SD-CHUNK-12-SYNC",
+        "day": "Day 12 - Comunicação Síncrona",
+        "title": "REST, gRPC, Protobuf, Webhooks e WebSockets",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "Comunicação síncrona bloqueia o emissor até receber a resposta. Use REST/JSON para interoperabilidade externa com clientes e parceiros; use gRPC com Protobuf para comunicação interna de alta performance e tipagem rígida; use Webhooks para notificações orientadas a eventos; use WebSockets para dados bidirecionais ao vivo.",
+        "golden_rules": [
+            "Defina contratos gRPC com esquemas proto versionados para comunicação interna entre agentes.",
+            "Em webhooks, retorne HTTP 200 OK imediatamente após enfileirar a mensagem (nunca processe regras pesadas no request).",
+            "Sempre configure timeouts estritos (ex: 3.000ms) em qualquer chamada HTTP síncrona de saída."
+        ],
+        "anti_patterns": [
+            "Fazer chamadas HTTP síncronas sem timeout configurado (leva a esgotamento de threads).",
+            "Manter conexões abertas de WebSockets sem heartbeat (ping/pong) periódico para detectar conexões fantasmas."
+        ],
+        "kiosk_application": "Endpoints do Hub recebendo webhooks da Yampi/Bling e notificando o Dashboard em tempo real."
+    },
+    {
+        "id": "SD-CHUNK-13-ASYNC",
+        "day": "Day 13 - Comunicação Assincrona - Mensageria, Eventos e Streaming",
+        "title": "Mensageria, Streaming, FIFO, DLQs e Log Compaction",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "Mensageria desacopla produtores de consumidores temporalmente. Comandos expressam intenção ('EmitirNota'); Eventos expressam fatos imutáveis ('NotaEmitida'). Use Dead Letter Queues (DLQ) para mensagens que falharem após N tentativas. Use Kafka com Log Compaction para manter o estado atual de entidades.",
+        "golden_rules": [
+            "Trate mensagens como At-Least-Once: todo consumidor DEVE ser idempotente.",
+            "Isole mensagens com falhas permanentes em DLQs com alarmes para auditoria humana.",
+            "Particione tópicos de streaming pela chave da entidade (order_id) para garantir ordem estrita por pedido."
+        ],
+        "anti_patterns": [
+            "Fazer retries infinitos na fila principal travando a fila inteira para todos os outros clientes.",
+            "Usar mensagens gigantescas com anexos binários em vez de enviar referências com URLs seguras."
+        ],
+        "kiosk_application": "Desacoplamento do processamento de pedidos entre Bling ERP, Touti Cosmetics e Hub de despacho."
+    },
+    {
+        "id": "SD-CHUNK-14-PERFORMANCE",
+        "day": "Day 14 - Performance, Capacidade e Escalabilidade",
+        "title": "Métricas de Performance, Latência P95/P99 e Saturação",
+        "team": "qa",
+        "team_label": "QA & Confiabilidade",
+        "core_teaching": "Performance mede quão rápido um sistema processa sob determinada carga; Escalabilidade mede a capacidade de aumentar a carga adicionando recursos. A latência deve ser avaliada por percentis P95 e P99, pois a média esconde outliers severos que impactam usuários reais.",
+        "golden_rules": [
+            "Exija que o P95 de latência seja menor que 300ms em requisições críticas do Hub.",
+            "Separe as métricas de requisições com sucesso das requisições com erro nos dashboards.",
+            "Monitore o ponto de saturação de CPU (70%) para acionar autoscaling preventivo."
+        ],
+        "anti_patterns": [
+            "Apresentar métricas baseadas em média aritmética para relatórios de SLAs corporativos.",
+            "Tentar otimizar código prematuramente antes de medir com profiling onde está o gargalo real de I/O."
+        ],
+        "kiosk_application": "Critérios de aceite para liberação de novos PRs e homologação de rotas de alta frequência."
+    },
+    {
+        "id": "SD-CHUNK-15-SCALECUBE",
+        "day": "Day 15 - Scale Cube",
+        "title": "O Modelo do Scale Cube: Eixos X, Y e Z",
+        "team": "architecture",
+        "team_label": "Arquitetura & Tech Lead",
+        "core_teaching": "O cubo de escala define 3 dimensões ortogonais: Eixo X (Clonagem Horizontal de serviços stateless atrás de balanceador); Eixo Y (Decomposição Funcional em microsserviços autônomos); Eixo Z (Particionamento de dados por cliente, holding ou região geográfica).",
+        "golden_rules": [
+            "Escale no Eixo X primeiro: remova todo estado em memória para permitir múltiplas réplicas idênticas.",
+            "Escale no Eixo Y quando diferentes áreas de negócio precisarem de ciclos de deploy independentes.",
+            "Escale no Eixo Z quando os dados de um cliente gigante ameaçarem o banco de dados compartilhado."
+        ],
+        "anti_patterns": [
+            "Guardar sessão de usuário ou locks na memória do processo Node.js/Python, quebrando o Eixo X.",
+            "Criar microsserviços no Eixo Y antes de entender bem os domínios do sistema (risco de monólito distribuído)."
+        ],
+        "kiosk_application": "Governança de crescimento da plataforma KIOSK atendendo Touti, Amavia e Yes! Cosmetics."
+    },
+    {
+        "id": "SD-CHUNK-16-SHARDING",
+        "day": "Day 16 - Principios de Sharding e Particionamento",
+        "title": "Sharding de Dados, Chaves de Partição e Consistent Hashing",
+        "team": "architecture",
+        "team_label": "Arquitetura & Persistência",
+        "core_teaching": "Sharding divide o banco de dados horizontalmente em servidores independentes. Range Sharding divide por faixas; Hash Sharding distribui uniformemente. Consistent Hashing com nós virtuais minimiza o volume de chaves movidas ao adicionar ou remover shards de dados.",
+        "golden_rules": [
+            "Escolha chaves de sharding com alta cardinalidade para evitar Hot Partitions (partições superaquecidas).",
+            "Use Consistent Hashing em caches e clusters de dados para redistribuição suave.",
+            "Evite consultas que exijam varredura em múltiplos shards (cross-shard queries são caras e lentas)."
+        ],
+        "anti_patterns": [
+            "Usar timestamps sequenciais como chave de partição (todo o tráfego novo atinge sempre o mesmo shard).",
+            "Fazer JOINs entre bancos de shards diferentes na camada de aplicação."
+        ],
+        "kiosk_application": "Planejamento de banco de dados isolado por franquia e holding para suportar expansão nacional."
+    },
+    {
+        "id": "SD-CHUNK-17-REPLICATION",
+        "day": "Day 17 - Principios Replicação de Dados",
+        "title": "Replicação Leader-Follower, Quorum e Read-Your-Own-Writes",
+        "team": "architecture",
+        "team_label": "Arquitetura & Persistência",
+        "core_teaching": "Replicação Primary-Replica direciona escritas ao primário e leituras às réplicas. Replicação assíncrona introduz Replication Lag. Para garantir consistência ao usuário que acabou de editar, use a regra Read-Your-Own-Writes (ler do líder nos primeiros segundos após a escrita). Consenso exige W + R > N.",
+        "golden_rules": [
+            "Rotinas que exigem consistência imediata pós-escrita devem ler do nó primário (Primary).",
+            "Configure réplicas de leitura para relatórios pesados e consultas analíticas do dashboard.",
+            "Use consenso Raft/Paxos com número ímpar de nós para evitar Split-Brain em caso de partição."
+        ],
+        "anti_patterns": [
+            "Ignorar o Replication Lag em telas de edição onde o usuário recarrega e vê os dados antigos.",
+            "Permitir escritas desordenadas em múltiplos líderes sem controle estrito de resolução de conflitos."
+        ],
+        "kiosk_application": "Leitura de relatórios no Second Brain via réplicas, preservando o banco transacional de emissão."
+    },
+    {
+        "id": "SD-CHUNK-18-CQRS",
+        "day": "Day 18 - CQRS",
+        "title": "CQRS: Command Query Responsibility Segregation e Materialized Views",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "CQRS separa o modelo de escrita transacional (Commands com regras de negócio rígidas) do modelo de leitura (Queries contra visões desnormalizadas). As visões de leitura são atualizadas assincronamente por eventos, permitindo consultas ultra-rápidas O(1) sem travar o banco de escrita.",
+        "golden_rules": [
+            "Comandos nunca retornam dados complexos de negócio; apenas ID e status da transação.",
+            "Consultas são livres de efeitos colaterais (side-effect free) e lêem de projeções materializadas.",
+            "Use CQRS quando a razão Leitura:Escrita for muito desigual (ex: 50 consultas para cada 1 escrita)."
+        ],
+        "anti_patterns": [
+            "Fazer JOINs com 12 tabelas normalizadas no banco de escrita toda vez que o painel do operador abrir.",
+            "Implementar CQRS completo com brokers e projeções para CRUDs simples de baixa complexidade."
+        ],
+        "kiosk_application": "Cockpit 360 do franqueado lendo modelos agregados em Redis/SQLite, sem impactar o Hub de emissão."
+    },
+    {
+        "id": "SD-CHUNK-19-SAGA",
+        "day": "Day 19 - Saga Pattern",
+        "title": "Saga Pattern: Transações Distribuídas e Transações Compensatórias",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "Uma Saga é uma sequência de transações locais em múltiplos serviços. Como o 2PC bloqueia recursos, a Saga aceita commits locais e, em caso de falha posterior, executa Transações Compensatórias em ordem reversa (ex: estornar reserva, cancelar NF-e, reverter pontos). Prefira orquestração para fluxos complexos.",
+        "golden_rules": [
+            "Implemente Sagas Orquestradas com máquina de estados persistida no Hub para fluxos de despacho.",
+            "Toda etapa da Saga DEVE ter sua respectiva ação compensatória explicitamente codificada e testada.",
+            "Garanta que as transações compensatórias sejam idempotentes e tolerantes a retries."
+        ],
+        "anti_patterns": [
+            "Usar 2PC (Two-Phase Commit) síncrono conectando APIs externas de ERPs parceiros.",
+            "Deixar a compensação falhar silenciosamente sem registrar alerta crítico no painel de observabilidade."
+        ],
+        "kiosk_application": "Fluxo de pedido: Reserva no Bling -> Emissão Fiscal SEFAZ -> Frete J&T com rollback compensatório."
+    },
+    {
+        "id": "SD-CHUNK-20-EVENTSOURCING",
+        "day": "Day 20 - Event Sourcing Pattern",
+        "title": "Event Sourcing: Append-Only Stores, Agregados, Replay e Snapshots",
+        "team": "dev",
+        "team_label": "Dev Full-Cycle",
+        "core_teaching": "Em vez de atualizar o estado atual de uma linha no banco, o Event Sourcing grava uma sequência append-only de eventos de domínio imutáveis. O estado atual é calculado recompondo os eventos. Para agregados com centenas de eventos, gravam-se Snapshots periódicos para acelerar a inicialização.",
+        "golden_rules": [
+            "Grave eventos em formato imutável append-only (nunca execute UPDATE ou DELETE em eventos passados).",
+            "Crie snapshots a cada 50 ou 100 eventos para não precisar reprocessar o histórico inteiro na inicialização.",
+            "Use Event Sourcing onde a trilha de auditoria contábil e a capacidade de Time-Travel forem obrigatórias."
+        ],
+        "anti_patterns": [
+            "Alterar o esquema de eventos passados quebrando a capacidade de replay histórico.",
+            "Usar Event Sourcing em sistemas simples onde uma tabela relacional tradicional seria suficiente."
+        ],
+        "kiosk_application": "Histórico imutável de transações de frete, etiquetas emitidas e auditorias do Second Brain."
+    },
+    {
+        "id": "SD-CHUNK-21-RESILIENCE",
+        "day": "Day 21 - Patterns de Resiliência",
+        "title": "Circuit Breakers, Exponential Backoff, Full Jitter e Blast Radius",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "Resiliência previne que falhas locais destruam o sistema inteiro. O Circuit Breaker abre após erros repetidos e falha instantaneamente (Fast Fail) sem saturar a rede. O Exponential Backoff com Full Jitter desincroniza clientes concorrentes. O isolamento de recursos reduz o Blast Radius (raio de explosão).",
+        "golden_rules": [
+            "Abra o Circuit Breaker se a taxa de erro for >= 50% em 20s; mantenha cooldown de 30s.",
+            "Sempre adicione Full Jitter (aleatoriedade) aos retries com backoff exponencial.",
+            "Configure timeouts agressivos em todas as dependências de rede para falhar rápido."
+        ],
+        "anti_patterns": [
+            "Fazer retries imediatos sem delay após receber erro 500 de um serviço sobrecarregado.",
+            "Permitir que uma integração com parceiro instável trave o thread pool inteiro do servidor."
+        ],
+        "kiosk_application": "PB-004: Blindagem contra lentidão nas APIs da Bling, SEFAZ e transportadoras."
+    },
+    {
+        "id": "SD-CHUNK-22-DEPLOYMENT",
+        "day": "Day 22 - Modelos de Deployment",
+        "title": "Modelos de Deployment: Blue/Green, Canary, Feature Flags e Rollback",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "Deploys modernos visam zero downtime e reversão instantânea. Blue/Green mantém dois ambientes idênticos completos com chaveamento de tráfego instantâneo. Canary roteia uma fração do tráfego real (5%) para validar métricas. Feature Flags separam o deploy do código da liberação de negócio.",
+        "golden_rules": [
+            "Garanta que alterações de banco de dados sejam retrocompatíveis (Expand and Contract pattern).",
+            "Use Canary para validar novas integrações de transportadoras com 5% dos pedidos primeiro.",
+            "Todo deploy deve ter um procedimento documentado de rollback executável em menos de 60 segundos."
+        ],
+        "anti_patterns": [
+            "Fazer deploy do tipo Big Bang (Recreate) que derruba o sistema durante o horário de expediente.",
+            "Deletar colunas do banco de dados no mesmo deploy em que a nova versão do código sobe."
+        ],
+        "kiosk_application": "Pipeline de CI/CD do Hub de Produção com chaveamento seguro e feature flags de clientes."
+    },
+    {
+        "id": "SD-CHUNK-23-CAPACITY",
+        "day": "Day 23 - Capacity Planning",
+        "title": "Capacity Planning, Teoria das Filas M/M/1 e Lei de Little",
+        "team": "architecture",
+        "team_label": "Arquitetura & Planejamento",
+        "core_teaching": "A capacidade de processamento obedece à Lei de Little: L = λ × W (Concorrência média = Taxa de chegada RPS × Latência média em segundos). A Knee Curve mostra o ponto ótimo onde o throughput é máximo antes de a latência explodir. Ultrapassar o 'joelho' causa colapso por disputa de locks e filas.",
+        "golden_rules": [
+            "Calcule os workers necessários antes de promoções: L = RPS_esperado × Latência_média.",
+            "Adicione 50% de Headroom de segurança na capacidade calculada pela Lei de Little.",
+            "Monitore o tamanho das filas: se a fila cresce e a latência sobe, o sistema ultrapassou o joelho da curva."
+        ],
+        "anti_patterns": [
+            "Subdimensionar o pool de conexões acreditando que threads virtuais resolvem lentidão de banco físico.",
+            "Esperar o sistema cair em dias de Black Friday para só então tentar escalar servidores."
+        ],
+        "kiosk_application": "Dimensionamento de workers e filas do Hub Logístico para datas sazonais da KIOSK."
+    },
+    {
+        "id": "SD-CHUNK-24-LOADTEST",
+        "day": "Day 24 - Testes de Carga e Estresse",
+        "title": "Pirâmide de Testes de Performance: Smoke, Load, Stress, Spike e Breakpoint",
+        "team": "qa",
+        "team_label": "QA & Confiabilidade",
+        "core_teaching": "Testes de performance devem ser estruturados em estágios: Smoke (sanidade funcional), Average Load (tráfego médio diário), Stress (2x-3x a carga normal), Spike (explosão súbita em 10s) e Breakpoint (aumento progressivo até o colapso para identificar o limite físico da infraestrutura).",
+        "golden_rules": [
+            "Execute a pirâmide de testes em homologação sanitizada com mocks de latência configurável.",
+            "Avalie a aprovação pelo P95 da latência e taxa de erro < 0.1% em Average Load.",
+            "No Breakpoint Test, valide se o sistema falha graciosamente com 429/503 sem corromper dados."
+        ],
+        "anti_patterns": [
+            "Executar testes de estresse disparando requisições contra APIs reais de produção de parceiros.",
+            "Fazer testes de carga apenas no endpoint de login sem testar os fluxos transacionais pesados."
+        ],
+        "kiosk_application": "PB-005: Bateria de testes de performance do Hub executada pelo Agente QA antes de deploys."
+    },
+    {
+        "id": "SD-CHUNK-25-BULKHEAD",
+        "day": "Day 25 - Bulkhead Pattern",
+        "title": "Bulkhead Pattern: Isolamento Físico e Lógico de Recursos",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "Assim como compartimentos estanques em navios evitam que um vazamento afunde a embarcação inteira, Bulkheads isolam pools de conexões, threads e instâncias. Uma lentidão na emissão da transportadora A consome apenas o seu pool dedicado de conexões, mantendo as outras 3 transportadoras intactas.",
+        "golden_rules": [
+            "Isole pools de conexões HTTP e de banco de dados por parceiro externo integrado.",
+            "Separe pods/processos de tráfego transacional crítico dos processos de processamento em lote.",
+            "Defina limites máximos de memória e CPU por container para evitar que um processo drene o nó todo."
+        ],
+        "anti_patterns": [
+            "Usar um pool global único de conexões compartilhado por todas as integrações externas da aplicação.",
+            "Rodar relatórios analíticos de longa duração na mesma thread dos endpoints de emissão fiscal."
+        ],
+        "kiosk_application": "Isolamento de threads de despacho da J&T, Correios e Total Express no Hub Logístico."
+    },
+    {
+        "id": "SD-CHUNK-26-CELLBASED",
+        "day": "Day 26 - Cell-Based Pattern",
+        "title": "Cell-Based Pattern, Roteamento Celular e Shuffle Sharding",
+        "team": "architecture",
+        "team_label": "Arquitetura & Escala",
+        "core_teaching": "Arquitetura celular divide todo o ecossistema em células autônomas completas e idênticas (cada uma com suas APIs, filas e bancos). O Edge Router direciona clientes por chave. Com Shuffle Sharding, clientes recebem subconjuntos sobrepostos de células, reduzindo o risco de colapso conjunto a quase zero.",
+        "golden_rules": [
+            "Uma célula nunca deve se comunicar diretamente com outra célula; a autonomia deve ser total.",
+            "Mantenha o tamanho de cada célula pequeno e previsível para facilitar testes e substituições.",
+            "Use o identificador da holding ou região (tenant_id) como chave de roteamento na borda."
+        ],
+        "anti_patterns": [
+            "Criar dependências cruzadas entre bancos de dados de células diferentes.",
+            "Escalar um monólito central único infinitamente até ele se tornar um ponto único de falha global."
+        ],
+        "kiosk_application": "Topologia celular para isolar as operações da Touti Cosmetics, Amavia e Yes! Cosmetics."
+    },
+    {
+        "id": "SD-CHUNK-27-DR",
+        "day": "Day 27 - Single Point of Failure e Disaster Recovery",
+        "title": "Eliminação de SPOFs, Metas RTO/RPO e Estratégias de Recuperação",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "Um SPOF é qualquer componente cuja falha derruba o sistema todo. Planos de continuidade exigem metas pactuadas de RTO (tempo máximo de parada) e RPO (perda máxima tolerável de dados). As estratégias variam de Backup/Restore e Pilot Light até Warm Standby e Multi-Region Active-Active.",
+        "golden_rules": [
+            "Mantenha RTO <= 15 minutos e RPO = 0 minutos para sistemas fiscais e de faturamento.",
+            "Execute testes de restauração de backup a frio periodicamente para garantir que os dumps não estão corrompidos.",
+            "Mantenha chaves de API e certificados duplicados em cofres de segredos redundantes."
+        ],
+        "anti_patterns": [
+            "Descobrir que o backup automático estava falhando apenas no dia em que o disco de produção corrompeu.",
+            "Manter instâncias de banco primário sem réplica automática com auto-failover habilitado."
+        ],
+        "kiosk_application": "PB-007: Procedimento semestral de auditoria de SPOFs e simulação de failover do Hub."
+    },
+    {
+        "id": "SD-CHUNK-28-OBSERVABILITY",
+        "day": "Day 28 - Observabilidade e Monitoramento",
+        "title": "Four Golden Signals, Métodos USE & RED, OpenTelemetry e Error Budgets",
+        "team": "devops",
+        "team_label": "DevOps & SRE",
+        "core_teaching": "Observabilidade permite entender o estado interno do sistema a partir de suas saídas externas (Métricas, Logs e Traces). Os Four Golden Signals (Latência, Tráfego, Erros e Saturação) monitoram a saúde dos serviços. O método USE diagnostica recursos físicos; o método RED diagnostica APIs de aplicação.",
+        "golden_rules": [
+            "Monitore os Four Golden Signals em tempo real com alarmes automáticos antes de clientes reclamarem.",
+            "Use o método RED (Rate, Errors, Duration) para inspecionar endpoints de microsserviços.",
+            "Use o método USE (Utilization, Saturation, Errors) para diagnosticar bancos de dados e servidores.",
+            "Respeite o Error Budget: se o orçamento de erro mensal for consumido, congele novos deploys e foque em estabilidade."
+        ],
+        "anti_patterns": [
+            "Monitorar apenas CPU e memória e ignorar a latência P99 e taxa de erros 5xx sentida pelo usuário.",
+            "Gerar logs desestruturados em texto puro sem trace_id, impossibilitando correlacionar requisições distribuídas."
+        ],
+        "kiosk_application": "Painel de telemetria em tempo real com FlowLogger, OpenTelemetry e Golden Signals no Second Brain."
+    }
+]
+
+def main():
+    root = Path(__file__).resolve().parent.parent
+    output_json = root / "extracted_system_design" / "chunks_system_design.json"
+    output_js = root / "dashboard" / "system-design-chunks.js"
+    
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    output_js.parent.mkdir(parents=True, exist_ok=True)
+    
+    with open(output_json, "w", encoding="utf-8") as f:
+        json.dump(CHUNKS, f, indent=2, ensure_ascii=False)
+        
+    js_content = "window.SYSTEM_DESIGN_CHUNKS = " + json.dumps(CHUNKS, ensure_ascii=False) + ";\n"
+    with open(output_js, "w", encoding="utf-8") as f:
+        f.write(js_content)
+        
+    print(f"Generated {len(CHUNKS)} structured intelligence chunks successfully!")
+    print(f"JSON: {output_json}")
+    print(f"JS: {output_js}")
+
+if __name__ == "__main__":
+    main()

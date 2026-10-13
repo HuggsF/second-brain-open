@@ -9,7 +9,7 @@
   const MAX_NODES = 5000, MAX_EDGES = 30000, MAX_NEIGHBORS = 80, MAX_LOCAL_EDGES = 240;
   const STOP_WORDS = new Set(('a ao aos as o os um uma uns umas de da das do dos e em no na nos nas para por com que qual quais como quando onde porque por que se ou sobre pelo pela pelos pelas este esta esses essas isso isto the a an of and to in on for is are what how why').split(' '));
   const TOOL_NAMES = new Set(['search', 'read_graph', 'read_sources']);
-  const ROLES = new Set(['researcher', 'reviewer', 'writer']);
+  const ROLES = new Set(['researcher', 'reviewer', 'writer', 'dev', 'devops', 'qa', 'architect']);
 
   function normalize(text) {
     return String(text == null ? '' : text).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').replace(/\b([a-z])&([a-z])\b/g, '$1$2').replace(/\s+/g, ' ').trim();

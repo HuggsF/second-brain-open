@@ -4,9 +4,9 @@
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
-const pages = {observability:['◉','Observabilidade'],overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],graph:['◎','Grafo'],queries:['⌕','Consultas'],agents:['◇','Planos de agentes']};
+const pages = {workflows:['🔀','Workflows de IA'],agents:['⚡','Agentes em Ação'],architecture:['🏛','System Design'],observability:['◉','Observabilidade'],product:['🎯','Produto & OKRs'],overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],graph:['◎','Grafo'],teams:['⚙','Times'],queries:['⌕','Consultas']};
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
-const categories = {all:'Todas as fontes',systems:'Sistemas',adrs:'Decisões · ADRs',domain:'Domínio',daily:'Memória diária',general:'Geral'};
+const categories = {all:'Todas as fontes',architecture:'Arquitetura · System Design',playbooks:'Playbooks',systems:'Sistemas',adrs:'Decisões · ADRs',product:'Produto',domain:'Domínio',daily:'Memória diária',general:'Geral'};
 let storageOK = true, noticeTimer;
 const defaults = {version:1,theme:'dark',favorites:[],recent:[],history:[],graphMode:'map',plan:null};
 let saved = {...defaults};
@@ -220,11 +220,16 @@ function render(){
  $('navigation').replaceChildren(...Object.entries(pages).map(([id,[icon,name]])=>el('a',{class:'nav-item',href:'#page='+id,'aria-current':route.page===id?'page':null},el('span',{class:'nav-icon','aria-hidden':true},icon),name)));
  document.title=pages[route.page][1]+' · KIOSK Second Brain';
  if(!dataOK || !C || !M){main.append(empty('Não foi possível carregar o snapshot','Verifique graph-data.js e gere novamente o catálogo.',button('Tentar novamente',()=>location.reload(),'primary')));return;}
+ if(route.page==='product'){if(window.BrainProductUI)window.BrainProductUI.render(main,api);else main.append(empty('Módulo de produto indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='architecture'){if(window.BrainArchitecture)window.BrainArchitecture.render(main,api);else main.append(empty('Módulo de arquitetura indisponível','Recarregue a página e verifique architecture-ui.js.',button('Tentar novamente',()=>location.reload())));}
  if(route.page==='observability')window.BrainObservability.render(main,api);
  if(route.page==='overview')overview(main);
  if(route.page==='knowledge')knowledge(main);
  if(route.page==='graph'){if(window.BrainGraphUI)window.BrainGraphUI.render(main,api);else main.append(empty('Módulo do grafo indisponível','Recarregue a página e verifique graph-ui.js.',button('Tentar novamente',()=>location.reload())));}
- if(route.page==='queries' || route.page==='agents'){if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de consultas e planos indisponível','Recarregue a página e verifique workbench.js.',button('Tentar novamente',()=>location.reload())));}
+ if(route.page==='teams'){if(window.BrainTeams)window.BrainTeams.render(main,api);else main.append(empty('Módulo de times indisponível','Recarregue a página e verifique teams-ui.js.',button('Tentar novamente',()=>location.reload())));}
+
+  if(route.page==='queries'){if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de consultas indisponível','Recarregue a página e verifique workbench.js.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='agents'||route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
  if(route.page==='knowledge'&&route.doc&&!route.section&&matchMedia('(max-width:650px)').matches)requestAnimationFrame(()=>{const reader=main.querySelector('.reader');reader?.focus({preventScroll:true});reader?.scrollIntoView({block:'start'});});
  $('snapshot-label').textContent='Snapshot '+G.snapshot_id.slice(0,8)+' · '+formatDate(G.built_at);
  if(!storageOK)notify('Persistência indisponível. Alterações permanecem apenas nesta sessão.');

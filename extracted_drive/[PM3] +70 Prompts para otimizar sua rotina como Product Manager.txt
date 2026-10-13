@@ -1,0 +1,1710 @@
+--- PÁGINA 1 ---
++70 
+Prompts 
+para otimizar
+sua rotina como 
+Product Manager
+
+--- PÁGINA 2 ---
+Índice
+21
+04
+42
+33
+62
+52
+73
+Product Discovery
+Deﬁnição do Produto e 
+Requisitos
+Delivery e Colaboração
+com Times Técnicos
+Comunicação e Gestão
+de Stakeholders
+Análise de Dados e Métricas
+Estratégia de Produto e Visão
+Crescimento e Experimentos
+80
+87
+Produtividade pessoal
+Guia Prático: Como usar 
+prompts de forma eﬁciente
+© PM3. Todos os direitos reservados. Produzido pela PM3, com 
+apoio consultivo de Fabrício Carraro e Adrianno Esnarriaga.
+
+--- PÁGINA 3 ---
+Na PM3, acreditamos que proﬁssionais da área de produto podem, e 
+devem, usar a inteligência artiﬁcial como uma alavanca para ganhar 
+velocidade, clareza e impacto.
+Ferramentas como ChatGPT, Gemini, Perplexity ou Notion AI já estão 
+transformando como PMs pesquisam, validam ideias, reﬁnam 
+mensagens, analisam dados e tomam decisões no dia a dia.
+Este material reúne mais de 70 prompts prontos para uso, 
+organizados ao longo do ciclo de vida de um produto digital:
+Product Discovery
+Deﬁnição do Produto e Requisitos
+Delivery e Colaboração com Times Técnicos
+Comunicação e Gestão de Stakeholders
+Análise de Dados e Métricas
+Estratégia de Produto e Visão
+Crescimento e Experimentos
+Produtividade Pessoal
+Cada seção traz prompts práticos e acionáveis, com sugestões de 
+uso, variações personalizáveis e versões em etapas (steps prompts). 
+Ao ﬁnal, você encontrará um guia de boas práticas para criar, adaptar 
+e evoluir seus próprios prompts, e tirar o máximo proveito do potencial 
+da IA no seu dia a dia como PM.
+󰗔
+ Para você decidir: alguns prompts pedem várias informações em 
+bullet points. Você também pode fazer o teste de pedir aos poucos, ao 
+longo de vários prompts, e ver a diferença nos resultados.
+Product Discovery Deﬁnição do Produto e Requisitos
+Delivery e Colaboração com 
+Times Técnicos
+Comunicação e Gestão de 
+Stakeholders
+Análise de Dados e Métricas Estratégia de Produto e Visão
+Crescimento e Experimentos Produtividade Pessoal
+
+--- PÁGINA 4 ---
+Product Discovery
+Nesta fase inicial, o foco é entender 
+profundamente os usuários, o mercado e os 
+problemas a serem resolvidos. Prompts bem 
+elaborados podem ajudar a gerar personas, 
+sintetizar pesquisas qualitativas, mapear 
+concorrentes e descobrir oportunidades.
+
+--- PÁGINA 5 ---
+Assuma o papel de um Product Manager que está avaliando 
+oportunidades em um mercado em rápido crescimento. Estude o 
+cenário atual do setor de [insira o setor aqui] e elabore um relatório 
+completo que aborde:
+● Principais tendências e inovações que estão moldando o setor.
+● Oportunidades de crescimento e espaços pouco explorados.
+● Ameaças e riscos que podem impactar a entrada ou consolidação 
+no mercado.
+● Principais players desse setor e como se posicionam.
+● Mudanças no comportamento do consumidor, incluindo novas 
+demandas e expectativas.
+● Dados e indicadores relevantes que sustentem suas análises.
+Se possível, use uma ferramenta de busca (como o plugin Web 
+Requests do ChatGPT) para acessar dados atualizados da internet.
+💡
+ Dica
+Pesquisa de mercado e usuários
+1 – Market Research
+
+--- PÁGINA 6 ---
+Você atua como um consultor estratégico especializado em expansão 
+de negócios. Sua empresa desenvolve um [SaaS de gestão de projetos 
+voltado para pequenas agências de marketing], e está avaliando a 
+possibilidade de entrar no mercado de [grandes consultorias de TI].
+Quero que você elabore uma análise SWOT completa (Forças, Fraquezas, 
+Oportunidades, Ameaças) sobre essa possível expansão.
+Algumas diretrizes importantes:
+● Nas Oportunidades, destaque tendências como [trabalho remoto, 
+colaboração assíncrona e demanda por ferramentas 
+integradas.]
+● Nas Ameaças, considere a presença de concorrentes 
+consolidados como [Jira e Asana].
+Apresente o resultado em [formato de tabela com os 4 quadrantes], 
+com insights claros e acionáveis para cada item.
+● Você pode adaptar esse prompt para qualquer cenário, trocando 
+o setor atual, o novo mercado-alvo ou os concorrentes 
+relevantes.
+● Você pode acrescentar o site da sua empresa e de algumas 
+empresas concorrentes, pedindo para o LLM fazer a análise das 
+suas forças e fraquezas em comparativo com a concorrência. 
+Talvez seja interessante pedir primeiro essa análise, depois uma 
+SWOT.
+💡
+ Dica
+Pesquisa de mercado e usuários
+2 – Análise SWOT
+
+--- PÁGINA 7 ---
+Desenvolva um perﬁl de público-alvo para [produto], incluindo as 
+seguintes dimensões:
+● Dados demográﬁcos: idade, localização, ocupação, renda 
+aproximada.
+● Aspectos psicográﬁcos: valores, estilo de vida, motivações e 
+atitudes em relação à tecnologia ou ao tipo de solução oferecida.
+● Comportamento de compra: como toma decisões, frequência de 
+compra, canais preferidos.
+● Principais dores: frustrações, obstáculos ou necessidades não 
+atendidas relacionadas ao problema que o produto resolve.
+● Preferências de uso e comunicação: formatos de conteúdo que 
+consome, tom de voz que prefere, canais em que costuma conﬁar.
+Em seguida, explique como esse público costuma:
+1. Descobrir produtos similares ao [produto] (ex: Google, redes 
+sociais, indicação).
+2. Avaliar as opções disponíveis (ex: testes gratuitos, reviews, 
+comparativos).
+3. Tomar sua decisão de compra (ex: gatilhos, argumentos-chave, 
+garantias).
+Pesquisa de mercado e usuários
+3 - Perﬁl de público-alvo (Persona)
+
+--- PÁGINA 8 ---
+Dado um mercado B2B de [pequenas clínicas odontológicas no 
+Brasil], identiﬁque 5 oportunidades de produto digital baseadas em 
+tendências recentes de comportamento do consumidor e lacunas 
+tecnológicas atuais. Use frameworks como Jobs To Be Done e analise 
+concorrentes diretos e indiretos.
+Este prompt combina análise de mercado com geração de ideias, úteis 
+para descobrir novas features ou produtos.
+📌
+ Objetivo
+Pesquisa de mercado e usuários
+4 – Mapeamento de 
+concorrentes e tendências
+
+--- PÁGINA 9 ---
+1. Compare nosso produto, [ferramenta de automação de 
+marketing por e-mail], com três concorrentes diretos: 
+[Mailchimp, ConvertKit, ActiveCampaign]. 
+2. Crie uma tabela comparativa com colunas: funcionalidade chave, 
+modelo de preços, público-alvo principal, proposta de valor única e 
+avaliação geral (1-5 estrelas). 
+3. Ao ﬁnal, escreva um parágrafo resumindo onde está nossa maior 
+oportunidade de diferenciação.
+Esse prompt instrui o modelo a entregar uma tabela estruturada de 
+benchmark competitivo, seguida de uma análise em texto.
+📌
+ Objetivo
+Pesquisa de mercado e usuários
+5 – Comparativo de 
+concorrentes (tabela)
+
+--- PÁGINA 10 ---
+Você pode me entregar uma análise aprofundada sobre a empresa 
+[coloque o nome da empresa]? 
+1. Quero um relatório estruturado cobrindo o histórico da empresa 
+(como surgiu, primeiro Product-Market Fit), evolução dos 
+produtos, quem são os usuários (segmentos, perﬁs, ICP), modelo 
+de negócio e estratégia de go-to-market. 
+2. Quais as oportunidades atuais da empresa? Onde está crescendo? 
+Como usa IA (se for o caso)? Essas oportunidades são diferentes 
+do que os concorrentes oferecem? Quais os principais riscos e 
+ameaças, e como ela reage a eles?”.
+3. Inclua também concorrentes diretos (com métricas comparativas 
+se possível) e dados de tração (KPIs, receita, número de clientes, 
+funding, etc.). Organize em seções claras (ex.: Histórico, Produtos, 
+Usuários, Concorrência, Tração, etc.).
+Pesquisa de mercado e usuários
+6 - Pesquisa de Mercado
+(Desk Research)
+
+--- PÁGINA 11 ---
+Identiﬁque os principais fatores que inﬂuenciam a decisão de compra na 
+categoria de produto [nome da categoria, ex: ferramentas de gestão 
+de tarefas].
+1. Liste os fatores em ordem de importância percebida pelo cliente 
+ﬁnal (ex: facilidade de uso, preço, integrações, reputação da 
+marca, suporte ao cliente, etc.).
+2. Para cada fator, explique por que ele é relevante para esse público 
+e como isso se manifesta na avaliação de uma solução.
+3. Em seguida, proponha ações estratégicas que o time de produto 
+poderia adotar para alinhar a proposta de valor do produto a essas 
+motivações, seja em posicionamento, funcionalidades, 
+comunicação ou UX.
+Esse prompt pode ser usado para comparar categorias diferentes 
+também. Basta substituir por: “Compare os fatores de decisão entre 
+[categoria 1] e [categoria 2], destacando o que muda na motivação 
+do cliente.”
+💡
+ Dica
+Pesquisa de mercado e usuários
+7 – Fatores de decisão de compra
+
+--- PÁGINA 12 ---
+Analise reclamações frequentes de usuários do [coloque o nome do 
+produto] nas lojas de apps e reviews online. A partir disso, gere 3 ideias 
+de funcionalidades ou melhorias que poderiam aumentar a satisfação e 
+retenção de usuários.
+Para cada ideia:
+● Cite o problema de origem com um exemplo (resumo da 
+reclamação)
+● Descreva a funcionalidade proposta e como ela resolveria o 
+problema
+● Avalie o impacto potencial na experiência do usuário e 
+engajamento
+● Aponte possíveis riscos técnicos ou de complexidade na entrega
+Brainstorming e Geração de Ideias
+8 – Novos recursos com
+base em reclamações
+
+--- PÁGINA 13 ---
+Imagine que você é PM no [coloque o nome da empresa] e precisa 
+sugerir 5 ideias de recursos exclusivos que poderiam destacar o app 
+frente a concorrentes.
+Para cada ideia:
+● Nome ou título da funcionalidade.
+● O insight comportamental ou tendência que inspirou a ideia.
+● Como ela funcionaria na prática.
+● Qual diferencial competitivo ela entrega.
+● Como medir se a ideia deu certo.
+Brainstorming e Geração de Ideias
+9 – Brainstorming de
+features exclusivas
+Esse prompt também funciona bem para hackathons, OKRs 
+ambiciosos ou brainstorming estratégico com foco em diferenciação.
+💡
+ Dica
+
+--- PÁGINA 14 ---
+Você trabalha no [Canva] e precisa explorar novos segmentos de 
+mercado para expandir a base de usuários. Gere 3 ideias de produtos ou 
+adaptações voltadas para públicos ainda não atendidos.
+Para cada uma:
+● Descreva o segmento (ex: professores do ensino médio, criadores 
+de conteúdo low-tech, idosos empreendedores).
+● Qual necessidade especíﬁca esse público tem?
+● Como o [Canva] (ou uma versão adaptada) poderia resolver isso?
+● Quais ajustes seriam necessários na proposta de valor ou UX.
+Brainstorming e Geração de Ideias
+10 –  Explorar novos 
+segmentos de mercado
+Pode usar esse prompt para idear "Canva para X", "Notion para Y", etc. 
+Excelente para extensões de produto ou spin-offs.
+💡
+ Dica
+
+--- PÁGINA 15 ---
+Com base nos dados de uso abaixo do [coloque o nome da empresa], 
+gere 3 ideias de experimentos de produto para aumentar o tempo médio 
+de escuta por usuário.
+1. Analise os dados.
+2. Gere hipóteses de comportamento ou fricções.
+3. Crie experimentos que testem formas de aumentar o tempo de 
+uso.
+4. Para cada experimento, deﬁna: hipótese, métrica de sucesso, 
+tempo de teste e risco esperado.
+Brainstorming e Geração de Ideias
+11 –  Geração de experimentos 
+com base em dados
+Esse prompt é ótimo para ser usado junto com dados de produto reais 
+ou ﬁctícios, especialmente em squads de Growth.
+💡
+ Dica
+
+--- PÁGINA 16 ---
+Com base nos dados de entrevistas qualitativas, crie duas personas de 
+usuário distintas para nosso produto, um [software de contabilidade 
+para freelancers]. A Persona A é a ‘Organizadora Acidental’, uma 
+[designer freelancer] que não entende de ﬁnanças e precisa de 
+simplicidade. A Persona B é o ‘Otimizador de Lucro’, um [consultor de 
+TI] que quer maximizar deduções ﬁscais e entender seus ﬂuxos de 
+caixa.
+Para cada persona, inclua: nome, demograﬁa, metas, frustrações, 
+motivações e uma citação que a represente.
+Pesquisa com usuários e feedbacks
+12 –  Geração de experimentos 
+com base em dados
+Esse prompt está preenchido, mas você pode adaptá-lo facilmente. 
+Substitua os elementos em [colchetes] conforme o seu contexto e 
+deﬁna dois perﬁs distintos, explorando suas diferenças de 
+comportamento, objetivos e necessidades.
+💡
+ Dica
+
+--- PÁGINA 17 ---
+Atue como um especialista em pesquisa de mercado para produtos 
+digitais. Com base em entrevistas qualitativas com 12 usuários do nosso 
+[app de ﬁnanças pessoais], identiﬁque padrões, frustrações, 
+necessidades não atendidas e sugestões de melhoria. Faça uma análise 
+temática dos dados e gere insights acionáveis para a próxima rodada de 
+deﬁnição de funcionalidades.
+Pesquisa com usuários e feedbacks
+13 –  Análise de
+entrevistas qualitativas
+Forneça as transcrições ou um resumo das entrevistas no prompt. O 
+modelo agrupará as respostas em temas e destacará oportunidades 
+de produto.
+💡
+ Dica
+
+--- PÁGINA 18 ---
+Como PM, preciso gerar hipóteses de problemas de usuários com base 
+em dados comportamentais. Dado um funil onde 72% dos usuários 
+abandonam no onboarding entre as etapas 3 e 4, sugira 5 hipóteses do 
+porquê isso ocorre e 3 testes qualitativos para investigá-las.
+Pesquisa com usuários e feedbacks
+14 –  Hipóteses a partir
+de dados quantitativos
+Este prompt utiliza um insight de analytics, abandono no funil,e pede 
+ao modelo possíveis causas e experimentos de descoberta para 
+validar cada hipótese.
+💡
+ Dica
+
+--- PÁGINA 19 ---
+Aja como um User Researcher Sênior. Estamos explorando um novo 
+problema: [pequenos e-commerces têm diﬁculdade em gerenciar 
+inventário em múltiplos canais de venda]. Crie um roteiro de 
+entrevista com [10] perguntas abertas para uma sessão de 30 minutos 
+com donos de e-commerce. Comece com perguntas de aquecimento, 
+depois aprofunde nas dores e soluções atuais (‘conte-me sobre a última 
+vez que...’), evitando perguntas que induzam a uma solução especíﬁca.
+Pesquisa com usuários e feedbacks
+15 –  Roteiro de Entrevista 
+(Problem Discovery)
+Você pode especiﬁcar blocos de perguntas: aquecimento, exploração 
+de problemas, encerramento, etc.
+💡
+ Dica
+
+--- PÁGINA 20 ---
+📢
+ Ação: Colete feedbacks brutos de usuários (por exemplo, 
+comentários de app stores ou pesquisas NPS) e peça ao modelo para 
+sintetizar e agrupar por temas. 
+Tenho 15 feedbacks de clientes do nosso [app de meditação], alguns 
+positivos e outros negativos (veja abaixo).
+ [Cole aqui os feedbacks brutos]
+1. Sintetize esses feedbacks: agrupe por temas recorrentes (ex.: 
+bugs, pedidos de novas features, problemas de usabilidade, 
+elogios).
+2. Para cada tema, resuma o sentimento geral e extraia 1-2 
+citações representativas. 
+3. Apresente o resultado como um relatório de Voz do Cliente.
+Pesquisa com usuários e feedbacks
+16 –  Análise de feedbacks de 
+usuários
+Esse prompt orienta o modelo a gerar um resumo estruturado, útil 
+para identiﬁcar rapidamente principais dores e pontos fortes 
+percebidos pelos usuários.
+📌
+ Objetivo
+
+--- PÁGINA 21 ---
+Definição do 
+Produto e Requisitos
+Na fase de deﬁnição, o PM traduz insights em 
+requisitos claros, deﬁne prioridades e 
+alinhamentos para o que será construído. 
+Prompts podem acelerar a criação de 
+documentos de requisitos, user stories, 
+priorização com frameworks e garantir que nada 
+seja esquecido (incluindo requisitos 
+não-funcionais).
+
+--- PÁGINA 22 ---
+Gere a estrutura e conteúdo inicial de um Product Requirements 
+Document (PRD) de uma página para uma nova feature: [‘Relatórios de 
+Desempenho de Vendedores’] em nossa [plataforma de e-commerce 
+B2B].
+Inclua seções:
+1. Resumo e problema do cliente.
+2. Métricas de sucesso (métrica principal e secundárias).
+3. Requisitos funcionais (lista).
+4. Requisitos não-funcionais.
+5. Escopo/fora de escopo.
+6. Designs e Mockups (placeholder para link).
+Requisitos do Produto e Histórias de Usuário
+17 –  Documento de Requisitos 
+de Produto (PRD)
+Ótimo para rascunhar rapidamente um PRD estruturado. Você pode 
+depois editar cada seção com detalhes do seu contexto.
+💡
+ Dica
+
+--- PÁGINA 23 ---
+Aja como um Product Owner ágil. Estamos desenvolvendo [carrinho de 
+compras] para nosso [marketplace de artesanato]. A persona é 
+[Comprador Ocasional]. 
+1. Escreva 5 User Stories para o ﬂuxo principal do carrinho, no 
+formato ‘Como [tipo de usuário], eu quero [ação], para 
+[benefício]’. 
+2. Para cada story, inclua pelo menos 3 critérios de aceitação no 
+formato ‘Dado [contexto], Quando [ação], Então [resultado 
+esperado]’.”.
+Requisitos do Produto e Histórias de Usuário
+18 –  Escrita de User Stories e 
+Critérios de Aceite
+Esse prompt gera um conjunto completo de histórias de usuário já 
+estruturadas, cobrindo diversos cenários do ﬂuxo, todas ligadas por 
+uma persona e contexto comum.
+📌
+ Objetivo
+
+--- PÁGINA 24 ---
+Desenvolva uma lista dos recursos essenciais e opcionais planejados 
+para o produto [nome do produto]. Para cada recurso, explique:
+1. Classiﬁcação: essencial ou opcional (justiﬁque o critério).
+2. Descrição resumida da funcionalidade.
+3. Motivo da inclusão: Qual dor do usuário ou objetivo estratégico ele 
+ajuda a resolver.
+4. Impacto esperado: Como isso pode contribuir para engajamento, 
+conversão, retenção ou outra métrica relevante.
+5. Possíveis alternativas simpliﬁcadas (para MVPs ou entregas 
+incrementais).
+Requisitos do Produto e Histórias de Usuário
+19 –  Lista de recursos 
+essenciais vs. opcionais
+Esse prompt é ideal para apoiar a deﬁnição de escopo de MVPs, 
+planejamento de releases ou comunicação com stakeholders técnicos 
+e não técnicos.
+📌
+ Objetivo
+
+--- PÁGINA 25 ---
+Você é um Product Manager orientado a dados. Tenho uma lista de 5 
+features para priorizar no próximo ciclo: [1. Dashboard admin, 2. 
+Integração com Slack, 3. Exportar dados CSV, 4. Gamiﬁcação do 
+onboarding, 5. Modo escuro]. 
+1. Crie uma tabela de priorização usando o framework RICE (Reach, 
+Impact, Conﬁdence, Effort).
+2. Atribua valores hipotéticos (justiﬁcando brevemente cada um) 
+para cada critério e calcule a pontuação RICE ﬁnal para cada 
+feature.
+3. Apresente a lista ordenada da maior para a menor prioridade. 
+O modelo deve devolver uma tabela semelhante à abaixo, seguida de 
+justiﬁcativas resumidas:
+Exemplo de matriz RICE:
+Tabela ilustrativa: maiores scores indicam maior prioridade. O prompt 
+pode calcular Score = (Reach * Impact * Conﬁdence) / Effort ou fórmula 
+similar, conforme instruído.
+Priorização e Roadmap
+20 –  Priorização de
+Backlog com RICE
+Feature Reach (usuários) Impact (0-10) Conﬁdence (0-10) Effort (0-10) Score
+Dashboard Admin 800 (usuários) 8 7 5 11.2
+Integração com 
+Slack 1500 6 8 6 12.0
+Exportar dados CSV 5000 5 9 2 22.5
+Gamiﬁcação do 
+Onboarding 2000 7 6 8 10.5
+Modo Escuro 3000 3 9 1 27.0
+
+--- PÁGINA 26 ---
+Você é especialista no Modelo Kano. Analise as seguintes features de 
+um [app de banco digital]:
+[1. Ver extrato, 2. Pagar boletos, 3. Personalizar tema do app, 4. 
+Dicas de investimento por IA, 5. Suporte via chat 24h]. 
+Classiﬁque cada uma como Básica (Must-have), de Performance 
+(One-dimensional), Atrativa (Excitante), Indiferente ou Reversa. 
+Justiﬁque brevemente cada classiﬁcação com base nas expectativas do 
+cliente para um banco digital.”
+Priorização e Roadmap
+21 –  Classiﬁcação de Features 
+– Modelo Kano
+Use esse prompt para priorizar requisitos entendendo quais são 
+básicos vs. diferenciais aos olhos do cliente.
+📌
+ Objetivo
+
+--- PÁGINA 27 ---
+Gere um exemplo de roadmap de produto para os próximos 6 meses 
+para uma [ferramenta de colaboração em vídeo para equipes 
+remotas]. 
+1. Em vez de listar features, organize o roadmap por temas 
+estratégicos. 
+2. Crie 3 temas (ex.: ‘Melhorar experiência de chamada’, ‘Aumentar 
+engajamento fora das chamadas’, ‘Facilitar integrações com 
+outras ferramentas’). 
+3. Para cada tema, liste 2-3 iniciativas que contribuam para ele.
+4. Formate em duas colunas: Q3 (Tema 1, Tema 2) e Q4 (Tema 2, 
+Tema 3).”. 
+Priorização e Roadmap
+22 –  Roadmap de Produto
+por temas estratégicos
+Esse prompt incentiva uma visão de alto nível, mostrando como 
+agrupar entregas por objetivos estratégicos em vez de 
+funcionalidades isoladas.
+📌
+ Objetivo
+
+--- PÁGINA 28 ---
+Crie um plano de lançamentos para o próximo trimestre do produto 
+[nome do produto]. Considere uma abordagem ágil, com entregas 
+incrementais a cada sprint (assuma sprints quinzenais, caso não seja 
+especiﬁcado).
+Para cada sprint:
+1. Nome ou número da sprint.
+2. Incremento de produto previsto (ex: nova funcionalidade, 
+melhoria, ajuste técnico).
+3. Objetivo da entrega (ex: testar hipótese, atender solicitação do 
+cliente, remover atrito de conversão).
+4. Critérios de sucesso ou aceitação da entrega.
+5. Critérios para pivotar ou ajustar o plano, com base em:
+● feedback de usuários
+● dados de uso
+● alinhamento com OKRs ou metas estratégicas
+Priorização e Roadmap
+23 –  Criação de Release Plan 
+com foco em feedback contínuo
+Use esse prompt para facilitar sessões de planejamento trimestral, 
+revisões de roadmap ou alinhamento com time de engenharia. Você 
+também pode pedir à IA para simular diferentes versões do plano com 
+base em variáveis (ex: capacidade do time ou urgência de entregas).
+💡
+ Dica:
+
+--- PÁGINA 29 ---
+Analise as possíveis limitações e riscos da feature [X] antes de seu 
+lançamento.
+Para cada aspecto abaixo, responda com base no contexto atual do 
+produto e da equipe:
+1. Escalabilidade: Quais riscos existem se a base de usuários 
+crescer rapidamente? 
+2. Adoção pelo usuário: Existe risco de baixa aceitação ou curva de 
+aprendizado alta?
+3. Segurança: Algum ponto crítico que exija atenção (ex: dados 
+sensíveis, permissões)?
+4. Desempenho: A funcionalidade pode causar lentidão, 
+travamentos ou falhas?
+👉
+ Para cada limitação ou risco identiﬁcado, sugira:
+● Uma forma de mitigar o risco (ex: MVP controlado, melhorias 
+técnicas, onboarding guiado).
+● Uma alternativa mais simples ou segura, caso a solução atual não 
+seja viável.
+Análise de riscos e limitações de recursos
+24 –  Análise de riscos e 
+limitações da feature [X]
+
+--- PÁGINA 30 ---
+Liste os principais pontos de falha associados à implementação de 
+[funcionalidade X]. Para cada ponto:
+1. Descreva o que pode dar errado (ex: ﬂuxo quebrado, erro 
+silencioso, comportamento inesperado).
+2. Avalie o impacto na experiência do usuário (ex: frustração, 
+abandono, perda de dados).
+3. Proponha salvaguardas, como: mensagens de erro claras, loading 
+states, fallback lógico e canais de suporte acessíveis.
+Análise de riscos e limitações de recursos
+25 –  Pontos de falha e 
+Experiência do Usuário
+
+--- PÁGINA 31 ---
+Avalie os riscos de adicionar o novo recurso [Y] ao produto [Z].
+Para isso:
+1. Aponte os riscos de dívida técnica, como dependências mal 
+resolvidas ou arquitetura frágil.
+2. Avalie o aumento da complexidade de manutenção e possíveis 
+impactos em times futuros.
+3. Considere efeitos colaterais na usabilidade e experiência do 
+usuário.
+4. Sugira formas de mitigar os riscos: refatoração futura planejada, 
+rollout progressivo ou beta test fechado, uso de feature ﬂags e 
+documentação robusta.
+Análise de riscos e limitações de recursos
+26 –  Riscos técnicos e 
+estratégicos do novo recursos
+
+--- PÁGINA 32 ---
+Compare a feature [X] com funcionalidades semelhantes em [produto 
+concorrente A], [produto concorrente B] e [produto concorrente C].
+1. Descreva brevemente como cada concorrente aborda essa 
+funcionalidade.
+2. Destaque pontos fortes e fracos da nossa solução em relação a 
+eles.
+3. Identiﬁque oportunidades de diferenciação ou melhorias (ex: UX, 
+performance, valor percebido).
+4. Sugira ajustes que tornem a feature mais competitiva ou atrativa.
+Análise de riscos e limitações de recursos
+27 –  Riscos técnicos e 
+estratégicos do novo recurso
+
+--- PÁGINA 33 ---
+Delivery e 
+Colaboração com 
+Times Técnicos
+Durante o delivery, o PM precisa detalhar 
+requisitos para desenvolvedores, acompanhar o 
+progresso e facilitar a colaboração. Os prompts 
+a seguir auxiliam na clareza de especiﬁcações, 
+organização do backlog e comunicação ágil com 
+o time.
+
+--- PÁGINA 34 ---
+Gere uma sequência de atividades de grooming para um backlog que 
+contém 15 itens técnicos, dos quais 40% ainda não têm escopo claro. 
+Detalhe como priorizar com base em impacto no negócio, 
+dependências e clareza de deﬁnições.
+Planejamento Ágil e Documentação
+28 –  Sequência de 
+Grooming e Priorização
+O modelo pode listar passos como: revisar itens sem escopo, 
+esclarecer requisitos pendentes, reavaliar dependências, reordenar 
+por impacto, etc., servindo como guia para sessões de backlog 
+grooming.
+📌
+ Objetivo
+
+--- PÁGINA 35 ---
+Escreva uma especiﬁcação técnica de 1 página para uma API de 
+integração com ERP para emissão de notas ﬁscais. Foque na clareza 
+para stakeholders não técnicos.
+Planejamento Ágil e Documentação
+29 –  Especiﬁcação Técnica 
+Simpliﬁcada
+Esse prompt gera uma spec de alto nível, cobrindo propósito, 
+endpoints principais, formato de dados, requisitos de autenticação, 
+etc., em linguagem acessível.
+📌
+ Objetivo
+
+--- PÁGINA 36 ---
+Organize a Sprint [N] com base na lista de user stories e tarefas a 
+seguir.
+[Contextualizar a SPRINT N]
+Para cada item:
+1. Reescreva o título como uma frase clara de entrega (ex: 
+“Implementar ﬁltro por categoria na home”).
+2. Estime o esforço usando pontos de história ou tamanhos de 
+camisa (P, M, G, GG).
+3. Classiﬁque a prioridade (Alta, Média, Baixa).
+4. Identiﬁque dependências (ex: “depende da task X estar pronta 
+antes”).
+5. Agrupe as tarefas em ordem de execução sugerida.
+Finalize com:
+✅
+ Meta da sprint em uma frase clara (ex: “Melhorar a experiência de 
+busca e navegação para novos usuários”).
+📍
+ Pontos de atenção (ex: riscos, feriados, capacidade reduzida).
+Planejamento Ágil e Documentação
+30 –  Sprint Planning com 
+estimativas e meta
+Esse prompt gera uma spec de alto nível, cobrindo propósito, 
+endpoints principais, formato de dados, requisitos de autenticação, 
+etc., em linguagem acessível.
+📌
+ Objetivo
+
+--- PÁGINA 37 ---
+Desenvolva um plano de testes completo para [produto ou 
+funcionalidade X], cobrindo os seguintes tipos de validação:
+1. Testes Funcionais
+a. Quais são os principais ﬂuxos de uso que precisam ser 
+testados?
+b. Há funcionalidades com variações de lógica ou múltiplos 
+caminhos?
+2. Testes de Usabilidade
+a. Existem elementos com risco de gerar confusão ou 
+frustração?
+b. O ﬂuxo é acessível e intuitivo para todos os públicos?
+3. Testes de Segurança
+a. Que tipos de dados estão sendo processados? Há riscos de 
+exposição?
+b. Testar permissões, autenticação e injeção de dados 
+inválidos.
+4. Testes de Desempenho
+a. Quais componentes devem ser avaliados sob carga?
+b. Há expectativas especíﬁcas de tempo de resposta?
+👉
+ Para cada categoria, descreva 2 a 3 casos de teste especíﬁcos, 
+com entrada esperada, comportamento esperado e critérios de 
+sucesso.
+Testes e Garantia de Qualidade (QA)
+31 –  Plano de testes 
+abrangente por categoria
+
+--- PÁGINA 38 ---
+Liste os casos críticos que devem ser testados para [funcionalidade X] 
+antes do release.
+Inclua:
+1. Fluxos principais com maior impacto no usuário ﬁnal.
+2. Cenários de borda (ex: campos vazios, inputs inesperados, 
+conexões lentas).
+3. Testes de stress ou carga, caso a funcionalidade envolva picos de 
+uso.
+4. Casos de falhas comuns esperadas (ex: perda de conexão, 
+timeouts).
+💡
+ Finalize com um alerta: “Esses casos devem ser priorizados para 
+evitar regressões e falhas críticas em produção.”
+Testes e Garantia de Qualidade (QA)
+32 –  Casos críticos e
+cenários de borda
+
+--- PÁGINA 39 ---
+Descreva uma estratégia de testes automatizados eﬁciente e escalável 
+para [tipo de software: ex. app mobile, web app, API].
+Inclua:
+1. Tipos de testes recomendados (ex: unitários, integração, 
+end-to-end).
+2. Ferramentas ou frameworks sugeridos (ex: Jest, Cypress, 
+Postman, Appium, Selenium).
+3. Estratégia de cobertura (quais partes devem ter testes 
+automatizados obrigatórios).
+4. Frequência de execução (CI/CD pipelines, agendamentos, 
+pré-releases).
+5. Alertas ou monitoramento para testes que falharem.
+Testes e Garantia de Qualidade (QA)
+33 –  Estratégia de testes 
+automatizados por tipo de 
+software
+
+--- PÁGINA 40 ---
+Liste os principais problemas relatados por usuários em produtos da 
+categoria [ex: marketplace, app de delivery, ferramenta de CRM].
+Para cada problema:
+1. Descreva o bug típico (ex: erro de geolocalização, falha no 
+pagamento, travamento no login).
+2. Aponte em qual parte do ﬂuxo geralmente ocorre.
+3. Sugira casos de teste especíﬁcos para capturar esse problema 
+mais cedo.
+4. Se possível, indique indicadores (ex: logs ou métricas) que podem 
+ajudar na detecção automática.
+Testes e Garantia de Qualidade (QA)
+34 –  Bugs comuns por 
+categoria de produto
+
+--- PÁGINA 41 ---
+Crie uma checklist de debugging para investigar problemas de 
+performance na aplicação [X].
+Inclua os seguintes passos:
+1. Identiﬁcar sintomas (ex: lentidão em determinada tela, timeout de 
+API).
+2. Reproduzir o bug de forma consistente.
+3. Coletar logs de erro, métricas de uso e dados do ambiente.
+4. Veriﬁcar dependências externas (ex: banco, API de terceiros, rede).
+5. Testar soluções incrementais (ex: limitar requisições, otimizar 
+código, lazy loading).
+6. Registrar o aprendizado em documentação compartilhada (para 
+evitar repetição futura).
+Testes e Garantia de Qualidade (QA)
+35 –  Checklist de Debugging 
+de Performance
+Use esse prompt com IA para gerar planos de testes colaborativos 
+com QA ou revisar sua cobertura antes de um release.
+💡
+ Dica:
+
+--- PÁGINA 42 ---
+Comunicação e 
+Gestão de 
+Stakeholders
+Manter stakeholders bem informados e 
+engajados é essencial para o sucesso de 
+qualquer produto. Nesta frente, prompts 
+podem ajudar o PM a escrever comunicados 
+claros sobre atrasos ou mudanças de escopo, 
+preparar atualizações semanais, criar 
+apresentações de roadmap para o C-level e 
+até redigir argumentos para defender 
+prioridades técnicas ou negociações de 
+recursos.
+O uso estratégico dessas 
+ferramentas fortalece a 
+conﬁança, promove 
+alinhamento e reduz ruídos 
+entre áreas.
+
+--- PÁGINA 43 ---
+A partir dos updates abaixo da daily da equipe, gere um resumo 
+organizado e conciso para ser enviado aos stakeholders.
+[COLAR UPDATES DA DAILY]
+Para cada membro da equipe, responda:
+✅
+ O que fez ontem.
+🎯
+ O que vai fazer hoje.
+🚧
+ Impedimentos (se houver).
+Ao ﬁnal:
+● Faça um resumo geral com o status do sprint.
+● Destaque tarefas críticas em atraso ou travadas.
+● Sugira próximos passos, se necessário.
+Comunicação e Gestão de Stakeholders
+36 –  Daily + Comunicação com 
+Stakeholders
+Use esse prompt para automatizar resumos diários no Slack ou por 
+e-mail com IA.
+💡
+ Dica:
+
+--- PÁGINA 44 ---
+Crie uma matriz RACI para o lançamento da funcionalidade [nome ou 
+breve descrição], detalhando os papéis de cada área envolvida: 
+Produto, Engenharia, QA, Marketing e Jurídico.
+Para cada etapa-chave do processo (ex: planejamento, 
+desenvolvimento, testes, revisão legal, go-to-market), deﬁna:
+● Responsável (R): Quem executa a tarefa?
+● Aprovador (A): Quem toma a decisão ﬁnal?
+● Consultado (C): Quem deve ser envolvido para opinar?
+● Informado (I): Quem precisa ser mantido a par?
+Ao ﬁnal, organize as informações em formato de tabela, com:
+● Linhas: etapas do processo 
+● Colunas: áreas envolvidas
+● Células preenchidas com R, A, C ou I
+Comunicação e Gestão de Stakeholders
+37 –  Criação de Matriz RACI
+Use esse prompt para garantir alinhamento entre áreas e evitar ruídos 
+em lançamentos críticos. Pode pedir para a IA exportar a matriz em 
+Markdown, Excel ou texto estruturado para fácil uso em documentos 
+ou Notion.
+💡
+ Dica:
+
+--- PÁGINA 45 ---
+Elabore um e-mail executivo de atualização sobre o projeto [Nome do 
+Projeto], com tom objetivo e foco em resultados.
+O e-mail deve conter:
+1. Resumo do progresso geral (1 parágrafo).
+2. Principais conquistas desde o último update.
+3. Métricas ou indicadores relevantes (se disponíveis).
+4. Próximos passos ou marcos esperados nas próximas semanas.
+5. Riscos atuais ou pontos de atenção que exigem suporte ou 
+alinhamento.
+Comunicação e Gestão de Stakeholders
+38 –  E-mail de atualização 
+para Stakeholders
+Você pode ajustar o tom do e-mail (mais técnico, mais executivo ou 
+mais informal) solicitando à IA: “Reescreva esse e-mail para o time 
+executivo” ou “Adapte para um público de produto”.
+💡
+ Dica:
+
+--- PÁGINA 46 ---
+Aja como uma PM experiente. Você precisa comunicar o atraso na 
+entrega da [feature de relatórios avançados], prometida para o ﬁnal 
+do Q3. O novo prazo é 4 semanas depois, devido a desaﬁos técnicos 
+imprevistos na integração de dados.
+Gere um e-mail para stakeholders internos (liderança, marketing, 
+vendas), que:
+1. Explique o motivo do atraso de forma concisa e sem atribuir culpa
+2. Reforce o compromisso com a qualidade da entrega
+3. Apresente o novo plano e cronograma atualizado
+4. Traga uma mensagem de responsabilidade e conﬁança na 
+resolução
+Comunicação e Gestão de Stakeholders
+39 –  Comunicação de atraso 
+de entrega com transparência
+Use expressões como “decidimos priorizar uma entrega estável”, 
+“estamos atuando em melhorias estruturais para garantir 
+escalabilidade” e evite termos vagos como “problemas técnicos”.
+💡
+ Dica:
+
+--- PÁGINA 47 ---
+Você precisa convencer a liderança a alocar 2 engenheiros durante 1 
+trimestre para resolver uma dívida técnica que causa lentidão na página 
+principal do produto.
+Gere um one-pager com:
+1. Resumo do problema: impacto direto na experiência e conversão.
+2. Quantiﬁcação da dor: use dados (ex: “cada 100ms = -1% 
+conversão”).
+3. Riscos de inação: manutenção difícil, gargalos futuros, 
+insatisfação do cliente.
+4. Escopo da solução: o que será feito e como.
+5. Medição do sucesso: ex: “Reduzir LCP de 4s para 2s em 
+dispositivos móveis.”
+Comunicação e Gestão de Stakeholders
+40 –  One-pager para justiﬁcar 
+alocação técnica
+
+--- PÁGINA 48 ---
+Crie um pitch de 5 slides para comunicar a visão, progresso e próximos 
+passos do produto [Nome do Produto] para a liderança executiva.
+Liste os slides com:
+ Slide 1 – Visão & Objetivos
+● Missão do produto
+● Problema que resolve
+● Objetivo estratégico atual (OKRs ou metas)
+Slide 2 – Status Atual
+● Etapa do ciclo de vida (ideação, MVP, crescimento...)
+● Principais entregas realizadas
+● Time e estrutura atual
+Comunicação e Gestão de Stakeholders
+41 –  Estrutura de pitch 
+executivo de Produto
+
+--- PÁGINA 49 ---
+Slide 3 – Métricas e Resultados
+● Adoção, engajamento, conversão, receita, NPS
+Comparativo com o trimestre anterior (se houver)
+Slide 4 – Riscos e Desaﬁos
+● Principais obstáculos técnicos, operacionais ou estratégicos
+● Ações em andamento para mitigar
+Slide 5 – Próximos Passos
+● Roadmap de curto prazo
+● Alinhamentos pendentes com áreas-chave
+● Decisões que precisam de apoio executivo
+Comunicação e Gestão de Stakeholders
+41 –  Estrutura de pitch 
+executivo de Produto
+Use esse prompt com “me ajude a montar um pitch no estilo Google 
+Slides” para receber sugestões de layout e ordem lógica visual.
+💡
+ Dica:
+
+--- PÁGINA 50 ---
+Você vai apresentar o roadmap do próximo semestre para o C-Level. 
+Gere uma lista com 8 a 10 perguntas desaﬁadoras que podem surgir, e 
+para cada uma, indique o tipo de resposta que um PM preparado deve 
+oferecer.
+Exemplos de perguntas esperadas:
+● CEO: “Como esse roadmap nos aproxima da nossa visão de longo 
+prazo?”
+● CFO: “Qual o ROI previsto da iniciativa X e em quanto tempo?”
+● CTO: “Há risco de comprometer a estabilidade técnica com essas 
+entregas?”
+● CPO: “O que deixamos de fora e por quê?”
+● CSO: “Como essas iniciativas respondem às maiores dores dos 
+nossos clientes?”
+Para cada pergunta:
+● Traga o racional por trás da decisão.
+● Mostre dados ou aprendizados de discovery.
+● Conecte a estratégia de produto com métricas de negócio.
+Comunicação e Gestão de Stakeholders
+42 –  Perguntas difíceis do 
+C-Level + respostas estratégicas
+V ocê pode pedir à IA: “Me ajude a ensaiar respostas para essas perguntas com foco em dados 
+e alinhamento estratégico”
+💡
+ Dica:
+
+--- PÁGINA 51 ---
+Você precisa dar feedback sobre o primeiro rascunho da nova tela de 
+perﬁl do usuário. O design está visualmente poluído e falha ao destacar 
+o status da assinatura, que é a informação mais crítica.
+Gere um texto (ou roteiro para conversa) usando a técnica sanduíche:
+1. Início (elogio): destaque algo que funcionou bem no design (ex: 
+escolha de cores, estrutura)
+2. Crítica (foco no usuário): explique objetivamente o que não está 
+funcionando e por quê
+3. Encerramento (incentivo): convide para co-criar e valide a 
+abertura para ajustes
+Comunicação e Gestão de Stakeholders
+43 –  Feedback construtivo 
+para alinhamento de design
+“Vi que você teve cuidado com o layout geral e gostei da 
+consistência visual. No entanto, senti que o status da assinatura, 
+que é a principal dor do usuário nessa tela, não está em destaque. 
+Isso pode afetar o entendimento e a ação esperada. O que acha 
+de explorarmos juntos uma alternativa que traga mais foco para 
+essa informação? Estou aqui pra apoiar!”
+💬
+ Exemplo de estrutura
+
+--- PÁGINA 52 ---
+Análise de Dados e 
+Métricas
+Product Managers frequentemente precisam 
+extrair insights de dados de uso do produto ou 
+feedbacks dos clientes. Com as ferramentas de 
+IA, é possível acelerar análises exploratórias e 
+gerar visualizações ou relatórios de forma 
+assistida. Alguns usos típicos de prompts para 
+análise de dados incluem:
+
+--- PÁGINA 53 ---
+Liste os principais KPIs para o [produto], e inclua métricas como: 
+engajamento semanal ativo, retenção mensal, L TV, CAC, NPS, churn, 
+entre outras relevantes ao contexto.
+Para cada métrica:
+1. Descreva o que mede.
+2. Explique por que é importante para o produto.
+3. Relacione ao impacto em engajamento, retenção ou crescimento 
+de receita.
+Análise de Dados e Métricas
+44 –  Principais KPIs e 
+signiﬁcado estratégico
+Substitua “[produto]” pelo nome real e inclua métricas especíﬁcas ao 
+seu modelo de negócio (ex.: taxa de recompra em e-commerces).
+💡
+ Dica
+
+--- PÁGINA 54 ---
+Desenvolva uma estrutura de dashboard para acompanhar métricas de 
+desempenho em tempo real de [produto X].
+Inclua:
+1. Métricas a serem rastreadas.
+2. Frequência de atualização (ex.: diária, semanal, mensal).
+3. Tipo de visualização mais adequada (ex.: gráﬁcos de linha, tabelas, 
+heatmaps).
+4. Organização das métricas em seções (ex.: aquisição, engajamento, 
+retenção, receita).
+5. Sugestões de ferramentas ou integrações para viabilizar o 
+monitoramento.
+Análise de Dados e Métricas
+45 –  Estrutura de dashboard 
+em tempo real
+
+--- PÁGINA 55 ---
+Identiﬁque sinais de alerta em tendências de KPIs que possam indicar 
+problemas emergentes no produto [nome].
+Para cada sinal:
+1. Descreva o KPI impactado (ex.: queda abrupta na ativação 
+semanal).
+2. Explique o que isso pode indicar (ex.: diﬁculdade no onboarding)
+3. Aponte formas de detectar cedo
+4. Sugira ações rápidas para corrigir antes que se torne um
+problema grave.
+Análise de Dados e Métricas
+46 –  Sinais de alerta em 
+tendências de KPIs
+
+--- PÁGINA 56 ---
+Assuma o papel de um Product Manager que precisa identiﬁcar 
+padrões e temas recorrentes em dados brutos de feedbacks de usuários 
+para orientar melhorias no produto.
+Com base em um dataset de reviews contendo colunas como [data, 
+nota e comentário], elabore um relatório que aborde:
+● Principais categorias de feedback (ex.: Catálogo, Preço, UX, Outro) 
+e a proporção de cada uma.
+● Evolução mensal dessas categorias nos últimos 12 meses, 
+destacando variações relevantes.
+● Trechos representativos (até 120 caracteres) que exempliﬁquem 
+cada categoria.
+● Heatmap visualizando a distribuição de feedbacks por categoria 
+ao longo do tempo.
+Passos para gerar o resultado:
+1. Classiﬁque cada comentário em categorias predeﬁnidas usando 
+palavras-chave e interpretação semântica quando necessário.
+2. Adicione uma coluna categoria ao dataset.
+3. Conte e apresente o número de feedbacks por categoria.
+4. Gere o heatmap temporal.
+5. Selecione exemplos representativos de cada categoria.
+Análise de Dados e Métricas
+47 –  Mineração de feedbacks
+e tendências
+
+--- PÁGINA 57 ---
+Assuma o papel de um Product Manager focado em entender a 
+percepção do usuário sobre diferentes áreas do produto e detectar 
+períodos críticos de insatisfação.
+Com base no dataset categorizado de feedbacks, produza um relatório 
+que aborde:
+● Proporção de sentimentos (positivo, neutro, negativo) em cada 
+categoria.
+● Visualização comparativa em gráﬁco de barras empilhadas.
+● Identiﬁcação dos 3 períodos com maior pico de feedback negativo 
+e suas causas principais.
+● Possíveis correlações entre eventos do produto (ex.: releases, 
+campanhas) e mudanças no sentimento.
+Passos para gerar o resultado:
+1. Classiﬁque o sentimento de cada comentário.
+2. Gere o gráﬁco de barras empilhadas por categoria.
+3. Detecte picos mensais de feedback negativo.
+4. Liste os motivos mais citados nesses períodos.
+Análise de Dados e Métricas
+48 –  Análise de sentimento
+e picos de uso
+
+--- PÁGINA 58 ---
+Assuma o papel de um Data Product Manager que precisa transformar 
+análises de feedback em decisões estratégicas para o roadmap.
+Com base na categorização e análise de sentimentos, elabore um plano 
+de ação que inclua:
+● Priorização das categorias de maior impacto usando matriz 
+Impacto x Esforço (ou RICE).
+● Recomendações de mudanças ou lançamentos que possam ser 
+implementados em até 90 dias.
+● Estimativa do impacto esperado na nota média do app no próximo 
+trimestre.
+● Justiﬁcativa para cada recomendação, incluindo dados e 
+exemplos de feedbacks.
+Análise de Dados e Métricas
+49 –  Insights acionáveis 
+a partir de feedbacks
+
+--- PÁGINA 59 ---
+Você é um especialista em crescimento de produto. Nossa empresa é do 
+segmento [X].
+1. Recomende a melhor North Star Metric para reﬂetir o valor 
+entregue ao cliente e guiar o crescimento sustentável.
+2. Explique por que essa métrica representa bem o valor para o 
+cliente e como ela alinha as equipes.
+3. Sugira também 2-3 métricas de saúde (secundárias) para 
+monitorar a saúde do produto.
+Análise de Dados e Métricas
+50 –  North Star Metric
+e métricas de saúde
+● A North Star deve ser a métrica central que representa o valor ao 
+cliente, compreensível para toda a organização e ligada ao 
+crescimento sustentável.
+● Evite métricas de vaidade ou muito focadas em atividade 
+interna; preﬁra métricas de resultado que indiquem valor 
+percebido, ex: “tempo de uso ativo por semana”, “% de usuários 
+que alcançam objetivo X”).
+● Exemplo: para Spotify, a North Star “minutos tocando música por 
+usuário por dia” capta valor para o usuário e negócio; métricas 
+de saúde poderiam ser NPS, retenção 30 dias, etc.
+Pontos de atenção
+
+--- PÁGINA 60 ---
+Você é especialista em métricas de produto. Tenho uma funcionalidade 
+[Y] dentro do produto e quero metriﬁcar seu sucesso. A [North Star 
+Metric] da empresa é [Z]. 
+● Sugira 2-4 métricas de nível 1 (L1) para avaliar essa funcionalidade, 
+garantindo que: reﬂetem diretamente o valor para o usuário, sejam 
+sensíveis às mudanças do time, mensuráveis frequentemente e 
+conectadas à North Star.
+● Explique o que cada métrica mede e por que é relevante.
+Análise de Dados e Métricas
+51 –  Métricas L1 para 
+funcionalidades
+ Bons exemplos de métricas L1: taxa de conclusão de onboarding, % de 
+usuários que usam a funcionalidade semanalmente, tempo médio 
+para realizar a tarefa X, etc., sempre vinculados ao valor entregue. O 
+modelo deve evitar métricas genéricas demais ou de vaidade, 
+conforme instruído.
+💡
+ Dica
+
+--- PÁGINA 61 ---
+Sugira 10 métricas que indicariam sucesso (ou fracasso) na adoção de 
+uma nova funcionalidade de [feed personalizado em plataforma de 
+notícias].
+Análise de Dados e Métricas
+52 –  Métricas de adoção
+de features
+Um prompt breve para listar possíveis KPIs de adoção/engajamento, 
+útil quando você lançou algo novo e quer monitorar seu desempenho 
+de vários ângulos.
+💡
+ Dica
+
+--- PÁGINA 62 ---
+Estratégia de 
+Produto e Visão
+Na dimensão estratégica, os prompts auxiliam 
+o PM a analisar cenários de negócio, deﬁnir 
+visão de longo prazo e alinhar objetivos. 
+Use-os para estruturar seu pensamento em 
+frameworks de mercado ou para geroar 
+artefatos estratégicos. 
+
+--- PÁGINA 63 ---
+Aja como um PM Sênior em B2C. Estamos no início de desenvolvimento 
+de um [app de bem-estar ﬁnanceiro para geração Z] cujo objetivo é 
+ajudar jovens a criar hábitos de poupança de forma gamiﬁcada.
+Proponha 3 opções de visão de produto.
+1. Cada visão deve ser um parágrafo inspirador seguido de 3-5 
+pilares estratégicos que a sustentam.
+2. O tom deve ser ambicioso, porém realista.”
+Estratégia de Produto e Visão
+53 –  Deﬁnição da Visão
+de Produto:
+Esse prompt força a articulação de uma visão clara e de como 
+alcançá-la, oferecendo múltiplas narrativas para escolha.etivo
+📌
+ Objetivo
+
+--- PÁGINA 64 ---
+Aja como um Head de Produto experiente em OKRs. Para o próximo 
+trimestre, nosso foco para o [produto X] é aumentar a retenção de 
+clientes (churn atual = 4% ao mês). Crie um conjunto de 1 Objetivo 
+inspirador (qualitativo) e 3-4 Key Results (métricas quantitativas 
+SMART) que comprovem o sucesso: ex: ‘KR: Reduzir churn de 4%
+para 2,5%’.
+Estratégia de Produto e Visão
+54 –  OKRs do próximo trimestre
+
+--- PÁGINA 65 ---
+Você é um analista de mercado.
+1. Estime o TAM (Total Addressable Market), SAM (Serviceable 
+Available Market) e SOM (Serviceable Obtainable Market) para um 
+novo produto: [um wearable inteligente que monitora 
+hidratação de atletas].
+2. Justiﬁque as estimativas com dados e fontes hipotéticas (ex.: 
+‘segundo Gartner...’, ‘considerando X milhões de atletas na 
+Europa...’).
+3. Forneça os valores em USD e explique a lógica de cada cálculo.”.
+Estratégia de Produto e Visão
+55 –  Estimativa de TAM
+SAM e SOM
+O modelo irá estruturar um raciocínio de market sizing, que você pode 
+reﬁnar com números reais depois.
+💡
+ Dica
+
+--- PÁGINA 66 ---
+Sou PM de um [aplicativo social de eventos locais] concorrendo com 
+[Facebook Events, Meetup]. Analise nosso potencial moat (fosso 
+econômico). 
+● Descreva como poderíamos construir vantagens em: efeitos de 
+rede, marca, custos de troca, tecnologia proprietária.
+● Forneça a resposta em formato de lista, com cada tipo de moat e 
+ações táticas para fortalecê-lo.”
+Estratégia de Produto e Visão
+56 – Moat
+(Vantagem competitiva)
+
+--- PÁGINA 67 ---
+Use o framework Canvas de Proposta de Valor.
+Meu segmento de cliente: [ﬁsioterapeutas autônomos]
+Dores: [gerenciar agendamentos, controlar pagamentos, manter 
+histórico de pacientes]
+Necessidades: [ferramenta simples, mobile e barata]
+Ganhos desejados: [mais tempo para atender pacientes, menos 
+estresse administrativo]
+Nosso produto: [app de gestão ‘tudo-em-um’ para clínicas]
+Monte o Mapa de Valor listando como nosso produto aborda as Dores 
+(analgésicos) e gera Ganhos (criadores de ganho) alinhados a esse 
+perﬁl.”
+Estratégia de Produto e Visão
+57 – Canvas de Proposta de Valor
+Um prompt para checar se sua solução realmente corresponde às 
+dores/ganhos do cliente, ótimo exercício de posicionamento.
+📌
+ Objetivo
+
+--- PÁGINA 68 ---
+Aja como Jeff Bezos usando Working Backwards. Vamos lançar em 18 
+meses um [serviço de assinatura de refeições saudáveis 
+personalizadas por IA]. Escreva o Press Release de lançamento (data 
+futura). Deve ser centrado no cliente, claro e empolgante. Inclua:
+● Título
+● Resumo da Solução
+● Descrição do Problema que resolve
+● Uma citação do nosso CEO
+● Como o cliente começa a usar
+● FAQ com as principais perguntas que clientes e imprensa teriam.
+Estratégia de Produto e Visão
+58 – Metodologia
+“Working Backwards”
+(Press Release futuro)
+Gerar o press release antecipadamente ajuda a clariﬁcar a visão do 
+produto e comunicar valor. Você pode usar a saída como base para 
+alinhar equipe e stakeholders sobre o que será lançado e por quê.
+💡
+ Dica
+
+--- PÁGINA 69 ---
+Assuma o papel de um Product Manager sênior responsável por deﬁnir a 
+estratégia do produto para os próximos 12 a 24 meses.
+Com base no contexto e dados disponíveis, elabore um plano 
+estratégico que aborde:
+● Segmentos de mercado prioritários e justiﬁcativa para cada um.
+● Principais problemas e necessidades dos clientes a serem 
+resolvidos.
+● Diferenciais competitivos a desenvolver ou reforçar.
+● Como o roadmap do produto irá se alinhar às metas de negócio 
+(receita, crescimento, fortalecimento de marca).
+● Possíveis iniciativas ou projetos estratégicos a incluir no roadmap.
+● Proposta de OKRs anuais do produto, com objetivos claros e key 
+results mensuráveis (ex.: Objetivo: aumentar retenção; KR: elevar 
+retenção 90 dias de 45% para 60%).
+Estratégia de Produto e Visão
+59 – Estratégia de Produto
+e OKRs para 1–2 anos
+
+--- PÁGINA 70 ---
+Passos para gerar o resultado:
+1. Analisar dados de mercado, concorrência e comportamento dos 
+usuários.
+2. Deﬁnir e justiﬁcar os segmentos de mercado prioritários.
+3. Mapear os principais problemas do cliIente e como o produto irá 
+resolvê-los.
+4. Identiﬁcar e detalhar diferenciais competitivos a serem 
+desenvolvidos.
+5. Conectar o roadmap do produto às metas estratégicas da 
+empresa.
+6. Formular 2 a 4 OKRs para o produto, com métricas e prazos claros.
+Estratégia de Produto e Visão
+59 – Estratégia de Produto
+e OKRs para 1–2 anos
+
+--- PÁGINA 71 ---
+Assuma o papel de um Product Manager especialista em estratégia de 
+monetização, avaliando opções de preciﬁcação para [produto].
+Com base no contexto do produto, perﬁl do mercado-alvo e 
+benchmarks do setor, elabore um relatório comparativo que inclua:
+● Descrição de pelo menos quatro modelos de preciﬁcação 
+relevantes (ex.: freemium, assinatura mensal, licença única, 
+preciﬁcação por uso).
+● Principais vantagens de cada modelo no contexto do produto.
+● Desvantagens ou riscos associados a cada modelo.
+● Exemplos de empresas que usam cada modelo com sucesso 
+(quando aplicável).
+● Indicação de qual modelo (ou combinação) seria mais adequado 
+para o produto, justiﬁcando a escolha.
+Estratégia de Produto e Visão
+60 – Comparação de modelos 
+de preciﬁcação
+
+--- PÁGINA 72 ---
+Passos para gerar o resultado:
+1. Contextualizar o produto e o público-alvo.
+Selecionar os modelos de preciﬁcação mais relevantes para 
+análise.
+2. Detalhar vantagens e desvantagens de cada modelo, conectando 
+ao cenário de mercado.
+3. Apresentar exemplos reais de aplicação bem-sucedida.
+4. Concluir com a recomendação estratégica e justiﬁcativa.
+Estratégia de Produto e Visão
+60 – Comparação de modelos 
+de preciﬁcação
+
+--- PÁGINA 73 ---
+Crescimento e 
+Experimentos
+Na etapa de crescimento, o objetivo é expandir 
+a base de usuários ou o uso do produto, usando 
+métricas para orientar decisões e conduzindo 
+experimentos frequentes. A IA pode ajudar a 
+escolher métricas corretas, elaborar hipóteses e 
+estruturar experimentos de forma rápida.
+
+--- PÁGINA 74 ---
+Aja como Growth PM. Nosso produto [plataforma de cursos online] 
+está com crescimento estagnado. A métrica principal a melhorar é [MAU 
+– usuários ativos mensais].
+Proponha 5 hipóteses de crescimento no formato: ‘Acreditamos que 
+[fazer X mudança] para [tal segmento de usuários] resultará em 
+[impacto Y], e saberemos que é verdade se [métrica Z] mudar em [X%]’.
+Ex.: ‘Acreditamos que oferecer trilhas guiadas para iniciantes resultará 
+em maior engajamento, saberemos se a taxa de conclusão de cursos 
+nesse segmento subir 20%’).”
+Crescimento e Experimentos
+61 – Geração de hipóteses
+de crescimento
+A saída serão hipóteses já estruturadas ligando ideia → público → 
+impacto esperado → métrica de sucesso, prontas para priorização.
+💡
+ Dica
+
+--- PÁGINA 75 ---
+Quero fazer um teste A/B em [funcionalidade XYZ].
+Minha hipótese: [descrição da hipótese].
+Me ajude a deﬁnir: 
+● quais seriam as duas variantes a testar,
+● como selecionar grupo de controle,
+● quais métricas de sucesso coletar
+● e qual tamanho de efeito esperar para considerar signiﬁcativa a 
+diferença.
+Crescimento e Experimentos
+62 – Design de experimentos A/B
+Forneça detalhes da funcionalidade e hipótese. O modelo deve 
+responder com um mini-plano experimental: ex. Variante A vs B, 
+critério de divisão de usuários, métricas primária/secundárias, CTR, 
+conversão, etc, e possivelmente duração ou volume necessário.
+💡
+ Dica
+
+--- PÁGINA 76 ---
+Temos várias ideias de experimentos de growth para o [produto].
+1. Crie um framework para priorizá-las usando critérios como: custo 
+de implementação, tempo de desenvolvimento, impacto esperado 
+e incerteza.
+2. Monte uma tabela para 5 ideias, dando uma pontuação ou 
+baixa/média/alta para cada critério, e sugira quais experimentar 
+primeiro.
+Crescimento e Experimentos
+63 – Priorização de ideias
+de experimentos
+
+--- PÁGINA 77 ---
+Nosso [software ﬁnanceiro pessoal] tem churn mensal de 5%, maioria 
+cancelando nos primeiros 3 meses.
+1. Brainstorm 5 estratégias de produto para reduzir churn no 
+curto/médio prazo.
+2. Foque em ideias acionáveis, por ex.: ‘Enviar e-mail de 
+reengajamento após 15 dias de inatividade’, ‘Fazer entrevistas de 
+saída com cancelados para descobrir padrões’, ‘Adicionar tutorial 
+interativo para novos usuários’, etc.”. 
+Crescimento e Experimentos
+64 – Redução de Churn
+e melhoria de retenção
+A resposta virá como uma lista de iniciativas concretas. Essas ideias 
+podem entrar no seu backlog de growth.
+💡
+ Dica
+
+--- PÁGINA 78 ---
+Nosso produto é um [app onde amigos criam e compartilham listas 
+de ﬁlmes]. Queremos crescer organicamente. 
+● Descreva 2-3 potenciais loops virais que poderíamos incorporar.
+● Para cada loop, detalhe os passos (ex.: Usuário A cria conteúdo -> 
+convida B -> B se cadastra -> B vê valor -> B convida C) e qual 
+valor cada participante recebe em cada passo.”. 
+Crescimento e Experimentos
+65 – Loops de viralidade
+
+--- PÁGINA 79 ---
+Assuma o papel de um PM/Growth Marketer. Gere ideias de conteúdos 
+que posicionem [produto] como solução para [problema Y do cliente] 
+e tragam leads orgânicos qualiﬁcados.
+Entregáveis:
+1. 10 ideias (misturar blog, vídeo, ebook, webinar, checklist).
+2. Para cada ideia, traga:
+● Título atrativo (CTR-friendly)
+● Pontos principais a abordar (3–5 bullets)
+● Estágio do funil (Topo/Meio/Fundo)
+Palavras-chave alvo (short e long-tail)
+● CTA sugerida (ex.: trial, demo, newsletter)
+● Métrica de sucesso (ex.: org sessions, lead rate, SQLs)
+Contexto para a IA preencher:
+● Público-alvo: [perﬁl]
+● Diferenciais do produto: [lista]
+● Região/idioma: [país/idioma]
+● Competidores diretos: [lista]
+Formato de saída: tabela (Ideia | Formato | Título | Pontos | Funil | 
+Keywords | CTA | Métrica)
+Crescimento e Experimentos
+66 – Ideias de conteúdo
+para atrair leads
+
+--- PÁGINA 80 ---
+Produtividade 
+pessoal
+Por ﬁm, o PM também pode usar IA para otimizar 
+sua produtividade individual – seja gerenciando 
+tarefas,aprendendo algo mais rápido ou 
+comunicando-se de forma eﬁcaz.
+
+--- PÁGINA 81 ---
+Com base em práticas de PMs de empresas líderes (Google, Amazon, 
+Nubank, Spotify...), liste 15 hábitos diários ou semanais de Product 
+Managers de alta performance. 
+Para cada hábito: 
+● breve descrição,
+● por que é importante,
+● exemplo de aplicação no dia a dia,
+● e uma ferramenta ou rotina para incorporá-lo.
+Categorize os hábitos em:
+1. foco e organização pessoal,
+2. alinhamento e comunicação com stakeholders,
+3. pensamento estratégico e aprendizado contínuo.
+Produtividade Pessoal
+67 – Hábitos de alta performance
+
+--- PÁGINA 82 ---
+Quero que você atue como um coach de carreira especializado em 
+Product Management.
+1. Me ajude a fazer uma análise crítica das principais decisões de 
+produto que tomei nos últimos 6 meses.
+2. Crie um roteiro de reﬂexão profunda para identiﬁcar:
+○ quais decisões foram bem embasadas ou apenas intuitivas,
+○ quais geraram impacto real no negócio,
+○ e quais tiveram consequências não antecipadas.
+3. Ajude também a reﬂetir sobre como comuniquei essas decisões 
+ao time e stakeholders: fui claro e aberto a feedback? Houve 
+padrões de comportamento?
+4. No ﬁnal, quero obter pelo menos três aprendizados concretos 
+sobre como tomar decisões melhores daqui pra frente.
+Produtividade Pessoal
+68 – Reﬂexão e aprendizado
+de decisões
+Essa instrução leva o modelo a guiar sua auto-avaliação, praticamente 
+fazendo uma retrospectiva pessoal. Pode ser útil rodar esse prompt 
+trimestralmente para evolução contínua.
+💡
+ Dica
+
+--- PÁGINA 83 ---
+Liste 15 perguntas de reflexão para identificar as tarefas mais significativas do meu 
+trabalho, considerando impacto nos objetivos estratégicos, urgência, custo de 
+oportunidade e possibilidade de delegar ou automatizar. Ao final, sugira um método 
+rápido para pontuar cada tarefa e priorizá-las.
+Sugestões de perguntas para a IA gerar:
+● Essa tarefa contribui diretamente para meus objetivos estratégicos?
+● Qual o impacto de não fazer essa tarefa nos próximos 30 dias?
+● Existe alguém que poderia executar essa tarefa com a mesma qualidade ou 
+melhor?
+● Essa tarefa pode ser automatizada com ferramentas de IA ou software?
+Produtividade Pessoal
+69 –  Identiﬁcação de
+tarefas prioritárias
+Ajudar a ﬁltrar o que realmente gera valor para automatizar, delegar ou 
+eliminar o restante.
+📌
+ Objetivo
+
+--- PÁGINA 84 ---
+Com base nos detalhes abaixo, crie um ﬂuxo de trabalho passo a passo 
+otimizado para essa tarefa, incluindo etapas, responsáveis, ferramentas 
+e tempo estimado.
+Informações a fornecer:
+1. Descrição da tarefa: [texto]
+2. Objetivo ﬁnal: [texto]
+3. Etapas atuais: [lista]
+4. Ferramentas usadas: [lista]
+5. Colaboradores envolvidos: [lista]
+6. Prazo médio: [número]
+7. Desaﬁos recorrentes: [lista]
+Analise o ﬂuxo de trabalho descrito e identiﬁque etapas que poderiam 
+ser automatizadas ou simpliﬁcadas, sugerindo ferramentas, integrações 
+ou tecnologias especíﬁcas para cada caso. Priorize por impacto e 
+facilidade.
+Produtividade Pessoal
+70 – Mapeamento de ﬂuxos de 
+trabalho e automação
+
+--- PÁGINA 85 ---
+Você reuniu um grande volume de dados (como notas de reuniões, 
+insights de pesquisas ou backlog de ideias) e quer torná-los mais claros 
+e acionáveis.
+“Organize e categorize esta lista de [tipo de informações], agrupando 
+por temas (ex.: UX, performance, novos mercados). Para cada grupo, 
+destaque as ideias ou itens de maior potencial, explicando o critério 
+usado.”
+Produtividade Pessoal
+71 – Organização e
+priorização de informações
+
+--- PÁGINA 86 ---
+Para momentos de baixa produtividade, procrastinação ou excesso de 
+distrações.
+“Estou com diﬁculdade de foco devido a [distrações X e Y]. Considere 
+minha rotina: [descreva sua rotina resumidamente]. 
+1. Crie um plano simples para eliminar ou reduzir essas distrações e 
+aumentar minha produtividade.
+2. Inclua técnicas práticas (ex.: Pomodoro, blocos de tempo, redução 
+de notiﬁcações) e personalize as recomendações para minha 
+realidade.
+Produtividade Pessoal
+72 – Foco e redução
+de distrações
+
+--- PÁGINA 87 ---
+Guia Prático:
+Como usar prompts 
+de forma eficiente
+Escrever bons prompts é uma habilidade que se traduz em 
+mais produtividade e melhor uso das ferramentas de IA. A 
+seguir, apresentamos boas práticas e dicas para você 
+adaptar e aproveitar prompts no cotidiano, seja no ChatGPT 
+ou em outras ferramentas (Google Gemini, Notion AI, etc.), 
+além de exemplos de uso em contextos variados:
+
+--- PÁGINA 88 ---
+Forneça contexto e deﬁna papéis
+Quanto mais informações de contexto você der ao modelo, melhor a 
+resposta. Especiﬁque qual o cenário, quem é o público ou persona e 
+assuma um papel para o assistente (ex.: “Você é um especialista em 
+métricas...” ou “Atue como um usuário iniciante...”). Isso orienta o tom e 
+profundidade da resposta.
+Lembre-se: Quanto mais informações você fornecer ao ChatGPT, 
+melhores serão os resultados. Inclua detalhes relevantes e, se a 
+resposta vier incompleta, não hesite em fornecer mais dados e pedir 
+novamente.
+Seja especíﬁco no pedido e no formato
+Deixe claro o que deseja e como deseja. Em vez de pedir “Analise os 
+dados da pesquisa”, preﬁra “Resuma em 3 insights principais os dados 
+da pesquisa X e forneça 2 recomendações acionáveis”.
+Se precisar de bullet points, tabela, texto curto ou longo, especiﬁque no 
+prompt. Exemplos nos prompts acima: pedir tabelas comparativas, listas 
+numeradas, seções de relatório, etc., garantiu respostas organizadas 
+conforme o esperado.
+Guia Prático: Como usar prompts de forma eﬁciente
+Boas práticas para escrita
+e adaptação de prompts
+
+--- PÁGINA 89 ---
+Use estrutura em passos (“Step-by-step”)
+Para tarefas complexas, é útil quebrar em etapas dentro do prompt. 
+Numerar as tarefas ajuda o modelo a não esquecer nada. Vimos isso em 
+alguns prompts. Essa técnica guia o modelo por um processo lógico. 
+Você pode até pedir: “Resolva passo a passo”, principalmente em 
+cálculos ou em raciocínio analítico.
+Inclua exemplos ou formatos de referência
+Se você tem exemplos de entrada/saída (por exemplo, um feedback 
+real e como quer a síntese dele) ou um template a seguir (como a 
+estrutura de um PRD, ou um template de e-mail), forneça isso no 
+prompt.
+Uma dica compartilhada por PMs experientes é: colar um modelo de 
+documento e instruir “Use esta estrutura para a resposta”. O ChatGPT 
+pode aprender e replicar o estilo/estrutura desejada. Isso é 
+especialmente útil para manter consistência de documentos dentro da 
+empresa.
+Guia Prático: Como usar prompts de forma eﬁciente
+Boas práticas para escrita
+e adaptação de prompts
+
+--- PÁGINA 90 ---
+Use marcadores e placeholders para componentes variáveis
+Ao criar prompts reutilizáveis, mantenha partes genéricas e destaque 
+as partes que devem ser editadas. Por exemplo, usar [NOME DO 
+PRODUTO], [PROBLEMA DO USUÁRIO], [MÉTRICA X] como placeholders 
+deixa claro o que deve ser substituído. Assim você constrói uma 
+biblioteca de prompts personalizáveis.
+Os exemplos deste guia frequentemente usaram colchetes para indicar 
+onde inserir detalhes do seu contexto. Adapte esses lugares ao utilizar 
+no seu dia a dia.
+Itere e reﬁne a resposta
+Raramente a primeira saída será perfeita. Trate a interação com o AI 
+como iterativa: peça esclarecimentos se algo veio genérico (“pode 
+detalhar mais o ponto X?”), ou reforce o estilo desejado (“reorganize em 
+uma tabela”, “responda como se fosse para um CEO, tom formal”).
+A AI não se ofende, pode ajustar a resposta quantas vezes você 
+solicitar. Aproveite para aﬁnar até ﬁcar no ponto.
+Guia Prático: Como usar prompts de forma eﬁciente
+Boas práticas para escrita
+e adaptação de prompts
+
+--- PÁGINA 91 ---
+Separe Chats por assunto ou projeto: As ferramentas como ChatGPT 
+permitem contexto contínuo em cada thread. Inicie um novo chat para 
+cada projeto ou tema (por exemplo: um chat dedicado para uma 
+iniciativa de produto onde você gera personas, histórias, PRD; outro 
+chat apenas para brainstorming de estratégia). Isso mantém o histórico 
+relevante, evitando que informações de assuntos distintos se misturem.
+Utilize funcionalidades avançadas: Fique atento aos recursos das 
+plataformas. Por exemplo, o ChatGPT (Plus) com Code Interpreter 
+permite upload de arquivos e geração de gráﬁcos, ideal para prompts de 
+análise de dados. O Google Gemini (quando disponível) possivelmente 
+integrará buscas atualizadas e multimodalidade; já o Notion AI pode ser 
+usado dentro de documentos, facilitando preencher seções de um doc 
+de produto conforme você pede. Leve seus prompts para onde for mais 
+conveniente: se está elaborando um PRD no Notion, invoque o AI lá 
+mesmo para rascunhar uma seção a partir de bullet points que você já 
+tem.
+Guia Prático: Como usar prompts de forma eﬁciente
+Dicas para uso eﬁciente com 
+ChatGPT, Gemini, Notion AI e aﬁns
+
+--- PÁGINA 92 ---
+Mantenha privacidade e valide saídas: Lembre-se de não 
+compartilhar dados sensíveis ou privados da empresa em prompts, 
+principalmente em ferramentas públicas. Abstraia ou anonimize 
+informações quando possível. E sempre revise criticamente as 
+respostas da IA, elas podem conter dados ﬁctícios (alucinações) ou 
+suposições erradas. Use a saída como um draft avançado, mas faça o 
+fact-checking e ajustes ﬁnais com seu conhecimento do produto e do 
+negócio.
+Combine IA com ferramentas tradicionais: A IA não substitui técnicas 
+consagradas de Product Management, mas as potencializa. Por 
+exemplo, você pode gerar hipóteses de experimentos via ChatGPT e 
+depois avaliá-las com seu time usando um quadro Kanban ou planilha. 
+Ou obter um resumo de feedbacks de usuários e então discutir em uma 
+reunião de equipe quais ações tomar. Use o tempo economizado pela IA 
+para se dedicar mais às interações humanas estratégicas: conversar 
+com usuários, alinhar com stakeholders e desenvolver sua equipe.
+Guia Prático: Como usar prompts de forma eﬁciente
+Dicas para uso eﬁciente com 
+ChatGPT, Gemini, Notion AI e aﬁns
+
+--- PÁGINA 93 ---
+Esteja atualizado com evoluções: O campo de IA evolui rápido. Novos 
+modelos (como versões futuras do ChatGPT ou concorrentes como 
+Bard/Gemini) trarão capacidades extras e poderão ser integrados em 
+ferramentas de produto (JIRA, Figma, etc.). Mantenha-se aprendendo 
+sobre essas novidades, elas podem abrir caminhos para você 
+automatizar tarefas repetitivas ou obter insights que antes 
+demandavam muito esforço. Ser um PM que sabe aproveitar IA é cada 
+vez mais um diferencial na carreira.
+Guia Prático: Como usar prompts de forma eﬁciente
+Dicas para uso eﬁciente com 
+ChatGPT, Gemini, Notion AI e aﬁns
+
+--- PÁGINA 94 ---
+Este guia reúne prompts cuidadosamente estruturados para apoiar 
+Product Managers, equipes de produto e proﬁssionais que desejam usar 
+IA como parceira estratégica no dia a dia. A proposta não é substituir a 
+análise humana, mas sim acelerar descobertas, organizar informações, 
+gerar ideias e estruturar planos com mais clareza e velocidade.
+O verdadeiro valor está em adaptar cada prompt ao seu contexto, 
+inserindo dados reais, objetivos de negócio e particularidades da sua 
+equipe ou produto. Quanto mais especíﬁco o input, mais útil e aplicável 
+será a resposta gerada.
+Use este material como ponto de partida para:
+● Ganhar tempo em tarefas operacionais e de análise.
+● Estimular brainstormings mais ricos e direcionados.
+● Melhorar a comunicação e alinhamento com stakeholders.
+● Tomar decisões embasadas e reduzir incertezas.
+Lembre-se: a IA potencializa o trabalho de quem já conhece seu 
+produto, seus usuários e seu mercado. Combine este poder com seu 
+conhecimento e experiência para transformar insights em resultados 
+concretos.
+Bons produtos e boas prompts!
+Conclusão
+
+--- PÁGINA 95 ---

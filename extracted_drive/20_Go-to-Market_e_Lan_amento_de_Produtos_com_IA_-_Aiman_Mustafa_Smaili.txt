@@ -1,0 +1,933 @@
+--- PÁGINA 1 ---
+Go-to-Market e 
+Lançamento de 
+Produtos com IA
+Aiman Mustafa Smaili
+
+--- PÁGINA 2 ---
+Trajetória: Zup Innovation, Itaú (Itaú Shop, 
+Inteligência Itaú), FIAP e Alura.
+AI Product Manager Specialist
+Aiman Mustafa
+linkedin.com/in/aimansmaili/
+
+
+--- PÁGINA 3 ---
+Conteúdo desta aula
+02. 
+Posicionamento
+e messaging: 
+comunicando o 
+valor da IA
+03. 
+Jornadas de 
+onboarding 
+inteligentes
+com IA
+04. 
+Growth loops com 
+IA para acelerar o 
+produto
+05. 
+Analisando o 
+desempenho 
+pós-lançamento 
+de produtos GenAI
+01. 
+Planejando o 
+go-to-market de 
+funcionalidades 
+GenAI
+
+
+--- PÁGINA 4 ---
+Conteúdo desta aula
+02. 
+Posicionamento
+e messaging: 
+comunicando o 
+valor da IA
+03. 
+Jornadas de 
+onboarding 
+inteligentes
+com IA
+04. 
+Growth loops com 
+IA para acelerar o 
+produto
+05. 
+Analisando o 
+desempenho 
+pós-lançamento 
+de produtos GenAI
+01. 
+Planejando o 
+go-to-market de 
+funcionalidades 
+GenAI
+
+
+--- PÁGINA 5 ---
+Apesar de a camada de aplicação 
+concentrar 90% da competição, 
+90% dos investimentos e dos lucros 
+estão nas camadas de fundação e 
+computação.
+O mercado de AI 
+Dinheiro e competição
+Fonte: GTM Strategist
+
+--- PÁGINA 6 ---
+Apesar de a camada de aplicação 
+concentrar 90% da competição, 
+90% dos investimentos e dos lucros 
+estão nas camadas de fundação e 
+computação.
+O mercado de AI 
+Dinheiro e competição
+Fonte: GTM Strategist
+A competição é MUITO acirrada!!!
+
+
+--- PÁGINA 7 ---
+Se antes as 
+funcionalidades 
+nasciam a partir 
+de requisitos mais 
+fechados, agora o 
+jogo é bem 
+diferente.
+Incertezas
+GTM para produtos de IA - principais diferenças
+O mercado AINDA é iniciante!
+Item 2
+Com o mercado 
+todo indo na 
+mesma direção, 
+lançar rápido 
+signiﬁca aprender 
+mais rápido.
+Velocidade
+Aprender rápido = errar rápido!
+Item 2
+Muitas soluções 
+são possíveis, mas 
+o valor depende 
+do problema que 
+você resolve.
+Múltiplas 
+possibilidades
+Mais foco = mais velocidade.
+
+
+--- PÁGINA 8 ---
+Se antes as 
+funcionalidades 
+nasciam a partir 
+de requisitos mais 
+fechados, agora o 
+jogo é bem 
+diferente.
+Incertezas
+GTM para produtos de IA - principais diferenças
+O mercado AINDA é iniciante!
+Item 2
+Com o mercado 
+todo indo na 
+mesma direção, 
+lançar rápido 
+signiﬁca aprender 
+mais rápido.
+Velocidade
+Aprender rápido = errar rápido!
+Item 2
+Muitas soluções 
+são possíveis, mas 
+o valor depende 
+do problema que 
+você resolve.
+Múltiplas 
+possibilidades
+Mais foco = mais velocidade.
+Qual é a hora certa de 
+montar meu GTM?
+
+
+--- PÁGINA 9 ---
+Forbes: Product/Market Fit And Go-To-Market: A Team Sport In The Age Of Generative AI
+Product/Market fit PMF
+ 
+Go-to-Market GTM
+A relação entre PMF e GTM
+Momento em que o seu produto  
+satisfaz uma demanda real de 
+um mercado.
+Plano de ação para impactar 
+clientes reais e gerar vantagem 
+competitiva.
+O PMF valida o GTM O GTM informa o PMF
+
+--- PÁGINA 10 ---
+Problemas de 
+segmento
+Maja Voje: Before there is Ideal, 
+there is Early (Customer Proﬁle)
+O ciclo para entender PMF
+Crie o seu MVB (Minimum Viable Business)
+Teste o produto
+Meça aprendizados
+Compile 
+aprendizados
+Identiﬁque seu beachhead market
+Deﬁna sua hipótese de produto
+Funcionou?
+SIM
+GTM
+NÃO
+Problemas 
+de negócio
+Problemas de 
+produtação
+Compile 
+aprendizados
+Deﬁna sua hipótese de produto
+Identiﬁque seu beachhead market
+Meça aprendizados
+
+--- PÁGINA 11 ---
+Conteúdo desta aula
+02. 
+Posicionamento
+e messaging: 
+comunicando o 
+valor da IA
+03. 
+Jornadas de 
+onboarding 
+inteligentes
+com IA
+04. 
+Growth loops com 
+IA para acelerar o 
+produto
+05. 
+Analisando o 
+desempenho 
+pós-lançamento 
+de produtos GenAI
+01. 
+Planejando o 
+go-to-market de 
+funcionalidades 
+GenAI
+
+
+--- PÁGINA 12 ---
+Posicionamento, estratégia e visão
+April Dunford: Positioning vs Strategy vs Vision
+
+--- PÁGINA 13 ---
+Posicionamento, estratégia e visão
+Em produtos de IA, 
+o posicionamento 
+SEMPRE muda no 
+tempo!
+
+
+--- PÁGINA 14 ---
+Se o seu 
+produto não 
+existisse… qual 
+produto seus 
+clientes 
+usariam?
+Alternativas 
+competitivas
+April Dunford: A Quickstart Guide to Positioning
+Pilares de um posicionamento vencedor
+
+--- PÁGINA 15 ---
+Hoje: Itaú, 
+Nubank, BTG, 
+etc.
+Ao lançar: único 
+no mercado.
+Magie: Use todos os seus bancos no WhatsApp.
+Alternativas 
+competitivas
+Benchmark - Magie
+
+
+--- PÁGINA 16 ---
+Se o seu 
+produto não 
+existisse… qual 
+produto seus 
+clientes 
+usariam?
+Quais são as 
+features e/ou 
+capacidades 
+que só o seu 
+produto possui? 
+Alternativas 
+competitivas
+Atributos 
+únicos
+April Dunford: A Quickstart Guide to Positioning
+Pilares de um posicionamento vencedor
+
+--- PÁGINA 17 ---
+Magie: Use todos os seus bancos no WhatsApp.
+Itaú, Nubank, 
+BTG, Etc
+Hoje: use todos 
+os seus bancos 
+no WhatsApp.
+Ao lançar: um 
+banco 100% no 
+WhatsApp.
+Alternativas 
+competitivas
+Atributos 
+únicos
+Benchmark - Magie
+
+
+--- PÁGINA 18 ---
+Se seu produto 
+não existisse… 
+Qual produto 
+seus clientes 
+usariam?
+Quais são as 
+features e/ou
+capacidades qie 
+só o seu produto 
+possui?
+Qual valor você 
+gera para o seu 
+cliente/usuário?
+Alternativas 
+competitivas
+Atributos 
+únicos
+Valor
+April Dunford: A Quickstart Guide to Positioning
+Pilares de um posicionamento vencedor
+
+--- PÁGINA 19 ---
+Transformar a 
+maneira como as 
+pessoas lidam 
+com suas 
+ﬁnanças, tão 
+simples quanto 
+enviar uma 
+mensagem para 
+um amigo.
+Magie: Use todos os seus bancos no WhatsApp.
+Itaú, Nubank, 
+BTG, Etc
+Use todos os 
+seus bancos no 
+WhatsApp
+Alternativas 
+competitivas
+Atributos 
+únicos
+Valor
+Benchmark - Magie
+
+
+--- PÁGINA 20 ---
+Quem são os 
+clientes que se 
+importam muito 
+com o valor que 
+seu produto 
+gera?
+Se seu produto 
+não existisse… 
+Qual produto 
+seus clientes 
+usariam?
+Quais são as 
+features e/ou
+capacidades qie 
+só o seu produto 
+possui?
+Qual valor você 
+gera para o seu 
+cliente/usuário?
+Alternativas 
+competitivas
+Atributos 
+únicos
+Valor
+ Clientes que 
+se importam
+April Dunford: A Quickstart Guide to Positioning
+Pilares de um posicionamento vencedor
+
+--- PÁGINA 21 ---
+Transformar a 
+maneira que as 
+pessoas lidam 
+com suas 
+ﬁnanças (tão 
+simples quanto 
+enviar uma 
+mensagem para 
+um amigo)
+Magie: Use todos os seus bancos no WhatsApp.
+Pessoas que 
+priorizam 
+praticidade.
+Itaú, Nubank, 
+BTG, Etc
+Use todos os 
+seus bancos no 
+WhatsApp
+Alternativas 
+competitivas
+Atributos 
+únicos
+Valor
+ Clientes que 
+se importam
+Benchmark - Magie
+
+
+--- PÁGINA 22 ---
+Quem são os 
+clientes que se 
+importam muito 
+com o valor que 
+seu produto 
+gera?
+Se seu produto 
+não existisse… 
+Qual produto 
+seus clientes 
+usariam?
+Quais são as 
+features e/ou
+capacidades qie 
+só o seu produto 
+possui?
+Qual valor você 
+gera para o seu 
+cliente/usuário?
+Em qual 
+contexto o seu 
+produto torna 
+óbvio o valor 
+gerado?
+Alternativas 
+competitivas
+Atributos 
+únicos
+Valor
+ Clientes que 
+se importam
+Mercado que 
+domina
+April Dunford: A Quickstart Guide to Positioning
+Pilares de um posicionamento vencedor
+
+
+--- PÁGINA 23 ---
+Transformar a 
+maneira que as 
+pessoas lidam 
+com suas 
+ﬁnanças (tão 
+simples quanto 
+enviar uma 
+mensagem para 
+um amigo)
+Magie: Use todos os seus bancos no WhatsApp.
+Pessoas que 
+priorizam 
+praticidade
+Itaú, Nubank, 
+BTG, Etc
+Use todos os 
+seus bancos no 
+WhatsApp
+Clientes com 
+pouco tempo e 
+que querem 
+otimizar a rotina 
+ﬁnanceira.
+Alternativas 
+competitivas
+Atributos 
+únicos
+Valor
+ Clientes que 
+se importam
+Mercado que 
+domina
+Benchmark - Magie
+
+
+--- PÁGINA 24 ---
+É hora de caracterizar o produto e 
+apresentar aos clientes.
+Mensagem - atributos únicos
+(Ex: Inovação, velocidade, rapidez, facilidade, etc)
+Desdobrando posicionamento
+
+
+--- PÁGINA 25 ---
+Agora, você irá adequar sua mensagem 
+para os diferentes públicos.
+Mensagem (atributos únicos)
+(Ex: Inovação, velocidade, rapidez, facilidade, etc)
+Segmentação
+(Cliente A > inovação, Cliente B > velocidade)
+Desdobrando posicionamento
+
+--- PÁGINA 26 ---
+Mensagem (atributos únicos)
+(Ex: Inovação, velocidade, rapidez, facilidade, etc)
+Aqui, a missão é distribuir sua mensagem 
+através de diferentes canais.
+Desdobrando posicionamento
+Segmentação
+(Cliente A > inovação, Cliente B > velocidade)
+Canais
+(Leve a mensagem até onde os clientes estão)
+
+
+--- PÁGINA 27 ---
+Mensagem (atributos únicos)
+(Ex: Inovação, velocidade, rapidez, facilidade, etc)
+Por fim, você irá aprender como é 
+possível melhorar sua estratégia de 
+posicionamento.
+Desdobrando posicionamento
+Segmentação
+(Cliente A > inovação, Cliente B > velocidade)
+Aproxime dos clientes
+(Entenda o seu cliente e como ele
+reconhece o seu produto)
+Canais
+(Leve a mensagem até onde os clientes estão
+
+
+--- PÁGINA 28 ---
+Conteúdo desta aula
+02. 
+Posicionamento
+e messaging: 
+comunicando o 
+valor da IA
+03. 
+Jornadas de 
+onboarding 
+inteligentes
+com IA
+04. 
+Growth loops com 
+IA para acelerar o 
+produto
+05. 
+Analisando o 
+desempenho 
+pós-lançamento 
+de produtos GenAI
+01. 
+Planejando o 
+go-to-market de 
+funcionalidades 
+GenAI
+
+
+--- PÁGINA 29 ---
+Construir um onboarding que não 
+gere fricção e desperte interesse 
+(gatilhos de escassez, 
+demonstração do produto, etc.).
+Onboarding interessante
+Jornadas 
+inteligentes
+Os quatro pilares de uma jornada inteligente
+
+
+--- PÁGINA 30 ---
+Construir um onboarding que não 
+gere fricção e desperte interesse 
+(gatilhos de escassez, 
+demonstração do produto, etc.).
+Onboarding interessante
+Após o cadastro, é importante gerar 
+um momento WOW, para que a 
+pessoa se lembre do produto e 
+queira utilizá-lo.
+“Ahaˮ moment
+Os quatro pilares de uma jornada inteligente
+Jornadas 
+inteligentes
+
+--- PÁGINA 31 ---
+Construir um onboarding que não 
+gere fricção e desperte interesse 
+(gatilhos de escassez, 
+demonstração do produto, etc.).
+Onboarding interessante
+Após o cadastro, é importante gerar 
+um momento WOW, para que a 
+pessoa se lembre do produto e 
+queira utilizá-lo.
+“Ahaˮ moment
+Criar mecanismos capazes de fazer 
+o usuário querer voltar mais vezes, 
+além da primeira interação.
+Formação do hábito
+Os quatro pilares de uma jornada inteligente
+Jornadas 
+inteligentes
+
+--- PÁGINA 32 ---
+Construir um onboarding que não 
+gere fricção e desperte interesse 
+(gatilhos de escassez, 
+demonstração do produto, etc.).
+Onboarding interessante
+Após o cadastro, é importante gerar 
+um momento WOW, para que a 
+pessoa se lembre do produto e 
+queira utilizá-lo.
+“Ahaˮ moment
+Gerar interesse a ponto de fazer os 
+usuários realmente converterem 
+(SSO, login facilitado, integração 
+com outros apps).
+Conversão
+Criar um mecanismos capazes de fazer 
+um usuário querer voltar mais vezes, 
+além da primeira interação.
+Formação hábito
+Os quatro pilares de uma jornada inteligente
+Jornadas 
+inteligentes
+
+--- PÁGINA 33 ---
+Conteúdo desta aula
+02. 
+Posicionamento
+e messaging: 
+comunicando o 
+valor da IA
+03. 
+Jornadas de 
+onboarding 
+inteligentes
+com IA
+04. 
+Growth loops com 
+IA para acelerar o 
+produto
+05. 
+Analisando o 
+desempenho 
+pós-lançamento 
+de produtos GenAI
+01. 
+Planejando o 
+go-to-market de 
+funcionalidades 
+GenAI
+
+
+--- PÁGINA 34 ---
+Em IA, os resultados da experimentação também alimentam
+o treinamento do modelo.
+Os princípios de Growth (Sean Ellis)
+1. Experimentação
+Testes contínuos para encontrar
+formas de alavancar crescimento e 
+otimizar a experiência dos clientes.
+
+--- PÁGINA 35 ---
+Inclusive dados QUALITATIVOS. Ouvir o usuário é fundamental.
+1. Experimentação
+(Testes contínuos para encontrar 
+formas de alavancar crescimento e 
+otimizar a experiência dos clientes).
+2. Tomada de decisão 
+data-driven
+(Dados é que irão guiar o trabalho de 
+growth. Importante levantar dados de 
+diversas fontes).
+Os princípios de Growth (Sean Ellis)
+1. Experimentação
+(Testes contínuos para encontrar 
+formas de alavancar crescimento e 
+otimizar a experiência dos clientes).
+2. Tomada de decisão 
+data-driven
+Os dados é que irão guiar o trabalho
+de growth. É importante levantar 
+informações de diversas fontes.
+2. Tomada de decisão 
+data-driven
+Os dados é que irão guiar o trabalho
+de growth. É importante levantar 
+informações de diversas fontes.
+
+
+--- PÁGINA 36 ---
+Quando ﬁzer ajustes, monitore até o que não foi alterado! Em IA, 
+uma mudança especíﬁca pode impactar o modelo como um todo.
+Os princípios de Growth (Sean Ellis)
+3. Iterações Rápidas
+Toda experimentação gera 
+aprendizados. É importante aprender 
+rápido para iterar sempre que 
+necessário.
+1. Experimentação
+(Testes contínuos para encontrar 
+formas de alavancar crescimento e 
+otimizar a experiência dos clientes).
+2. Tomada de decisão 
+data-driven
+(Dados é que irão guiar o trabalho de 
+growth. Importante levantar dados de 
+diversas fontes).
+1. Experimentação
+(Testes contínuos para encontrar 
+formas de alavancar crescimento e 
+otimizar a experiência dos clientes).
+2. Tomada de decisão 
+data-driven
+(Os dados é que irão guiar o trabalho
+de growth. É importante levantar 
+informações de diversas fontes).
+
+
+--- PÁGINA 37 ---
+1. Experimentação
+(Testes contínuos para encontrar 
+formas de alavancar crescimento e 
+otimizar a experiência dos clientes).
+2. Tomada de decisão 
+data-driven
+(Dados é que irão guiar o trabalho de 
+growth. Importante levantar dados de 
+diversas fontes).
+Os princípios de Growth (Sean Ellis)
+3. Iterações Rápidas
+(Toda experimentação gera 
+aprendizados: É importante aprender 
+rápido, para iterar sempre que 
+necessário)
+4. Riscos controlados
+Fazer o novo gera riscos, mas o objetivo 
+é testar de forma rápida e em pequena 
+escala.
+Lembre-se: você não controla o output da IA. Testar em pequena 
+escala garante que os erros sejam de menor dimensão.
+3. Iterações Rápidas
+(Toda experimentação gera 
+aprendizados. É importante aprender 
+rápido para iterar sempre que 
+necessário.)
+
+--- PÁGINA 38 ---
+5. Colaboração
+Elemento crítico da metodologia de 
+growth, que prevê práticas com 
+interações em grupo e de forma 
+multidisciplinar.
+Os princípios de Growth (Sean Ellis)
+3. Iterações Rápidas
+(Toda experimentação gera 
+aprendizados: É importante aprender 
+rápido, para iterar sempre que 
+necessário)
+4. Riscos controlados
+(Fazer o novo gera mais riscos. 
+Contudo, o objetivo é testar rápido e 
+pequeno).
+1. Experimentação
+(Testes contínuos para encontrar 
+formas de alavancar crescimento e 
+otimizar a experiência dos clientes).
+2. Tomada de decisão 
+data-driven
+(Dados é que irão guiar o trabalho de 
+growth. Importante levantar dados de 
+diversas fontes).
+3. Iterações Rápidas
+(Toda experimentação gera 
+aprendizados. É importante aprender 
+rápido para iterar sempre que 
+necessário.)
+4. Riscos controlados
+(Fazer o novo gera riscos, mas o objetivo 
+é testar de forma rápida e em pequena 
+escala.)
+Coletar percepções de pessoas não envolvidas com
+a solução é FUNDAMENTAL.
+
+--- PÁGINA 39 ---
+5. Colaboração
+(Elemento crítico da metodologia de 
+growth, prevê que as práticas 
+envolvam interações em grupo e 
+multidisciplinares).
+Os princípios de Growth (Sean Ellis)
+6. Foco no cliente
+O princípio básico de Growth é fazer com 
+que mais valor seja gerado para o cliente 
+- e não apenas aumentar a base de 
+novos clientes.
+3. Iterações Rápidas
+(Toda experimentação gera 
+aprendizados: É importante aprender 
+rápido, para iterar sempre que 
+necessário)
+4. Riscos controlados
+(Fazer o novo gera mais riscos. 
+Contudo, o objetivo é testar rápido e 
+pequeno).
+1. Experimentação
+(Testes contínuos para encontrar 
+formas de alavancar crescimento e 
+otimizar a experiência dos clientes).
+2. Tomada de decisão 
+data-driven
+(Dados é que irão guiar o trabalho de 
+growth. Importante levantar dados de 
+diversas fontes).
+3. Iterações Rápidas
+(Toda experimentação gera 
+aprendizados. É importante aprender 
+rápido para iterar sempre que 
+necessário.)
+4. Riscos controlados
+(Fazer o novo gera riscos, mas o objetivo 
+é testar de forma rápida e em pequena 
+escala.)
+Testes com colaboradores são importantes, mas insuﬁcientes.
+Teste com CLIENTES REAIS.
+5. Colaboração
+(Elemento crítico da metodologia de 
+growth, que prevê práticas com 
+interações em grupo e de forma 
+multidisciplinar.)
+
+--- PÁGINA 40 ---
+Growth Loops
+Deﬁnição
+Uma sequência de ações 
+capazes de gerar engajamento 
+exponencial para o seu 
+produto, um verdadeiro efeito 
+bola de neve.
+Costuma focar em:
+➔ Aquisição de novos 
+usuários.
+➔ Retenção de usuários 
+existentes.
+
+
+--- PÁGINA 41 ---
+Conteúdo desta aula
+02. 
+Posicionamento
+e messaging: 
+comunicando o 
+valor da IA
+03. 
+Jornadas de 
+onboarding 
+inteligentes
+com IA
+04. 
+Growth loops com 
+IA para acelerar o 
+produto
+05. 
+Analisando o 
+desempenho 
+pós-lançamento 
+de produtos GenAI
+01. 
+Planejando o 
+go-to-market de 
+funcionalidades 
+GenAI
+
+
+--- PÁGINA 42 ---
+No ﬁm, o objetivo de todo produto 
+ainda é gerar valor para os clientes e 
+para o negócio.
+Mexer no P&L da empresa (direta ou 
+indiretamente) permanece sendo uma 
+das principais (e mais difíceis) tarefas.
+Nem tudo muda, apesar de tudo.
+Métricas de sucesso
+
+--- PÁGINA 43 ---
+● Latência
+● Taxa de erro (geral e 
+por ação)
+● Acurácia das tools 
+do agente
+● Métricas de 
+qualidade do modelo 
+(acurácia, precisão, 
+recall, etc.)
+- ROI (Return on 
+investment)
+- Receita gerada total
+- Receita gerada por 
+usuário (ARPU)
+- Otimização de custos
+- LTV
+Negócio
+- Taxa de adoção
+- Usuários ativos 
+(DAU, WAU e MAU)
+- Frequência de 
+utilização
+- Duração média da 
+sessão
+- Taxas de conversão 
+(geral e por tarefas)
+Engajamento
+ Performance
+Lancei… E agora?
+● ROI (Return on 
+Investment)
+● 
+● Receita total gerada
+● 
+● Receita gerada por 
+usuário (ARPU)
+● 
+● Otimização de 
+custos
+● 
+● L TV (Lifetime Value)
+Negócio
+● Taxa de adoção
+● Usuários ativos 
+(DAU, WAU e MAU)
+● Frequência de 
+utilização
+● Duração média da 
+sessão
+● Taxas de conversão 
+(geral e por tarefas)
+Engajamento
+
+
+--- PÁGINA 44 ---

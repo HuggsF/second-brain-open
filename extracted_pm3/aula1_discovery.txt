@@ -1,0 +1,338 @@
+--- PAGE 1 ---
+Módulo ao vivo
+AI Product Specialist
+Adrianno Esnarriaga
+
+
+--- PAGE 2 ---
+linkedin.com/in/adrianno
+Engenheiro de computação com mais de 12 
+anos de experiência na criação de produtos 
+inovadores em diferentes setores, desde grandes 
+empresas a startups.
+Staff Product Manager na Pipefy 
+Adrianno Esnarriaga
+
+
+--- PAGE 3 ---
+Por que um módulo ao vivo?
+Funcionalidade lançada (em beta) em 30/06/25, veja aqui.
+
+--- PAGE 4 ---
+Módulo inspirado no Double Diamond
+
+--- PAGE 5 ---
+Como vai funcionar o Módulo 1 (ao vivo):
+IA que potencializa seus resultados
+15 de julho
+ 22 de julho
+08 de julho
+Discovery 
+turbinado por IA
+29 de julho
+Experimentação rápida 
+com IA
+IA na prática: 
+Automação e agentes 
+de IA
+Estruturação, 
+documentação e 
+prototipagem com IA
+
+
+--- PAGE 6 ---
+Deep Research
+Persona e roteiros para pesquisas
+Análise de dados
+Discovery turbinado por IA
+Decidindo o que automatizar
+Primeira automação com n8n
+Agentes de IA
+Integração com Lovable
+Automação e agentes de IA
+Como acertar o 1º prompt
+Primeiros passos no Lovable
+Fake-door com Pipefy para medir 
+conversão e validar desejabilidade
+Experimentação com IA
+Documentação para gerar buy in
+Construindo um bom PRD
+Introdução ao vibe coding
+Primeiros passos no Cursor
+Prototipagem com IA
+Módulo 
+ao vivo
+
+
+--- PAGE 7 ---
+Objetivo desta aula:
+
+
+--- PAGE 8 ---
+Objetivo desta aula: inspirar vocês
+
+
+--- PAGE 9 ---
+03. 
+Análise de dados e 
+feedbacks de 
+usuários
+01. 
+Discovery com 
+Deep Research
+Conteúdo desta aula
+02. 
+Personas e 
+roteiros para 
+pesquisa
+04. 
+Conclusão e 
+materiais para 
+aprofundar
+
+
+--- PAGE 10 ---
+03. 
+Análise de dados e 
+feedbacks de 
+usuários
+01. 
+Discovery com 
+Deep Research
+Conteúdo desta aula
+02. 
+Personas e 
+roteiros para 
+pesquisa
+04. 
+Conclusão e 
+materiais para 
+aprofundar
+
+
+--- PAGE 11 ---
+
+
+--- PAGE 12 ---
+● Brainstorming
+● Matriz CSD
+● Persona
+● Mapa de empatia
+● Entrevistas de profundidade
+● Um dia na vida do usuário
+● Desk Research
+"Descobrir"
+Double Diamond
+
+--- PAGE 13 ---
+● Brainstorming
+● Matriz CSD
+● Persona
+● Mapa de empatia
+● Entrevistas de profundidade
+● Um dia na vida do usuário
+● Desk Research
+"Descobrir"
+Double Diamond
+
+--- PAGE 14 ---
+● Consiste em coletar, analisar e sintetizar informações já existentes, como 
+relatórios, artigos, bancos de dados públicos, estudos acadêmicos e conteúdos 
+online. 
+● O objetivo é obter insights sem a necessidade de trabalho de campo, sendo ideal 
+para entender contextos, mapear concorrência, identiﬁcar tendências e embasar 
+decisões iniciais com agilidade e baixo custo.
+Método de pesquisa baseado na coleta e análise de dados já existentes:
+Desk Research
+
+
+--- PAGE 15 ---
+Por que PMs ainda 
+perdem horas 
+garimpando dados?
+
+
+--- PAGE 16 ---
+● Busca e leitura automatizada: varre múltiplas fontes e extrai os pontos principais.
+● Resumo de conteúdos longos: transforma relatórios e artigos em resumos claros e rápidos.
+● Benchmarking inteligente: compara concorrentes, posicionamento e features com rapidez.
+● Extração de tendências: identiﬁca padrões em reviews, redes sociais e publicações.
+● Tradução com contexto: acessa pesquisas globais com compreensão local.
+● Geração de ideias e hipóteses: sugere caminhos com base no conteúdo analisado.
+🤖
+ Como IA pode ajudar em Desk Research?
+
+
+--- PAGE 17 ---
+Deep Research 
+Presente nos principais LLMs
+Diferentes fontes e citações
+Compilação massiva de dados
+Demo
+Use meu prompt, clicando aqui.
+
+
+--- PAGE 18 ---
+03. 
+Análise de dados e 
+feedbacks de 
+usuários
+01. 
+Discovery com 
+Deep Research
+Conteúdo desta aula
+02. 
+Personas e 
+roteiros para 
+pesquisa
+04. 
+Conclusão e 
+materiais para 
+aprofundar
+
+
+--- PAGE 19 ---
+Mapeamento de concorrentes
+Personas
+Roteiro de entrevista
+Custom GPT para automatizar
+Atividade prática
+Use meus prompts, clicando aqui.
+
+
+--- PAGE 20 ---
+
+
+--- PAGE 21 ---
+03. 
+Análise de dados e 
+feedbacks de 
+usuários
+01. 
+Discovery com 
+Deep Research
+Conteúdo desta aula
+02. 
+Personas e 
+roteiros para 
+pesquisa
+04. 
+Conclusão e 
+materiais para 
+aprofundar
+
+
+--- PAGE 22 ---
+Case prático
+Análise de reviews recentes de 
+2023-2025 da Netﬂix usando AI.
+Vamos usar o dataset “Netﬂix 
+Reviews” do Kaggle, contendo 
+informações sobre as avaliações 
+feitas por usuários na Google Play 
+Store.
+
+
+--- PAGE 23 ---
+Nosso fluxo de prompts:
+Use meus prompts, clicando aqui.
+Sentimento e 
+tendências
+Análise inicial 
+e heatmap
+Insights 
+acionáveis
+Priorização de 
+oportunidades
+Além das avaliações, também contém informações sobre as classiﬁcações, a data da avaliação e as curtidas em 
+cada avaliação. Faça download o dataset atualizado aqui.
+
+--- PAGE 24 ---
+
+
+--- PAGE 25 ---
+03. 
+Análise de dados e 
+feedbacks de 
+usuários
+01. 
+Discovery com 
+Deep Research
+Conteúdo desta aula
+02. 
+Personas e 
+roteiros para 
+pesquisa
+04. 
+Conclusão e 
+materiais para 
+aprofundar
+
+
+--- PAGE 26 ---
+Análise aprofundada usando Deep 
+Research com diferentes modelos;
+Mapeamento de concorrentes e 
+definição de personas;
+Análise de dados, tendências e 
+geração de insights acionáveis.
+Inspirando vocês a turbinar o 
+discovery com IA.
+Recap da aula:
+
+
+--- PAGE 27 ---
+Deﬁnam uma persona para algum produto 
+que vocês queiram lançar e crie um roteiro 
+(com AI) para validação com usuários.
+Reﬂitam na escolha de vocês, porque vamos 
+usar nas próximas aulas!
+Agora é com vocês! ✨
+Desafio prático:
+Gostaria de lançar um ERP, para emissão 
+de NF e controle de estoque, para donos 
+de distribuidoras de suprimentos para 
+escritório.
+Rodei essa pesquisa com 10 possíveis 
+usuários, encontrei 5 principais dores e 
+vejo 3 oportunidades.
+Exemplo
+
+
+--- PAGE 28 ---
+Material complementar
+● OpenAI Academy
+● Anthropic Academy
+● Video: Introduction to Deep Research
+"Experts" para seguir:
+● Andrej Karpathy (YouTube)
+● Ethan Mollick (Linkedin) + Newsletter
+
+
+--- PAGE 29 ---
+Que tal compartilhar 
+sua experiência e nos 
+ajudar a evoluir cada 
+vez mais?
+Aponte o celular para a câmera e escaneie 
+o QR Code.
+
+--- PAGE 30 ---
+● Como acertar o 1º prompt.
+● Primeiros passos no Lovable com 
+custom GPT.
+● Fake-door com Pipefy para medir 
+conversão e validar desejabilidade.
+👀
+ Experimentação com IA
+Spoiler da Aula 2  
+
+
+--- PAGE 31 ---
+Mandem feedbacks!
+Obrigado! 󰜷
+linkedin.com/in/adrianno
+adrianno@pm.me
+
+--- PAGE 32 ---
+

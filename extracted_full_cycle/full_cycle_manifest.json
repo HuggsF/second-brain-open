@@ -1,0 +1,370 @@
+{
+  "source": "MBA Full Cycle - Engenharia de Software com IA 2026",
+  "ingestion_date": "2026-10-12T20:18:00-03:00",
+  "base_path": "C:\\Users\\huggs\\Downloads\\Full Cycle - MBA em Engenharia de Software com IA 2026",
+  "summary": {
+    "total_videos": 321,
+    "total_pdfs": 22,
+    "total_zips": 7,
+    "total_txts": 12,
+    "total_images": 2,
+    "total_modules": 8
+  },
+  "modules": [
+    {
+      "id": "M01",
+      "name": "01 Comece por aqui",
+      "type": "intro",
+      "assets": {"videos": 0, "pdfs": 0, "zips": 0, "txts": 0, "images": 1}
+    },
+    {
+      "id": "M02",
+      "name": "02 Bônus MBA",
+      "type": "system-design-bonus",
+      "submodules": [
+        {
+          "id": "M02-01",
+          "name": "Projeto de sistema e requisitos de engenharia",
+          "videos": 6,
+          "topics": ["design de API", "plano de capacidade", "núcleo de entidades", "projeto de sistema", "aprofundamento e questões críticas"]
+        },
+        {
+          "id": "M02-02",
+          "name": "Estudo de caso Uber",
+          "videos": 1,
+          "pdfs": ["Agora é sua vez.pdf"],
+          "topics": ["system design Uber", "ride-matching", "geolocalização", "alta escala"]
+        },
+        {
+          "id": "M02-03",
+          "name": "Estudo de caso Instagram",
+          "pdfs": ["Agora é sua vez.pdf"],
+          "topics": ["system design Instagram", "feed", "stories", "media pipeline"]
+        },
+        {
+          "id": "M02-04",
+          "name": "Comunicação e resiliência",
+          "videos": 8,
+          "topics": ["REST", "gRPC", "GraphQL", "Kafka", "RabbitMQ", "Websockets", "SSE", "Protobuf", "Flatbuffers", "comunicação síncrona vs assíncrona"]
+        },
+        {
+          "id": "M02-05",
+          "name": "DevOps e SRE",
+          "videos": 6,
+          "topics": ["DevOps", "SRE", "cargo e evolução", "resolução de incidentes", "contexto e antagonismo"]
+        },
+        {
+          "id": "M02-06",
+          "name": "Encontros Zoom - Uber",
+          "topics": ["discussão ao vivo Uber"]
+        },
+        {
+          "id": "M02-07",
+          "name": "Encontros Zoom - Instagram",
+          "topics": ["discussão ao vivo Instagram"]
+        },
+        {
+          "id": "M02-08",
+          "name": "FC TechWeek IA #1",
+          "topics": ["techweek IA edição 1"]
+        },
+        {
+          "id": "M02-09",
+          "name": "FC TechWeek IA #2",
+          "topics": ["techweek IA edição 2"]
+        },
+        {
+          "id": "M02-10",
+          "name": "FC TechWeek IA #3",
+          "topics": ["techweek IA edição 3"]
+        }
+      ]
+    },
+    {
+      "id": "M03",
+      "name": "03 Encontros ao vivo",
+      "type": "live-sessions",
+      "submodules": [
+        {
+          "id": "M03-01",
+          "name": "Quick Wins com IA (29/07)",
+          "instructor": "Wesley Willians",
+          "pdfs": ["Excalidraw Quick Wins.pdf", "Material.pdf", "Quick Wins com IA.pdf"],
+          "txts": ["Quick Wins com IA - 29_07_2025.txt", "Exemplo de um PRP gerado durante a aula.txt"],
+          "zips": ["PRPs-agentic-eng-development.zip"],
+          "topics": ["context engineering", "PRPs", "rules/memories", "MCP Server", "Context7", "janelas de contexto", "ferramentas IA (Cursor, Windsurf, Claude Code, Gemini CLI)"],
+          "high_value_content": true
+        },
+        {
+          "id": "M03-02",
+          "name": "Docker Offload (07/08)",
+          "instructor": "Luiz Carlos",
+          "pdfs": ["Docker Offload.pdf", "Material.pdf"],
+          "txts": ["Docker Offload.txt"],
+          "zips": ["compose-for-agents-main.zip"],
+          "topics": ["Docker Compose for Agents", "ambiente de IA simplificado"]
+        },
+        {
+          "id": "M03-03",
+          "name": "Mentoria Wesley (12/08)",
+          "instructor": "Wesley Willians",
+          "pdfs": ["Mentoria Wesley.pdf", "Material.pdf"],
+          "txts": ["Mentoria Wesley.txt"],
+          "topics": ["mentoria", "dúvidas práticas"]
+        },
+        {
+          "id": "M03-04",
+          "name": "Agentes de IA (21/08)",
+          "instructor": "Wesley Willians",
+          "pdfs": ["Excalidraw Agentes de IA.pdf", "Material.pdf"],
+          "zips": ["claude-subagents-main.zip"],
+          "topics": ["agentes IA", "LangChain agents", "subagentes Claude", "orquestração de agentes"]
+        },
+        {
+          "id": "M03-05",
+          "name": "Criação e Tipos de Prompt (02/09)",
+          "instructor": "Wesley Willians",
+          "pdfs": ["Criação e Tipos de Prompt.pdf", "Material.pdf"],
+          "txts": ["Criação e Tipos de Prompt.txt"],
+          "topics": ["tipos de prompt", "criação de prompts"]
+        },
+        {
+          "id": "M03-06",
+          "name": "Workflow para Modernização de Legados (09/09)",
+          "topics": ["modernização de legados", "workflow IA"]
+        },
+        {
+          "id": "M03-07",
+          "name": "Alta escala com AI no mundo real (16/09)",
+          "topics": ["IA em produção", "alta escala"]
+        },
+        {
+          "id": "M03-08",
+          "name": "Mentoria Wesley (30/09)",
+          "instructor": "Wesley Willians",
+          "topics": ["mentoria", "dúvidas avançadas"]
+        }
+      ]
+    },
+    {
+      "id": "M04",
+      "name": "04 Desafios Técnicos - MBA IA",
+      "type": "challenges",
+      "submodules": [
+        {
+          "id": "M04-01",
+          "name": "Ingestão e busca semântica com LangChain e PostgreSQL",
+          "pdfs": ["01 Iniciar.pdf"],
+          "topics": ["RAG", "embeddings", "busca semântica", "LangChain", "PostgreSQL", "pgvector"]
+        }
+      ]
+    },
+    {
+      "id": "M05",
+      "name": "05 Fundamentos de IA Generativa",
+      "type": "fundamentals",
+      "total_videos": 41,
+      "submodules": [
+        {
+          "id": "M05-01",
+          "name": "Materiais",
+          "pdfs": ["Fundamentos de IA Generativa.pdf (8.1MB)", "Material.pdf"],
+          "high_value_content": true
+        },
+        {
+          "id": "M05-02",
+          "name": "Introdução",
+          "videos": 2,
+          "topics": ["introdução", "nosso momento"]
+        },
+        {
+          "id": "M05-03",
+          "name": "Gen IA",
+          "videos": 6,
+          "topics": ["O que é Gen AI", "diferenças de IA", "como Gen AI aprende", "história da IA", "inverno da IA", "modelos 2-gramas"]
+        },
+        {
+          "id": "M05-04",
+          "name": "Aprofundando na IA e LLM",
+          "videos": 22,
+          "topics": ["Cadeias de Markov", "RNNs", "Transformers", "Tokens", "LLMs", "GANs", "Position Wise Layers", "Positional Encoding", "LayerNorm", "pré-treinamento", "MLM", "fine-tuning supervisionado", "RLHF", "otimização grandes modelos", "alucinação", "context window", "raciocínio simbólico", "conhecimento em tempo real"]
+        },
+        {
+          "id": "M05-05",
+          "name": "Hands on",
+          "videos": 9,
+          "topics": ["temperatura", "Top_K", "Top_P", "encoder-only", "similaridade", "engenharia de prompt", "arquitetura RAG"]
+        }
+      ]
+    },
+    {
+      "id": "M06",
+      "name": "06 Prompt Engineering",
+      "type": "prompt-engineering",
+      "total_videos": 82,
+      "submodules": [
+        {
+          "id": "M06-01",
+          "name": "Material e código-fonte",
+          "pdfs": ["Material - Código fonte.pdf"],
+          "zips": ["mba-ia-prompt-engineering-main.zip (194KB)"]
+        },
+        {
+          "id": "M06-02",
+          "name": "Iniciando com Prompt Engineering",
+          "videos": 18,
+          "topics": ["role prompting", "zero-shot", "one-shot", "few-shot", "chain of thought", "CoT self-consistency", "tree of thought", "skeleton of thought", "ReAct", "prompt chaining com LangChain"]
+        },
+        {
+          "id": "M06-03",
+          "name": "Conceitos importantes",
+          "videos": 10,
+          "topics": ["context window para PE", "memória/custo/latência", "janela de contexto vs parâmetros", "truncamento", "sumarização", "sliding window", "prompt caching", "batch prompting"]
+        },
+        {
+          "id": "M06-04",
+          "name": "Estrutura básica de prompts",
+          "videos": 9,
+          "topics": ["estruturação de prompts", "correção de bugs", "prompts no dev", "system vs user prompt", "regras de ouro"]
+        },
+        {
+          "id": "M06-05",
+          "name": "Prompts para agentes e workflows",
+          "videos": 11,
+          "topics": ["Dependency Auditor Agent Prompt", "arquivo declarativo do agent", "prompt como metadados", "workflow specification prompt", "role specification como orquestrador"]
+        },
+        {
+          "id": "M06-06",
+          "name": "Gestão e versionamento de prompt",
+          "videos": 16,
+          "topics": ["versionamento de prompts", "produtividade em equipe", "documentação/categorização", "prompt.yaml", "testes automatizados", "Code Reviewer agent", "LangSmith Prompt Hub"]
+        },
+        {
+          "id": "M06-07",
+          "name": "Query reformulation e prompt enrichment",
+          "videos": 10,
+          "topics": ["prompt enrichment", "Query2Doc", "HyDE", "ITER-RETGEN", "enriquecimento de queries na prática"]
+        },
+        {
+          "id": "M06-08",
+          "name": "Prompt Evaluation",
+          "videos": 16,
+          "topics": ["métricas de avaliação", "evaluators", "datasets", "binários", "score com range", "additional criteria", "embedding distance", "alucinação"]
+        },
+        {
+          "id": "M06-09",
+          "name": "Evaluation Comparativa",
+          "videos": 12,
+          "topics": ["precision", "recall", "F1", "pairwise evaluator", "LLM-as-Judge"]
+        }
+      ]
+    },
+    {
+      "id": "M07",
+      "name": "07 Design Docs com IA",
+      "type": "design-docs",
+      "total_videos": 62,
+      "submodules": [
+        {
+          "id": "M07-01",
+          "name": "Material",
+          "pdfs": ["PRD Catálogo eCommerce.pdf", "PRD Rate Limiter.pdf", "Material.pdf", "PRD de Feature.pdf", "Prompt de Entrevista para PRD.pdf"],
+          "txts": ["PRD Catálogo eCommerce.txt", "PRD Rate Limiter.txt", "Prompt de Entrevista para PRD.txt"],
+          "high_value_content": true
+        },
+        {
+          "id": "M07-02",
+          "name": "Introdução",
+          "videos": 5,
+          "topics": ["RUP", "Agile", "problemas conhecidos de documentação"]
+        },
+        {
+          "id": "M07-03",
+          "name": "Documentação na era da IA",
+          "videos": 10,
+          "topics": ["tipos de documentação", "design docs", "PRDs", "seções de PRD", "PRDs de alto nível", "PRDs de feature", "exemplos", "prompt para geração de PRD"]
+        },
+        {
+          "id": "M07-04",
+          "name": "Design e Arquitetura",
+          "videos": 11,
+          "topics": ["HLD", "FDD (Feature Design Doc)", "deep research", "prompts para HLD e FDD"]
+        },
+        {
+          "id": "M07-05",
+          "name": "Diagramas (C4 + Mermaid)",
+          "videos": 14,
+          "topics": ["C1 System Context", "C2 Containers", "C3 Component", "C4 Code", "Mermaid", "Flowchart", "Sequence Diagram", "Class Diagram", "ER Diagram", "State Diagram", "geração de diagramas com IA"]
+        },
+        {
+          "id": "M07-06",
+          "name": "Architecture Decision Records",
+          "videos": 13,
+          "topics": ["ADR estrutura clássica", "MADRs", "status e metadados", "boas práticas", "quando usar ADRs", "agente de mapeamento", "gerando ADRs com IA", "linkando ADRs"]
+        },
+        {
+          "id": "M07-07",
+          "name": "Engineering Guidelines",
+          "videos": 9,
+          "topics": ["software development guidelines", "guidelines na era IA", "project stack", "pre-commit", "geração de guidelines com comandos"]
+        }
+      ]
+    },
+    {
+      "id": "M08",
+      "name": "08 Desenvolvimento de aplicações com IA",
+      "type": "ai-development",
+      "total_videos": 46,
+      "submodules": [
+        {
+          "id": "M08-core",
+          "name": "Vídeos 02-47 (Core)",
+          "videos": 46,
+          "topics": [
+            "ferramentas e workflows",
+            "paralelização",
+            "documentação e artefatos",
+            "arquitetura de software e solução",
+            "spec driven development",
+            "pilares do desenvolvimento com IA",
+            "ferramentas e IDEs",
+            "o básico não é fácil",
+            "pontos essenciais para desenvolvimento",
+            "README.md diferenciado",
+            "scripts de inicialização",
+            "arquivo de inicialização do agente",
+            "testabilidade",
+            "gotchas e policies",
+            "evolução",
+            "otimizando arquivos existentes",
+            "project skills",
+            "mapeamento de skills",
+            "racionais para mapeamento",
+            "skills oficiais Anthropic",
+            "skills.sh",
+            "skills em workflows",
+            "frontmatter",
+            "skills e arquivos de referência",
+            "criando servidor MCP com skill",
+            "skill personalizada Full Cycle",
+            "progressive disclosure",
+            "conditional details",
+            "agents.md vs skills",
+            "criando skills personalizadas",
+            "skill como comando",
+            "skill Next.js",
+            "deep diving na skill",
+            "AgentSkills.io"
+          ]
+        },
+        {
+          "id": "M08-skills",
+          "name": "Skills (links + ZIPs)",
+          "links": ["https://skills.sh/"],
+          "zips": ["skills-main.zip (3.7MB, Anthropic)", "superpowers-main.zip (354KB)", "agentskills-main.zip (788KB)"],
+          "topics": ["Anthropic official skills", "Superpowers skills", "AgentSkills marketplace"]
+        }
+      ]
+    }
+  ]
+}

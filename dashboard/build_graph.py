@@ -6,6 +6,39 @@ import json
 import math
 from datetime import datetime, timezone
 
+try:
+    import yaml  # PyYAML
+except ImportError:
+    yaml = None
+
+def _load_teams(vault):
+    """Load vault/teams/teams.yaml if present and PyYAML is available."""
+    teams_file = vault / 'teams' / 'teams.yaml'
+    if not teams_file.is_file():
+        return None
+    raw = teams_file.read_text(encoding='utf-8')
+    if yaml:
+        return yaml.safe_load(raw)
+    # Fallback: try to parse as JSON if no PyYAML (won't work for YAML, but keeps the build safe)
+    return None
+
+def _load_templates(vault):
+    """Load vault/_templates/*.md metadata (name, first heading, path)."""
+    templates_dir = vault / '_templates'
+    if not templates_dir.is_dir():
+        return []
+    templates = []
+    for tpl in sorted(templates_dir.glob('*.md')):
+        content = tpl.read_text(encoding='utf-8-sig')
+        title = next((ln.lstrip('#').strip() for ln in content.splitlines() if ln.startswith('# ')), tpl.stem)
+        templates.append({
+            'id': tpl.stem,
+            'title': title,
+            'path': '_templates/' + tpl.name,
+            'lines': len(content.split('\n')),
+        })
+    return templates
+
 def build(root, catalog, output):
     root, catalog, output = Path(root).resolve(), Path(catalog).resolve(), Path(output).resolve()
     vault = (root / 'vault').resolve()
@@ -51,13 +84,24 @@ def build(root, catalog, output):
                           'sha256': hashlib.sha256(raw).hexdigest(), 'lines': len(content.split('\n')),
                           'modified_at': datetime.fromtimestamp(resolved.stat().st_mtime, timezone.utc).isoformat()}
     data['documents'] = documents
+    # Teams and templates metadata
+    teams_data = _load_teams(vault)
+    if teams_data:
+        data['teams'] = teams_data.get('teams', [])
+        data['protocols'] = teams_data.get('protocols', {})
+    else:
+        data['teams'] = []
+        data['protocols'] = {}
+    data['templates'] = _load_templates(vault)
     data['built_from'] = 'vault + dashboard/graph-catalog.json'
     signature = json.dumps(data, ensure_ascii=False, sort_keys=True).encode('utf-8')
     data['snapshot_id'] = hashlib.sha256(signature).hexdigest()
     data['built_at'] = datetime.now(timezone.utc).isoformat()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text('window.KIOSK_GRAPH = ' + json.dumps(data, ensure_ascii=False).replace('<', '\\u003c') + ';\n', encoding='utf-8')
-    print(json.dumps({'nodes': len(ids), 'edges': len(edge_ids), 'sources': len(documents), 'snapshot_id': data['snapshot_id']}, ensure_ascii=True))
+    teams_count = len(data.get('teams', []))
+    tpl_count = len(data.get('templates', []))
+    print(json.dumps({'nodes': len(ids), 'edges': len(edge_ids), 'sources': len(documents), 'teams': teams_count, 'templates': tpl_count, 'snapshot_id': data['snapshot_id']}, ensure_ascii=True))
     return data
 
 if __name__ == '__main__':

@@ -1,0 +1,527 @@
+--- PÁGINA 1 ---
+Fundamentos da 
+IA e Panorama 
+de Mercado
+Fabrício Carraro
+
+
+--- PÁGINA 2 ---
+Autor do livro "Inteligência Artificial e 
+ChatGPT: Da revolução dos modelos de IA 
+generativa à Engenharia de Prompt"
+Program Manager na Alura
+Fabrício Carraro
+linkedin.com/in/fabriciocarraro
+
+--- PÁGINA 3 ---
+Breve história da IA: 
+da IA Simbólica à IA 
+Generativa
+
+
+--- PÁGINA 4 ---
+"A inteligência artificial é a ciência de desenvolver sistemas capazes de simular 
+processos cognitivos humanos, como o raciocínio e a aprendizagem. "
+IA (Inteligência Artificial) é um campo da computação que busca criar sistemas 
+capazes de realizar tarefas que normalmente exigiriam inteligência humana. 
+Essas tarefas incluem:
+• Raciocínio lógico
+• Tomada de decisões
+• Reconhecimento de padrões
+• Compreensão de linguagem natural
+• Visão computacional
+O que é a Inteligência Artificial?
+
+--- PÁGINA 5 ---
+Item 3 Item 4
+Breve história da Inteligência Artificial
+2010–2020:
+Deep Learning e a 
+explosão dos 
+dados
+• Redes neurais 
+profundas com 
+grande 
+capacidade de 
+representação.
+• Revolução 
+em visão 
+computacional, 
+fala e tradução.
+• Requer alto poder 
+computacional e 
+grandes volumes 
+de dados.
+2020 em diante: 
+era da IA 
+Generativa
+• Modelos como 
+GPT, Midjourney e 
+Claude, geram 
+texto, imagem, 
+áudio e vídeo.
+• Capacidade de 
+criar conteúdo 
+original e interagir 
+de forma quase 
+humana.
+• Abre novas 
+fronteiras e 
+também novos 
+desafios éticos e 
+técnicos.
+1950–1980: era 
+da IA Simbólica
+• Modelos 
+baseados em 
+regras lógicas e 
+símbolos (ex.: "se 
+X, então Y").
+• IA tentava imitar o 
+raciocínio humano 
+explícito.
+• Limitada em 
+tarefas ambíguas 
+ou com muitos 
+dados.
+1990–2010: era 
+do Machine 
+Learning
+• Avanço com 
+estatística 
++ dados.
+• Algoritmos 
+aprendem padrões 
+a partir de 
+exemplos.
+• Aplicações: 
+reconhecimento 
+de e-mails spam, 
+recomendação de 
+produtos.
+
+--- PÁGINA 6 ---
+IA Simbólica → 
+baseado em 
+regras
+• Conhecimento é 
+explicitamente 
+programado.
+• Funciona bem em 
+ambientes 
+controlados.
+• Fracassa com 
+ambiguidade e 
+incerteza.
+Item 2 Item 3 Item 4
+Mudanças de paradigma na IA
+Machine Learning 
+→ baseado em 
+dados
+• Algoritmos 
+aprendem com 
+exemplos 
+rotulados.
+• Maior 
+adaptabilidade, 
+mas dependente 
+da qualidade e 
+quantidade dos 
+dados.
+• Demanda 
+processos de 
+treinamento 
+supervisionado.
+Deep Learning → 
+baseado em 
+redes neurais
+• Descobre 
+representações 
+complexas 
+automaticamente.
+• Sucesso em 
+tarefas como 
+visão, fala e 
+linguagem.
+• Exige grandes 
+volumes de dados 
+e alto poder 
+computacional.
+IA Generativa → 
+baseado em 
+previsão e 
+geração
+• Modelos treinados 
+com bilhões de 
+parâmetros e 
+tokens.
+• Criam novos 
+conteúdos (texto, 
+imagem, código...).
+• Introduzem novas 
+interações com o 
+usuário: diálogo, 
+agentes 
+autônomos.
+
+--- PÁGINA 7 ---
+Machine Learning, 
+Deep Learning e 
+LLMs: entendendo 
+as diferenças
+
+
+--- PÁGINA 8 ---
+• Modelos aprendem padrões em dados estruturados.
+• Usa algoritmos como:
+o Regressão Linear / Logística
+o Árvores de Decisão
+o SVM, KNN, Random Forest
+o XGBoost / CatBoost
+• Exemplos:
+o Previsão de churn
+o Classificação de clientes
+o Detecção de anomalias financeiras
+• Usa aprendizado supervisionado ou não supervisionado.
+Machine Learning clássico
+
+--- PÁGINA 9 ---
+O modelo aprende a partir de dados rotulados (com respostas conhecidas).
+• O que o modelo recebe:
+o Entrada (X) + saída esperada (Y)
+• Objetivo e quando usar:
+o Prever ou classificar resultados com base em exemplos anteriores.
+o Você tem dados com rótulos confiáveis.
+o Precisa de previsões específicas (classificação ou regressão).
+• Exemplo:
+o Prever preço de casas com base em área, localização etc.
+o Detecção de fraude (transação → legítima ou não).
+o Previsão de vendas.
+Aprendizado supervisionado
+Machine Learning clássico
+
+--- PÁGINA 10 ---
+O modelo explora padrões sem saber a resposta certa.
+• O que o modelo recebe:
+o Apenas os dados de entrada (X)
+• Objetivo e quando usar:
+o Encontrar estruturas ou agrupamentos ocultos.
+o Os dados não têm rótulos.
+o Quer descobrir padrões, segmentos ou outliers.
+• Exemplo:
+o Segmentação de clientes.
+o Agrupamento de documentos ou imagem.
+o Detecção de comportamentos incomuns.
+Aprendizado não supervisionado
+Machine Learning clássico
+
+--- PÁGINA 11 ---
+Deep Learning
+Modelos com múltiplas camadas (redes neurais profundas) que aprendem 
+representações complexas.
+• Como funciona:
+o Aprende características
+automaticamente direto dos
+dados (ex.: bordas → formas →
+objetos em imagens).
+• Baseado em arquiteturas como: 
+o CNNs
+o RNNs
+o Transformers
+
+--- PÁGINA 12 ---
+Modelos com múltiplas camadas (redes neurais profundas) que aprendem 
+representações complexas.
+• Objetivo e quando usar:
+o Grandes volumes de dados
+não estruturados (texto, imagem,
+áudio, vídeo).
+o Tarefas com alta complexidade.
+• Exemplo:
+o Reconhecimento facial
+o Assistentes virtuais por voz
+o Tradução automática
+o Diagnóstico por imagem médica
+Deep Learning
+
+--- PÁGINA 13 ---
+Inteligência
+Artificial
+Machine
+Learning
+Deep
+Learning
+
+--- PÁGINA 14 ---
+Modelos treinados com bilhões de palavras (tokens) para prever a próxima palavra 
+em uma sequência.
+Baseados em Transformers, uma arquitetura criada em 2017 que revolucionou o NLP 
+(Processamento de Linguagem Natural),
+Como funcionam (simplificado):
+• Pré-treinamento: aprendem linguagem a partir de textos públicos massivos.
+• Ajuste fino (fine -tuning): especialização para tarefas ou domínios específicos.
+• Inferência: geram ou completam textos com base em prompts do usuário.
+• Exemplo: ChatGPT, Gemini, Claude, DeepSeek.
+LLMs (Large Language Models)
+
+--- PÁGINA 15 ---
+• Eu gosto de pizza.
+• I like pizza.
+• I like to travel.
+• Pizza severim.
+Aprender padrões da linguagem humana e relações entre as palavras.
+Modelos de linguagem
+
+--- PÁGINA 16 ---
+Modelos de linguagem
+Word embeddings
+Representações 
+distribuídas de 
+palavras que 
+compreendem a 
+proximidade 
+semântica entre 
+elas.
+
+--- PÁGINA 17 ---
+Modelos de linguagem
+Word embeddings
+Representações 
+distribuídas de 
+palavras que 
+compreendem a 
+proximidade 
+semântica entre 
+elas.
+
+--- PÁGINA 18 ---
+Pergunta: qual era o esporte do atleta Rogério Ceni?
+Resposta: o esporte do atleta Rogério Ceni era o futebol.
+Pergunta: quais times ele defendeu e desde quando esse esporte é 
+praticado no Brasil?
+Como funcionam?
+Modelos de linguagem
+• Todos os prompts e respostas são reenviados a cada nova pergunta.
+• Tenta prever a próxima palavra, com base em probabilidades adquiridas 
+durante o treinamento.
+
+--- PÁGINA 19 ---
+Eu me matriculei na PM3 para 
+fazer um curso de...
+Product 17,6%
+Produto 14,0%
+Marketing 9,7%
+Digital 6,3%
+Growth 5,8%
+Modelos de linguagem
+Como funcionam?
+
+--- PÁGINA 20 ---
+Sempre a palavra com maior probabilidade? Não!
+Modelos de linguagem
+Como funcionam?
+
+--- PÁGINA 21 ---
+Modelos de linguagem
+Como funcionam?
+
+--- PÁGINA 22 ---
+• “Normais” vs. Raciocínio
+• Busca (Search)
+• Busca Profunda (Deep Research)
+Tipos de modelo
+Modelos de linguagem
+
+--- PÁGINA 23 ---
+ML vs. DL vs. LLMs
+Característica Machine Learning Clássico Deep Learning LLMs (Modelos de Linguagem)
+Tipo de dado Estruturado (tabelas) Não estruturado(imagem, texto, áudio) Texto em linguagemnatural
+Necessidade de 
+dados Baixa à média Alta Muito alta (bilhões de tokens)
+Treinamento Rápido e simples Complexo e demorado Pré-treinamentomassivo + ajustes
+Explicabilidade Alta (interpretação fácil) Baixa (modelo caixa-preta) Muito baixa
+Custo 
+computacional Baixo Alto Altíssimo
+Casos de uso Previsão de churn, riscode crédito Diagnóstico médico porimagem, reconhecimentode fala Chatbots, geração de texto, copilotos de código
+
+--- PÁGINA 24 ---
+Limites da IA:
+riscos, hype e 
+oportunidades reais
+
+
+--- PÁGINA 25 ---
+The New York Times
+"Qual foi o primeiro artigo que o The New York Times escreveu sobre 
+inteligência artificial?"
+"Em 10 de julho de 1956, em um artigo intitulado 'As máquinas serão capazes 
+de aprender e resolver problemas, cientistas preveem' sobre uma conferência 
+seminal no Dartmouth College."
+Limites da IA
+Alucinações
+
+--- PÁGINA 26 ---
+Modelos refletem os preconceitos contidos nos dados de treinamento.
+Pode gerar discriminação algorítmica em decisões de crédito, recrutamento, 
+policiamento etc.
+Limites da IA
+Dados Enviesados
+
+--- PÁGINA 27 ---
+Modelos performam bem em tarefas treinadas, mas falham em 
+contextos novos ou imprevistos.
+Overfitting - Falta de Generalização
+Limites da IA
+
+--- PÁGINA 28 ---
+• Tarefa repetitiva, cara ou lenta → IA pode automatizar
+• Decisões baseadas em regras ou histórico → IA pode aprender padrões
+• Volume alto de dados sem análise → IA pode extrair insights
+• Dificuldade de personalizar em escala → IA pode adaptar com custo 
+baixo
+Oportunidades reais
+Sinais de boas oportunidades
+
+--- PÁGINA 29 ---
+• Mapeie processos internos → onde há gargalos?
+• Converse com a equipe → o que é repetitivo ou frustrante?
+• Busque benchmarkings → o que outras empresas estão fazendo?
+• Teste rápido ( PoC/MVP) → valide valor antes de escalar
+Passos práticos
+Oportunidades reais
+
+--- PÁGINA 30 ---
+• Técnica que combina busca de informações em bases externas com 
+geração de texto por LLMs.
+• O modelo não responde “de cabeça”, mas consulta fontes antes de 
+responder.
+Como funciona:
+• Input do usuário (ex.: pergunta).
+• Sistema faz busca em fontes confiáveis (ex.: PDFs, bases internas, 
+Wikipedia).
+• O conteúdo recuperado é enviado como contexto para o LLM.
+• O modelo gera a resposta com base na evidência.
+Técnicas usadas
+RAG - Retrieval-Augmented Generation
+
+--- PÁGINA 31 ---
+• Sistemas autônomos que percebem, decidem e agem em sequência.
+• Ao contrário de um chatbot estático, agentes têm metas e tomam ações 
+encadeadas.
+Como funciona:
+• Objetivo definido: o que o agente deve alcançar?
+• Ferramentas disponíveis: busca, APIs, banco de dados etc.
+Casos de uso:
+• Agentes de vendas e suporte.
+• Automações de tarefas internas (e -mails, relatórios, workflows).
+• Orquestração de múltiplas ferramentas com IA.
+Agentes de IA
+Técnicas usadas
+
+--- PÁGINA 32 ---
+Avaliação de Riscos Técnicos
+• Escalabilidade: o modelo funciona bem com mais dados ou usuários?
+• Manutenibilidade: é fácil atualizar, monitorar e ajustar?
+• Segurança e privacidade: há risco de vazamento de informações 
+sensíveis?
+Avaliação de Riscos de Negócio
+• Fit com o problema real: a IA resolve algo relevante ou é só “moda”?
+• ROI mensurável: há impacto claro em tempo, custo ou receita?
+• Integração no processo: como a IA se encaixa no fluxo de trabalho atual?
+• Aceitação dos usuários: haverá resistência ou adoção natural?
+Riscos Técnicos e de Negócio
+
+--- PÁGINA 33 ---
+Setores impactados
+pela IA
+
+
+--- PÁGINA 34 ---
+Setores impactados pela IA
+Saúde
+• Diagnóstico por imagem 
+(radiologia, dermatologia).
+• Previsão de doenças e análise 
+de prontuários.
+• Geração automática de 
+relatórios médicos.
+Finanças
+• Análise de risco e crédito.
+• Detecção de fraudes em tempo 
+real.
+• IA generativa para relatórios 
+financeiros.
+
+--- PÁGINA 35 ---
+Setores impactados pela IA
+Varejo e e-commerce
+• Recomendação de produtos 
+personalizada.
+• Otimização de estoque e 
+logística. 
+• Atendimento via chatbots
+inteligentes.
+Jurídico
+• Análise de contratos e 
+jurisprudência.
+• Criação de minutas e petições.
+• Pesquisa jurídica acelerada 
+com LLMs.
+
+--- PÁGINA 36 ---
+Setores impactados pela IA
+Mídia e entretenimento 
+• Geração automática de 
+conteúdo (textos, vídeos, 
+imagens).
+• Dublagem e legendas com IA.
+• Personalização de experiências 
+em streaming.
+Programação
+• Co-pilotos para 
+desenvolvimento de software.
+• Agentes programadores.
+
+--- PÁGINA 37 ---
+Estratégias de
+Big Techs e
+Startups em IA
+
+
+--- PÁGINA 38 ---
+• Investimento estratégico : alocar recursos significativos em pesquisa e 
+desenvolvimento de IA.
+• Parcerias colaborativas : estabelecer alianças para acelerar o progresso 
+tecnológico.
+• Foco em segurança e ética : priorizar o desenvolvimento responsável da IA.
+Boas práticas aplicáveis ao seu contexto
+Lições das Big Techs
+
+--- PÁGINA 39 ---
+• Agilidade: capacidade de adaptar -se rapidamente às mudanças do 
+mercado.
+• Inovação centrada no usuário : desenvolvimento de soluções com base 
+nas necessidades reais dos clientes.
+• Uso eficiente de recursos : maximizar resultados com equipes e 
+orçamentos enxutos.
+Lições das Startups
+Boas práticas aplicáveis ao seu contexto
+
+--- PÁGINA 40 ---
+• Definir objetivos claros : estabelecer metas específicas para projetos de IA.
+• Começar pequeno : criar uma POC e ir incrementando aos poucos.
+• Definir uma equipe capacitada : ajudará a evitar riscos de segurança e débitos 
+técnicos no futuro.
+• Promover a capacitação contínua : investir no desenvolvimento de habilidades 
+da equipe para acompanhar a evolução da IA.
+Implementação de IA
+Boas práticas aplicáveis ao seu contexto
+
+--- PÁGINA 41 ---
+Dominar essas técnicas é o 
+primeiro passo para 
+transformar dados em 
+decisões estratégicas e IA em 
+impacto real no seu produto.
+
+--- PÁGINA 42 ---

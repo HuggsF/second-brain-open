@@ -1,0 +1,85 @@
+# Golden Dataset (Ground Truth): Casos de referência para avaliação contínua do Compound AI
+# Criado com base nos desafios reais da holding KIOSK Brands (dupla Full-Cycle).
+
+version: 1
+dataset_name: "kiosk_golden_eval_v1"
+curator: "Engenharia Full-Cycle KIOSK"
+last_updated: "2026-10-12"
+
+cases:
+  - id: "GD-LOG-001"
+    domain: "logistics"
+    title: "Duplicidade de Etiquetas J&T em Requisições Concorrentes"
+    prompt: "Investigar etiquetas duplas geradas na J&T em requisições simultâneas e especificar trava de concorrência com idempotência."
+    expected_sources:
+      - "systems/investigacao-duplicidade-etiquetas.md"
+      - "rules/RULE-001-emissao-exige-nf-real.md"
+    expected_rules:
+      - "RULE-001"
+    must_pass_gates:
+      - "gate_1_grounding_citation"
+      - "gate_2_dag_cycle_validation"
+      - "gate_4_idempotency_concurrency"
+    human_ground_truth:
+      decision: "Mecanismo de lock atômico distribuído por order_id + brand com TTL de 15 segundos. Se houver concorrência, responder HTTP 409 Conflict imediatamente."
+      consequence: "Zero chamadas duplicadas à API da transportadora J&T."
+
+  - id: "GD-OBS-002"
+    domain: "observability"
+    title: "Padronização do FlowLogger e Rastreabilidade E2E no true-postback"
+    prompt: "Como padronizar observabilidade no true-postback com batch_trace_id e semáforos verde/amarelo/vermelho cobrindo os 4 serviços core?"
+    expected_sources:
+      - "adrs/ADR-006-implementacao-flowlogger-observabilidade-semaforos.md"
+      - "adrs/ADR-004-trace-ids-e-log-unificado-nas-chamadas-mcp.md"
+    expected_rules: []
+    must_pass_gates:
+      - "gate_1_grounding_citation"
+      - "gate_4_idempotency_concurrency"
+    human_ground_truth:
+      decision: "Adotar a biblioteca FlowLogger com batch_trace_id (UUID v4) propagado da entrada Express até o RabbitMQ. Mapear app.postback.js, normalizer.js, InfobipBuffer e DispatcherService."
+      consequence: "Saída paralela em terminal colorido e JSON estruturado { timestamp, level, tag, message, data } em UTC-3."
+
+  - id: "GD-CRM-003"
+    domain: "crm_salesforce"
+    title: "Migração SULTS e Holmes para Salesforce Service Cloud"
+    prompt: "Especificar arquitetura de unificação dos dados de franquias e chamados das marcas Touti, Amavia e Yes! no Salesforce."
+    expected_sources:
+      - "systems/sults.md"
+      - "systems/holmes.md"
+      - "adrs/ADR-001-migracao-sults-holmes-para-salesforce.md"
+    expected_rules: []
+    must_pass_gates:
+      - "gate_1_grounding_citation"
+      - "gate_2_dag_cycle_validation"
+    human_ground_truth:
+      decision: "Convergência de SULTS (franquias) e Holmes (chamados) para objetos Account e Case no Service Cloud com fila assíncrona e chave única baseada em CNPJ/CPF."
+      consequence: "Visão 360 do franqueado com webhook bidirecional para o SAP."
+
+  - id: "GD-FSC-004"
+    domain: "fiscal"
+    title: "Conformidade de Expedição e Chave NF-e em Produção"
+    prompt: "Qual a exigência fiscal mandatória para emissão de frete em produção segundo as regras de negócio?"
+    expected_sources:
+      - "rules/RULE-001-emissao-exige-nf-real.md"
+      - "systems/hub-producao.md"
+    expected_rules:
+      - "RULE-001"
+    must_pass_gates:
+      - "gate_1_grounding_citation"
+      - "gate_3_rule_compliance"
+    human_ground_truth:
+      decision: "Toda emissão logística em produção exige chave de acesso NF-e válida de 44 dígitos numéricos reais. É proibido mockar ou emitir em contingência sem registro fiscal."
+      consequence: "Bloqueio automático em caso de chave ausente ou inválida."
+
+  - id: "GD-TRC-005"
+    domain: "governance"
+    title: "Rastreabilidade Unificada nas Ferramentas MCP do Second Brain"
+    prompt: "Como funciona o registro de auditoria e correlação de tarefas nas chamadas dos servidores FastMCP?"
+    expected_sources:
+      - "adrs/ADR-004-trace-ids-e-log-unificado-nas-chamadas-mcp.md"
+    expected_rules: []
+    must_pass_gates:
+      - "gate_1_grounding_citation"
+    human_ground_truth:
+      decision: "Middleware FastMCP (core/trace_middleware.py) intercepta todas as ferramentas gerando W3C trace_id (32 hex) e span_id (16 hex), gravando registros em .runtime/trace-log.jsonl com mascaramento de segredos."
+      consequence: "Histórico auditável consultável via cli.py trace."

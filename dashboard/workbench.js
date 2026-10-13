@@ -70,7 +70,15 @@ function agents(main,U){
  main.append(head('PLANOS / AGENTES','Prepare o trabalho antes de executá-lo.','Defina papéis, dependências e ferramentas. Valide o plano e exporte um contrato para o futuro backend.'));
  main.append(el('p',{class:'callout warn'},'Backend de execução não conectado. As etapas abaixo são um plano editável, sem agentes em execução. Nenhum tempo, custo ou resultado foi simulado.'));
  const steps=el('div',{class:'plan-steps'}),message=el('div',{class:'plan-message',role:'status','aria-live':'polite'}),preview=el('pre',{class:'plan-preview','aria-label':'Contrato JSON do plano'}),diagram=el('ol',{class:'progress-list','aria-label':'Dependências do plano'});
- const roles=[['researcher','Pesquisador'],['reviewer','Revisor'],['writer','Redator']];
+ const roles=[
+  ['dev','Desenvolvedor (Dev Full-Cycle)'],
+  ['devops','DevOps / SRE'],
+  ['qa','QA & Testes'],
+  ['architect','Arquiteto / Tech Lead'],
+  ['researcher','Pesquisador'],
+  ['reviewer','Revisor'],
+  ['writer','Redator']
+ ];
  const toolNames={search:'Buscar texto',read_graph:'Ler relações',read_sources:'Ler fontes'};
  function check(announce=false){
   const valid=C.validatePlan(plan);

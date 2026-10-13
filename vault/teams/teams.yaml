@@ -1,0 +1,252 @@
+teams:
+  # ==========================================
+  # TIMES DE TECNOLOGIA (ENGENHARIA FULL-CYCLE)
+  # ==========================================
+  - id: dev
+    name: Desenvolvimento (Dev)
+    category: engineering
+    scope: Codificação full-cycle (frontend, backend, integrações, webhooks) pela equipe de engenharia da KIOSK.
+    systems:
+      - hub-producao
+      - hub-homologacao
+      - srv-api
+      - integracoes-bling-touti
+      - second-brain-frontend-waves
+      - second-brain-frontend-360
+      - second-brain-graphrag-multiagent
+      - second-brain-observability-bff
+    rules: [RULE-001, RULE-002]
+    playbooks: [PB-001, PB-002, PB-006]
+    channels:
+      - type: async
+        target: qa
+        protocol: handoff
+        description: Envio de código, novos endpoints e coleções Postman para validação
+      - type: async
+        target: devops
+        protocol: demand
+        description: Solicitação de variáveis de ambiente, filas de execução e recursos de infra
+      - type: async
+        target: architecture
+        protocol: adr
+        description: Alinhamento contínuo sobre decisões estruturais e novos padrões
+      - type: async
+        target: logistics
+        protocol: handoff
+        description: Entrega de correções e funcionalidades com playbooks de uso
+
+  - id: devops
+    name: DevOps & Infraestrutura
+    category: engineering
+    scope: CI/CD no GitHub Actions, gestão de ambientes (homologação/produção), observabilidade e deploys.
+    systems:
+      - proposta-pipeline-ci-cd-github-actions
+      - implantacao-instancia-homologacao
+      - deploy-validacao-hub-2026-10-08
+      - post-deploy-observabilidade-hub
+      - rate-limiting-bling-producao
+      - inventario-github
+      - inventario-repositorios
+    rules: []
+    playbooks: [PB-003, PB-004, PB-007]
+    channels:
+      - type: async
+        target: dev
+        protocol: handoff
+        description: Logs de execução, métricas de desempenho e status de pipelines
+      - type: async
+        target: qa
+        protocol: demand
+        description: Disponibilização de ambiente de homologação e mocks de parceiros
+      - type: broadcast
+        target: all
+        protocol: broadcast
+        description: Janelas de manutenção programada e alertas de produção
+
+  - id: qa
+    name: QA & Testes
+    category: engineering
+    scope: Garantia de qualidade, prevenção contra emissões duplicadas de etiquetas e NFs, e auditoria contínua.
+    systems:
+      - comparativo-prod-homolog-postman
+      - postman-collection
+      - investigacao-duplicidade-etiquetas
+      - hub-logistics-preflight
+      - protecoes-processamento-emissao-hub
+      - metodo-auto-auditoria
+    rules: [RULE-001]
+    playbooks: [PB-001, PB-005]
+    channels:
+      - type: async
+        target: dev
+        protocol: demand
+        description: Abertura de bugs, regressões ou gaps de contrato encontrados em testes
+      - type: async
+        target: devops
+        protocol: handoff
+        description: Homologação concluída com sucesso autorizando deploy em produção
+      - type: async
+        target: logistics
+        protocol: playbook
+        description: Playbooks e orientações operacionais de contingência
+
+  - id: architecture
+    name: Arquitetura & Tech Lead
+    category: engineering
+    scope: Decisões técnicas (ADRs), governança de contratos, padrões de API e alinhamento da dupla técnica.
+    systems:
+      - system-design-index
+      - modelo-semantico-e-visualizacao-grafo
+      - second-brain-graphrag-multiagent
+      - sap
+      - salesforce
+    rules: []
+    playbooks: [PB-004, PB-006, PB-007]
+    channels:
+      - type: broadcast
+        target: all
+        protocol: adr
+        description: ADRs aprovadas como diretriz para todos os sistemas
+      - type: async
+        target: dev
+        protocol: handoff
+        description: Especificações técnicas e contratos de dados para novas integrações
+
+  # ==========================================
+  # DOMÍNIOS DE PRODUTO & NEGÓCIO
+  # ==========================================
+  - id: logistics
+    name: Logística & Fulfillment
+    category: business
+    scope: Operação do Hub Logístico, despacho J&T, rastreamento e transportadoras (Touti, Amavia, Yes!).
+    systems:
+      - hub-producao
+      - hub-homologacao
+      - bling-api-v3-especificacao-pedidos
+      - hub-bling-logistics-diagnosis
+    rules: [RULE-001, RULE-002]
+    playbooks: [PB-001, PB-002, PB-003]
+    channels:
+      - type: async
+        target: dev
+        protocol: demand
+        description: Demandas de negócio, novos fretes e correções de emissão
+      - type: async
+        target: erp-integrations
+        protocol: handoff
+        description: Dependência de NF e dados fiscais do SAP para emissão
+      - type: async
+        target: ecommerce
+        protocol: demand
+        description: Pedidos vindos do e-commerce para fulfillment
+
+  - id: erp-integrations
+    name: ERP & Integrações Core
+    category: business
+    scope: SAP (ERP da holding), regras fiscais, emissão de NF, catálogo e integrações core.
+    systems:
+      - sap
+      - discovery-gaps-bling-yampi
+    rules: []
+    playbooks: []
+    channels:
+      - type: async
+        target: dev
+        protocol: demand
+        description: Implementação de novos conectores e rotinas de conciliação SAP
+      - type: async
+        target: logistics
+        protocol: adr
+        description: Decisões fiscais e de catálogo que afetam a emissão logística
+      - type: async
+        target: crm-salesforce
+        protocol: webhook-contract
+        description: Sincronização de dados de franqueado e financeiro para o CRM
+
+  - id: crm-salesforce
+    name: CRM & Salesforce
+    category: business
+    scope: Relacionamento com franqueados, Service Cloud, Sales Cloud e migração dos legados SULTS e Holmes.
+    systems:
+      - salesforce
+      - sults
+      - holmes
+    rules: []
+    playbooks: []
+    channels:
+      - type: async
+        target: dev
+        protocol: demand
+        description: Webhooks e integrações de dados para a visão 360 do franqueado
+      - type: async
+        target: erp-integrations
+        protocol: webhook-contract
+        description: Contratos de integração com SAP para dados cadastrais e financeiros
+
+  - id: platform
+    name: Plataforma & Sistemas Corporativos
+    category: business
+    scope: SRV-API, Second Brain corporativo, base de conhecimento e ferramentas compartilhadas da holding.
+    systems:
+      - srv-api
+      - second-brain-frontend-waves
+      - second-brain-frontend-360
+    rules: []
+    playbooks: []
+    channels:
+      - type: broadcast
+        target: all
+        protocol: adr
+        description: Diretrizes corporativas e ferramentas da holding
+      - type: async
+        target: dev
+        protocol: demand
+        description: Melhorias e integrações nas ferramentas de plataforma
+
+  - id: ecommerce
+    name: E-commerce & Vendas
+    category: business
+    scope: Canais de venda digital, Yampi, catálogo online, promoções e pedidos para faturamento.
+    systems:
+      - discovery-gaps-bling-yampi
+    rules: []
+    playbooks: []
+    channels:
+      - type: async
+        target: dev
+        protocol: demand
+        description: Ajustes de integração e rotas de pedidos com o e-commerce
+      - type: async
+        target: logistics
+        protocol: demand
+        description: Pedidos e regras de separação para fulfillment
+      - type: async
+        target: erp-integrations
+        protocol: demand
+        description: Sincronização de catálogo e preços com SAP
+
+protocols:
+  handoff:
+    description: Transferência formal de responsabilidade entre times
+    artifact: .superpowers/handoffs/YYYY-MM-DD-HH-mm-{slug}.md
+    template: vault/_templates/demand.md
+  demand:
+    description: Abertura de demanda/tarefa para outro time
+    artifact: vault/demands/DEMAND-NNN-slug.md
+    template: vault/_templates/demand.md
+  adr:
+    description: Decisão arquitetural que impacta outro time
+    artifact: vault/adrs/ADR-NNN-slug.md
+    template: vault/_templates/adr.md
+  webhook-contract:
+    description: Contrato de integração entre sistemas
+    artifact: vault/systems/{system}.md
+    template: vault/_templates/system.md
+  playbook:
+    description: Procedimento operacional documentado
+    artifact: vault/playbooks/PB-NNN-slug.md
+    template: vault/_templates/playbook.md
+  broadcast:
+    description: Comunicação para todos os times
+    artifact: vault/daily/YYYY-MM-DD.md
+    template: vault/_templates/daily.md

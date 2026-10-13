@@ -1,0 +1,1126 @@
+--- PÁGINA 1 ---
+LLMs na prática: como 
+escolher o modelo certo 
+para seu produto
+Artur Ferreira Padua
+
+--- PÁGINA 2 ---
+Trajetória:
+Head of AI Product Management
+Artur Ferreira Padua
+linkedin.com/in/artur-padua
+
+
+--- PÁGINA 3 ---
+02. 
+Prática
+03. 
+Uso de
+Modelos
+01. 
+Fundamentos
+05. 
+Outras 
+Modalidades
+06. 
+Wrap up
+04. 
+Geração de 
+Texto
+Conteúdo desta aula
+
+--- PÁGINA 4 ---
+02. 
+Prática
+03. 
+Uso de
+Modelos
+01. 
+Fundamentos
+05. 
+Outras 
+Modalidades
+06. 
+Wrap up
+04. 
+Geração de 
+Texto
+Conteúdo desta aula
+
+--- PÁGINA 5 ---
+Escolher um modelo é 
+escolher uma ferramenta:
+Fundamentos Não ﬁcar preso a uma 
+ferramenta ou fornecedor.
+O valor a ser gerado é mais 
+importante que a ferramenta. 
+Praticar e testar
+sempre.
+Aproveitar o boom de 
+novas ferramentas.
+
+
+--- PÁGINA 6 ---
+Kevin Weil
+CPO, OpenAI
+“
+These are the worst AI models you'll use for the rest of 
+your life. Models are only getting more smarter, faster, 
+cheaper, safer, more personalized, more helpful. The 
+future is bright.
+
+
+--- PÁGINA 7 ---
+02. 
+Prática
+03. 
+Uso de
+Modelos
+01. 
+Fundamentos
+05. 
+Outras 
+Modalidades
+06. 
+Wrap up
+04. 
+Geração de 
+Texto
+Conteúdo desta aula
+
+--- PÁGINA 8 ---
+Jornada de aplicação complexa e 
+com excesso de documentos.
+Alta taxa de abandono e custo 
+elevado na análise manual.
+Problema:
+Crédito para PMEs
+AI Agent para analisar documentos e 
+sentimento do cliente no chat.
+Solução:
+Dúvida: qual modelo utilizar?
+
+--- PÁGINA 9 ---
+02. 
+Prática
+03. 
+Uso de
+Modelos
+01. 
+Fundamentos
+05. 
+Outras 
+Modalidades
+06. 
+Wrap up
+04. 
+Geração de 
+Texto
+Conteúdo desta aula
+
+--- PÁGINA 10 ---
+Treinamento em 
+larga escala 
+para que o 
+modelo aprenda 
+padrões de 
+linguagem 
+gerais.
+Pre-Training
+Ciclo de vida de um modelo
+Ajustes de 
+comportamento 
+para alinhar 
+respostas a 
+objetivos e 
+normas.
+Post-Training
+Treinamento 
+opcional com 
+um dataset 
+especíﬁco.
+Fine-Tuning
+ Inference
+Fase de produção: 
+o modelo responde 
+a prompts em 
+tempo real, com 
+controle de 
+latência, custo e 
+monitoramento de 
+performance.
+
+
+--- PÁGINA 11 ---
+Serve para “conﬁgurar” o comportamento 
+geral do modelo.
+O que é necessário para usar um modelo?
+Texto/evento que disparou a chamada ao modelo, 
+ou seja, o que queremos que o modelo responda.
+Controlam aspectos como criatividade (temperature), 
+diversiﬁcação (top_k, top_p) e formato.
+Resultado na modalidade desejada.
+System prompt
+User prompt
+Inference Parameters
+Output
+
+--- PÁGINA 12 ---
+Caso prático - Análise de sentimento
+System prompt
+User prompt
+Inference Parameters
+Output
+
+--- PÁGINA 13 ---
+Caso prático - Análise de sentimento
+Até que foi interessante usar o chat para enviar papéis, mas 
+não sei se confio 100% nos dados que coloquei. Talvez não 
+funcione direito no fim das contas.
+Temperatura: 0.3. Restante: default.
+Negative sentiment.
+Modelo: gpt-4.1
+You are highly intelligent and accurate sentiment analyzer. 
+Analyze the sentiment of the provided text. Categorize it 
+into one of the following: {categories}. Use the provided 
+formatting instructions. Only output the JSON.
+System prompt
+User prompt
+Inference Parameters
+Output
+
+--- PÁGINA 14 ---
+Caso prático - Análise de sentimento
+Temperatura: 0.3. Restante: default.
+Neutral sentiment.
+Modelo: gpt-4.1-mini
+System prompt
+User prompt
+Inference Parameters
+Output
+Até que foi interessante usar o chat para enviar papéis, mas 
+não sei se confio 100% nos dados que coloquei. Talvez não 
+funcione direito no fim das contas.
+You are highly intelligent and accurate sentiment analyzer. 
+Analyze the sentiment of the provided text. Categorize it 
+into one of the following: {categories}. Use the provided 
+formatting instructions. Only output the JSON.
+
+--- PÁGINA 15 ---
+02. 
+Prática
+03. 
+Uso de
+Modelos
+01. 
+Fundamentos
+05. 
+Outras 
+Modalidades
+06. 
+Wrap up
+04. 
+Geração de 
+Texto
+Conteúdo desta aula
+
+--- PÁGINA 16 ---
+Seleção de LLMs para 
+soluções de alto impacto:
+Geração de texto
+Categorias de LLMs02.
+Avaliação de provedores01.
+Critérios de escolha03.
+
+
+--- PÁGINA 17 ---
+Geração de texto
+Avaliação de
+provedores
+
+
+--- PÁGINA 18 ---
+Acessibilidade 
+Open-Source
+Avaliação de Provedores – Opções
+Integração em 
+Tempo Real
+Pesquisa Avançada 
+e Ecossistema
+Eﬁciência 
+Open-Source e 
+Custo-Benefício
+Inovação 
+Disruptiva e 
+Ecossistema
+Preço Acessível 
+e Performance 
+Competitiva
+Segurança e 
+Alinhamento Ético
+Outros...
+
+
+--- PÁGINA 19 ---
+Avaliação de Provedores – Critérios
+Modelos
+Você pode precisar de tipos de modelos que ﬁltram a quantidade de fornecedores:
+• Reasoning;
+• Modelo rápidos;
+• Open source;
+• Janelas de contexto.
+
+--- PÁGINA 20 ---
+Avaliação de Provedores – Critérios
+Custo
+Modelos
+Provider Model Context Input/1k Tokens Output/1k Tokens
+OpenAI GPT-4.1 1M $0.002 $0.008
+OpenAI GPT-4.1 mini 1M $0.0004 $0.0016
+xAI Grok 3 1M $0.003 $0.015
+xAI Grok 2 200k $0.002 $0.01
+Meta Llama 4 Maverick 1M $0.00019 $0.00049
+Meta Llama 4 Scout 10M $0.00017 $0.00017
+Google Gemini 2.5 Pro 200k $0.00125 $0.01
+Google Gemini 2.0 Flash 200k $0.0001 $0.0007
+Anthropic Claude 3.7 Sonnet 200k $0.003 $0.015
+Exemplo
+
+
+--- PÁGINA 21 ---
+Modelos
+Avaliação de Provedores – Critérios
+Custo
+Segurança
+Considerar fatores importantes de privacidade dos dados e segurança como:
+• Coleta e ingestão (veriﬁcar se exclui informações pessoais identiﬁcáveis);
+• Armazenamento e retenção;
+• Uso para treinamento futuro;
+• Computação conﬁável.
+
+--- PÁGINA 22 ---
+Segurança
+Modelos
+Avaliação de Provedores – Critérios
+Custo
+Rate Limit
+Fonte: https:/ /ai.google.dev/gemini-api/docs/rate-limits?hl=pt-br
+Os limites de taxa são avaliados em quatro dimensões: solicitações por minuto 
+(RPM), por dia (RPD), tokens por minuto (TPM) e por dia (TPD). Ultrapassar 
+qualquer um desses limites gera erro, mesmo que os outros não sejam excedidos. 
+Esses limites são aplicados por projeto, variam conforme o modelo usado e podem 
+incluir métricas especíﬁcas, como imagens por minuto (IPM) para modelos que geram 
+imagens. Modelos experimentais ou em pré-visualização têm limites mais restritos.
+
+--- PÁGINA 23 ---
+Segurança
+Modelos
+Avaliação de Provedores – Critérios
+Custo
+Rate Limit
+Fonte: https:/ /ai.google.dev/gemini-api/docs/rate-limits?hl=pt-br
+Nível Requisitos
+Grátis Usuários em países qualiﬁcados
+Nível 1 Conta de faturamento vinculada ao projeto
+Nível 2 Gasto total: US$ 250 + pelo menos 30 dias desde o pagamento
+Nível 3 Gasto total: US$ 1.000 e pelo menos 30 dias desde o pagamento
+
+--- PÁGINA 24 ---
+Segurança
+Modelos
+Avaliação de Provedores – Critérios
+Custo
+Rate Limit
+Fonte: https:/ /ai.google.dev/gemini-api/docs/rate-limits?hl=pt-br
+Modelo RPM TPM RPD
+Pré-lançamento do Gemini 2.5 Flash 05-20 10 250.000 500
+Gemini 2.5 Flash Preview TTS 3 10.000 15
+Pré-lançamento do Gemini 2.5 Pro 06-05 _ _ _
+Conﬁra mais no site
+
+--- PÁGINA 25 ---
+Modelos
+Avaliação de Provedores – Critérios
+Segurança
+Rate Limit
+Inovação
+Custo
+Novos modelos Produtos Adicionais
+Ex: Assistants e Vector Stores no 
+Playground da OpenAI
+
+--- PÁGINA 26 ---
+Na prática, os mais decisivos.
+Avaliação de Provedores – Critérios
+Segurança
+Custo
+Modelos
+Rate Limit
+Inovação
+
+
+--- PÁGINA 27 ---
+Avaliação de Provedores – Exemplo Saúde Bliss
+Fornecedores prioritários
+Explorar novos lançamentos e assistants 
++ vector stores pra criar PoCs de RAG 
+muito rápido.
+Modelos de baixo custo e baixa 
+preocupação com limit rate dado que 
+consumimos outros produtos na GCP e 
+GSuite.
+Menor uso, mas importante para pdf 
+reading e output parsing complexos.
+
+
+--- PÁGINA 28 ---
+Geração de texto
+Categorias
+de LLMs
+
+
+--- PÁGINA 29 ---
+Categorias 
+de Modelos
+Tiers de 
+performance
+• Alta Performance: oferecem raciocínio 
+complexo com maior latência e custo (ex.: 
+GPT o1.
+• Intermediários equilibram raciocínio 
+moderado e custo computacional (ex.: 
+Claude Sonnet 3.5.
+• Baixa Latência: priorizam throughput e 
+rapidez, com raciocínio mais simples e 
+menos custosos (ex.: Gemini 1.5 flash).
+Proprietários
+x
+Open Source
+• Proprietários: disponíveis via API externa 
+e fechada (ex.: GPT4o).
+• Open source: pesos liberados, código 
+público e podem ser hospedados em 
+infraestrutura própria ou de terceiros (ex.: 
+Llama 4 Maverick).
+
+--- PÁGINA 30 ---
+Categorias 
+de Modelos
+Capabilities 
+especíﬁcos
+• Web search: consultar a internet em 
+tempo real (ex.: modo web search da 
+Anthropic).
+• Tool Use: identifica em tempo de 
+inferência, quando deve invocar uma 
+função externa podendo chamar APIs 
+para buscar contexto ou performar uma 
+ação.
+• Multimodalidade: processa múltiplas 
+modalidades (texto, imagem, áudio, 
+vídeo) e, em alguns casos, gera saídas 
+multimodais.
+• Output parsing: retornar resultados em 
+formatos predefinidos.
+
+--- PÁGINA 31 ---
+Exemplos práticos
+Caso de uso Categoria de modelo
+Document parsing Intermediário/Alta perofrmance + Structured output
+Análise de sentimento Baixa latência
+Text2SQL Intermediário + Structured output
+Padronização de textos Baixa latência
+Deep research Intermediário ou alta performance + web search
+Resumo de reuniões longas Intermediário/Alta performance
+Orquestração de diversos AI Agents Intermediário/Alta performance
+
+--- PÁGINA 32 ---
+Geração de texto
+Critérios
+de escolha
+
+
+--- PÁGINA 33 ---
+Deﬁnir claramente o objetivo.
+Deﬁnir a “arquitetura” dos agents 
+antes de deﬁnir os modelos. 
+Ex.: recepção de proposta Saúde Bliss
+Alinhar tarefas ao propósito do 
+LLM (evitar usar para processos 
+determinísticos).
+Prompt engineering faz toda a 
+diferença.
+Pontos externos ao LLM que 
+devem ser considerados:
+Fatores Importantes
+Ser simples de testar e trocar.
+
+
+--- PÁGINA 34 ---
+Desempenho 
+e Precisão
+Capacidade do modelo obedecer ao prompt e chegar ao output 
+esperado. Modelos de reasoning normalmente são os melhores 
+nesse critério.
+Critérios de escolha do LLM
+Fonte: https://artificialanalysis.ai/models 
+
+
+--- PÁGINA 35 ---
+Desempenho 
+e Precisão
+Custo por inferência de input (user e system message) e output 
+tokens. Importante: para modelos open source rodando localmente, 
+temos que equalizar o custo de infra.
+Custo
+Critérios de escolha do LLM
+
+--- PÁGINA 36 ---
+Desempenho 
+e Precisão
+Custo por inferência de input (user e system message) e output 
+tokens. Importante: para modelos open source rodando localmente, 
+temos que equalizar o custo de infra.
+Custo
+Fonte: https://artificialanalysis.ai/models 
+Critérios de escolha do LLM
+
+--- PÁGINA 37 ---
+Desempenho 
+e Precisão
+Custo
+Latência
+Critérios de escolha do LLM
+Tempo que o modelo leva para retornar o output. Normalmente, 
+modelos de menor latência também tem menor custo.
+
+
+--- PÁGINA 38 ---
+Desempenho 
+e Precisão
+Tempo que o modelo leva para retornar o output. Normalmente, 
+modelos de menor latência também tem menor custo.
+Custo
+Latência
+Fonte: https://artificialanalysis.ai/models 
+Critérios de escolha do LLM
+
+--- PÁGINA 39 ---
+Desempenho 
+e Precisão
+As principais diferenças se dão entre modelos opensource 
+vs. proprietários.
+Custo
+Latência
+Privacidade e 
+Segurança
+Critérios de escolha do LLM
+Modelos Open Source: 
+• Podem rodar localmente;
+• Maximizam controle sobre todos os aspectos de segurança;
+• Exigem investimento constante em infraestrutura e expertise.
+Na prática, são usados em casos de extrema sensibilidade dos 
+dados e em empresas com grande capacidade de processamento.
+Modelos Proprietários via API: 
+• Conveniência operacional;
+• Certiﬁcações pré-existentes e manutenção de segurança;
+• Impõem riscos de exposição de dados.
+Na prática, é uma forma também segura e mais simples.
+
+--- PÁGINA 40 ---
+Desempenho 
+e Precisão
+Eventualmente, precisamos de alguns capabilities que 
+somente alguns modelos têm, facilitando a tomada de decisão:
+1. Janela de contexto;
+2. Multimodalidade;
+3. Possibilidade de ﬁne-tuning;
+4. Web search;
+5. Output parsing.
+Custo
+Latência
+Privacidade e 
+Segurança
+Capabilities 
+Adicionais
+Critérios de escolha do LLM
+
+--- PÁGINA 41 ---
+Desempenho e 
+Precisão
+Custo
+Latência
+Privacidade e 
+Segurança
+Capabilities 
+Adicionais
+Fonte: https://artificialanalysis.ai/models 
+Desempenho x Custo
+Critérios de escolha do LLM
+Geralmente, desempenho, custo e latência são os critérios 
+mais relevantes e podemos compará-los.
+
+--- PÁGINA 42 ---
+Desempenho e 
+Precisão
+Custo
+Latência
+Privacidade e 
+Segurança
+Capabilities 
+Adicionais
+Desempenho x Latência
+Critérios de escolha do LLM
+Geralmente, desempenho, custo e latência são os critérios 
+mais relevantes e podemos compará-los.
+Fonte: https://artificialanalysis.ai/models 
+
+--- PÁGINA 43 ---
+Em geral, a decisão por um LLM deve ser "leve". Ou seja, podemos começar com o 
+primeiro que aparentar atingir o objetivo e ajustar conforme aprendizado.
+No entanto, dois fatores podem levar a um maior cuidado e número de testes, 
+pois o risco da falha é mais alto.
+Maturidade 
+do produto
+Criticidade da 
+resposta
+Peso da decisão
+
+--- PÁGINA 44 ---
+Jornada de aplicação complexa e 
+com excesso de documentos.
+Alta taxa de abandono e custo 
+elevado na análise manual.
+Problema:
+Crédito para PMEs
+AI Agent para analisar documentos e 
+sentimento do cliente no chat.
+Solução:
+Dúvida: qual modelo utilizar?
+
+--- PÁGINA 45 ---
+Solução Exercício Prático
+Workflow do AI Agent Exemplo): 
+
+--- PÁGINA 46 ---
+Solução 1º Caso de uso - Análise de Sentimento
+Simulador:
+
+
+--- PÁGINA 47 ---
+Solução 1º Caso de uso - Análise de documentos
+Mensagem Gabarito
+Muito obrigado pelo suporte! Consegui enviar todos os documentos em poucos minutos e a resposta veio ainda 
+hoje. Excelente atendimento! Positive
+Estou impressionado com a plataforma: tudo ﬁcou muito claro e simples de usar. Adorei a experiência! Positive
+Isso está péssimo. Tive que reenviar formular vários documentos e ninguém me explica o motivo. Perdi meu dia 
+inteiro com essa burocracia. Negative
+Não gostei nada: o chat vive dando erro, e até agora não sei se minha empresa foi aprovada ou não. Frustrante! Negative
+Até que foi interessante usar o chat para enviar papéis, mas não sei se conﬁo 100% nos dados que coloquei. 
+Talvez não funcione direito no ﬁm das contas. Negative
+Bem, foi menos complicado do que eu imaginava, embora ainda ﬁque com aquela pulga atrás da orelha sobre 
+quais documentos realmente importam. Neutral
+Legal ter o retorno automático sobre meus arquivos, mas achei estranho não ter recebido um e-mail conﬁrmando 
+todos os passos. Será que é normal? Neutral
+A interface é boa, mas ﬁquei em dúvida se devo esperar mais ou já procurar outra opção. Não foi ruim, mas 
+também não ﬁquei totalmente satisfeito. Neutral
+Parece que deu tudo certo, recebi a aprovação prévia, mas o sistema diz que falta alguma assinatura—e eu não 
+sei qual. Acho que vou ligar para o gerente, vai ser melhor. Neutral
+Gostei da rapidez inicial, porém, quando tentei acompanhar o status, apareceu um erro genérico. Fico dividido 
+entre achar que é só um bug ou que meu pedido pode ter sido perdido. Neutral
+Amostra de teste:
+
+--- PÁGINA 48 ---
+Fornecedor Modelo Tipo de 
+modelo
+Acurácia Latência 
+(seg)
+Custo 
+(por 1M Tokens)
+OpenAI gpt-4.1 Intermediário 100% 9 $2.00
+OpenAI o1 Alta performance 80% 72 $15.00
+OpenAI gpt-4.1-mini Baixa latência 80% 11 $0.40
+OpenAI gpt-4.1-nano Baixa latência 70% 7 $0.10
+Resultados:
+Solução 1º Caso de uso - Análise de documentos
+
+--- PÁGINA 49 ---
+Solução 2º Caso de uso - Análise de documentos
+Simulador:
+
+
+--- PÁGINA 50 ---
+Amostra de teste:
+Texto do documento Tipo Dono
+REPÚBLICA FEDERATIVA DO 
+BRASIL\nCADAS... CNPJ LANCHONETE SERTAO
+1\nCONTRATO SOCIAL DE 
+CONSTITUIÇÃO... Contrato Social
+AXIOS CONSUL TORIA E 
+SERVIÇOS 
+ADMINISTRATIVOS L TDA
+VÁLIDA EM TODO O TERRITÓRIO 
+NACIONA... RG JOAO DA SILVA
+Para falar com a TIM Acesse APP Meu 
+TIM... Comprovante de residência JOAO DA SILVA
+VÁLIDA EM TODO O TERRITÓRIO 
+NACIONAL... CNH JOAO DA SILVA
+Solução 2º Caso de uso - Análise de documentos
+
+--- PÁGINA 51 ---
+Resultados:
+Fornecedor Modelo Acurácia Latência 
+(seg)
+Custo 
+(por 1M Tokens)
+OpenAI o1 100% 20 $15.00
+OpenAI gpt-4.1-nano 100% 3 $0.10
+OpenAI gpt-4.1 100% 3 $2.00
+OpenAI gpt-4.1-mini 80% 4 $0.4
+Solução 2º Caso de uso - Análise de documentos
+
+--- PÁGINA 52 ---
+02. 
+Prática
+03. 
+Uso de
+Modelos
+01. 
+Fundamentos
+05. 
+Outras 
+Modalidades
+06. 
+Wrap up
+04. 
+Geração de 
+Texto
+Conteúdo desta aula
+
+--- PÁGINA 53 ---
+Seleção de modelos de 
+geração de imagem:
+Geração de imagens
+Escolhendo o modelo.02.
+Avaliação de provedores.01.
+
+--- PÁGINA 54 ---
+Geração de imagens
+Avaliação de
+provedores
+
+
+--- PÁGINA 55 ---
+Avaliação de Provedores – Opções
+
+
+--- PÁGINA 56 ---
+Modelos
+Avaliação de Provedores – Critérios
+Segurança
+Rate Limit
+Inovação
+Custo
+De forma geral, são os mesmos critérios de LLMs com 
+algumas nuances como:
+Direitos autorais Validação de conteúdo sensível
+
+--- PÁGINA 57 ---
+Geração de imagens
+Escolhendo
+o modelo
+
+
+--- PÁGINA 58 ---
+Desempenho 
+e Precisão
+Capacidade do modelo obedecer ao prompt e chegar ao output 
+esperado. Em imagens devemos nos atentar a nuances como 
+estilo e personalização.
+Fonte: https://artificialanalysis.ai/text-to-image
+Critérios de escolha do Modelo
+
+--- PÁGINA 59 ---
+Desempenho 
+e Precisão Custo por imagem gerada.
+Custo
+Fonte: https://artificialanalysis.ai/text-to-image
+Critérios de escolha do Modelo
+
+--- PÁGINA 60 ---
+Desempenho 
+e Precisão
+Tempo que o modelo leva para retornar o output. Em imagens os 
+tempos podem variar muito a depender do modelo.
+Custo
+Latência
+Fonte: https://artificialanalysis.ai/models 
+Critérios de escolha do Modelo
+
+--- PÁGINA 61 ---
+Desempenho 
+e Precisão
+Modelos Open Source vs Proprietários: mesmos tradoffs 
+explorados para LLMs.
+Custo
+Latência
+Privacidade e 
+Segurança
+Direitos Autorais e Licenciamento: modelos podem ter sido 
+treinados em imagens protegidas sem autorização, gerando riscos 
+legais; veriﬁque as licenças dos modelos e restrições de uso 
+comercial para evitar litígios.
+Segurança de Conteúdo e Moderação: sem ﬁltros robustos, 
+geradores podem criar imagens NSFW ou com vieses; integre 
+soluções de moderação (detecção de conteúdo impróprio e 
+checagem de direitos autorais) para mitigar riscos éticos e legais.
+Critérios de escolha do Modelo
+
+--- PÁGINA 62 ---
+Desempenho 
+e Precisão
+Eventualmente, precisamos de alguns capabilities que 
+somente alguns modelos têm, facilitando a tomada de decisão:
+1. Controle de estilo e personalização;
+2. Entrada multimodal com imagens de referência;
+3. Renderização de texto;
+4. Possibilidade de ﬁne-tuning;
+5. Ajuste de resolução e formato.
+Critérios de escolha do Modelo
+Custo
+Latência
+Privacidade e 
+Segurança
+Capabilities 
+Adicionais
+
+--- PÁGINA 63 ---
+Caso Prático - Saúde Bliss
+Contexto: imagens são um artefato poderoso para divulgação entre corretores de 
+plano de saúde.
+Solução: agente de AI que gera peças de marketing com imagem e textos 
+conforme prompt do time.
+Desaﬁo: renderização de texto em português.
+
+--- PÁGINA 64 ---
+Caso Prático - Saúde Bliss
+DALLE3
+
+
+--- PÁGINA 65 ---
+Caso Prático - Saúde Bliss
+Ideogram 3.0DALLE3
+
+
+--- PÁGINA 66 ---
+Caso Prático - Saúde Bliss
+Ideogram 3.0DALLE3
+ GPT-4o
+
+--- PÁGINA 67 ---
+Escolhendo o modelo.02.
+Avaliação de provedores.01.
+Seleção de modelos de 
+geração de áudio:
+Geração de Áudio
+
+--- PÁGINA 68 ---
+Geração de áudio
+Avaliação de
+provedores
+
+
+--- PÁGINA 69 ---
+Avaliação de Provedores – Opções
+
+
+--- PÁGINA 70 ---
+Modelos
+Avaliação de Provedores – Critérios
+Segurança
+Rate Limit
+Inovação
+Custo
+De forma geral, são os mesmos critérios de LLMs com algumas nuances como:
+Geração de áudios em português:
+• Idiomas dos modelos.
+• Customização avançada: Comandos SSML e/ou Clonagem (muito importante para 
+português).
+Geral:
+• Modelos de Geração Automática (Text-to-Voice por Prompt).
+• Direitos autorais das vozes disponibilizadas (Polêmica da OpenAI com Scarlett Johansson).
+
+--- PÁGINA 71 ---
+Geração de áudio
+Escolhendo
+o modelo
+
+
+--- PÁGINA 72 ---
+Desempenho 
+e Precisão
+Critérios de escolha do Modelo
+Fonte: https://artificialanalysis.ai/text-to-speech
+Qualidade da voz em termos de assertividade das palavras, 
+pronúncia, naturalidade e consistência. Importante testes 
+adicionais para áudios em português.
+
+--- PÁGINA 73 ---
+Desempenho 
+e Precisão
+Custo por caracteres no áudio.
+Critérios de escolha do Modelo
+Custo
+Fonte: https://artificialanalysis.ai/text-to-speech
+
+
+--- PÁGINA 74 ---
+Desempenho 
+e Precisão
+Quantidade de caracteres processados por segundo.
+Custo
+Latência
+Fonte: https://artificialanalysis.ai/models 
+Critérios de escolha do Modelo
+
+
+--- PÁGINA 75 ---
+Desempenho 
+e Precisão
+Modelos Open Source vs. Proprietários: mesmos tradoffs explorados 
+para LLMs.
+Direitos Autorais e Licenciamento: modelos podem ter sido 
+treinados para reproduzir voz de uma pessoa especíﬁca sem 
+autorização, gerando riscos legais.
+Critérios de escolha do Modelo
+Custo
+Latência
+Privacidade e 
+Segurança
+
+--- PÁGINA 76 ---
+Desempenho 
+e Precisão
+Eventualmente, precisamos de alguns capabilities que somente 
+alguns modelos têm, facilitando a tomada de decisão:
+1. Idioma;
+2. Comandos SSML (Speech Synthesis Markup Language): 
+Permite criar áudio mais natural e ﬂuido, ajustar pronúncias de 
+siglas, datas e números. São tags, como: <break time="500ms"/>;
+3. Formatos de Áudio e Resolução Sonora;
+4. Parâmetros de ajuste como: emoção e velocidade.
+Critérios de escolha do Modelo
+Custo
+Latência
+Privacidade e 
+Segurança
+Capabilities 
+Adicionais
+
+--- PÁGINA 77 ---
+Caso Prático - Saúde Bliss
+Contexto: Fátima é a assistente de backoffice para corretores de plano de saúde que 
+se comunica por áudio e texto no WhatsApp. Precisávamos de uma voz especíﬁca para 
+a sua persona, que fosse natural em Português BR.
+Desaﬁo: baixa disponibilidade de modelos TTS no idioma português com naturalidade.
+Solução: criação de voz a partir de prompt usando 11Labs + comando SSML. Dica: 
+gerar os comandos SSML via AI.
+
+--- PÁGINA 78 ---
+Caso Prático - Saúde Bliss
+Contexto: Fátima é a assistente de backoffice para corretores de plano de saúde que 
+se comunica por áudio e texto no WhatsApp. Precisávamos de uma voz especíﬁca para 
+a sua persona, que fosse natural em Português BR.
+Desaﬁo: baixa disponibilidade de modelos TTS no idioma português com naturalidade.
+Solução: criação de voz a partir de prompt usando 11Labs + comando SSML. Dica: 
+gerar os comandos SSML via AI.
+Eleven Labs
+(Eleven Turbo v2.5)
+
+
+--- PÁGINA 79 ---
+Caso Prático - Saúde Bliss
+Contexto: Fátima é a assistente de backoffice para corretores de plano de saúde que 
+se comunica por áudio e texto no WhatsApp. Precisávamos de uma voz especíﬁca para 
+a sua persona, que fosse natural em Português BR.
+Desaﬁo: baixa disponibilidade de modelos TTS no idioma português com naturalidade.
+Solução: criação de voz a partir de prompt usando 11Labs + comando SSML. Dica: 
+gerar os comandos SSML via AI.
+Eleven Labs
+(Eleven Turbo v2.5)
+Eleven Labs + Ajuste com Tags SSML
+(Eleven Turbo v2.5)
+
+
+--- PÁGINA 80 ---
+Avaliação de provedores.01.
+Seleção de modelos de 
+geração de vídeo:
+Geração de vídeo
+
+--- PÁGINA 81 ---
+Escolhendo o modelo.02.
+Avaliação de provedores.01.
+Seleção de modelos de 
+geração de vídeo:
+Geração de vídeo
+
+--- PÁGINA 82 ---
+Geração de vídeo
+Avaliação de
+provedores
+
+
+--- PÁGINA 83 ---
+Avaliação de Provedores – Opções
+
+
+--- PÁGINA 84 ---
+Modelos
+Avaliação de Provedores – Critérios
+Segurança
+Rate Limit
+Inovação
+Custo
+De forma geral, são os mesmos critérios para geração de imagem.
+
+--- PÁGINA 85 ---
+Geração de vídeo
+Escolhendo
+o modelo
+
+
+--- PÁGINA 86 ---
+Desempenho 
+e Precisão
+Fatores de qualidade envolvem resolução, nível de detalhe, 
+aderência ao prompt, ﬂuidez, coerência temporal e qualidade do 
+áudio.
+Critérios de escolha do Modelo
+Fonte: https://artificialanalysis.ai/text-to-video/arena?tab=leaderboard
+Text to Video
+ Image to Video
+
+--- PÁGINA 87 ---
+Desempenho 
+e Precisão
+O formato de preciﬁcação para uso de modelos de geração de vídeo 
+via API varia conforme o fornecedor.
+Critérios de escolha do Modelo
+Custo
+Fontes: Google , KlingAI 
+Provedor Modelo Custo Formato de cobrança
+Google Veo 3 (Vídeo + Áudio) US$ 0,75/segundo Por segundo gerado
+Google Veo 2 US$ 1.400 / Mês Por segundo gerado
+Kuaishou Kling 2.0
+US$ 1.400 / Mês
+Valor para 10.000 
+créditos com período 
+mínimo de 3 mesesKuaishou Kling 1.5 (Pro)
+Minimax T2V-01 Não divulgado publicamente
+
+--- PÁGINA 88 ---
+Desempenho 
+e Precisão
+Ainda não há um benchmark público e conﬁável para latência de 
+modelos de geração de vídeo via API.
+Neste caso, é importante testarmos na prática para entender o 
+que melhor se encaixa.Custo
+Latência
+Critérios de escolha do Modelo
+
+--- PÁGINA 89 ---
+Desempenho 
+e Precisão
+Modelos Open Source vs. Proprietários: mesmos tradeoffs 
+explorados para LLMs.
+Direitos Autorais e Licenciamento: mesmos tradeoffs para 
+geração de imagens e áudio.
+Critérios de escolha do Modelo
+Custo
+Latência
+Privacidade e 
+Segurança
+
+--- PÁGINA 90 ---
+Desempenho 
+e Precisão
+Eventualmente, precisamos de alguns capabilities que 
+somente alguns modelos têm, facilitando a tomada de decisão:
+1. Conﬁgurações de resolução e formato;
+2. Controle de estilo e parâmetros de cena;
+3. Possibilidade de geração de avatars;
+4. Suporte a entrada multimodais (texto, imagem ou vídeo).
+Critérios de escolha do Modelo
+Custo
+Latência
+Privacidade e 
+Segurança
+Capabilities 
+Adicionais
+
+--- PÁGINA 91 ---
+Caso Prático - UBS
+
+
+--- PÁGINA 92 ---
+Prompt: três personagens animados representando diferentes modelos (Texto, 
+Imagem e Vídeo), competindo em uma corrida divertida com obstáculos. O personagem 
+'Vídeo' (um robô com óculos escuros) ultrapassa todos de skate fazendo manobras 
+incríveis e vence.
+OpenAI - Sora Google - Veo2
+Caso Prático - Vídeo de encerramento da aula
+
+--- PÁGINA 93 ---
+02. 
+Prática
+03. 
+Uso de
+Modelos
+01. 
+Fundamentos
+05. 
+Outras 
+Modalidades
+06. 
+Wrap up
+04. 
+Geração de 
+Texto
+Conteúdo desta aula
+
+--- PÁGINA 94 ---
+Escolher um modelo é 
+escolher uma ferramenta:
+Fundamentos Não ficar preso a uma 
+ferramenta ou fornecedor.
+O valor a ser gerado é mais 
+importante que a ferramenta. 
+Praticar e testar sempre.
+Aproveitar o boom de 
+novas ferramentas.
+
+
+--- PÁGINA 95 ---
+O que esperamos proporcionar 
+com essa aula:
+Resultados esperados
+Controle de custos 
+e riscos.02.
+Geração de valor 
+rápida e real.01.
+Um novo horizonte para o 
+seu dia a dia e seu produto.03.
+
+
+--- PÁGINA 96 ---
+Andrew Ng
+Founder do Google Brain
+“
+About 100 years ago, electricity transformed every 
+major industry. AI has advanced to the point where 
+it has the power to transform every major sector in 
+coming years.
+
+
+--- PÁGINA 97 ---

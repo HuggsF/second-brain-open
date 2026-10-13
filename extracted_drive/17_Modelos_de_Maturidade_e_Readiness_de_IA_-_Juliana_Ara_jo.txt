@@ -1,0 +1,696 @@
+--- PÁGINA 1 ---
+Modelos de Maturidade 
+e Readiness de IA
+Juliana Araujo
+
+--- PÁGINA 2 ---
+Mozilla, Spotify, Kambi, Truecaller, OLX
+Product Director
+Juliana Araujo
+linkedin.com/in/jularase
+
+--- PÁGINA 3 ---
+02. 
+Frameworks na 
+prática
+03. 
+Construindo o 
+roadmap
+01. 
+Fundamentos
+05. 
+Ferramentas e 
+aplicação 
+prática
+06. 
+Wrap-up e 
+reﬂexão 
+04. 
+Exemplos reais 
+e cases
+Conteúdo desta aula 
+
+--- PÁGINA 4 ---
+Conteúdo desta aula 
+02. 
+Frameworks na 
+prática
+03. 
+Construindo o 
+roadmap
+01. 
+Fundamentos
+05. 
+Ferramentas e 
+aplicação 
+prática
+06. 
+Wrap-up e 
+reﬂexão 
+04. 
+Exemplos reais 
+e cases
+
+
+--- PÁGINA 5 ---
+Avalia o quão preparada a empresa 
+está para desenvolver e escalar IA 
+com responsabilidade.
+O que é um modelo de 
+maturidade de IA? 
+Para que serve?
+➔ Diagnosticar o estágio atual.
+➔ Planejar a evolução de forma 
+estruturada.
+➔ Priorizar recursos e reduzir 
+riscos.
+
+--- PÁGINA 6 ---
+Você já viu um squad empolgado 
+com IA, mas que acabou deixando 
+uma PoC esquecida?
+Já foi cobrado a “usar IA” sem ter 
+clareza do que isso realmente 
+resolve?
+Por que isso importa 
+para você como PM?
+👉
+ Modelos de maturidade 
+ajudam você a sair do hype e 
+liderar com estratégia — mesmo 
+sem formação técnica.
+
+--- PÁGINA 7 ---
+Trata-se de o quanto a organização está estrategicamente, 
+culturalmente e operacionalmente pronta para aplicar IA com 
+impacto, ética e escala.
+Avaliar a maturidade evita iniciativas desconectadas, PoCs 
+zumbis e desperdício de recursos.
+Maturidade em IA ≠ estar usando ChatGPT 
+ou ter um time de dados.
+
+--- PÁGINA 8 ---
+Peter Drucker
+Management consultant, 
+educator, author
+“
+You can’t improve what you don’t measure.
+
+--- PÁGINA 9 ---
+Readiness
+Quão pronta a 
+organização está para 
+iniciar com IA.
+Diferença entre Readiness e Maturidade
+Maturidade
+Quão capaz a organização 
+é de escalar, governar e 
+otimizar iniciativas de IA.
+
+
+--- PÁGINA 10 ---
+Conteúdo desta aula 
+02. 
+Frameworks na 
+prática
+03. 
+Construindo o 
+roadmap
+01. 
+Fundamentos
+05. 
+Ferramentas e 
+aplicação 
+prática
+06. 
+Wrap-up e 
+reﬂexão 
+04. 
+Exemplos reais 
+e cases
+
+
+--- PÁGINA 11 ---
+📘
+ Gartner AI Maturity Model & Roadmap Toolkit
+
+--- PÁGINA 12 ---
+Source: Oxford Insights
+Example: AI Readiness Index of Georgia State
+📘
+ AI Readiness Framework - Oxford Insights
+
+
+--- PÁGINA 13 ---
+Ferramenta Quando usar Pontos fortes
+Oxford AI Readiness 
+Index
+Avaliar países ou 
+organizações públicas
+Comparações globais, 
+foco em políticas
+Gartner Maturity Toolkit Empresas privadas em transição Abrange dimensões práticas e roadmap
+CMMI aplicado à IA Organizações com processos maduros Integração com práticas de engenharia
+Framework próprio com 6 
+dimensões
+Startups em early
+stage/scale-ups
+Simples, direto e 
+adaptável
+🟢
+ Preferência  pessoal: preﬁro usar o modelo com as 6 dimensões adaptadas de Gartner 
++ Oxford (estratégia, cultura, dados, etc.). É o que aplico com times PM + tech por ser 
+prático, colaborativo e visual.
+🛠
+ Ferramentas de Assessment:
+     quando usar cada uma
+
+--- PÁGINA 14 ---
+Estratégia
+Cultura
+Dados
+Tecnologia
+Adaptado de Gartner
+e Oxford Insights 
+Principais dimensões  
+analisadas
+Pessoas e Processos
+Governança 
+
+
+--- PÁGINA 15 ---
+Estratégia
+Cultura
+Dados
+Tecnologia
+Avalia se a organização tem uma 
+visão clara e alinhada para o uso de 
+IA, conectada aos objetivos de 
+negócio.
+Ex.: a IA está no plano estratégico?
+A liderança apoia com recursos e 
+prioridades?
+Frameworks na Prática
+Pessoas e Processos
+Governança
+
+
+--- PÁGINA 16 ---
+Mede o nível de abertura à inovação e 
+experimentação com IA. Envolve a 
+conﬁança dos colaboradores, o apoio 
+interdepartamental e a tolerância ao 
+erro.
+Ex.: as equipes sentem-se seguras 
+para testar IA e aprender com erros?
+Frameworks na Prática
+Estratégia
+Cultura
+Dados
+Tecnologia
+Pessoas e Processos
+Governança
+
+
+--- PÁGINA 17 ---
+Refere-se à qualidade, acessibilidade 
+e governança dos dados. Sem dados 
+bem estruturados, nenhum modelo 
+funciona.
+Ex.: os dados são atualizados, bem 
+documentados e acessíveis para 
+quem precisa?
+Frameworks na Prática
+Estratégia
+Cultura
+Dados
+Tecnologia
+Pessoas e Processos
+Governança
+
+
+--- PÁGINA 18 ---
+Avalia a infraestrutura tecnológica 
+necessária para IA: ferramentas, 
+pipelines, ambientes de treino e 
+teste, integração via API.
+Ex.: a empresa tem ambientes 
+seguros e escaláveis para treinar e 
+implementar modelos?
+Frameworks na Prática
+Estratégia
+Cultura
+Dados
+Tecnologia
+Pessoas e Processos
+Governança
+
+
+--- PÁGINA 19 ---
+Veriﬁca se há talentos capacitados 
+(engenheiros, PMs, cientistas de 
+dados) e se os processos da empresa 
+permitem ciclos ágeis de aprendizado 
+e entrega.
+Ex: existe onboarding de IA? Há 
+tempo reservado para experimentos?
+Frameworks na Prática
+Estratégia
+Cultura
+Dados
+Tecnologia
+Pessoas e Processos
+Governança
+
+
+--- PÁGINA 20 ---
+Existem políticas para ética, 
+explicabilidade e conformidade com 
+regulações como o AI Act e o PL nº 
+2.338/2023?
+Frameworks na Prática
+Estratégia
+Cultura
+Dados
+Tecnologia
+Pessoas e Processos
+Governança
+
+
+--- PÁGINA 21 ---
+Níveis de Maturidade
+Nível Característica-chave Exemplo
+1 - Ad-hoc PoCs isoladas, sem apoio
+Squad com experimento de 
+IA
+2 - Emergente Times de dados ativos, pouca integração Modelos sem uso real
+3 - Em desenvolvimento Iniciativas integradas ao produto IA nas jornadas do cliente
+4 - Integrado IA com governança e KPIs claros Decisões orientadas por IA
+IA embutida na estratégia Curadoria de Playlists, AI DJ no Spotify5 - Transformacional
+
+--- PÁGINA 22 ---
+Conteúdo desta aula 
+02. 
+Frameworks na 
+prática
+03. 
+Construindo o 
+roadmap
+01. 
+Fundamentos
+05. 
+Ferramentas e 
+aplicação 
+prática
+06. 
+Wrap-up e 
+reﬂexão 
+04. 
+Exemplos reais 
+e cases
+
+
+--- PÁGINA 23 ---
+Mapeie as 6 dimensões (Estratégia, Cultura, 
+Dados, Tecnologia, Pessoas & Processos, 
+Governança) usando uma escala de 1 a 5.
+Use entrevistas, diagnósticos internos, 
+questionários ou workshops com 
+stakeholders técnicos e de negócio.
+Avalie o nível atual de 
+maturidade por dimensão
+Entenda o que está impedindo a evolução em 
+cada dimensão. Pode ser falta de orçamento, 
+dados ruins, ausência de talentos ou 
+desalinhamento estratégico. Documente os 
+riscos e os impactos desses
+bloqueios no avanço da IA.
+Identiﬁque os blockers
+e gaps principais
+Estabeleça uma meta clara para cada 
+dimensão (ex.: sair do nível 2 para 4 em 
+Cultura). Para cada meta, deﬁna ações 
+concretas com responsáveis e prazos. 
+Essa visão orienta o roadmap e ajuda na 
+priorização de recursos.
+Deﬁna metas de
+evolução por nível 
+Construa uma narrativa visual e baseada 
+em evidências. Mostre onde a 
+organização está hoje, onde pode chegar 
+e quais resultados isso trará (ex.: ganho 
+de eﬁciência, diferenciação competitiva).
+Comunique para stakeholders 
+com clareza e dados
+Construindo
+o roadmap
+Construindo o roadmap
+
+
+--- PÁGINA 24 ---
+Dimensão Nívelatual Meta(Próximo Nível) Açõesprioritárias
+Estratégia 2 3 Definir visão e objetivos claros para IA
+Cultura 3 4 Incentivar squads a propor PoCs e testar IA
+Dados 1 3 Consolidar bases, iniciar pipeline de limpeza
+Governança 1 3
+Matriz de Maturidade com Roadmap de Ações
+Tecnologia 2 3 Contratar ambiente de testes + MLOps básico
+Pessoas e Processos 1 3 Contratar 1 analista de dados, PM treinado
+Criar checklist ético, 
+envolver jurídico
+
+--- PÁGINA 25 ---
+Vamos imaginar uma startup de 
+saúde digital que deseja usar IA 
+para prever picos de procura 
+por consultas. Ao aplicar o 
+modelo, o PM percebe que:
+Construindo
+o roadmap
+Estratégia – Nível 2: o CEO 
+quer IA, mas não há plano 
+estruturado.
+Dados – Nível 1: planilhas 
+soltas, dados incompletos.
+Cultura – Nível 3: time aberto 
+à inovação.
+Tecnologia – Nível 2: não há 
+ambiente para testar modelos.
+Pessoas & Processos – Nível 
+1: ninguém com skill técnico.
+Governança – Nível 1: sem 
+política de privacidade ou 
+mitigação de vieses.
+
+
+--- PÁGINA 26 ---
+Conteúdo desta aula 
+02. 
+Frameworks na 
+prática
+03. 
+Construindo o 
+roadmap
+01. 
+Fundamentos
+05. 
+Ferramentas e 
+aplicação 
+prática
+06. 
+Wrap-up e 
+reﬂexão 
+04. 
+Exemplos reais 
+e cases
+
+
+--- PÁGINA 27 ---
+🟡
+ CASE 1
+Nível 1–2: Readiness 
+Baixo (Ad hoc)
+Pequena varejista tentando prever 
+demanda com IA.
+Contexto: uma rede de lojas 
+regionais tentou usar um modelo 
+preditivo para estimar a demanda de 
+estoque com base em dados 
+históricos.
+Problemas:
+● Os dados estavam descentralizados 
+(Excel + bases de dados).
+● Não havia ninguém com experiência em 
+ciência de dados na empresa.
+● O modelo foi treinado por uma 
+consultoria, mas nunca foi usado.
+Aprendizado: sem readiness em dados, 
+pessoas e processos, a iniciativa não saiu 
+do papel. Faltou uma avaliação clara de 
+maturidade antes do investimento.
+🌱
+ Mensagem para PMs: avaliar 
+readiness evita desperdício com 
+iniciativas mal fundamentadas.
+
+--- PÁGINA 28 ---
+🟡
+ CASE 2
+Nível 2–3: Crescimento 
+Inicial (Emergente)
+Banco médio brasileiro criando time 
+de IA para detecção de fraudes.
+Contexto: o time de dados 
+estruturado desenvolveu modelos de 
+detecção de fraude que apresentaram 
+bons resultados em testes.
+Problemas:
+● Faltava apoio da liderança para colocar 
+o modelo em produção.
+● Não havia plano de manutenção ou 
+explicabilidade.
+● As áreas de compliance e jurídica foram 
+envolvidas apenas no ﬁm.
+Aprendizado: cultura, governança e 
+estratégia precisam caminhar junto com 
+a técnica.
+🧩
+Mensagem para PMs: sem 
+maturidade cultural e estratégica, a 
+IA não escala, mesmo que o modelo 
+seja bom.
+
+--- PÁGINA 29 ---
+🟡
+ CASE 3
+Nível 3–4: Escala com 
+gaps
+Empresa de delivery integrando IA 
+em decisões de roteirização.
+Contexto: um modelo de IA para 
+otimizar rotas foi implementado e 
+integrado com sucesso na operação.
+Desaﬁos:
+● O modelo melhorou os KPIs, mas os 
+entregadores reclamaram de rotas 
+absurdas (não considerava áreas 
+perigosas ou obras).
+● A equipe de produto e dados passou a 
+incluir feedback humano na iteração do 
+modelo.
+Aprendizado: a IA precisa ser governada 
+com empatia, adaptando-se ao contexto 
+real. Ter canais de feedback humano e 
+processos de monitoramento faz parte da 
+maturidade.
+🔄
+Mensagem para PMs: escalar IA 
+não é só integrar na operação — é criar 
+um ciclo contínuo de melhoria com 
+humanos no loop.
+
+--- PÁGINA 30 ---
+🟢
+ CASE 4
+Nível 4–5: Integrado e 
+Governado
+Spotify com Decibel e infraestrutura 
+modular de IA.
+Contexto: para evitar lock-in com a 
+Google Cloud e melhorar a 
+produtividade dos desenvolvedores 
+que treinavam modelos de áudio e 
+linguagem, o Spotify criou o Decibel: 
+um dataset e uma plataforma interna 
+para testes de IA.
+Impactos:
+● Aumento de eﬁciência nos ciclos de 
+experimentação.
+● Facilidade para testar provedores 
+alternativos (AWS, Azure).
+● Mais autonomia para times de produto 
+que usavam IA.
+Aprendizado: maturidade envolve 
+construir ferramentas e infraestrutura 
+que garantem escala, reprodutibilidade 
+e liberdade estratégica.
+🧠
+Mensagem para PMs: 
+infraestrutura e autonomia técnica 
+são aceleradores da maturidade.
+
+--- PÁGINA 31 ---
+󰎙
+ Case Solinftec
+IA aplicada no campo
+O que faz:
+IA e sensores para otimizar 
+operações agrícolas em larga 
+escala, desde o monitoramento de 
+plantas até a pulverização 
+autônoma.
+Link: SOLINFTEC
+Soluções desenvolvidas:
+● Alice (2018): assistente virtual para 
+controle de operações no campo.
+● Solix Ag Robotics (2021): robô 
+autônomo movido a energia solar 
+para monitoramento, erradicação de 
+ervas daninhas e controle de 
+insetos.
+
+--- PÁGINA 32 ---
+📊
+ Maturidade em IA – análise por dimensão
+Dimensão Estágio observável na Solinftec
+Estratégia IA como núcleo da solução corporativa desde cedo.
+Cultura Foco em inovação contínua, com P&D sólido.
+Dados Sensores + robôs geram dados em tempo real de alta qualidade.
+Tecnologia Infraestrutura robusta: robótica + transmissão offline em áreas remotas. Link: SOLINFTEC
+Pessoas & 
+Processos
+Equipe técnica de ~330 pessoas em P&D; processos de treinamento 
+e integração no campo.
+Governança Parcerias com centros de pesquisa (ex: Purdue, SENAI) e uso responsável de IA.
+
+--- PÁGINA 33 ---
+1. Produto completo e escalável – IA não é uma funcionalidade isolada, 
+mas está embutida no core do serviço.
+2. Infraestrutura soﬁsticada – Robôs autônomos + sensores + 
+conectividade offline.
+3. Equipe capacitada e especializada – Grande equipe de P&D e integração 
+ágil entre tecnologia e operações.
+4. Parcerias estratégicas – Fortes ligações com universidades e centros de 
+inovação (Purdue, SENAI, AGFunder etc.). Link: SOLINFTEC
+5. Reconhecimento e expansão – Premiada internacionalmente e adotada 
+por grandes players do agronegócio.
+🚀
+ Por que é um case de alta maturidade
+
+--- PÁGINA 34 ---
+🧩
+ Lições para PMs
+● Escalar IA envolve produto, 
+tecnologia e negócio de forma 
+integrada.
+● Equipar equipes técnicas robustas 
+e investir em P&D contínuo é 
+essencial.
+● Parcerias estratégicas ajudam na 
+maturidade — garantem acesso a 
+infraestrutura, P&D e validação.
+● O modelo da Solinftec mostra IA 
+robusta e madura aplicada a um 
+propósito real.
+Resultados e impacto:
+● Mais de 27 milhões de hectares 
+monitorados com IA.
+● Redução de até 30% no uso de 
+pesticidas com IA preditiva e 
+robótica.
+● Economia de R$ 50 milhões/ano 
+para clientes com uso de IA 
+operacional.
+● IA embutida no core dos produtos 
+(ex: Solix Ag Robotics e Alice Virtual 
+Assistant).
+
+--- PÁGINA 35 ---
+Conteúdo desta aula 
+02. 
+Frameworks na 
+prática
+03. 
+Construindo o 
+roadmap
+01. 
+Fundamentos
+05. 
+Ferramentas e 
+aplicação 
+prática
+06. 
+Wrap-up e 
+reﬂexão 
+04. 
+Exemplos reais 
+e cases
+
+
+--- PÁGINA 36 ---
+Pensem em um produto digital que 
+vocês conhecem (pode ser da 
+empresa atual ou um app público).
+Ferramentas e 
+aplicação prática
+👉
+ Imaginem que ele vá 
+integrar uma funcionalidade 
+de IA (ex.: recomendação, 
+automação, previsão).
+
+--- PÁGINA 37 ---
+Como PMs poderiam usar 
+esse framework para liderar 
+iniciativas de IA mesmo sem 
+background técnico.
+Reflexão
+Que tipo de recurso 
+ou alinhamento você 
+precisaria?
+02.
+O que você faria como 
+PM para chegar ao nível 
+3 em cada dimensão?
+01.
+
+
+--- PÁGINA 38 ---
+Conteúdo desta aula 
+02. 
+Frameworks na 
+prática
+03. 
+Construindo o 
+roadmap
+01. 
+Fundamentos
+05. 
+Ferramentas e 
+aplicação 
+prática
+06. 
+Wrap-up e 
+reﬂexão 
+04. 
+Exemplos reais 
+e cases
+
+
+--- PÁGINA 39 ---
+🔄
+ Lembrete importante:
+Você não precisa ser engenheiro de IA para 
+liderar com maturidade.
+Como PM, seu papel é facilitar decisões, 
+conectar áreas e garantir impacto real.
+A maturidade em IA começa com curiosidade e 
+boas perguntas.
+
+--- PÁGINA 40 ---
+AI Readiness Index (Oxford Insights)
+Gartner AI Maturity Toolkit
+CMMI Capability Maturity Model
+AI Act da UE, PL OECD AI Principles
+Leitura complementar
+Wrap-up & Reﬂexão
+
+
+--- PÁGINA 41 ---
+PMs são facilitadores da evolução em IA.
+Readiness e maturidade precisam ser 
+revisitados com frequência.
+Comece pequeno, meça avanço, e 
+evolua com responsabilidade.
+
+--- PÁGINA 42 ---

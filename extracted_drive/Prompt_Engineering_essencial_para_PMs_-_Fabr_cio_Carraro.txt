@@ -1,0 +1,265 @@
+--- PÁGINA 1 ---
+Prompt Engineering
+essencial para PMs
+Fabrício Carraro
+
+
+--- PÁGINA 2 ---
+Autor do livro "Inteligência Artificial e 
+ChatGPT: Da revolução dos modelos de IA 
+generativa à Engenharia de Prompt"
+Program Manager na Alura
+Fabrício Carraro
+linkedin.com/in/fabriciocarraro
+
+--- PÁGINA 3 ---
+Como podemos "engenhar" ou 
+"projetar" o nosso prompt da melhor 
+maneira possível para obter o resultado 
+que almejamos?
+O que é a Engenharia 
+de Prompt?
+
+--- PÁGINA 4 ---
+Princípios para a 
+criação de um 
+prompt ideal
+
+
+--- PÁGINA 5 ---
+Você precisa escrever um texto para um post de Instagram sobre Inteligência 
+Artificial. A página onde o post será publicado é majoritariamente acessada 
+por pessoas jovens, de 14 a 20 anos de idade.
+Você quer usar uma ferramenta de IA para te ajudar nessa tarefa.
+Tarefa 
+
+
+--- PÁGINA 6 ---
+Ter clareza 
+ao dar as 
+instruções. Princípios 
+para a 
+criação de 
+um prompt 
+ideal 
+Dividir tarefas 
+complexas em 
+subtarefas 
+menores.
+Definir uma 
+"persona" 
+específica.
+Gerar várias 
+respostas 
+diferentes.
+
+--- PÁGINA 7 ---
+Técnicas
+de prompting
+
+
+--- PÁGINA 8 ---
+Few-shot prompting:
+o prompt é enviado dando um 
+ou mais exemplos anteriores.
+Zero-shot prompting:
+o prompt é enviado sem dar 
+nenhum exemplo anterior.
+
+
+--- PÁGINA 9 ---
+Few-shot Chain-of-Thought
+WEI, J. et al (GoogleResearch, BrainTeam).
+Chain-of-Thought Prompting Elicits Reasoning in Large Language
+Models. arXiv, 2022.
+Disponível em: https://arxiv.org/abs/2201.11903
+
+--- PÁGINA 10 ---
+Few-shot “puro”
+• Pergunta: Roger tem 5 bolas de tênis. Ele compra mais 2 latas de bolas de 
+tênis. Cada lata contém 3 bolas de tênis. Quantas bolas de tênis ele tem agora?
+• Resposta: a resposta é 11.
+• Pergunta: Havia 23 maçãs no refeitório. Se foram usadas 20 para fazer o 
+almoço e foram compradas mais 6, quantas maçãs eles têm agora?
+• Resposta:
+Few-shot Chain-of-Thought
+
+--- PÁGINA 11 ---
+Few-shot Chain-of-Thought
+• Pergunta: Roger tem 5 bolas de tênis. Ele compra mais 2 latas de bolas de 
+tênis. Cada lata contém 3 bolas de tênis. Quantas bolas de tênis ele tem agora?
+• Resposta: Roger começou com 5 bolas. 2 latas de 3 bolas de tênis cada 
+equivalem a 6 bolas de tênis. 5 + 6 = 11. A resposta é 11.
+• Pergunta: Havia 23 maçãs no refeitório. Se foram usadas 20 para fazer o 
+almoço e foram compradas mais 6, quantas maçãs eles têm agora?
+• Resposta:
+Few-shot Chain-of-Thought
+
+--- PÁGINA 12 ---
+Ajustando parâmetros:
+Temperatura e Top-P
+
+
+--- PÁGINA 13 ---
+Quanto maior, mais criativas e variadas as respostas; quanto menor, mais 
+previsíveis e focadas.
+Temperatura
+
+
+--- PÁGINA 14 ---
+O modelo escolhe entre as palavras mais prováveis 
+cuja soma de probabilidades atinge um valor P que 
+definimos (ex.: 0.9). Isso limita o vocabulário às 
+opções mais relevantes, mantendo diversidade 
+controlada.
+Top-P
+
+--- PÁGINA 15 ---
+Vamos supor que o modelo está tentando completar a 
+frase: "O céu hoje está...", e ele gera estas possíveis 
+próximas palavras com suas probabilidades:
+• azul – 0.4
+• nublado – 0.3
+• limpo – 0.15
+• chuvoso – 0.1
+• neon – 0.03
+• radioativo – 0.02
+Top-P
+
+--- PÁGINA 16 ---
+O modelo soma as palavras em ordem de maior 
+probabilidade até chegar a 90%:
+• azul (0.4)
+• nublado (0.3) → soma = 0.7
+• limpo (0.15) → soma = 0.85
+• chuvoso (0.1) → soma = 0.95 → passou de 0.9
+Nesse caso, ele considera apenas "azul", "nublado" e 
+"limpo" como opções para amostragem. As outras 
+(mais improváveis) são descartadas.
+Top-P
+
+--- PÁGINA 17 ---
+Instruções:
+Sistema vs. Usuário
+
+
+--- PÁGINA 18 ---
+Aplicando prompts
+no discovery e no 
+delivery de produtos
+
+
+--- PÁGINA 19 ---
+Discovery
+Foco em explorar problemas 
+reais, validar dores e mapear 
+oportunidades.
+Entender usuários, mercado
+e viabilidade antes de 
+especificar soluções.
+
+--- PÁGINA 20 ---
+“Você é um Product Strategist
+responsável por um produto no 
+segmento de [seu segmento]. Liste 
+5 hipóteses de valor para [perfil de 
+usuário] que enfrenta [problema X], 
+indicando qual métrica usar para 
+validar cada hipótese. ”
+1. Geração de Hipóteses
+“Descreva a jornada de um usuário 
+[persona] ao tentar [tarefa Y], 
+incluindo pontos de dor e possíveis 
+oportunidades de melhoria. ”
+2. Mapeamento de Jornada
+Prompts no Discovery
+
+--- PÁGINA 21 ---
+“Com base nas 8 ideias abaixo, use 
+o framework RICE ( Reach, Impact, 
+Confidence, Effort) e gere uma 
+tabela ordenada de priorização. 
+Busque dados de mercado para 
+embasar a confiança. Para o 
+esforço, considere um time de 2 
+desenvolvedores Sênior.” {liste suas 
+ideias detalhadamente} 
+3. Priorização de Features
+“Crie um roteiro de perguntas para 
+uma entrevista rápida (5 –7 min) que 
+valide se [solução Z] resolve o 
+problema principal do usuário. 
+Aplique os conhecimentos de 
+entrevistas baseadas em Jobs to be
+Done e no livro The Mom Test.” {ou 
+outra fonte de sua preferência} 
+4. Validação de Conceitos
+Prompts no Discovery
+
+--- PÁGINA 22 ---
+Delivery
+Foco em entregar valor: 
+planejar, desenvolver e lançar 
+funcionalidades de forma 
+consistente.
+Inclui criação de 
+especificações, testes, 
+documentação e coleta de 
+feedback pós-lançamento.
+
+--- PÁGINA 23 ---
+“Você é um Product Owner. Gere 
+uma especificação de requisitos 
+para a funcionalidade ‘X’, incluindo 
+descrição, critérios de aceitação, 
+fluxos de erro e 
+dependências.” {explique 
+detalhadamente a funcionalidade}
+1- Especificações de Requisitos
+“Liste 5 casos de teste de aceitação 
+para a história de usuário ‘[Título]’, 
+cobrindo cenários positivos e 
+negativos.” {dê contexto da história 
+de usuário para melhorar a qualidade 
+da resposta}
+2 - Testes de Aceitação & QA
+Prompts no Delivery
+
+--- PÁGINA 24 ---
+“Escreva as notas de release para
+a versão 1.2.0, categorizando 
+melhorias de performance, 
+correções de bugs e instruções de 
+migração.” {envie a lista de PRs ou 
+algum outro contexto}
+3 - Documentação & Release 
+Notes
+“Sugira um template de pesquisa
+de satisfação com 3 perguntas 
+abertas que ajudem a entender
+a satisfação e sugestões dos 
+usuários.”
+4 - Coleta de Feedback
+Prompts no Discovery
+
+--- PÁGINA 25 ---
+Explique a situação para a IA 
+como se ela fosse um PM amigo 
+seu e pergunte:
+Prompts no Discovery 
+& Delivery "Que perguntas eu poderia te fazer para 
+você me ajudar a 
+resolver isso?"
+
+--- PÁGINA 26 ---
+Atividade Prática
+Caso de Estudo:
+escolha um produto real.
+Discovery: crie três prompts 
+para gerar hipóteses, mapear 
+jornada e priorizar features.
+Delivery: crie três prompts para 
+escrever requisitos, gerar casos de 
+teste e produzir release notes.
+
+--- PÁGINA 27 ---

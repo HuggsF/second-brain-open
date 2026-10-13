@@ -16,9 +16,6 @@ from rich.table import Table
 import httpx
 
 from config import settings
-from ingestion.sync import SyncEngine
-from core.retriever import BrainRetriever
-from core.qdrant_store import QdrantStore
 from core import tracing
 from core import evidence as evidence_core
 from core.evidence_store import EvidenceStore, EvidenceStoreError
@@ -30,11 +27,20 @@ def cli():
     """KIOSK Brands - Second Brain CLI para Desenvolvedores"""
     pass
 
+@cli.command("drive-sync")
+@click.option("--folder-id", default=None, help="ID da pasta do Google Drive (opcional)")
+def drive_sync_cmd(folder_id: str):
+    """Sincroniza documentos do Google Drive com o Vault, extrai texto e atualiza o grafo."""
+    from ingestion.drive_sync import DriveSyncEngine
+    engine = DriveSyncEngine(folder_id=folder_id)
+    engine.run()
+
 @cli.command()
 def sync():
     """Executa a sincronização diferencial do Vault com o Qdrant."""
     console.print("[bold yellow][*] Iniciando sincronização diferencial do Vault...[/bold yellow]")
     try:
+        from ingestion.sync import SyncEngine
         engine = SyncEngine()
         result = engine.sync_vault(verbose=True)
         console.print(Panel(
@@ -62,6 +68,7 @@ def ask(question: str, category: str):
     """Consulta a base de conhecimento técnica e responde com RAG local."""
     console.print(f"[bold cyan]🔍 Consultando Second Brain:[/bold cyan] '{question}'\n")
     try:
+        from core.retriever import BrainRetriever
         retriever = BrainRetriever()
         result = retriever.answer(question, category=category)
 
