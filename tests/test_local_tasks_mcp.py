@@ -33,7 +33,7 @@ class LocalTasksMcpTests(unittest.TestCase):
 
     def call(self, tool, args, *answers):
         fake = FakeClient(*answers)
-        with mock.patch.object(router, "OllamaClient", return_value=fake):
+        with mock.patch.object(router, "build_client", return_value=fake):
             async def run():
                 async with Client(self.module.mcp) as client:
                     return await client.call_tool(tool, args)

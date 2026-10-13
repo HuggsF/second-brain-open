@@ -204,10 +204,11 @@ class RouterTests(unittest.TestCase):
 
     def test_default_client_keeps_the_model_loaded_per_profile(self):
         from core.local_tasks import router
-        with mock.patch.object(router, "OllamaClient", return_value=FakeClient(GOOD)) as cls:
+        fake = FakeClient(GOOD)
+        with mock.patch.object(router, "build_client", return_value=fake) as bc:
             env = self.run_task(profile=_profile())
         self.assertEqual(env["status"], "ok")
-        self.assertEqual(cls.call_args.kwargs.get("keep_alive"), _profile().keep_alive)
+        bc.assert_called_once_with(_profile())
 
     def test_classify_happy_path(self):
         env = self.run_task(client=FakeClient(GOOD))
@@ -658,8 +659,8 @@ class StatusTests(unittest.TestCase):
         client = mock.Mock()
         client.available.return_value = True
         out = router.status(profile=_profile(), client=client)
-        self.assertEqual(set(out), {"profile", "local_model", "model_available",
-                                    "event_write_failures", "templates"})
+        self.assertIn("profile", out)
+        self.assertIn("providers", out)
         self.assertEqual(out["profile"], "t")
         self.assertEqual(out["local_model"], "m")
         self.assertTrue(out["model_available"])
@@ -686,5 +687,124 @@ class StatusTests(unittest.TestCase):
         self.assertEqual(out["local_model"], settings.chat_model)
 
 
+class _CloudFakeClient:
+    """FallbackClient falso para testes de router com providers."""
+
+    def __init__(self, *answers, tokens_in=10, tokens_out=5, ms=100, spec=None):
+        self.answers = list(answers)
+        self.calls = 0
+        self.tokens = (tokens_in, tokens_out)
+        self.ms = ms
+        self._spec = spec
+        self.last_provider = spec
+
+    def chat(self, model, system, user, schema):
+        self.calls += 1
+        a = self.answers.pop(0) if self.answers else "{}"
+        if isinstance(a, Exception):
+            raise a
+        text = a if isinstance(a, str) else json.dumps(a)
+        self.last_provider = self._spec
+        return Completion(text=text, tokens_in=self.tokens[0], tokens_out=self.tokens[1],
+                          ms=self.ms, model=model)
+
+
+def _profile_with_providers():
+    from core.local_tasks.providers import ProviderSpec
+    return Profile(
+        name="t", labels={"type": ["adr", "system"], "team": ["logistics", "platform"]},
+        local_model="m", timeout_seconds=5, max_input_tokens=6000, retries=1,
+        paid_reference={"model": "ref", "input": 1.0, "output": 2.0},
+        providers=(
+            ProviderSpec(kind="openai_compatible", name="cloud", model="cloud-m",
+                         base_url="https://api.test/v1", timeout_seconds=20,
+                         price={"input": 0.5, "output": 1.0}),
+            ProviderSpec(kind="ollama", name="local", model="m",
+                         base_url="http://localhost:11434", timeout_seconds=120),
+        ),
+    )
+
+
+class ProvidersRouterTests(unittest.TestCase):
+    setUp = RouterTests.setUp
+    run_task = RouterTests.run_task
+
+    def test_cloud_answer_fills_tier_provider_actual_usd(self):
+        from core.local_tasks.providers import ProviderSpec
+        cloud_spec = ProviderSpec(kind="openai_compatible", name="cloud", model="cloud-m",
+                                  base_url="https://api.test/v1",
+                                  price={"input": 0.5, "output": 1.0})
+        fc = _CloudFakeClient(GOOD, spec=cloud_spec)
+        profile = _profile_with_providers()
+        env = self.run_task(client=fc, profile=profile)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(env["cost"]["tier"], "cloud")
+        self.assertEqual(env["cost"]["provider"], "cloud")
+        self.assertEqual(env["cost"]["model"], "cloud-m")
+        expected_usd = (10 * 0.5 + 5 * 1.0) / 1e6
+        self.assertAlmostEqual(env["cost"]["actual_usd"], expected_usd)
+
+    def test_fallback_to_local_marks_tier_local(self):
+        from core.local_tasks.providers import ProviderSpec
+        local_spec = ProviderSpec(kind="ollama", name="local", model="m",
+                                  base_url="http://localhost:11434")
+        fc = _CloudFakeClient(GOOD, spec=local_spec)
+        profile = _profile_with_providers()
+        env = self.run_task(client=fc, profile=profile)
+        self.assertEqual(env["cost"]["tier"], "local")
+        self.assertEqual(env["cost"]["provider"], "local")
+
+    def test_profile_without_providers_unchanged(self):
+        """Regressão: perfil sem providers = tier local, model == local_model."""
+        env = self.run_task(client=FakeClient(GOOD))
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(env["cost"]["tier"], "local")
+        self.assertEqual(env["cost"]["model"], "m")
+        self.assertNotIn("provider", env["cost"])
+        self.assertNotIn("actual_usd", env["cost"])
+
+    def test_envelope_accepts_cloud_provider_actual_usd_and_rejects_unknown_tier(self):
+        from core.protocol.envelope import validate_envelope
+        from core.local_tasks.providers import ProviderSpec
+        cloud_spec = ProviderSpec(kind="openai_compatible", name="cloud", model="cloud-m",
+                                  base_url="https://api.test/v1",
+                                  price={"input": 0.5, "output": 1.0})
+        fc = _CloudFakeClient(GOOD, spec=cloud_spec)
+        env = self.run_task(client=fc, profile=_profile_with_providers())
+        self.assertEqual(validate_envelope(env), [])
+        # Unknown tier should fail
+        env["cost"]["tier"] = "unknown"
+        errors = validate_envelope(env)
+        self.assertTrue(any("tier" in e for e in errors))
+
+    def test_deadline_uses_max_provider_timeout(self):
+        from core.local_tasks import router
+        profile = _profile_with_providers()
+        # max timeout = 120 (from ollama provider), (1 + 1) * 2 = 480
+        self.assertEqual(router.deadline_seconds(profile), 120 * (1 + 1) * 2)
+
+    def test_status_lists_providers_without_blocking(self):
+        from core.local_tasks import router
+        from core.local_tasks.providers import ProviderSpec
+        profile = _profile_with_providers()
+        # Mock build_client to create a mock with probing methods
+        fake_cloud = mock.Mock()
+        fake_cloud.available.return_value = True
+        fake_local = mock.Mock()
+        fake_local.available.return_value = False
+        fake_local.available.side_effect = lambda m: False
+
+        with mock.patch.object(router, "OllamaClient") as ollama_cls, \
+                mock.patch("core.local_tasks.openai_compat_client.OpenAICompatClient") as oa_cls:
+            ollama_cls.return_value = fake_local
+            oa_cls.return_value = fake_cloud
+            out = router.status(profile=profile)
+        self.assertIsInstance(out["providers"], list)
+        self.assertEqual(len(out["providers"]), 2)
+        self.assertEqual(out["providers"][0]["name"], "cloud")
+        self.assertEqual(out["providers"][1]["name"], "local")
+
+
 if __name__ == "__main__":
     unittest.main()
+

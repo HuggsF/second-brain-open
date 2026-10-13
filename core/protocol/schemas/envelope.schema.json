@@ -105,7 +105,8 @@
             "tier": {
               "enum": [
                 "local",
-                "deterministic"
+                "deterministic",
+                "cloud"
               ]
             },
             "tokens_in": {
@@ -121,6 +122,13 @@
               "minimum": 0
             },
             "paid_equivalent_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "provider": {
+              "type": "string"
+            },
+            "actual_usd": {
               "type": "number",
               "minimum": 0
             }

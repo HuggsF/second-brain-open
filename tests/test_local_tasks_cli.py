@@ -42,7 +42,7 @@ class LocalTasksCliTests(unittest.TestCase):
         self.runner = CliRunner()
 
     def invoke(self, args, client):
-        with mock.patch.object(router, "OllamaClient", return_value=client):
+        with mock.patch.object(router, "build_client", return_value=client):
             return self.runner.invoke(cli_module.cli, args)
 
     def test_classify_prints_envelope_and_exit_0(self):
@@ -122,16 +122,22 @@ class LocalTasksCliTests(unittest.TestCase):
     def test_status_uses_router_status(self):
         fake = mock.Mock()
         fake.available.return_value = True
-        result = self.invoke(["task", "status"], fake)
+        with mock.patch.object(router, "OllamaClient", return_value=fake):
+            result = self.invoke(["task", "status"], fake)
         self.assertEqual(result.exit_code, 0, result.output)
         out = json.loads(result.output)
         self.assertEqual(out["profile"], "t")
         self.assertTrue(out["model_available"])
 
+    def _invoke_eval(self, args, fake):
+        with mock.patch.object(router, "OllamaClient", return_value=fake), \
+                mock.patch.object(router, "build_client", return_value=fake):
+            return self.runner.invoke(cli_module.cli, args)
+
     def test_task_eval_exits_1_below_min_accuracy(self):
         fake = AlwaysClient({"nope": 1})
         fake.available = lambda model: True
-        result = self.invoke(["task-eval"], fake)
+        result = self._invoke_eval(["task-eval"], fake)
         self.assertEqual(result.exit_code, 1, result.output)
         self.assertIn("classify", result.output)
         self.assertIn("Acerto geral", result.output)
@@ -139,14 +145,14 @@ class LocalTasksCliTests(unittest.TestCase):
     def test_task_eval_passes_with_min_accuracy_zero(self):
         fake = AlwaysClient({"nope": 1})
         fake.available = lambda model: True
-        result = self.invoke(["task-eval", "--min-accuracy", "0"], fake)
+        result = self._invoke_eval(["task-eval", "--min-accuracy", "0"], fake)
         self.assertEqual(result.exit_code, 0, result.output)
         self.assertIn("validate", result.output)
 
     def test_task_eval_records_events_with_its_own_sender(self):
         fake = AlwaysClient({"nope": 1})
         fake.available = lambda model: True
-        result = self.invoke(["task-eval", "--min-accuracy", "0"], fake)
+        result = self._invoke_eval(["task-eval", "--min-accuracy", "0"], fake)
         self.assertEqual(result.exit_code, 0, result.output)
         rows = [json.loads(l) for l in (self.dir / "events.jsonl").read_text(encoding="utf-8").splitlines()]
         requests = [r for r in rows if r["kind"] == "task.request"]

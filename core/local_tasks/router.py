@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import time
 
@@ -13,6 +14,7 @@ from core import events, tracing
 from core.local_tasks import tasks
 from core.local_tasks.ollama_client import LocalModelError, OllamaClient
 from core.local_tasks.profile import Profile, ProfileNotFound, load_profile
+from core.local_tasks.providers import build_client, deadline_timeout
 from core.protocol import registry
 from core.protocol.envelope import TASKS, make_envelope
 
@@ -32,10 +34,14 @@ class _Deadline:
             raise LocalModelError("timeout", "prazo total da tarefa")
         return self._client.chat(model, system, user, schema)
 
+    @property
+    def last_provider(self):
+        return getattr(self._client, "last_provider", None)
+
 
 def deadline_seconds(profile: Profile) -> float:
-    """Prazo total de um run_task: timeout_seconds x (1 + retries) x 2."""
-    return profile.timeout_seconds * (1 + max(0, profile.retries)) * 2
+    """Prazo total de um run_task: deadline_timeout x (1 + retries) x 2."""
+    return deadline_timeout(profile) * (1 + max(0, profile.retries)) * 2
 
 
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
@@ -103,11 +109,18 @@ def _price(ref: dict, key: str) -> float:
         return 0.0
 
 
-def _cost(model: str, tier: str, tin: int, tout: int, ms: int, profile: Profile | None) -> dict:
+def _cost(model: str, tier: str, tin: int, tout: int, ms: int, profile: Profile | None,
+          provider_spec=None) -> dict:
     ref = (profile.paid_reference if profile else None) or {}
     usd = (tin * _price(ref, "input") + tout * _price(ref, "output")) / 1e6
-    return {"model": model, "tier": tier, "tokens_in": tin, "tokens_out": tout, "ms": ms,
+    cost = {"model": model, "tier": tier, "tokens_in": tin, "tokens_out": tout, "ms": ms,
             "paid_equivalent_usd": usd}
+    if provider_spec is not None:
+        cost["provider"] = provider_spec.name
+        p = provider_spec.price or {}
+        actual = (tin * _price(p, "input") + tout * _price(p, "output")) / 1e6
+        cost["actual_usd"] = actual
+    return cost
 
 
 def _errors(schema: dict, obj: dict) -> list[str]:
@@ -208,7 +221,7 @@ def _execute(task, text, template, target_words, source, profile, client):
             registry.load_schema(template)
         except registry.UnknownTemplate:
             return "invalid", "unknown_template", {}, det
-    client = _Deadline(client or OllamaClient(timeout=profile.timeout_seconds, keep_alive=profile.keep_alive), deadline_seconds(profile))
+    client = _Deadline(client or build_client(profile), deadline_seconds(profile))
     if task == "summarize":
         status, reason, payload, used = _summarize(text, target_words, profile, client)
         modelled = True
@@ -223,6 +236,11 @@ def _execute(task, text, template, target_words, source, profile, client):
         modelled = True
     if not modelled or (used == (0, 0, 0) and reason == "input_too_large"):
         return status, reason, payload, det
+    # Determine provider info from client chain
+    lp = client.last_provider
+    if lp is not None:
+        tier = "cloud" if lp.kind == "openai_compatible" else "local"
+        return status, reason, payload, _cost(lp.model, tier, *used, profile, provider_spec=lp)
     return status, reason, payload, _cost(model, "local", *used, profile)
 
 
@@ -260,15 +278,47 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
     return result
 
 
+def _probe_provider(spec) -> dict:
+    """Sonda um provedor para o status. Nunca levanta."""
+    configured = True
+    available = False
+    if spec.kind == "openai_compatible" and spec.api_key_env:
+        key = os.environ.get(spec.api_key_env, "")
+        configured = bool(key)
+    try:
+        if spec.kind == "ollama":
+            c = OllamaClient(base_url=spec.base_url, timeout=STATUS_TIMEOUT_SECONDS)
+            available = c.available(spec.model)
+        else:
+            from core.local_tasks.openai_compat_client import OpenAICompatClient
+            c = OpenAICompatClient(base_url=spec.base_url, api_key_env=spec.api_key_env,
+                                   timeout=STATUS_TIMEOUT_SECONDS)
+            available = c.available()
+    except Exception:
+        available = False
+    return {
+        "name": spec.name,
+        "kind": spec.kind,
+        "model": spec.model,
+        "configured": configured,
+        "available": available,
+    }
+
+
 def status(profile: Profile | None = None, client: OllamaClient | None = None) -> dict:
     """Estado do runtime local. Nunca levanta exceção."""
     name = None
     model = settings.chat_model
     available = False
+    providers_info: list[dict] = []
     try:
         profile = profile or load_profile()
         name, model = profile.name, profile.local_model
-        available = bool((client or OllamaClient(timeout=STATUS_TIMEOUT_SECONDS)).available(model))
+        if profile.providers:
+            providers_info = [_probe_provider(spec) for spec in profile.providers]
+            available = any(p["available"] for p in providers_info)
+        else:
+            available = bool((client or OllamaClient(timeout=STATUS_TIMEOUT_SECONDS)).available(model))
     except Exception:
         available = False
     return {
@@ -277,4 +327,5 @@ def status(profile: Profile | None = None, client: OllamaClient | None = None) -
         "model_available": available,
         "event_write_failures": events.failures(),
         "templates": registry.available(),
+        "providers": providers_info,
     }
