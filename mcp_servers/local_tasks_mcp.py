@@ -44,6 +44,7 @@ def classify(text: str, ctx: Context, task_id: Optional[str] = None) -> Dict[str
 def extract(text: str, template: str, ctx: Context, task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Extrai campos de um texto para um template estruturado (ex: 'nome@1'), usando um modelo local.
+    Os templates disponíveis estão em local_tasks_status -> templates.
     Use antes de gastar um modelo pago. Devolve um envelope task.result;
     se status == 'escalate', faça a tarefa você mesmo.
     task_id: optional label that groups this call with others of the same task
@@ -83,6 +84,7 @@ def local_tasks_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Mostra o estado do runtime local: perfil, modelo, disponibilidade do modelo, falhas de gravação
     de eventos e templates disponíveis. Use para checar se vale tentar o modelo local.
+    event_write_failures conta só as falhas deste processo do servidor, desde que ele iniciou.
     task_id: optional label that groups this call with others of the same task
     """
     return router.status()

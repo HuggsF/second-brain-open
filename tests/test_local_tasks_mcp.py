@@ -71,6 +71,15 @@ class LocalTasksMcpTests(unittest.TestCase):
         lines = [json.loads(l) for l in self.events_log.read_text(encoding="utf-8").splitlines()]
         self.assertEqual({l["trace_id"] for l in lines}, {rec["trace_id"]})
 
+    def test_docstrings_point_to_status_and_per_process_counter(self):
+        async def run():
+            async with Client(self.module.mcp) as client:
+                return {t.name: t.description for t in await client.list_tools()}
+        tools = asyncio.run(run())
+        self.assertIn("local_tasks_status", tools["extract"])
+        self.assertIn("templates", tools["extract"])
+        self.assertIn("processo", tools["local_tasks_status"])
+
     def test_unknown_template_is_refused_with_invalid(self):
         env = self.call("extract", {"text": "t", "template": "nao-existe@1"})
         self.assertEqual(env["status"], "invalid")
