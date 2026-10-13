@@ -167,6 +167,15 @@ def _split_document(document: str) -> tuple[dict | None, str, str]:
 def _document_object(document: str | dict) -> tuple[dict | None, str, str]:
     if isinstance(document, dict):
         return _iso(document), "", ""
+    # Texto que começa com "{" e é um objeto JSON vale como objeto (ex.: o payload de extract).
+    stripped = document.lstrip("﻿").strip()
+    if stripped.startswith("{"):
+        try:
+            parsed = json.loads(stripped)
+        except ValueError:
+            parsed = None
+        if isinstance(parsed, dict):
+            return _iso(parsed), "", ""
     obj, body, why = _split_document(document)
     if obj is not None:
         for line in body.splitlines():

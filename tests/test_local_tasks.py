@@ -464,6 +464,32 @@ class ValidateTests(unittest.TestCase):
         self.assertIn("the source", fc.users[0])
 
 
+class ValidateJsonTests(unittest.TestCase):
+    setUp = RouterTests.setUp
+    run_task = RouterTests.run_task
+
+    def test_extract_payload_passes_to_validate_as_json_text(self):
+        adr = {"date": "2026-01-01", "status": "accepted", "title": "T", "type": "adr"}
+        extracted = self.run_task("extract", template="adr@1", client=FakeClient(adr))
+        self.assertEqual(extracted["status"], "ok")
+        text = "\ufeff  " + json.dumps(extracted["payload"]) + "\n"
+        env = self.run_task("validate", client=FakeClient(), text=text, template="adr@1")
+        self.assertEqual(env["status"], "ok", env)
+        self.assertEqual(env["payload"], {"valid": True, "missing": [], "errors": [], "review": []})
+
+    def test_json_object_with_missing_keys_is_reported(self):
+        from core.local_tasks import tasks
+        out = tasks.validate_document('{"type": "adr", "status": "x"}', "adr@1")
+        self.assertEqual(out["missing"], ["date", "title"])
+
+    def test_text_starting_with_brace_but_not_object_falls_back_to_markdown(self):
+        from core.local_tasks import tasks
+        for text in ("{not json", "[1]", '{"a": 1} trailing'):
+            out = tasks.validate_document(text, "adr@1")
+            self.assertFalse(out["valid"])
+            self.assertIn("documento sem frontmatter YAML", out["errors"])
+
+
 class StatusTests(unittest.TestCase):
     def setUp(self):
         from core import events
