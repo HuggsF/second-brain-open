@@ -64,3 +64,15 @@ test('citation callbacks are optional and document/code lengths are bounded', ()
     const blocks = markdown.parseBlocks('```txt\n' + 'a'.repeat(markdown.limits.code + 1000) + '\n```'); assert.equal(blocks[0].text.length, markdown.limits.code);
     assert.ok(markdown.parseBlocks('x'.repeat(markdown.limits.document + 1000))[0].text.length <= markdown.limits.document);
 });
+test('leading YAML frontmatter becomes a metadata block instead of a rule and loose text', () => {
+    const blocks = markdown.parseBlocks('---\r\ntype: adr\r\nstatus: Aceito\r\ntags: [hub, sap]\r\ndate: \'2026-10-12\'\r\n---\r\n# Title\r\n\r\nBody\r\n\r\n---\r\n');
+    assert.deepEqual(blocks[0], { type: 'frontmatter', entries: [['type', 'adr'], ['status', 'Aceito'], ['tags', 'hub, sap'], ['date', '2026-10-12']] });
+    assert.deepEqual(blocks.slice(1).map(b => b.type), ['heading', 'paragraph', 'rule']);
+    const el = container(); markdown.render(el, '---\ntitle: <b>x</b>\n---\nText');
+    const dl = find(el, 'dl')[0]; assert.equal(dl.className, 'markdown-meta');
+    assert.equal(find(dl, 'dt')[0].textContent, 'title'); assert.equal(find(dl, 'dd')[0].textContent, '<b>x</b>');
+});
+test('an unterminated or non-leading --- block stays ordinary markdown', () => {
+    assert.deepEqual(markdown.parseBlocks('---\ntype: adr\n').map(b => b.type), ['rule', 'paragraph']);
+    assert.equal(markdown.parseBlocks('Intro\n\n---\na: b\n---').some(b => b.type === 'frontmatter'), false);
+});

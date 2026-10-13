@@ -93,6 +93,15 @@
         const text = asText(value).slice(0, MAX_DOCUMENT).replace(/\r\n?/g, '\n');
         const lines = text.split('\n'), blocks = [], ids = new Map();
         let index = 0;
+        if (lines[0] === '---') {
+            // Leading YAML frontmatter: flat "key: value" pairs only; inline lists lose their brackets.
+            const end = lines.indexOf('---', 1);
+            if (end > 0 && end <= 40) {
+                const entries = lines.slice(1, end).map(l => l.match(/^([A-Za-z_][\w-]*):\s*(.*)$/)).filter(Boolean)
+                    .map(m => [m[1], m[2].replace(/^\[(.*)\]$/, '$1').replace(/^(['"])(.*)\1$/, '$2').trim()]);
+                blocks.push({ type: 'frontmatter', entries }); index = end + 1;
+            }
+        }
         function headingID(label) {
             const base = slug(label), count = (ids.get(base) || 0) + 1;
             ids.set(base, count); return base + (count > 1 ? '-' + count : '');
@@ -204,6 +213,10 @@
                 const list = make(block.ordered ? 'ol' : 'ul');
                 if (block.ordered && block.start !== 1) list.setAttribute('start', String(block.start));
                 for (const text of block.items) { const li = make('li'); inline(li, tokenizeInline(text)); list.appendChild(li); } fragment.appendChild(list);
+            } else if (block.type === 'frontmatter') {
+                const list = make('dl'); list.className = 'markdown-meta';
+                for (const [key, value] of block.entries) { list.appendChild(make('dt', key)); list.appendChild(make('dd', value)); }
+                fragment.appendChild(list);
             } else if (block.type === 'rule') fragment.appendChild(make('hr'));
             else { const text = make(block.type === 'quote' ? 'blockquote' : 'p'); inline(text, tokenizeInline(block.text)); fragment.appendChild(text); }
         }
