@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 from config import settings
+from core.local_tasks.providers import ProviderSpec, parse_providers
 
 PROFILES_DIR = settings.base_dir / "profiles"
 _NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
@@ -29,6 +30,7 @@ class Profile:
     paid_reference: dict
     max_blocks: int = 4
     keep_alive: str | int = "30m"  # tempo que o Ollama mantém o modelo carregado (-1 = sempre)
+    providers: tuple[ProviderSpec, ...] = ()
 
 
 def _price(name: str, key: str, value) -> float:
@@ -62,14 +64,19 @@ def load_profile(name: str | None = None, root: Path = PROFILES_DIR) -> Profile:
     labels = data.get("labels")
     if not isinstance(labels, dict) or not labels:
         raise ValueError(f"profile {name}: labels missing")
+    timeout_s = int(data.get("timeout_seconds", 30))
+    keep_alive_val = data.get("keep_alive", "30m")
+    providers = parse_providers(name, data.get("providers"),
+                                {"timeout_seconds": timeout_s, "keep_alive": keep_alive_val})
     return Profile(
         name=name,
         labels={str(k): [str(v) for v in vals] for k, vals in labels.items()},
         local_model=data.get("local_model") or settings.chat_model,
-        timeout_seconds=int(data.get("timeout_seconds", 30)),
+        timeout_seconds=timeout_s,
         max_input_tokens=int(data.get("max_input_tokens", 6000)),
         retries=int(data.get("retries", 1)),
         paid_reference=_paid_reference(name, data.get("paid_reference")),
         max_blocks=int(data.get("max_blocks", 4)),
-        keep_alive=data.get("keep_alive", "30m"),
+        keep_alive=keep_alive_val,
+        providers=providers,
     )

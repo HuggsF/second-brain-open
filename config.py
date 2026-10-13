@@ -25,6 +25,9 @@ class Settings(BaseModel):
     chat_model: str = os.getenv("OLLAMA_CHAT_MODEL", "llama3.2:3b")
     default_profile: str = "kiosk"  # perfil usado quando BRAIN_PROFILE não está definido
 
+    # Environment file (for API keys loaded via load_dotenv)
+    env_file: Path = Path(os.getenv("BRAIN_ENV_FILE", str(BASE_DIR / ".env")))
+
     # Chunking Config
     chunk_size: int = 800
     chunk_overlap: int = 150
