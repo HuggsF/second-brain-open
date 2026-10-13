@@ -31,9 +31,12 @@ class EventsTests(unittest.TestCase):
         self.assertIn("payload", env)
 
     def test_classify_keeps_labels_and_validate_keeps_valid(self):
-        c = events.redact({"task": "classify", "payload": {"labels": ["a"], "text": "x"}})
-        self.assertEqual(c["labels"], ["a"])
+        labels = {"type": "adr", "team": "ops", "tags": ["tag-do-texto-secreta"]}
+        c = events.redact({"task": "classify", "payload": {"labels": labels, "text": "x"}})
+        self.assertEqual(c["labels"], {"type": "adr", "team": "ops"})
+        self.assertNotIn("tag-do-texto-secreta", json.dumps(c))
         self.assertNotIn("payload", c)
+        self.assertNotIn("labels", events.redact({"task": "classify", "payload": {"labels": ["a"]}}))
         v = events.redact({"task": "validate", "payload": {"valid": False, "text": "x"}})
         self.assertIs(v["valid"], False)
         other = events.redact({"task": "summarize"})

@@ -19,8 +19,10 @@ def redact(env: Dict[str, Any]) -> Dict[str, Any]:
         0 if payload is None else len(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
     )
     if isinstance(payload, dict):
-        if env.get("task") == "classify" and "labels" in payload:
-            out["labels"] = payload["labels"]
+        labels = payload.get("labels")
+        if env.get("task") == "classify" and isinstance(labels, dict):
+            # Só os rótulos do vocabulário; tags vêm do texto e ficam fora do log.
+            out["labels"] = {k: labels[k] for k in ("type", "team") if k in labels}
         if env.get("task") == "validate" and "valid" in payload:
             out["valid"] = payload["valid"]
     return out
