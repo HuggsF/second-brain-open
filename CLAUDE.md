@@ -32,7 +32,7 @@ Follow every numbered item; do not paraphrase a subset.
 
 ## 3. Proof commands and local gates
 
-- Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory`
+- Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api`
 - Dashboard JS: `node --test --test-isolation=none dashboard/tests/*.test.cjs` (Node 24)
   and `.\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py`.
 - `integration.test.cjs` compares citation hashes with the current vault bytes: after any vault
