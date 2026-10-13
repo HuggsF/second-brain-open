@@ -5,6 +5,7 @@ import json
 import math
 import os
 import re
+import threading
 import time
 
 from jsonschema import Draft202012Validator
@@ -14,12 +15,12 @@ from core import events, tracing
 from core.local_tasks import tasks
 from core.local_tasks.ollama_client import LocalModelError, OllamaClient
 from core.local_tasks.profile import Profile, ProfileNotFound, load_profile
-from core.local_tasks.providers import build_client, deadline_timeout
+from core.local_tasks.providers import build_client, deadline_timeout, is_configured, probe_client
 from core.protocol import registry
 from core.protocol.envelope import TASKS, make_envelope
 
 _clock = time.monotonic
-STATUS_TIMEOUT_SECONDS = 5  # sondagem de /api/tags: curta, independente do timeout do perfil
+STATUS_TIMEOUT_SECONDS = 5  # prazo total da sonda de cada provedor, independente do timeout do perfil
 
 
 class _Deadline:
@@ -289,31 +290,35 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
     return result
 
 
-def _probe_provider(spec) -> dict:
-    """Sonda um provedor para o status. Nunca levanta."""
-    configured = True
-    available = False
-    if spec.kind == "openai_compatible" and spec.api_key_env:
-        key = os.environ.get(spec.api_key_env, "")
-        configured = bool(key)
-    try:
-        if spec.kind == "ollama":
-            c = OllamaClient(base_url=spec.base_url, timeout=STATUS_TIMEOUT_SECONDS)
-            available = c.available(spec.model)
-        else:
-            from core.local_tasks.openai_compat_client import OpenAICompatClient
-            c = OpenAICompatClient(base_url=spec.base_url, api_key_env=spec.api_key_env,
-                                   timeout=STATUS_TIMEOUT_SECONDS)
-            available = c.available()
-    except Exception:
-        available = False
-    return {
-        "name": spec.name,
-        "kind": spec.kind,
-        "model": spec.model,
-        "configured": configured,
-        "available": available,
-    }
+def _probe_providers(specs) -> list[dict]:
+    """Sonda os provedores em paralelo; cada um tem no máximo STATUS_TIMEOUT_SECONDS. Nunca levanta."""
+    timeout = STATUS_TIMEOUT_SECONDS
+    rows = [{"name": spec.name, "kind": spec.kind, "model": spec.model,
+             "configured": is_configured(spec), "available": False} for spec in specs]
+
+    def probe(row, client, spec):
+        try:
+            ok = client.available(spec.model) if spec.kind == "ollama" else client.available()
+            row["available"] = bool(ok)
+        except Exception:
+            row["available"] = False
+
+    threads = []
+    for row, spec in zip(rows, specs):
+        try:
+            client = probe_client(spec, timeout)
+        except Exception:
+            continue
+        done = {}
+        t = threading.Thread(target=lambda r=done, c=client, sp=spec: probe(r, c, sp), daemon=True)
+        t.start()
+        threads.append((row, done, t))
+    end = time.monotonic() + timeout
+    for row, done, t in threads:
+        t.join(max(0.0, end - time.monotonic()))
+        # Sonda que não terminou no prazo conta como indisponível, mesmo que responda depois.
+        row["available"] = bool(not t.is_alive() and done.get("available"))
+    return rows
 
 
 def status(profile: Profile | None = None, client: OllamaClient | None = None) -> dict:
@@ -326,8 +331,9 @@ def status(profile: Profile | None = None, client: OllamaClient | None = None) -
         profile = profile or load_profile()
         name, model = profile.name, profile.local_model
         if profile.providers:
-            providers_info = [_probe_provider(spec) for spec in profile.providers]
-            available = any(p["available"] for p in providers_info)
+            providers_info = _probe_providers(profile.providers)
+            # Um provedor só conta se tiver a chave (quando exigida) e responder.
+            available = any(p["configured"] and p["available"] for p in providers_info)
         else:
             available = bool((client or OllamaClient(timeout=STATUS_TIMEOUT_SECONDS)).available(model))
     except Exception:

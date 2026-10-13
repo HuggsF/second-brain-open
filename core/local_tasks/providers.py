@@ -94,6 +94,13 @@ def is_configured(spec: ProviderSpec) -> bool:
     return True
 
 
+def probe_client(spec: ProviderSpec, timeout: float):
+    """Cliente usado so para sondar a disponibilidade, com o timeout curto do status."""
+    if spec.kind == "ollama":
+        return OllamaClient(base_url=spec.base_url, timeout=timeout)
+    return OpenAICompatClient(base_url=spec.base_url, api_key_env=spec.api_key_env, timeout=timeout)
+
+
 class FallbackClient:
     """Tenta provedores em ordem; guarda quem respondeu em ``last_provider``.
 
