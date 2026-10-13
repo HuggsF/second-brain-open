@@ -1,4 +1,4 @@
-"""
+﻿"""
 Orchestrator — Motor de orquestração de missões multi-agente.
 
 Recebe uma missão (texto do usuário), decompõe em steps,
@@ -6,11 +6,13 @@ executa ferramentas reais via tool_executor e emite eventos
 no formato event-protocol.js do Nexus.
 """
 import asyncio
+import copy
 import uuid
 import re
 from typing import AsyncGenerator
 
 from backend.tool_executor import execute as exec_tool
+from core.domain.nexus.entities import AUTO_TOOLS  # noqa: E402 — runtime import (backend layer)
 
 
 # Mapeamento dos agentes do Nexus
@@ -28,7 +30,7 @@ MISSION_PATTERNS = [
         "keywords": ["diagnosticar", "failed", "fila", "hub", "pedido", "erro"],
         "steps": [
             {"agent": "researcher", "tool": "search_knowledge_base", "input": {"query": ""}, "bubble": "Buscando documentação relevante..."},
-            {"agent": "coder", "tool": "run_safe_command", "input": {"command": "sqlite3 /opt/hub-logistico/hub.db \"SELECT situacao, COUNT(*) as total FROM pedidos GROUP BY situacao ORDER BY total DESC LIMIT 10\""}, "bubble": "Consultando fila de pedidos no Hub..."},
+            {"agent": "coder", "tool": "get_system_architecture", "input": {"system_name": "hub-logistico-schema-regras-negocio"}, "bubble": "Lendo estados e regras do Hub..."},
             {"agent": "reviewer", "tool": "list_rules", "input": {}, "bubble": "Verificando regras de negócio..."},
         ],
     },
@@ -65,14 +67,36 @@ DEFAULT_STEPS = [
     {"agent": "researcher", "tool": "search_knowledge_base", "input": {"query": ""}, "bubble": "Pesquisando no vault..."},
 ]
 
+# AUTO_TOOLS é a fonte de verdade de tools sem aprovação: importada de core/domain/nexus/entities.py
+# run_safe_command (SSH prod) fica fora por política CLAUDE.md §2.
+# Importado acima: from core.domain.nexus.entities import AUTO_TOOLS
+
+# Limites do event-protocol.js do Nexus; acima disso o frontend descarta o evento.
+# São contados em unidades UTF-16 (String.length do JS), não em code points.
+MAX_MESSAGE_CHARS = 1000
+MAX_BUBBLE_CHARS = 240
+
+
+def _truncate_utf16(text: str, limit: int) -> str:
+    units = text.encode("utf-16-le")
+    if len(units) <= limit * 2:
+        return text
+    # errors="ignore" descarta um par substituto cortado ao meio
+    return units[:limit * 2].decode("utf-16-le", errors="ignore")
+
 
 class Orchestrator:
     """Orquestra uma missão multi-agente com ferramentas reais."""
 
-    def __init__(self):
+    def __init__(self, pace: float = 1.0):
         self.mission_id = 0
         self.sequence = 0
+        self.pace = pace  # multiplica as pausas visuais; 0 nos testes
+        self.awaiting_approval = False
         self._approval_event = asyncio.Event()
+
+    async def _pause(self, seconds: float):
+        await asyncio.sleep(seconds * self.pace)
 
     def _next_event_id(self) -> str:
         return f"evt:{self.mission_id}:{uuid.uuid4().hex[:8]}"
@@ -84,6 +108,10 @@ class Orchestrator:
     def _event(self, agent_id: str, event_type: str, **payload) -> dict:
         """Cria um evento no formato event-protocol.js."""
         import time
+        if isinstance(payload.get("message"), str):
+            payload["message"] = _truncate_utf16(payload["message"], MAX_MESSAGE_CHARS)
+        if isinstance(payload.get("bubble"), str):
+            payload["bubble"] = _truncate_utf16(payload["bubble"], MAX_BUBBLE_CHARS)
         return {
             "schemaVersion": 1,
             "id": self._next_event_id(),
@@ -107,29 +135,34 @@ class Orchestrator:
                 best_score = score
                 best_match = pattern
 
-        steps = (best_match["steps"] if best_match else DEFAULT_STEPS).copy()
+        # Cópia profunda: os steps são mutados abaixo e não podem vazar para a próxima missão.
+        steps = copy.deepcopy(best_match["steps"] if best_match else DEFAULT_STEPS)
 
         # Injetar a query do usuário nos steps que usam search
         for step in steps:
             if step["tool"] == "search_knowledge_base" and not step["input"].get("query"):
                 step["input"]["query"] = task
 
-        return [dict(s) for s in steps]
+        return steps
 
     def approve(self):
         """Chamado quando o usuário aprova a entrega."""
         self._approval_event.set()
 
-    async def run_mission(self, task: str) -> AsyncGenerator[dict, None]:
-        """Executa uma missão completa, emitindo eventos para o frontend."""
-        self.mission_id += 1
+    async def run_mission(self, task: str, mission_id: int = None) -> AsyncGenerator[dict, None]:
+        """Executa uma missão completa, emitindo eventos para o frontend.
+
+        mission_id é a geração que o frontend espera (vem do envelope do START);
+        sem ele, o orquestrador numera sozinho.
+        """
+        self.mission_id = self.mission_id + 1 if mission_id is None else mission_id
         self.sequence = 0
         self._approval_event = asyncio.Event()
 
         # ─── Maia recebe a missão ───
         yield self._event("manager", "status_change", status="thinking",
                           bubble="Nova missão recebida! Analisando...")
-        await asyncio.sleep(1.0)
+        await self._pause(1.0)
 
         # ─── Decompor missão ───
         steps = self._match_pattern(task)
@@ -137,15 +170,15 @@ class Orchestrator:
 
         yield self._event("manager", "status_change", status="working",
                           progress=10, bubble="Distribuindo responsabilidades...")
-        await asyncio.sleep(0.5)
+        await self._pause(0.5)
 
         # ─── Distribuir ───
         yield self._event("manager", "collaboration",
                           subtype="distribute",
-                          from_="manager",
+                          **{"from": "manager"},
                           to=agents_involved,
                           bubble="Equipe, temos trabalho!")
-        await asyncio.sleep(0.8)
+        await self._pause(0.8)
 
         # ─── Executar cada step ───
         total_steps = len(steps)
@@ -157,10 +190,14 @@ class Orchestrator:
             yield self._event(agent, "status_change",
                               status="working", progress=progress,
                               bubble=step.get("bubble", "Trabalhando..."))
-            await asyncio.sleep(0.5)
+            await self._pause(0.5)
 
-            # Executar ferramenta real
-            result = await exec_tool(step["tool"], **step["input"])
+            # Executar ferramenta real (só as de leitura local; o resto é recusado)
+            if step["tool"] in AUTO_TOOLS:
+                result = await exec_tool(step["tool"], **step["input"])
+            else:
+                result = {"tool": step["tool"], "refused": True,
+                          "error": f"{step['tool']} exige aprovação humana explícita; não executado pela missão."}
 
             # Formatar resultado para o balão
             summary = self._summarize_result(result)
@@ -168,7 +205,7 @@ class Orchestrator:
             yield self._event(agent, "message",
                               message=summary,
                               bubble=self._short_summary(result))
-            await asyncio.sleep(0.3)
+            await self._pause(0.3)
 
             # Agente termina
             yield self._event(agent, "status_change",
@@ -176,19 +213,21 @@ class Orchestrator:
 
             # Transferência para Eva (se não for o último)
             if i < total_steps - 1:
-                await asyncio.sleep(0.5)
+                await self._pause(0.5)
 
         # ─── Maia atualiza progresso ───
         yield self._event("manager", "status_change",
                           status="working", progress=90,
                           bubble="Consolidando resultados...")
-        await asyncio.sleep(0.8)
+        await self._pause(0.8)
 
         # ─── Eva pede aprovação ───
         yield self._event("reviewer", "status_change",
                           status="working", bubble="Revisando entregas...")
-        await asyncio.sleep(1.0)
+        await self._pause(1.0)
 
+        # Marca antes do yield: um APPROVE que chegue logo após o evento já é aceito.
+        self.awaiting_approval = True
         yield self._event("reviewer", "approval_request",
                           bubble="Resultado pronto. Aprovar?")
 
@@ -199,11 +238,18 @@ class Orchestrator:
             yield self._event("reviewer", "message",
                               message="Timeout de aprovação atingido.")
             return
+        finally:
+            self.awaiting_approval = False
 
         yield self._event("reviewer", "collaboration",
                           subtype="approval_granted",
                           bubble="Aprovação recebida!")
-        await asyncio.sleep(0.5)
+        await self._pause(0.5)
+
+        # ─── Encerrar a equipe: o reducer só conclui a missão com os 5 agentes em 'done' ───
+        for agent_id in AGENT_IDS:
+            if agent_id != "manager":
+                yield self._event(agent_id, "status_change", status="done", progress=100)
 
         # ─── Celebração ───
         yield self._event("manager", "completion",
@@ -213,6 +259,9 @@ class Orchestrator:
     def _summarize_result(self, result: dict) -> str:
         """Formata o resultado da ferramenta para exibição no painel."""
         tool = result.get("tool", "unknown")
+
+        if result.get("refused"):
+            return f"⛔ {result['error']}"
 
         if tool == "search_knowledge_base":
             sources = result.get("sources", [])
@@ -265,6 +314,8 @@ class Orchestrator:
     def _short_summary(self, result: dict) -> str:
         """Resumo curto para o balão do agente (max 60 chars)."""
         tool = result.get("tool", "")
+        if result.get("refused"):
+            return "⛔ Exige aprovação humana"
         if tool == "search_knowledge_base":
             n = len(result.get("sources", []))
             return f"Encontrei {n} fontes relevantes" if n else "Sem resultados"
