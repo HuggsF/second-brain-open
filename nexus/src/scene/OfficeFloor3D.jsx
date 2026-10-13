@@ -15,7 +15,7 @@
  *   simulation, missionId, paused, reducedMotion, bubbles, transfers, onSelect, selectedId, celebrating
  */
 
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import {
   OrthographicCamera,
@@ -25,42 +25,33 @@ import {
 } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 
-import Room3D       from './Room3D.jsx';
-import Walkway3D    from './Walkway3D.jsx';
+import Room3D         from './Room3D.jsx';
+import Walkway3D      from './Walkway3D.jsx';
 import TransferLine3D from './TransferLine3D.jsx';
 import { ROOM_CONFIGS } from './constants3d.js';
 
-// ─── Helper: extract agent status from simulation state ───────────────────────
+// ─── Helper: resolve agents array from any storage format ─────────────────────
+function getAgentsArray(simulation) {
+  if (!simulation?.agents) return [];
+  if (Array.isArray(simulation.agents)) return simulation.agents;           // real sim
+  if (simulation.agents instanceof Map) return [...simulation.agents.values()];
+  return Object.values(simulation.agents);
+}
+
+// ─── Helper: get status for a specific agentId ────────────────────────────────
 function getAgentStatus(simulation, agentId) {
-  if (!simulation?.agents) return 'idle';
-  // simulation.agents is a Map or plain object keyed by agentId
-  const agent =
-    simulation.agents instanceof Map
-      ? simulation.agents.get(agentId)
-      : simulation.agents[agentId];
+  const agents = getAgentsArray(simulation);
+  const agent  = agents.find(a => a.id === agentId);
   return agent?.status ?? 'idle';
 }
 
 // ─── Isometric scene content (inside Canvas) ─────────────────────────────────
-function OfficeScene({ simulation, bubbles, transfers, selectedId, onSelect }) {
-  // Derive active status — any non-idle agent → always render
-  const anyActive = useMemo(() => {
-    if (!simulation?.agents) return false;
-    const agents = simulation.agents instanceof Map
-      ? [...simulation.agents.values()]
-      : Object.values(simulation.agents ?? {});
-    return agents.some(a => a?.status && a.status !== 'idle');
-  }, [simulation]);
-
+function OfficeScene({ simulation, bubbles, transfers, selectedId, onSelect, overlayRef }) {
   return (
     <>
       {/* ── Ambient + hemisphere lighting ── */}
       <ambientLight intensity={0.15} />
-      <hemisphereLight
-        skyColor="#0d0b1a"
-        groundColor="#05050a"
-        intensity={0.3}
-      />
+      <hemisphereLight skyColor="#0d0b1a" groundColor="#05050a" intensity={0.3} />
 
       {/* ── Holographic floor grid ── */}
       <Grid
@@ -89,6 +80,7 @@ function OfficeScene({ simulation, bubbles, transfers, selectedId, onSelect }) {
           bubble={bubbles?.[config.agentId] ?? null}
           selectedId={selectedId}
           onSelect={onSelect}
+          overlayRef={overlayRef}
         />
       ))}
 
@@ -97,15 +89,10 @@ function OfficeScene({ simulation, bubbles, transfers, selectedId, onSelect }) {
 
       {/* ── Bloom post-processing (replaces CSS neon box-shadow) ── */}
       <EffectComposer>
-        <Bloom
-          luminanceThreshold={0.3}
-          luminanceSmoothing={0.9}
-          intensity={1.5}
-          mipmapBlur
-        />
+        <Bloom luminanceThreshold={0.3} luminanceSmoothing={0.9} intensity={1.5} mipmapBlur />
       </EffectComposer>
 
-      {/* ── Dev stats (only in development mode) ── */}
+      {/* ── Dev perf stats (DEV only) ── */}
       {import.meta.env.DEV && <Stats />}
     </>
   );
@@ -123,61 +110,66 @@ export default function OfficeFloor3D({
   selectedId,
   celebrating,
 }) {
-  // Switch frameloop to demand when all agents are idle (saves GPU)
+  // Adaptive frameloop: always when agents active, demand when idle (saves GPU)
   const anyActive = useMemo(() => {
-    if (!simulation?.agents) return false;
-    const agents = simulation.agents instanceof Map
-      ? [...simulation.agents.values()]
-      : Object.values(simulation.agents ?? {});
-    return agents.some(a => a?.status && a.status !== 'idle');
+    return getAgentsArray(simulation).some(a => a?.status && a.status !== 'idle');
   }, [simulation]);
 
   const frameloop = (anyActive && !paused && !reducedMotion) ? 'always' : 'demand';
 
+  // Stable DOM portal for drei <Html> — avoids remount race on R3F event connection
+  const [overlayEl, setOverlayEl] = useState(null);
+  const overlayRef = useMemo(() => ({ current: overlayEl }), [overlayEl]);
+
   return (
     <div
+      ref={setOverlayEl}
       className="office-floor-3d"
       style={{ width: '100%', height: '100%', background: '#05050a' }}
     >
-      <Canvas
-        frameloop={frameloop}
-        shadows
-        gl={{ antialias: true, toneMapping: 5 /* ACESFilmicToneMapping */ }}
-        style={{ background: '#05050a' }}
-      >
-        {/* True isometric camera: position [100,100,100], zoom 40 */}
-        <OrthographicCamera
-          makeDefault
-          position={[100, 100, 100]}
-          zoom={40}
-          near={-500}
-          far={1000}
-        />
-
-        {/* Pan-only controls — lock polar + azimuth for true isometric */}
-        <MapControls
-          makeDefault
-          enableRotate={false}
-          enableZoom={true}
-          zoomSpeed={0.8}
-          panSpeed={0.8}
-          screenSpacePanning={false}
-          minZoom={20}
-          maxZoom={80}
-        />
-
-        <Suspense fallback={null}>
-          <OfficeScene
-            simulation={simulation}
-            bubbles={bubbles}
-            transfers={transfers}
-            selectedId={selectedId}
-            onSelect={onSelect}
+      {/* Wait for overlayEl to be set before mounting Canvas (Html portal depends on it) */}
+      {overlayEl && (
+        <Canvas
+          frameloop={frameloop}
+          shadows
+          gl={{ antialias: true, toneMapping: 5 /* ACESFilmicToneMapping */ }}
+          style={{ position: 'absolute', inset: 0, background: '#05050a' }}
+        >
+          {/* True isometric camera: equal angles from X, Y, Z axes */}
+          <OrthographicCamera
+            makeDefault
+            position={[100, 100, 100]}
+            zoom={40}
+            near={-500}
+            far={1000}
           />
-        </Suspense>
-      </Canvas>
 
-      {/* ── Celebration overlay — kept in DOM (same as 2D) ── */}
+          {/* Pan + zoom only — no orbit (preserves isometric angle) */}
+          <MapControls
+            makeDefault
+            enableRotate={false}
+            enableZoom={true}
+            zoomSpeed={0.8}
+            panSpeed={0.8}
+            screenSpacePanning={false}
+            minZoom={20}
+            maxZoom={80}
+          />
+
+          <Suspense fallback={null}>
+            <OfficeScene
+              simulation={simulation}
+              bubbles={bubbles}
+              transfers={transfers}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              overlayRef={overlayRef}
+            />
+          </Suspense>
+        </Canvas>
+      )}
+
+      {/* Celebration overlay lives in DOM (same as 2D) */}
       {celebrating && (
         <div
           className="celebration-overlay"

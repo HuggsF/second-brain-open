@@ -17,7 +17,7 @@ export const ROOM_CONFIGS = [
     label: 'Investigação',
     position: [-5.5, 0, -3],
     size: [5, 3],
-    agentId: 'noah',
+    agentId: 'researcher',   // matches simulation.mjs AGENTS id
     colorKey: 'cyan',
   },
   {
@@ -25,7 +25,7 @@ export const ROOM_CONFIGS = [
     label: 'Desenvolvimento',
     position: [0, 0, -3],
     size: [5, 3],
-    agentId: 'theo',
+    agentId: 'coder',
     colorKey: 'green',
   },
   {
@@ -33,15 +33,15 @@ export const ROOM_CONFIGS = [
     label: 'Redação',
     position: [5.5, 0, -3],
     size: [5, 3],
-    agentId: 'lia',
+    agentId: 'writer',
     colorKey: 'violet',
   },
   {
     id: 'meeting',
-    label: 'Reunião',
+    label: 'Revisão',
     position: [-2.5, 0, 3],
     size: [5, 3],
-    agentId: 'eva',
+    agentId: 'reviewer',
     colorKey: 'amber',
   },
   {
@@ -49,7 +49,7 @@ export const ROOM_CONFIGS = [
     label: 'Orquestração',
     position: [2.5, 0, 3],
     size: [5, 3],
-    agentId: 'maia',
+    agentId: 'manager',
     colorKey: 'magenta',
   },
 ];
@@ -60,12 +60,13 @@ export const WALKWAY_SIZE = [16, 1.5];
 
 // ─── Agent definitions ──────────────────────────────────────────────────────
 export const AGENT_CONFIGS = {
-  maia: { label: 'Maia', role: 'Orquestradora', color: '#ff007f', roomId: 'orchestrator' },
-  noah: { label: 'Noah', role: 'Pesquisador',   color: '#00f0ff', roomId: 'research' },
-  theo: { label: 'Theo', role: 'Dev',           color: '#39ff14', roomId: 'development' },
-  lia:  { label: 'Lia',  role: 'Escritora',     color: '#a78bfa', roomId: 'writing' },
-  eva:  { label: 'Eva',  role: 'Revisora',      color: '#ffe600', roomId: 'meeting' },
+  manager:    { label: 'Maia', role: 'Orquestradora', color: '#ff007f', roomId: 'orchestrator' },
+  researcher: { label: 'Noah', role: 'Pesquisador',   color: '#00f0ff', roomId: 'research' },
+  coder:      { label: 'Theo', role: 'Dev',           color: '#39ff14', roomId: 'development' },
+  writer:     { label: 'Lia',  role: 'Escritora',     color: '#a78bfa', roomId: 'writing' },
+  reviewer:   { label: 'Eva',  role: 'Revisora',      color: '#ffe600', roomId: 'meeting' },
 };
+
 
 // ─── Status → emissive color mapping ───────────────────────────────────────
 export const STATUS_EMISSIVE = {
