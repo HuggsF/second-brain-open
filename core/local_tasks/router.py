@@ -69,9 +69,20 @@ def _safe_task_name(task) -> str:
     return name if re.match(r"^[a-z][a-z0-9_-]{0,31}$", name) else "unknown"
 
 
+def _price(ref: dict, key: str) -> float:
+    """Preço por milhão de tokens; ausente ou inválido vale 0.0 (load_profile já recusa inválidos)."""
+    value = ref.get(key)
+    if isinstance(value, bool):
+        return 0.0
+    try:
+        return float(value) if value is not None else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def _cost(model: str, tier: str, tin: int, tout: int, ms: int, profile: Profile | None) -> dict:
     ref = (profile.paid_reference if profile else None) or {}
-    usd = (tin * float(ref.get("input", 0)) + tout * float(ref.get("output", 0))) / 1e6
+    usd = (tin * _price(ref, "input") + tout * _price(ref, "output")) / 1e6
     return {"model": model, "tier": tier, "tokens_in": tin, "tokens_out": tout, "ms": ms,
             "paid_equivalent_usd": usd}
 

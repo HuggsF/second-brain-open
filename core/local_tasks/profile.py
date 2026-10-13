@@ -29,6 +29,26 @@ class Profile:
     paid_reference: dict
 
 
+def _price(name: str, key: str, value) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        raise ValueError(f"profile {name}: paid_reference.{key} is not a number")
+    try:
+        return float(value)
+    except ValueError:
+        raise ValueError(f"profile {name}: paid_reference.{key} is not a number") from None
+
+
+def _paid_reference(name: str, raw) -> dict:
+    if raw is None or raw == {}:
+        return {"model": "none", "input": 0.0, "output": 0.0}
+    if not isinstance(raw, dict):
+        raise ValueError(f"profile {name}: paid_reference must be a mapping")
+    ref = dict(raw)
+    for key in ("input", "output"):
+        ref[key] = _price(name, key, ref.get(key, 0.0))
+    return ref
+
+
 def load_profile(name: str | None = None, root: Path = PROFILES_DIR) -> Profile:
     name = name if name is not None else os.environ.get("BRAIN_PROFILE") or settings.default_profile
     if not isinstance(name, str) or not _NAME_RE.match(name):
@@ -47,6 +67,5 @@ def load_profile(name: str | None = None, root: Path = PROFILES_DIR) -> Profile:
         timeout_seconds=int(data.get("timeout_seconds", 30)),
         max_input_tokens=int(data.get("max_input_tokens", 6000)),
         retries=int(data.get("retries", 1)),
-        paid_reference=dict(data.get("paid_reference")
-                            or {"model": "none", "input": 0.0, "output": 0.0}),
+        paid_reference=_paid_reference(name, data.get("paid_reference")),
     )

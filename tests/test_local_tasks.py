@@ -518,6 +518,44 @@ class EmptySourceTests(unittest.TestCase):
         self.assertTrue(env["payload"]["valid"])
 
 
+class PaidReferenceTests(unittest.TestCase):
+    setUp = RouterTests.setUp
+    run_task = RouterTests.run_task
+
+    def test_prices_are_normalised_to_float(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(Path(tmp), "p", "labels:\n  type: [a]\npaid_reference:\n  model: r\n  input: '0.5'\n")
+            p = load_profile("p", root=Path(tmp))
+        self.assertEqual(p.paid_reference, {"model": "r", "input": 0.5, "output": 0.0})
+
+    def test_null_or_non_numeric_price_is_value_error(self):
+        for price in ("null", "abc", "[1]", "true"):
+            with tempfile.TemporaryDirectory() as tmp:
+                _write(Path(tmp), "p", f"labels:\n  type: [a]\npaid_reference:\n  input: {price}\n")
+                with self.assertRaises(ValueError, msg=price):
+                    load_profile("p", root=Path(tmp))
+
+    def test_malformed_price_in_profile_object_still_returns_envelope(self):
+        from core.protocol.envelope import validate_envelope
+        p = _profile()
+        bad = Profile(name=p.name, labels=p.labels, local_model=p.local_model,
+                      timeout_seconds=p.timeout_seconds, max_input_tokens=p.max_input_tokens,
+                      retries=p.retries, paid_reference={"model": "r", "input": None, "output": "x"})
+        env = self.run_task(client=FakeClient(GOOD), profile=bad)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(env["cost"]["paid_equivalent_usd"], 0.0)
+        self.assertEqual(validate_envelope(env), [])
+
+    def test_router_turns_bad_price_profile_into_error(self):
+        from core.local_tasks import router
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(Path(tmp), "p", "labels:\n  type: [a]\npaid_reference:\n  input: null\n")
+            with mock.patch.object(router, "load_profile",
+                                   side_effect=lambda: load_profile("p", root=Path(tmp))):
+                env = router.run_task("classify", text="t", client=FakeClient(GOOD))
+        self.assertEqual((env["status"], env["reason"]), ("error", None))
+
+
 class StatusTests(unittest.TestCase):
     def setUp(self):
         from core import events
