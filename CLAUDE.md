@@ -24,9 +24,10 @@ Follow every numbered item; do not paraphrase a subset.
   Provider API keys (`OPENROUTER_API_KEY` and any `api_key_env` in profiles) follow the same rule:
   never log, print, copy or embed the value; only the environment variable name appears in code
   and profiles.
-- Task content sent to a cloud provider goes only to providers configured in the profile with a
-  no-data-retention guarantee (`extra.provider.data_collection: deny`). The core never sends
-  content to a provider outside the profile chain.
+- Task content goes only to cloud providers declared in the profile chain, and every one of them
+  carries both guarantees in `extra.provider`: `zdr: true` (zero data retention: only endpoints
+  that keep nothing) and `data_collection: deny` (no endpoint that collects or trains on the
+  content). Never add a cloud provider without both, and never call one outside the chain.
 - Never commit `.env`, `.runtime/`, `.brain_hashes.json` or backups of them (`.gitignore` covers
   them; do not weaken it).
 - Never commit the raw text of courses or books (`extracted_drive/`, `extracted_pm3/`, `downloads_*`):
@@ -48,10 +49,13 @@ Follow every numbered item; do not paraphrase a subset.
   and `.\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py`.
 - `integration.test.cjs` compares citation hashes with the current vault bytes: after any vault
   edit, run `.\.venv\Scripts\python.exe dashboard\build_graph.py` first or that test fails.
-- Local-task quality (needs Ollama already running; not part of the gate above):
-  `.\.venv\Scripts\python.exe cli.py task-eval` exits 1 when overall accuracy over
-  `tests/golden_dataset_local_tasks.json` is below `--min-accuracy` (default 0.6). It makes real
-  model calls and takes minutes (about 20 s per call on this machine).
+- Task quality (not part of the gate above): `.\.venv\Scripts\python.exe cli.py task-eval
+  [--profile NAME]` runs `tests/golden_dataset_local_tasks.json` through the profile's provider
+  chain (cloud first, Ollama as reserve) and exits 1 when overall accuracy is below
+  `--min-accuracy` (default 0.6); it prints accuracy, average latency and the tier that answered,
+  per task. It makes real, paid cloud calls when the key is set (about US$ 0.0003 per call with
+  the kiosk model) and needs Ollama already running for the reserve. From a worktree, pass the
+  key file by path only: `BRAIN_ENV_FILE=C:/KIOSK/second-brain/.env`.
 - Typecheck / lint / format: none configured. Coverage or quality gates: none.
 - CI: none. The suite above is the only gate and is run by hand.
 
