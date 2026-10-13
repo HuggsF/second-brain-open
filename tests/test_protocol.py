@@ -36,6 +36,13 @@ class TestEnvelope(unittest.TestCase):
             env = {**envelope.make_envelope("task.result", "classify", sender="cli", to="caller", payload={}, status="escalate", reason="timeout"), **bad}
             self.assertNotEqual(envelope.validate_envelope(env), [], bad)
 
+    def test_unknown_task_is_accepted_only_with_status_invalid(self):
+        env = envelope.make_envelope("task.result", "translate", sender="router", to="caller",
+                                     payload={}, status="invalid", reason="unknown_task")
+        self.assertEqual(envelope.validate_envelope(env), [])
+        req = envelope.make_envelope("task.request", "translate", sender="cli", to="local", payload={})
+        self.assertNotEqual(envelope.validate_envelope(req), [])
+
     def test_reasons_are_the_eight_codes(self):
         self.assertEqual(len(envelope.REASONS), 8)
         self.assertEqual(envelope.TASKS, ("classify", "extract", "summarize", "validate"))

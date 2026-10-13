@@ -52,4 +52,7 @@ def make_envelope(kind: str, task: str, *, sender: str, to: str, payload: dict,
 
 def validate_envelope(env: dict) -> list[str]:
     errors = sorted(_get_validator().iter_errors(env), key=lambda e: list(e.absolute_path))
-    return [f"{'/'.join(str(p) for p in e.absolute_path) or '<root>'}: {e.message}" for e in errors]
+    out = [f"{'/'.join(str(p) for p in e.absolute_path) or '<root>'}: {e.message}" for e in errors]
+    if isinstance(env, dict) and env.get("task") not in TASKS and env.get("status") != "invalid":
+        out.append("task: tarefa fora de TASKS só é aceita com status invalid")
+    return out

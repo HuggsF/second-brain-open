@@ -64,6 +64,11 @@ def parse_json(text: str) -> dict | None:
     return None
 
 
+def _safe_task_name(task) -> str:
+    name = re.sub(r"[^a-z0-9_-]", "_", str(task).lower())[:32]
+    return name if re.match(r"^[a-z][a-z0-9_-]{0,31}$", name) else "unknown"
+
+
 def _cost(model: str, tier: str, tin: int, tout: int, ms: int, profile: Profile | None) -> dict:
     ref = (profile.paid_reference if profile else None) or {}
     usd = (tin * float(ref.get("input", 0)) + tout * float(ref.get("output", 0))) / 1e6
@@ -81,7 +86,7 @@ def _execute(task, text, template, target_words, profile, client):
     model = profile.local_model
     det = _cost(model, "deterministic", 0, 0, 0, profile)
     if task not in TASKS:
-        return "invalid", "unknown_task", {"requested_task": str(task)[:64]}, det
+        return "invalid", "unknown_task", {}, det
     if task == "extract":
         try:
             registry.load_schema(template)
@@ -127,8 +132,7 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
              source: str | None = None, sender: str = "cli", trace_id: str | None = None,
              profile: Profile | None = None, client: OllamaClient | None = None) -> dict:
     trace_id = trace_id or tracing.new_trace_id()
-    # O schema do envelope só admite as quatro tarefas; tarefa desconhecida é registrada como a primeira.
-    env_task = task if task in TASKS else TASKS[0]
+    env_task = task if task in TASKS else _safe_task_name(task)
     payload = {"text": text}
     if template is not None:
         payload["template"] = template

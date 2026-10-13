@@ -257,6 +257,17 @@ class RouterTests(unittest.TestCase):
         self.assertEqual((env["status"], env["reason"]), ("invalid", "unknown_task"))
         self.assertEqual(fc.calls, 0)
 
+    def test_unknown_task_keeps_requested_name(self):
+        from core.protocol.envelope import validate_envelope
+        fc = FakeClient(GOOD)
+        env = self.run_task("translate", client=fc)
+        self.assertEqual((env["task"], env["status"], env["reason"]), ("translate", "invalid", "unknown_task"))
+        self.assertEqual(validate_envelope(env), [])
+        self.assertEqual(fc.calls, 0)
+        env = self.run_task("Weird Name!", client=fc)
+        self.assertEqual(env["task"], "weird_name_")
+        self.assertEqual(self.run_task("!!", client=fc)["task"], "unknown")
+
     def test_profile_not_found_is_invalid(self):
         from core.local_tasks import router
         fc = FakeClient(GOOD)
