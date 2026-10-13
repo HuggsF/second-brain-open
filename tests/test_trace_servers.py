@@ -14,6 +14,7 @@ SERVERS = [
     "mcp_servers.brain_mcp",
     "mcp_servers.github_gateway_mcp",
     "mcp_servers.srv_api_gateway_mcp",
+    "mcp_servers.local_tasks_mcp",
     "mcp_servers.hub_observability_mcp",
 ]
 
@@ -24,9 +25,9 @@ def tools_of(module_name):
 
 
 class TestServersAreTraced(unittest.TestCase):
-    def test_total_tool_count_is_18(self):
+    def test_total_tool_count_is_23(self):
         total = sum(len(tools_of(name)[1]) for name in SERVERS)
-        self.assertEqual(total, 18)
+        self.assertEqual(total, 23)
 
     def test_every_tool_has_optional_task_id(self):
         for name in SERVERS:

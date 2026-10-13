@@ -221,3 +221,23 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
                            status=status, reason=reason, cost=cost)
     events.record(result)
     return result
+
+
+def status(profile: Profile | None = None, client: OllamaClient | None = None) -> dict:
+    """Estado do runtime local. Nunca levanta exceção."""
+    name = None
+    model = settings.chat_model
+    available = False
+    try:
+        profile = profile or load_profile()
+        name, model = profile.name, profile.local_model
+        available = bool((client or OllamaClient(timeout=profile.timeout_seconds)).available(model))
+    except Exception:
+        available = False
+    return {
+        "profile": name,
+        "local_model": model,
+        "model_available": available,
+        "event_write_failures": events.failures(),
+        "templates": registry.available(),
+    }

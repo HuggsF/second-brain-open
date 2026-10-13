@@ -346,8 +346,6 @@ class RouterTests(unittest.TestCase):
         self.assertRegex(env["trace_id"], r"^[0-9a-f]{32}$")
 
 
-if __name__ == "__main__":
-    unittest.main()
 
 
 def _profile_small(max_tokens=10):
@@ -464,3 +462,39 @@ class ValidateTests(unittest.TestCase):
         self.assertTrue(env["payload"]["valid"])
         self.assertEqual(env["cost"]["tier"], "local")
         self.assertIn("the source", fc.users[0])
+
+
+class StatusTests(unittest.TestCase):
+    def setUp(self):
+        from core import events
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        patcher = mock.patch.object(events, "EVENTS_LOG", Path(self.tmp.name) / "events.jsonl")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_status_keys_and_values(self):
+        from core.local_tasks import router
+        client = mock.Mock()
+        client.available.return_value = True
+        out = router.status(profile=_profile(), client=client)
+        self.assertEqual(set(out), {"profile", "local_model", "model_available",
+                                    "event_write_failures", "templates"})
+        self.assertEqual(out["profile"], "t")
+        self.assertEqual(out["local_model"], "m")
+        self.assertTrue(out["model_available"])
+        self.assertIsInstance(out["event_write_failures"], int)
+        self.assertIsInstance(out["templates"], list)
+        client.available.assert_called_once_with("m")
+
+    def test_status_never_raises_when_profile_is_missing(self):
+        from core.local_tasks import router
+        with mock.patch.object(router, "load_profile", side_effect=ProfileNotFound("x")):
+            out = router.status(client=mock.Mock())
+        self.assertIsNone(out["profile"])
+        self.assertFalse(out["model_available"])
+        self.assertEqual(out["local_model"], settings.chat_model)
+
+
+if __name__ == "__main__":
+    unittest.main()
