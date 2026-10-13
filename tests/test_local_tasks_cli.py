@@ -93,6 +93,21 @@ class LocalTasksCliTests(unittest.TestCase):
         self.assertIn("fonte", fake.users[0])
         self.assertTrue(json.loads(result.output)["payload"]["valid"])
 
+    def test_non_utf8_file_or_source_is_a_clean_error(self):
+        bad = self.dir / "latin1.txt"
+        bad.write_bytes("ação".encode("latin-1"))
+        good = self.dir / "ok.txt"
+        good.write_bytes(b"---\ntype: adr\n---\n")
+        fake = FakeClient()
+        for args in (["task", "classify", "--file", str(bad)],
+                     ["task", "validate", "--template", "adr@1", "--file", str(good), "--source", str(bad)]):
+            result = self.invoke(args, fake)
+            self.assertEqual(result.exit_code, 1, result.output)
+            self.assertIsInstance(result.exception, SystemExit)
+            self.assertIn(f"arquivo não está em UTF-8: {bad}", result.output)
+            self.assertNotIn("Traceback", result.output)
+        self.assertEqual(fake.calls, 0)
+
     def test_summarize_passes_words(self):
         fake = FakeClient({"summary": "s", "key_points": ["a"]})
         result = self.invoke(["task", "summarize", "--words", "33", "texto curto"], fake)

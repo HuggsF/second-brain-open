@@ -274,7 +274,10 @@ _GOLDEN_LOCAL_TASKS = Path(__file__).parent / "tests" / "golden_dataset_local_ta
 
 
 def _read_text_file(path: str) -> str:
-    return Path(path).read_text(encoding="utf-8-sig")
+    try:
+        return Path(path).read_text(encoding="utf-8-sig")
+    except UnicodeDecodeError:
+        raise click.ClickException(f"arquivo não está em UTF-8: {path}") from None
 
 
 def _task_text(text, file_path):
