@@ -64,6 +64,48 @@ class LocalTasksMcpTests(unittest.TestCase):
         self.assertNotIn(sentinel, self.trace_log.read_text(encoding="utf-8"))
         self.assertNotIn(sentinel, self.events_log.read_text(encoding="utf-8"))
 
+    def test_provider_key_never_reaches_envelope_events_trace_or_errors(self):
+        import os
+        import httpx
+        from core.local_tasks.openai_compat_client import OpenAICompatClient
+        from core.local_tasks.ollama_client import LocalModelError
+        from core.local_tasks.providers import FallbackClient, ProviderSpec
+        key, text = "sk-SENTINELA-123", "SENTINELA-DO-TEXTO-0452"
+        seen_auth, errors = [], []
+
+        def echo(request):
+            # Provedor hostil: devolve no corpo do erro o header e o conteúdo recebidos.
+            seen_auth.append(request.headers.get("authorization"))
+            return httpx.Response(500, text=request.headers.get("authorization", "") + request.content.decode())
+
+        class Recording(OpenAICompatClient):
+            def chat(self, *a, **kw):
+                try:
+                    return super().chat(*a, **kw)
+                except LocalModelError as exc:
+                    errors.append(str(exc) + repr(exc) + exc.detail)
+                    raise
+
+        spec = ProviderSpec(kind="openai_compatible", name="nuvem", model="x/y",
+                            base_url="https://api.test/v1", api_key_env="PRIV_TEST_KEY")
+        cloud = Recording(base_url=spec.base_url, api_key_env="PRIV_TEST_KEY",
+                          transport=httpx.MockTransport(echo))
+        local = ProviderSpec(kind="ollama", name="ollama", model="m", base_url="http://x")
+        fb = FallbackClient([(spec, cloud), (local, FakeClient(GOOD))])
+        with mock.patch.dict(os.environ, {"PRIV_TEST_KEY": key}), \
+                mock.patch.object(router, "build_client", return_value=fb):
+            async def run():
+                async with Client(self.module.mcp) as client:
+                    return await client.call_tool("classify", {"text": f"abc {text}"})
+            env = asyncio.run(run()).data
+        self.assertEqual(seen_auth, [f"Bearer {key}"])  # a chave foi usada na chamada...
+        self.assertEqual(env["cost"]["tier"], "local")
+        for blob in (json.dumps(env), self.events_log.read_text(encoding="utf-8"),
+                     self.trace_log.read_text(encoding="utf-8"), *errors):
+            self.assertNotIn(key, blob)  # ...e não aparece em lugar nenhum
+            self.assertNotIn(text, blob)
+        self.assertEqual(len(errors), 1)
+
     def test_without_task_id_envelope_shares_the_call_trace_id(self):
         env = self.call("classify", {"text": "t"}, GOOD)
         (rec,) = tracing.read_recent(10, self.trace_log)
