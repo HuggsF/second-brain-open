@@ -110,21 +110,35 @@ agnóstico; vocabulário, limites e preço de referência vêm do perfil em `pro
 ([ADR-017](vault/adrs/ADR-017-tier-local-de-tarefas-e-nucleo-com-perfis.md)).
 
 - **Ferramentas MCP** (`local_tasks_mcp.py`, `task_id` opcional em todas): `classify`, `extract`, `summarize`,
-  `validate` e `local_tasks_status` (modelo disponível, falhas de gravação de eventos, templates).
+  `validate` e `local_tasks_status` (modelo disponível, falhas de gravação de eventos, templates). O trace MCP
+  guarda só o tamanho de `text`, `document` e `source` (`{"chars": n}`), nunca o conteúdo; sem `task_id`, o
+  envelope usa o `trace_id` da própria chamada MCP.
 - **Perfil:** `BRAIN_PROFILE` escolhe a pasta de `profiles/`; sem a variável vale `settings.default_profile`
   (`config.py`). `profiles/example/` é o modelo para outra instância.
-- **CLI:** `cli.py task classify|extract|summarize|validate|status` (texto por argumento ou `--file`).
+- **CLI:** `cli.py task classify|extract|summarize|validate|status` (texto por argumento ou `--file`, em UTF-8).
+  `validate` aceita também um objeto JSON (texto que começa com `{`), como o `payload` de `extract`.
 - **Envelope `brain.task/1`:** `status` é `ok`, `invalid`, `escalate` ou `error`. `escalate` devolve a tarefa ao
-  chamador (modelo local fora do ar, entrada acima do limite, saída fora do schema depois de 1 retry, template
-  desconhecido, tempo esgotado): o núcleo nunca chama fornecedor pago, então o agente refaz a tarefa. O motivo
-  fica em `reason`. `validate` é determinístico e não chama o modelo.
+  chamador (modelo local fora do ar, entrada acima do limite, saída fora do schema depois de 1 retry, tempo
+  esgotado): o núcleo nunca chama fornecedor pago, então o agente refaz a tarefa. Template ou tarefa
+  desconhecidos e perfil inexistente voltam como `invalid` (`unknown_template`, `unknown_task`,
+  `profile_not_found`). O motivo fica em `reason`. `validate` sem `source` é determinístico e não chama o
+  modelo; com `source`, chama o modelo uma vez para conferir o documento contra a fonte.
 - **Eventos:** cada chamada vira uma linha em `.runtime/events.jsonl` (rotação 5 MB × 3), com custo local e o custo
-  pago equivalente. O texto da tarefa nunca é gravado, só `payload_bytes`, rótulos e `valid`.
-- **Latência:** as chamadas MCP são síncronas e bloqueiam o agente por cerca de 20 s (modelo carregado) a 50 s
-  (primeira chamada). O perfil `kiosk` usa `timeout_seconds: 120`; o padrão do núcleo é 30.
+  pago equivalente. O texto da tarefa nunca é gravado, só `payload_bytes`, os rótulos `type` e `team` de
+  `classify` e `valid` de `validate`. O `from` é `cli`, `task-eval` ou o nome do cliente MCP.
+  `event_write_failures` (em `local_tasks_status` e `cli.py task status`) conta as falhas do processo que
+  responde, desde que ele iniciou: o do servidor MCP não soma as do CLI, e vice-versa.
+- **Latência:** as chamadas MCP são síncronas e bloqueiam o agente por cerca de 20 s (modelo carregado) a 44–51 s
+  (primeira chamada, a frio). O perfil `kiosk` usa `timeout_seconds: 120`; o padrão do núcleo é 30.
+- **Limites:** cada `run_task` tem prazo total de `timeout_seconds` × (1 + `retries`) × 2, conferido antes de cada
+  chamada ao modelo (estourado, `escalate: timeout` com o custo já gasto); `summarize` com mais de `max_blocks`
+  blocos (padrão 4) devolve `escalate: input_too_large` sem chamar o modelo. O timeout de ferramenta do cliente
+  MCP precisa ser pelo menos o `timeout_seconds` do perfil; para não cortar retries e o map-reduce de
+  `summarize`, use o prazo total.
 - **Qualidade:** `cli.py task-eval` (12 casos, `llama3.2:3b`, 2026-10-13) acertou 92% no geral: `classify` 2 de 3,
-  `extract` 3 de 3, `summarize` 3 de 3, `validate` 3 de 3, nenhum `escalate`. A amostra é pequena; refaça a
-  medida ao trocar de modelo.
+  `extract` 3 de 3, `summarize` 3 de 3, `validate` 3 de 3, nenhum `escalate`. Em `extract`, o acerto mede a
+  validade do schema (as chaves exigidas presentes), não se os valores extraídos estão certos. A amostra é
+  pequena; refaça a medida ao trocar de modelo.
 
 ## Vault
 
