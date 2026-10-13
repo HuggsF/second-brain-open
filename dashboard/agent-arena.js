@@ -989,8 +989,8 @@ function render(main, U) {
       liveBackendBar.replaceChildren(
         el('div', { style: 'display:flex;align-items:center;gap:10px;' },
           badge('🟢 BACK-END ATIVO', 'good'),
-          el('strong', {}, `Python 3.14 · PID ${data.pid}`),
-          el('span', { class: 'muted' }, `| Porta 8847 | Uptime: ${Math.round(data.uptime_seconds)}s`)
+          el('strong', {}, `${data.backend} · PID ${data.pid}`),
+          el('span', { class: 'muted' }, `| Porta ${data.server_port || location.port} | Uptime: ${Math.round(data.uptime_seconds)}s`)
         ),
         el('div', { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;' },
           el('span', { class: 'small' }, `📁 Log Físico: `, el('code', {}, `${data.audit_log_path} (${data.audit_log_size_bytes} B)`)),
@@ -1003,7 +1003,7 @@ function render(main, U) {
       liveBackendBar.replaceChildren(
         el('div', { style: 'display:flex;align-items:center;gap:8px;' },
           badge('🟡 BACK-END EM ESPERA', 'warn'),
-          el('span', { class: 'muted' }, 'Servidor local não detectado ou inicializando na porta 8847.')
+          el('span', { class: 'muted' }, 'API de workflow indisponível: rode o BFF (python -m backend.server) ou dashboard/serve.py.')
         ),
         button('Tentar Novamente', () => refreshTelemetryBar(), 'subtle')
       );
@@ -1791,8 +1791,8 @@ function render(main, U) {
       const statsHead = el('div', { style: 'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;' },
         el('div', { style: 'display:flex;align-items:center;gap:8px;' },
           badge('🟢 SERVER RUNTIME', 'good'),
-          el('strong', { style: 'font-size:14px;' }, 'Back-end Python 3.14 (ThreadingHTTPServer)'),
-          el('span', { class: 'muted' }, '· Porta 8847')
+          el('strong', { style: 'font-size:14px;' }, 'Back-end Python (ThreadingHTTPServer)'),
+          el('span', { class: 'muted' }, '· Porta ' + (location.port || '80'))
         ),
         el('div', { style: 'display:flex;align-items:center;gap:8px;' },
           button('🔄 Sincronizar Logs', async () => {
@@ -1801,7 +1801,8 @@ function render(main, U) {
           }, 'subtle'),
           button('🗑️ Limpar Auditoria em Disco', async () => {
             try {
-              await fetch('/api/workflow/reset-audit', { method: 'POST' });
+              const res = await fetch('/api/workflow/reset-audit', { method: 'POST' });
+              if (!res.ok) throw new Error('HTTP ' + res.status);
               notify('Log de auditoria físico resetado em disco.');
               await refreshTelemetryBar();
               switchTab('audit');
