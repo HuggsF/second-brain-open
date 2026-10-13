@@ -49,31 +49,31 @@ ROOMS: Dict[str, Dict] = {
     "orchestrator": {
         "label":    "Orquestração",
         "position": [2.5,  0,  3],
-        "size":     [5, 0.2, 4],
+        "size":     [5, 0.2, 3],
         "colorKey": "magenta",
     },
     "research": {
         "label":    "Investigação",
         "position": [-5.5, 0, -3],
-        "size":     [5, 0.2, 4],
+        "size":     [5, 0.2, 3],
         "colorKey": "cyan",
     },
     "development": {
         "label":    "Desenvolvimento",
         "position": [0, 0, -3],
-        "size":     [5, 0.2, 4],
+        "size":     [5, 0.2, 3],
         "colorKey": "green",
     },
     "writing": {
         "label":    "Redação",
         "position": [5.5, 0, -3],
-        "size":     [5, 0.2, 4],
+        "size":     [5, 0.2, 3],
         "colorKey": "violet",
     },
     "meeting": {
         "label":    "Revisão",
         "position": [-2.5, 0,  3],
-        "size":     [5, 0.2, 4],
+        "size":     [5, 0.2, 3],
         "colorKey": "amber",
     },
 }
