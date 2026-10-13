@@ -1,5 +1,5 @@
 ---
-id: ADR-017
+id: ADR-019
 title: "DDD Phase 1 — Fonte de verdade única para roles Nexus e schema canônico de Playbooks"
 status: active
 date: 2026-10-13

@@ -1,16 +1,16 @@
 ---
-id: ADR-018
+id: ADR-020
 title: "DDD Phase 2-3: Workflow Domain Entities e Correção de Bugs Estruturais"
 status: active
 date: 2026-10-13
 tags: [ddd, workflow, domain, tdd, sdd, bug-fix]
 ---
 
-# ADR-018: DDD Phase 2-3 — Workflow Domain Entities e Correção de Bugs Estruturais
+# ADR-020: DDD Phase 2-3 — Workflow Domain Entities e Correção de Bugs Estruturais
 
 ## Contexto
 
-Após a Phase 1 (ADR-017) estabelecer `core/domain/nexus/entities.py` como fonte de verdade para roles e ferramentas, a auditoria DDD identificou:
+Após a Phase 1 (ADR-019) estabelecer `core/domain/nexus/entities.py` como fonte de verdade para roles e ferramentas, a auditoria DDD identificou:
 
 1. **IC-3** (Phase 2): `PlaybooksApi` em `dashboard/serve.py` usava parser de frontmatter local e SQL raw, violando o princípio DDD de single source of truth via `core.evidence`.
 

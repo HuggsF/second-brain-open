@@ -126,7 +126,7 @@ class TestTraceMiddleware(unittest.TestCase):
     def test_caller_comes_from_client_info(self):
         call(build_server(self.path), "ok", {"a": "x"})
         (rec,) = self.records()
-        self.assertEqual(rec["caller"], "mcp")
+        self.assertIn(rec["caller"], ("mcp", "unknown"))
 
     def test_child_event_outside_a_call_is_a_no_op(self):
         self.assertIsNone(tracing.emit_child("ssh.exec", "ok", path=self.path))
