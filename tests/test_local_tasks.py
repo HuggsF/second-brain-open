@@ -300,8 +300,46 @@ class RouterTests(unittest.TestCase):
         self.assertEqual(lines[1]["parent_id"], lines[0]["id"])
         self.assertEqual(lines[0]["trace_id"], lines[1]["trace_id"])
         self.assertNotIn("payload", lines[0])
-        for task, kw in (("frobnicate", {}), ("classify", {"text": "a" * 24001})):
-            self.assertEqual(validate_envelope(self.run_task(task, client=FakeClient(GOOD), **kw)), [])
+
+    def test_all_return_paths_are_valid_envelopes(self):
+        from core.local_tasks import router
+        from core.protocol.envelope import validate_envelope
+        adr = {"date": "2026-01-01", "status": "accepted", "title": "T", "type": "adr"}
+        nolabel = {"labels": {"type": "zzz", "team": "qqq", "tags": []}, "confidence": 0.5}
+        cases = [
+            ("ok", None, dict(client=FakeClient(GOOD))),
+            ("ok", None, dict(task="extract", template="adr@1", client=FakeClient(adr))),
+            ("escalate", "schema_invalid", dict(client=FakeClient("x", "y"))),
+            ("escalate", "no_valid_label", dict(client=FakeClient(nolabel))),
+            ("escalate", "local_unavailable", dict(client=FakeClient(LocalModelError("local_unavailable")))),
+            ("escalate", "input_too_large", dict(client=FakeClient(GOOD), text="a" * 24001)),
+            ("error", None, dict(client=FakeClient(RuntimeError("boom")))),
+            ("invalid", "unknown_template", dict(task="extract", client=FakeClient(GOOD))),
+            ("invalid", "unknown_task", dict(task="frobnicate", client=FakeClient(GOOD))),
+        ]
+        for status, reason, kw in cases:
+            env = self.run_task(**kw)
+            self.assertEqual((env["status"], env["reason"]), (status, reason))
+            self.assertEqual(validate_envelope(env), [], (status, reason))
+        with mock.patch.object(router, "load_profile", side_effect=ProfileNotFound("x")):
+            env = router.run_task("classify", text="t", client=FakeClient(GOOD))
+        self.assertEqual((env["status"], env["reason"]), ("invalid", "profile_not_found"))
+        self.assertEqual(validate_envelope(env), [])
+
+    def test_malformed_profile_is_error_result_with_both_events(self):
+        from core.local_tasks import router
+        from core.protocol.envelope import validate_envelope
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(Path(tmp), "bad", "name: bad\n")
+            with mock.patch.object(router, "load_profile",
+                                   side_effect=lambda: load_profile("bad", root=Path(tmp))):
+                env = router.run_task("classify", text="t", client=FakeClient(GOOD))
+        self.assertEqual((env["status"], env["reason"]), ("error", None))
+        self.assertEqual(env["cost"]["tier"], "deterministic")
+        self.assertEqual(env["cost"]["model"], settings.chat_model)
+        self.assertEqual(validate_envelope(env), [])
+        lines = [json.loads(l) for l in self.log.read_text(encoding="utf-8").splitlines()]
+        self.assertEqual([l["kind"] for l in lines], ["task.request", "task.result"])
 
     def test_trace_id_generated_when_missing(self):
         env = self.run_task(client=FakeClient(GOOD))

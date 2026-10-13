@@ -150,6 +150,9 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
         except ProfileNotFound:
             status, reason, out = "invalid", "profile_not_found", {}
             cost = _cost(settings.chat_model, "deterministic", 0, 0, 0, None)
+        except Exception:
+            status, reason, out = "error", None, {}
+            cost = _cost(settings.chat_model, "deterministic", 0, 0, 0, None)
     if profile is not None:
         status, reason, out, cost = _execute(task, text, template, target_words, profile, client)
     result = make_envelope("task.result", env_task, sender="router", to="caller", payload=out,
