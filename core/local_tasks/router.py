@@ -208,7 +208,7 @@ def _execute(task, text, template, target_words, source, profile, client):
             registry.load_schema(template)
         except registry.UnknownTemplate:
             return "invalid", "unknown_template", {}, det
-    client = _Deadline(client or OllamaClient(timeout=profile.timeout_seconds), deadline_seconds(profile))
+    client = _Deadline(client or OllamaClient(timeout=profile.timeout_seconds, keep_alive=profile.keep_alive), deadline_seconds(profile))
     if task == "summarize":
         status, reason, payload, used = _summarize(text, target_words, profile, client)
         modelled = True

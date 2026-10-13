@@ -135,6 +135,9 @@ agnóstico; vocabulário, limites e preço de referência vêm do perfil em `pro
   blocos (padrão 4) devolve `escalate: input_too_large` sem chamar o modelo. O timeout de ferramenta do cliente
   MCP precisa ser pelo menos o `timeout_seconds` do perfil; para não cortar retries e o map-reduce de
   `summarize`, use o prazo total.
+- **Modelo carregado:** cada chamada pede ao Ollama para manter o modelo na memória por `keep_alive` (perfil,
+  padrão `30m`; `-1` = sempre). Sem isso o Ollama descarrega após 5 min e a primeira chamada paga o
+  carregamento (44–51 s medidos numa CPU sem GPU dedicada).
 - **Qualidade:** `cli.py task-eval` (12 casos, `llama3.2:3b`, 2026-10-13) acertou 92% no geral: `classify` 2 de 3,
   `extract` 3 de 3, `summarize` 3 de 3, `validate` 3 de 3, nenhum `escalate`. Em `extract`, o acerto mede a
   validade do schema (as chaves exigidas presentes), não se os valores extraídos estão certos. A amostra é

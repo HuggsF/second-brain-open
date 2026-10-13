@@ -31,6 +31,13 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(p.retries, 1)
         self.assertEqual(p.paid_reference, {"model": "none", "input": 0.0, "output": 0.0})
         self.assertEqual(p.labels, {"type": ["a"]})
+        self.assertEqual(p.keep_alive, "30m")
+
+    def test_keep_alive_can_be_overridden(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "warm", "name: warm\nlabels:\n  type: [a]\nkeep_alive: -1\n")
+            self.assertEqual(load_profile("warm", root=root).keep_alive, -1)
 
     def test_missing_labels_raises_value_error(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -56,6 +63,18 @@ class ProfileTests(unittest.TestCase):
 class OllamaClientTests(unittest.TestCase):
     def _client(self, handler):
         return OllamaClient(base_url="http://ollama.test", transport=httpx.MockTransport(handler))
+
+    def test_keep_alive_is_sent_only_when_configured(self):
+        bodies = []
+
+        def handler(request):
+            bodies.append(json.loads(request.content))
+            return httpx.Response(200, json={"message": {"content": "{}"}})
+
+        OllamaClient(base_url="http://ollama.test", transport=httpx.MockTransport(handler), keep_alive="30m").chat("m", "s", "u", {})
+        self._client(handler).chat("m", "s", "u", {})
+        self.assertEqual(bodies[0]["keep_alive"], "30m")
+        self.assertNotIn("keep_alive", bodies[1])
 
     def test_chat_sends_schema_as_format_and_reads_counters(self):
         seen = {}
@@ -182,6 +201,13 @@ class RouterTests(unittest.TestCase):
         self.assertEqual(router.parse_json('here: {"a": {"b": "}"}} ok'), {"a": {"b": "}"}})
         self.assertIsNone(router.parse_json("nothing"))
         self.assertIsNone(router.parse_json("[1]"))
+
+    def test_default_client_keeps_the_model_loaded_per_profile(self):
+        from core.local_tasks import router
+        with mock.patch.object(router, "OllamaClient", return_value=FakeClient(GOOD)) as cls:
+            env = self.run_task(profile=_profile())
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(cls.call_args.kwargs.get("keep_alive"), _profile().keep_alive)
 
     def test_classify_happy_path(self):
         env = self.run_task(client=FakeClient(GOOD))

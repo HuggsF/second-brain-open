@@ -34,10 +34,12 @@ class OllamaClient:
         base_url: str = settings.ollama_url,
         timeout: float = 30.0,
         transport: Optional[httpx.BaseTransport] = None,
+        keep_alive: str | int | None = None,
     ):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self._transport = transport
+        self.keep_alive = keep_alive  # None: usa o padrão do Ollama (5 min)
 
     def _http(self) -> httpx.Client:
         return httpx.Client(base_url=self.base_url, timeout=self.timeout, transport=self._transport)
@@ -53,6 +55,8 @@ class OllamaClient:
             "stream": False,
             "options": {"temperature": 0},
         }
+        if self.keep_alive is not None:
+            payload["keep_alive"] = self.keep_alive
         try:
             with self._http() as client:
                 resp = client.post("/api/chat", json=payload)

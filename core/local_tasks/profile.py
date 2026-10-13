@@ -28,6 +28,7 @@ class Profile:
     retries: int
     paid_reference: dict
     max_blocks: int = 4
+    keep_alive: str | int = "30m"  # tempo que o Ollama mantém o modelo carregado (-1 = sempre)
 
 
 def _price(name: str, key: str, value) -> float:
@@ -70,4 +71,5 @@ def load_profile(name: str | None = None, root: Path = PROFILES_DIR) -> Profile:
         retries=int(data.get("retries", 1)),
         paid_reference=_paid_reference(name, data.get("paid_reference")),
         max_blocks=int(data.get("max_blocks", 4)),
+        keep_alive=data.get("keep_alive", "30m"),
     )
