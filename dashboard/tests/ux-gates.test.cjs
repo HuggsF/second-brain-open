@@ -42,6 +42,14 @@ test('destructive_confirm: destructive buttons go through confirmAction', () => 
     assert.deepEqual(offenders, []);
 });
 
+test('modal_semantics: overlays are <dialog> elements (focus trap, Esc, top layer)', () => {
+    const offenders = [];
+    for (const file of JS)
+        for (const m of read(file).matchAll(/el\(\s*['"]div['"]\s*,\s*\{[^}]*class:\s*['"`][^'"`]*\b(modal|drawer|backdrop|overlay)\b[^'"`]*['"`]/g))
+            offenders.push(file + ': ' + m[0].slice(0, 80));
+    assert.deepEqual(offenders, []);
+});
+
 test('reduced_motion: the global reduced-motion rule also stops animations', () => {
     const rule = read('style.css').match(/@media\s*\(prefers-reduced-motion:\s*reduce\)\{(.*?\})\}/);
     assert.ok(rule, 'style.css needs a prefers-reduced-motion rule');
