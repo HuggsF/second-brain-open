@@ -17,6 +17,7 @@ from core.protocol import registry
 from core.protocol.envelope import TASKS, make_envelope
 
 _clock = time.monotonic
+STATUS_TIMEOUT_SECONDS = 5  # sondagem de /api/tags: curta, independente do timeout do perfil
 
 
 class _Deadline:
@@ -267,7 +268,7 @@ def status(profile: Profile | None = None, client: OllamaClient | None = None) -
     try:
         profile = profile or load_profile()
         name, model = profile.name, profile.local_model
-        available = bool((client or OllamaClient(timeout=profile.timeout_seconds)).available(model))
+        available = bool((client or OllamaClient(timeout=STATUS_TIMEOUT_SECONDS)).available(model))
     except Exception:
         available = False
     return {

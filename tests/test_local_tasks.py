@@ -641,6 +641,16 @@ class StatusTests(unittest.TestCase):
         self.assertIsInstance(out["templates"], list)
         client.available.assert_called_once_with("m")
 
+    def test_status_probes_with_short_timeout_not_the_profile_one(self):
+        from core.local_tasks import router
+        fake = mock.Mock()
+        fake.available.return_value = True
+        with mock.patch.object(router, "OllamaClient", return_value=fake) as cls:
+            out = router.status(profile=_profile())
+        cls.assert_called_once_with(timeout=5)
+        self.assertEqual(router.STATUS_TIMEOUT_SECONDS, 5)
+        self.assertTrue(out["model_available"])
+
     def test_status_never_raises_when_profile_is_missing(self):
         from core.local_tasks import router
         with mock.patch.object(router, "load_profile", side_effect=ProfileNotFound("x")):

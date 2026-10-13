@@ -362,7 +362,7 @@ def task_eval(min_accuracy):
     try:
         profile = router.load_profile()
         client = router.OllamaClient(timeout=profile.timeout_seconds)
-        info = router.status(profile, client)
+        info = router.status(profile)  # sondagem curta; o client da avaliação usa o timeout do perfil
     except Exception as exc:
         click.echo(f"Erro ao preparar a avaliação: {exc}")
         raise SystemExit(1)
