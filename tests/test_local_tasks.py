@@ -490,6 +490,23 @@ class ValidateJsonTests(unittest.TestCase):
             self.assertIn("documento sem frontmatter YAML", out["errors"])
 
 
+class NestedRequiredTests(unittest.TestCase):
+    def test_nested_required_is_an_error_not_silently_valid(self):
+        from core.local_tasks import tasks
+        doc = {"labels": {"team": "x", "tags": []}, "confidence": 0.5}
+        out = tasks.validate_document(doc, "classification@1")
+        self.assertFalse(out["valid"])
+        self.assertEqual(out["missing"], [])
+        self.assertEqual(len(out["errors"]), 1)
+        self.assertTrue(out["errors"][0].startswith("labels: "), out["errors"])
+        self.assertIn("'type'", out["errors"][0])
+
+    def test_root_required_goes_to_missing_only(self):
+        from core.local_tasks import tasks
+        out = tasks.validate_document({"confidence": 0.5}, "classification@1")
+        self.assertEqual((out["missing"], out["errors"]), (["labels"], []))
+
+
 class StatusTests(unittest.TestCase):
     def setUp(self):
         from core import events

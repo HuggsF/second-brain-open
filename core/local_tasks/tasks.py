@@ -194,7 +194,7 @@ def validate_document(document: str | dict, template: str) -> dict:
     missing = [k for k in schema.get("required", []) if k not in obj]
     errors = []
     for err in sorted(Draft202012Validator(schema).iter_errors(obj), key=lambda e: list(e.absolute_path)):
-        if err.validator == "required":
+        if err.validator == "required" and not err.absolute_path:  # raiz: já está em missing
             continue
         errors.append(f"{'/'.join(str(p) for p in err.absolute_path) or '<root>'}: {err.message}")
     return {"valid": not missing and not errors, "missing": missing, "errors": errors, "review": []}
