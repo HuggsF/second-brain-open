@@ -10,3 +10,6 @@ watchdog>=4.0.0
 paramiko>=3.0,<5
 
 pyyaml>=6.0
+
+# WebSocket server — Nexus Agent Office integration
+websockets>=12.0

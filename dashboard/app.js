@@ -4,7 +4,7 @@
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
-const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade']};
+const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],nexus:['🏢','Nexus Office']};
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
 const categories = {all:'Todas as fontes',architecture:'Arquitetura · System Design',playbooks:'Playbooks',systems:'Sistemas',adrs:'Decisões · ADRs',product:'Produto',domain:'Domínio',daily:'Memória diária',general:'Geral'};
 let storageOK = true, noticeTimer;
@@ -242,6 +242,14 @@ function render(){
 
   if(route.page==='queries'){if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de consultas indisponível','Recarregue a página e verifique workbench.js.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='nexus'){
+    main.append(head('NEXUS OFFICE','Escritório de agentes em tempo real.','Agentes executando tarefas reais com busca vetorial, queries SQL e aprovação humana.',[
+      button('Abrir em nova aba ↗',()=>window.open('http://127.0.0.1:5173','_blank'),'subtle')
+    ]));
+    const frame=el('iframe',{src:'http://127.0.0.1:5173',style:'width:100%;height:calc(100vh - 180px);border:none;border-radius:8px;background:#0a0a0a;'});
+    frame.onerror=()=>{frame.replaceWith(empty('Nexus não está rodando','Inicie o servidor: .venv\\Scripts\\python.exe -m backend.ws_server e cd nexus && npm run dev',button('Tentar novamente',()=>render())));};
+    main.append(frame);
+  }
  if(route.page==='knowledge'&&route.doc&&!route.section&&matchMedia('(max-width:650px)').matches)requestAnimationFrame(()=>{const reader=main.querySelector('.reader');reader?.focus({preventScroll:true});reader?.scrollIntoView({block:'start'});});
  $('snapshot-label').textContent='Snapshot '+G.snapshot_id.slice(0,8)+' · '+formatDate(G.built_at);
  if(!storageOK)notify('Persistência indisponível. Alterações permanecem apenas nesta sessão.');

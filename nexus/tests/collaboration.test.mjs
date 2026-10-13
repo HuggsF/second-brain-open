@@ -1,0 +1,6 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {createSimulation,startSimulation,tickSimulation,pauseSimulation} from '../src/simulation.mjs';
+test('clone separa destinatários aninhados de eventos',()=>{ const s=tickSimulation(startSimulation(createSimulation('x',1),2),3); const n=pauseSimulation(s,4); n.collabEvents.find(e=>e.type==='distribute').to.push('writer'); assert.equal(s.collabEvents.find(e=>e.type==='distribute').to.length,4); });
+test('eventos acumulados têm limite e preservam recentes',()=>{ const s=startSimulation(createSimulation('x',1),2); s.collabEvents=Array.from({length:300},(_,i)=>({id:String(i),to:[],consumed:true})); const n=tickSimulation(s,3); assert.ok(n.collabEvents.length<=120); assert.equal(n.collabEvents.at(-1).type,'agent_enter'); });
+test('clone não compartilha payload de evento nem metadados de histórico',()=>{const s=startSimulation(createSimulation('x',1),2);s.collabEvents[0].payload={participants:['manager']};s.agents[0].history[0].metadata={tags:['mission']};const n=pauseSimulation(s,3);n.collabEvents[0].payload.participants.push('coder');n.agents[0].history[0].metadata.tags.push('new');assert.deepEqual(s.collabEvents[0].payload.participants,['manager']);assert.deepEqual(s.agents[0].history[0].metadata.tags,['mission']);});
