@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 18_Estrat_gia_e_stakeholders_na_escalada_de_produtos_com_IA_-_Artur_Ferreira_Padua.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1SWKxcU4TKKRU4D5JIy6R26V0sdhLbtNB` | **SHA-256:** `69ca91b03d8d0c2905d08d11a66ca92441c4434c8069314c2bcb9f18ad141743`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1SWKxcU4TKKRU4D5JIy6R26V0sdhLbtNB
+source_sha256: 69ca91b03d8d0c2905d08d11a66ca92441c4434c8069314c2bcb9f18ad141743
+original_file: 18_Estrat_gia_e_stakeholders_na_escalada_de_produtos_com_IA_-_Artur_Ferreira_Padua.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 18_Estrat_gia_e_stakeholders_na_escalada_de_produtos_com_IA_-_Artur_Ferreira_Padua.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `18_Estrat_gia_e_stakeholders_na_escalada_de_produtos_com_IA_-_Artur_Ferreira_Padua.pdf`
 - **Identificador no Drive:** `1SWKxcU4TKKRU4D5JIy6R26V0sdhLbtNB`
 - **Tamanho do Texto Extraído:** 19356 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/18_Estrat_gia_e_stakeholders_na_escalada_de_produtos_com_IA_-_Artur_Ferreira_Padua.txt`
 
 ---
 
@@ -30,7 +32,6 @@ Trajetória:
 Head of AI Product Management
 Artur Ferreira Padua
 linkedin.com/in/artur-padua
-
 
 --- PÁGINA 3 ---
 02. 
@@ -63,7 +64,6 @@ interact with computers. They will be able to
 understand our needs and preferences, and 
 proactively help us with tasks and decision 
 making.
-
 
 --- PÁGINA 5 ---
 Conteúdo desta aula

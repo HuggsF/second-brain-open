@@ -1,10 +1,9 @@
+---
+type: adr
+status: Aceito
+date: 2026-10-07
+---
 # ADR-003: Política Mandatória de Git Workflow, Proteção da Branch Main e Pull Requests
-
-## Status
-Aprovado e Vigente (Instituído em 07/10/2026)
-
-## Data
-2026-10-07
 
 ## Contexto
 Após o versionamento e backup do Hub Logístico no GitHub privado (`userTI10/hub-logistico`), foi estabelecido o fluxo de trabalho de desenvolvimento para a equipe técnica da KIOSK Brands.

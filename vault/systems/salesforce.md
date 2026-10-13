@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Sistema Alvo: Salesforce (Service Cloud & Expansão)
 
 ## Visão Geral

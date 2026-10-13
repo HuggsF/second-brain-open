@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Especificação Oficial Bling API v3: Estrutura Completa de Pedidos de Venda e Logística
 
 **Data de Extração:** 2026-10-07  

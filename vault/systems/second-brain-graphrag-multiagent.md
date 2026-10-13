@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Second Brain: evolução de recuperação e agentes
 
 Data da auditoria: 08/10/2026. Escopo: leitura dos arquivos locais do Second Brain e implementação de um núcleo de experiência local no staging. Nenhuma chamada ao Qdrant, Ollama, gateways, produção ou indexação foi feita para esta auditoria.

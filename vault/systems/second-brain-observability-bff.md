@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Second Brain — BFF e observabilidade local
 
 Implementação da wave 1 em 08/10/2026. Piloto local, um espaço autorizado (`kiosk`), perfil de leitura. Não é autenticação multiusuário pronta para internet.

@@ -1,10 +1,9 @@
+---
+type: adr
+status: Aceito
+date: 2026-10-12
+---
 # ADR-006: Implementação do FlowLogger para Observabilidade e Semáforos Visuais
-
-## Status
-Aprovado (2026-10-12)
-
-## Data
-2026-10-12
 
 ## Contexto
 O sistema operava anteriormente em um cenário de "apagão" de observabilidade, onde o uso de logs genéricos dificultava a identificação do ponto exato de falha de uma mensagem (seja na fila, no banco ou no postback). Para garantir a rastreabilidade ponta a ponta (E2E) e viabilizar a "Documentação Inteligente", foi necessária a padronização rigorosa da emissão de logs no projeto `true-postback`.

@@ -1,9 +1,12 @@
-# 💾 Eixo 2: Persistência, Storage & Consistência
+---
+type: architecture
+status: reference
+date: 2026-10-13
+---
+# Eixo 2: Persistência, Storage & Consistência
 
 > **Módulos de Origem:** Day 2 (Storage, RAID e I-O), Day 3 (Teorema CAP, ACID e BASE), Day 4 (Databases, Modelos e Indexação), Day 5 (Estratégias de Cache), Day 16 (Sharding e Particionamento), Day 17 (Replicação de Dados).  
-> **Status:** `#status/reference` | **Agentes Beneficiados:** `🤖 DEV` e `🤖 PRODUTO / ARQUITETURA`
-
----
+> **Agentes Beneficiados:** `🤖 DEV` e `🤖 PRODUTO / ARQUITETURA`
 
 ## 1. Storage & I/O em Alto Desempenho
 

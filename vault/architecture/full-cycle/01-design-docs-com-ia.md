@@ -1,10 +1,13 @@
-# 📐 Design Docs com IA — Padrão de Especificação Técnica
-
-> **Origem:** MBA Full Cycle — Módulo 07: Design Docs com IA  
-> **Aplicação:** KIOSK Brands Second Brain — Templates para 4 Agentes Especialistas  
-> **Status:** `#status/active` | `#type/guide` | **Data:** 2026-10-12
-
 ---
+type: architecture
+status: active
+date: 2026-10-12
+source: "MBA Full Cycle — Módulo 07: Design Docs com IA"
+tags: [guide]
+---
+# Design Docs com IA — Padrão de Especificação Técnica
+
+> **Aplicação:** KIOSK Brands Second Brain — Templates para 4 Agentes Especialistas
 
 ## 1. Visão Geral
 

@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 11_Agentes_e_Orquestra_o_de_Workflows_na_pr_tica_-_Cheila_Portela.pptx_1_.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1dbpuixWk8FFvWJ-4l7uSNsOf0SCol9bo` | **SHA-256:** `7cf0b637ed94b2ee877c244616a9a5332897f7dbe34e0ffdb45869c106cbbb8a`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1dbpuixWk8FFvWJ-4l7uSNsOf0SCol9bo
+source_sha256: 7cf0b637ed94b2ee877c244616a9a5332897f7dbe34e0ffdb45869c106cbbb8a
+original_file: 11_Agentes_e_Orquestra_o_de_Workflows_na_pr_tica_-_Cheila_Portela.pptx_1_.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 11_Agentes_e_Orquestra_o_de_Workflows_na_pr_tica_-_Cheila_Portela.pptx_1_.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `11_Agentes_e_Orquestra_o_de_Workflows_na_pr_tica_-_Cheila_Portela.pptx_1_.pdf`
 - **Identificador no Drive:** `1dbpuixWk8FFvWJ-4l7uSNsOf0SCol9bo`
 - **Tamanho do Texto Extraído:** 13167 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/11_Agentes_e_Orquestra_o_de_Workflows_na_pr_tica_-_Cheila_Portela.pptx_1_.txt`
 
 ---
 
@@ -73,12 +75,10 @@ Conteúdo desta aula
 Componentes de 
 um Agente de IA
 
-
 --- PÁGINA 5 ---
 Introdução: 
 Componentes de 
 um Agente de IA
-
 
 --- PÁGINA 6
 ```

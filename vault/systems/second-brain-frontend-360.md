@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Auditoria 360 do frontend do Second Brain
 
 Data de referência: **08/10/2026**, America/Sao_Paulo. Escopo: dashboard local em `C:\KIOSK\second-brain\dashboard`, sua geração de dados e os contratos já existentes de consulta ao conhecimento. O usuário escolheu plataformas web de agentes e RAG como recorte para selecionar referências no GitHub.

@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: Aula_1_Discovery_turbinado_por_IA.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1GIK0oZVFFbs1RIQoK5WYSIFvelmyTN0_` | **SHA-256:** `1dda23da0eab836d728686193d3fe3ef806d1cca9fa646778fe2ab3753bbaf7c`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1GIK0oZVFFbs1RIQoK5WYSIFvelmyTN0_
+source_sha256: 1dda23da0eab836d728686193d3fe3ef806d1cca9fa646778fe2ab3753bbaf7c
+original_file: Aula_1_Discovery_turbinado_por_IA.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: Aula_1_Discovery_turbinado_por_IA.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `Aula_1_Discovery_turbinado_por_IA.pdf`
 - **Identificador no Drive:** `1GIK0oZVFFbs1RIQoK5WYSIFvelmyTN0_`
 - **Tamanho do Texto Extraído:** 6286 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/Aula_1_Discovery_turbinado_por_IA.txt`
 
 ---
 
@@ -24,7 +26,6 @@ Módulo ao vivo
 AI Product Specialist
 Adrianno Esnarriaga
 
-
 --- PÁGINA 2 ---
 linkedin.com/in/adrianno
 Engenheiro de computação com mais de 12 
@@ -33,7 +34,6 @@ inovadores em diferentes setores, desde grandes
 empresas a startups.
 Staff Product Manager na Pipefy 
 Adrianno Esnarriaga
-
 
 --- PÁGINA 3 ---
 Por que um módulo ao vivo?
@@ -59,7 +59,6 @@ de IA
 Estruturação, 
 documentação e 
 prototipagem com IA
-
 
 --- PÁGINA 6 ---
 Dee

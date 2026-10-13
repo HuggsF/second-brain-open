@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 09_Dominando_as_ferramentas_e_padr_es_de_prompting_avan_ado_-_Sophia_Faria.pptx_3_ (1).pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1UZlDEffWnLDl_D0sSgvgUUbE6KYkaDn6` | **SHA-256:** `1a7b5c68ceb0023fc143f227018fa84f834bae8c13981c04b3d1aa1236dd0f4e`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1UZlDEffWnLDl_D0sSgvgUUbE6KYkaDn6
+source_sha256: 1a7b5c68ceb0023fc143f227018fa84f834bae8c13981c04b3d1aa1236dd0f4e
+original_file: 09_Dominando_as_ferramentas_e_padr_es_de_prompting_avan_ado_-_Sophia_Faria.pptx_3_ (1).pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 09_Dominando_as_ferramentas_e_padr_es_de_prompting_avan_ado_-_Sophia_Faria.pptx_3_ (1).pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `09_Dominando_as_ferramentas_e_padr_es_de_prompting_avan_ado_-_Sophia_Faria.pptx_3_ (1).pdf`
 - **Identificador no Drive:** `1UZlDEffWnLDl_D0sSgvgUUbE6KYkaDn6`
 - **Tamanho do Texto Extraído:** 28134 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/09_Dominando_as_ferramentas_e_padr_es_de_prompting_avan_ado_-_Sophia_Faria.pptx_3_ (1).txt`
 
 ---
 
@@ -48,7 +50,6 @@ function calling.
 Organizar, blindar e 
 monitorar seus prompts 
 em produção.
-
 
 --- PÁGINA 4 ---
 02. 

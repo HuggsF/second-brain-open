@@ -1,11 +1,14 @@
-# 🧠 Engenharia de Prompts & Context Windows
-
-> **Origem:** MBA Full Cycle — Módulo 06: Prompt Engineering (82 vídeos)  
-> **Complemento:** Módulo 05: Fundamentos de IA Generativa (41 vídeos)  
-> **Aplicação:** KIOSK Brands Second Brain — Otimização de Agentes MCP  
-> **Status:** `#status/active` | `#type/guide` | **Data:** 2026-10-12
-
 ---
+type: architecture
+status: active
+date: 2026-10-12
+source: "MBA Full Cycle — Módulo 06: Prompt Engineering (82 vídeos)"
+tags: [guide]
+---
+# Engenharia de Prompts & Context Windows
+
+> **Complemento:** Módulo 05: Fundamentos de IA Generativa (41 vídeos)  
+> **Aplicação:** KIOSK Brands Second Brain — Otimização de Agentes MCP
 
 ## 1. Taxonomia de Técnicas de Prompt Engineering
 

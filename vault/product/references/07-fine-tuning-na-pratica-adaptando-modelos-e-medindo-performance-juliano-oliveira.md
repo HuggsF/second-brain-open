@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 07_Fine-tuning_na_pr_tica_-_Adaptando_modelos_e_medindo_performance_-_Juliano_Oliveira.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1uEHMl8R85omNyis3kE5ravWeaPbHZsHy` | **SHA-256:** `0e06b0105d26637a4e30a05ad23328874152813762e17f30079466f6aba47412`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1uEHMl8R85omNyis3kE5ravWeaPbHZsHy
+source_sha256: 0e06b0105d26637a4e30a05ad23328874152813762e17f30079466f6aba47412
+original_file: 07_Fine-tuning_na_pr_tica_-_Adaptando_modelos_e_medindo_performance_-_Juliano_Oliveira.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 07_Fine-tuning_na_pr_tica_-_Adaptando_modelos_e_medindo_performance_-_Juliano_Oliveira.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `07_Fine-tuning_na_pr_tica_-_Adaptando_modelos_e_medindo_performance_-_Juliano_Oliveira.pdf`
 - **Identificador no Drive:** `1uEHMl8R85omNyis3kE5ravWeaPbHZsHy`
 - **Tamanho do Texto Extraído:** 11941 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/07_Fine-tuning_na_pr_tica_-_Adaptando_modelos_e_medindo_performance_-_Juliano_Oliveira.txt`
 
 ---
 

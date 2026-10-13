@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Servidor de Integração: SRV-API (Hub Central)
 
 ## Visão Geral

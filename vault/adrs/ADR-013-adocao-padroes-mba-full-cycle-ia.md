@@ -1,12 +1,11 @@
-# ADR-013: Adoção de Padrões do MBA Full Cycle em Engenharia de Software com IA
-
-> **Status:** Aceito  
-> **Data:** 2026-10-12  
-> **Autor:** Huggs (via Agente ARQUITETURA)  
-> **Supersede:** —  
-> **Relacionado:** ADR-007, ADR-011, ADR-012
-
 ---
+type: adr
+status: Aceito
+date: 2026-10-12
+author: Huggs (via Agente ARQUITETURA)
+related: [ADR-007, ADR-011, ADR-012]
+---
+# ADR-013: Adoção de Padrões do MBA Full Cycle em Engenharia de Software com IA
 
 ## Contexto
 
@@ -19,6 +18,25 @@ A KIOSK Brands adquiriu o MBA Full Cycle em Engenharia de Software com IA 2026, 
 5. **System Design (Bônus)** — Estudos de caso Uber/Instagram, DevOps, SRE, resiliência
 
 O Second Brain da KIOSK já possui uma base sólida (12 ADRs, 6 guias de System Design, 4 bases de inteligência por time, dashboard), mas a análise de gaps revelou 14 gaps distribuídos em 5 dimensões ao comparar com os padrões do MBA.
+
+## Alternativas Consideradas
+
+### 1. Não adotar padrões formais (manter ad-hoc)
+- **Prós:** Zero overhead
+- **Contras:** Inconsistência crescente, prompts não avaliados, documentação fragmentada
+- **Rejeitada:** Os 14 gaps identificados mostram que o approach ad-hoc já está gerando dívida técnica
+
+### 2. Adotar apenas Design Docs sem Prompt Engineering
+- **Prós:** Menor escopo de mudança
+- **Contras:** Perde-se a dimensão de avaliação contínua dos agentes
+- **Rejeitada:** Os agentes MCP são o core do Second Brain; sem eval, operamos no escuro
+
+### 3. Adotar um framework externo (ex: DORA, Team Topologies)
+- **Prós:** Frameworks bem estabelecidos
+- **Contras:** Não cobrem IA generativa, prompts e skills
+- **Rejeitada:** O MBA Full Cycle é mais específico para nosso contexto de engenharia com IA
+
+---
 
 ## Decisão
 
@@ -70,25 +88,6 @@ Adotar formalmente os seguintes padrões do MBA Full Cycle como referência para
 - **Overhead inicial:** Criação de templates, golden datasets e skills demanda esforço upfront
 - **Curva de aprendizado:** Times precisam se familiarizar com novos workflows
 - **Manutenção:** Prompt Registry e Skills precisam de manutenção contínua
-
-## Alternativas Consideradas
-
-### 1. Não adotar padrões formais (manter ad-hoc)
-- **Prós:** Zero overhead
-- **Contras:** Inconsistência crescente, prompts não avaliados, documentação fragmentada
-- **Rejeitada:** Os 14 gaps identificados mostram que o approach ad-hoc já está gerando dívida técnica
-
-### 2. Adotar apenas Design Docs sem Prompt Engineering
-- **Prós:** Menor escopo de mudança
-- **Contras:** Perde-se a dimensão de avaliação contínua dos agentes
-- **Rejeitada:** Os agentes MCP são o core do Second Brain; sem eval, operamos no escuro
-
-### 3. Adotar um framework externo (ex: DORA, Team Topologies)
-- **Prós:** Frameworks bem estabelecidos
-- **Contras:** Não cobrem IA generativa, prompts e skills
-- **Rejeitada:** O MBA Full Cycle é mais específico para nosso contexto de engenharia com IA
-
----
 
 ## Implementação
 

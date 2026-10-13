@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 17_Modelos_de_Maturidade_e_Readiness_de_IA_-_Juliana_Ara_jo.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1iDRTf4VrGwemqF_Qa-ywYMbo717sIbfG` | **SHA-256:** `cbf92c407ded52037e1bb08b17c43a49c7c129d6f488450903ef4d96e1c24cca`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1iDRTf4VrGwemqF_Qa-ywYMbo717sIbfG
+source_sha256: cbf92c407ded52037e1bb08b17c43a49c7c129d6f488450903ef4d96e1c24cca
+original_file: 17_Modelos_de_Maturidade_e_Readiness_de_IA_-_Juliana_Ara_jo.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 17_Modelos_de_Maturidade_e_Readiness_de_IA_-_Juliana_Ara_jo.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `17_Modelos_de_Maturidade_e_Readiness_de_IA_-_Juliana_Ara_jo.pdf`
 - **Identificador no Drive:** `1iDRTf4VrGwemqF_Qa-ywYMbo717sIbfG`
 - **Tamanho do Texto Extraído:** 14769 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/17_Modelos_de_Maturidade_e_Readiness_de_IA_-_Juliana_Ara_jo.txt`
 
 ---
 
@@ -71,7 +73,6 @@ reﬂexão
 04. 
 Exemplos reais 
 e cases
-
 
 --- PÁGINA 5 ---
 Avalia o quão preparada a empresa 

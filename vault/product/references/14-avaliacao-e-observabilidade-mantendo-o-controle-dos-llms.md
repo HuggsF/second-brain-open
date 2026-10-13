@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 14_Avalia_o_e_observabilidade_mantendo_o_controle_dos_LLMs_OK.pptx Microsoft PowerPoint
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1qezr1MOz7Joy69ew3Kzh_omEkkNA9pX4` | **SHA-256:** `8953c8581381f455567ba97a706663280d5851814fdbd126c74fe4096bad5b79`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1qezr1MOz7Joy69ew3Kzh_omEkkNA9pX4
+source_sha256: 8953c8581381f455567ba97a706663280d5851814fdbd126c74fe4096bad5b79
+original_file: 14_Avalia_o_e_observabilidade_mantendo_o_controle_dos_LLMs_OK.pptx Microsoft PowerPoint
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 14_Avalia_o_e_observabilidade_mantendo_o_controle_dos_LLMs_OK.pptx Microsoft PowerPoint
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `14_Avalia_o_e_observabilidade_mantendo_o_controle_dos_LLMs_OK.pptx Microsoft PowerPoint`
 - **Identificador no Drive:** `1qezr1MOz7Joy69ew3Kzh_omEkkNA9pX4`
 - **Tamanho do Texto Extraído:** 10252 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/14_Avalia_o_e_observabilidade_mantendo_o_controle_dos_LLMs_OK.txt`
 
 ---
 
@@ -32,7 +34,6 @@ Lucca Kazan
 linkedin.com/in/luccakazan
 Agentic AI, Search and Recommendation, 
 Facial Recognition, Antifraud, Data
-
 
 --- PÁGINA 3 ---
 02. 

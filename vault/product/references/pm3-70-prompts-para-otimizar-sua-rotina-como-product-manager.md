@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: [PM3] +70 Prompts para otimizar sua rotina como Product Manager.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1UmkYujpIKvtwF_6wcfDHgR2_QWCaj8iI` | **SHA-256:** `81e4d416e7f006cbf454db144da6418ecdc208335936ffbe7bfdbaffbe260ef1`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1UmkYujpIKvtwF_6wcfDHgR2_QWCaj8iI
+source_sha256: 81e4d416e7f006cbf454db144da6418ecdc208335936ffbe7bfdbaffbe260ef1
+original_file: "[PM3] +70 Prompts para otimizar sua rotina como Product Manager.pdf"
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: [PM3] +70 Prompts para otimizar sua rotina como Product Manager.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `[PM3] +70 Prompts para otimizar sua rotina como Product Manager.pdf`
 - **Identificador no Drive:** `1UmkYujpIKvtwF_6wcfDHgR2_QWCaj8iI`
 - **Tamanho do Texto Extraído:** 65606 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/[PM3] +70 Prompts para otimizar sua rotina como Product Manager.txt`
 
 ---
 

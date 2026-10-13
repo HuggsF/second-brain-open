@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Correção: validar logística antes da emissão
 
 Implementação local de 08/10/2026, decorrente da investigação de UPDATE sem objeto logístico. Não regulariza objetos ou etiquetas existentes automaticamente.

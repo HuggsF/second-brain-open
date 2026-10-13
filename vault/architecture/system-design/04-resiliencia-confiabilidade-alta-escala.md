@@ -1,9 +1,12 @@
-# 🛡️ Eixo 4: Resiliência, Confiabilidade & Alta Escala
+---
+type: architecture
+status: reference
+date: 2026-10-13
+---
+# Eixo 4: Resiliência, Confiabilidade & Alta Escala
 
 > **Módulos de Origem:** Day 15 (Scale Cube), Day 21 (Patterns de Resiliência), Day 22 (Modelos de Deployment), Day 25 (Bulkhead Pattern), Day 26 (Cell-Based Pattern), Day 27 (Single Point of Failure e Disaster Recovery).  
-> **Status:** `#status/reference` | **Agentes Beneficiados:** `🤖 DEVOPS` e `🤖 PRODUTO / ARQUITETURA`
-
----
+> **Agentes Beneficiados:** `🤖 DEVOPS` e `🤖 PRODUTO / ARQUITETURA`
 
 ## 1. O Modelo do Scale Cube (Abbott & Fisher)
 

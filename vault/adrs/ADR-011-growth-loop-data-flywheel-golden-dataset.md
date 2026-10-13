@@ -1,10 +1,9 @@
+---
+type: adr
+status: Aceito
+date: 2026-10-12
+---
 # ADR-011: Growth Loop com Data Flywheel Operacional e Golden Dataset como Fonte de Verdade
-
-## Status
-Aceito
-
-## Data
-2026-10-12
 
 ## Contexto
 O Second Brain executa missões operacionais de forma autônoma (diagnósticos de ERP, conciliação de pedidos, auditorias de frete), mas até o momento não existia um **ciclo de retroalimentação formal** que capturasse os resultados das execuções para melhorar continuamente a qualidade dos modelos e prompts. Os aprendizados ficavam implícitos na experiência de Hugo Melo e não eram convertidos em dados de treinamento ou avaliação.
@@ -122,9 +121,9 @@ Implementar o **Data Flywheel Operacional** como mecânica central de melhoria c
 - **Operações (Touti, Amavia, Yes!):** Geradores de feedback e casos de uso reais que alimentam o ciclo.
 
 ## Referências
-- [[references/20-go-to-market-e-lan-amento-de-produtos-com-ia-aiman-mustafa-smaili-pptx-microsoft-powerpoint]]
-- [[references/14-avalia-o-e-observabilidade-mantendo-o-controle-dos-llms-ok-pptx-microsoft-powerpoint]]
-- [[references/02-medindo-e-provando-resultado-de-produtos-com-ia-lucca-kazan-pdf]]
+- [[references/20-go-to-market-e-lancamento-de-produtos-com-ia-aiman-mustafa-smaili]]
+- [[references/14-avaliacao-e-observabilidade-mantendo-o-controle-dos-llms]]
+- [[references/02-medindo-e-provando-resultado-de-produtos-com-ia-lucca-kazan]]
 - [[product/product-vision-ai-specialist]] — Seção 9 (Growth Loop & Data Flywheel)
 - [[ADR-007-hierarquia-metricas-l1-l2-framework-hhh-ragas]] — Framework HHH usado na curadoria
 - [[ADR-006-implementacao-flowlogger-observabilidade-semaforos]] — FlowLogger alimenta o flywheel

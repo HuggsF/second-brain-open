@@ -1,12 +1,16 @@
-# 📄 PRD: Second Brain Platform V2 (Autonomous Operations Operating System)
+---
+type: product
+status: active
+date: 2026-10-13
+version: 2.0
+---
+# PRD: Second Brain Platform V2 (Autonomous Operations Operating System)
 
 > **Tipo de Documento:** Product Requirements Document (PRD)  
 > **Produto:** KIOSK Second Brain Platform V2  
 > **Autor & Liderança Técnica:** Hugo Melo  
-> **Status:** `#status/active` | **Versão:** 2.0 | **Ciclo:** Q4 2026  
+> **Ciclo:** Q4 2026  
 > **Alinhamento Metodológico:** PM3 AI Product Specialist / Double Diamond Framework
-
----
 
 ## 1. Resumo Executivo & Contexto de Negócio
 

@@ -1,9 +1,12 @@
-# 🎯 Eixo 6: Cases Reais & Estudos de Caso Práticos
+---
+type: architecture
+status: reference
+date: 2026-10-13
+---
+# Eixo 6: Cases Reais & Estudos de Caso Práticos
 
 > **Módulos de Origem:** Aulas ao Vivo (Cases 1 a 6) e Day 6 (Case Core Banking com Domain-Driven Design).  
-> **Status:** `#status/reference` | **Agentes Beneficiados:** `🤖 PRODUTO / ARQUITETURA` e `🤖 DEV`
-
----
+> **Agentes Beneficiados:** `🤖 PRODUTO / ARQUITETURA` e `🤖 DEV`
 
 ## 1. Case: Encurtador de Links em Larga Escala (Tipo TinyURL / Bitly)
 

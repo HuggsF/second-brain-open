@@ -1,8 +1,11 @@
-# 🛡️ Método de Auto-Auditoria: Gestão Multi-Frentes sem Perda de Contexto
+---
+type: system
+status: active
+date: 2026-10-09
+---
+# Método de Auto-Auditoria: Gestão Multi-Frentes sem Perda de Contexto
 
 > **Objetivo:** Permitir que um desenvolvedor pleno/sênior atue simultaneamente em múltiplos ecossistemas (Touti, Amavia, Yes!, ERPs, Transportadoras, Infraestrutura) mantendo controle total sobre o que está sendo feito, o que está travado e o que já foi entregue com provas.
-
----
 
 ## 1. O Triângulo de Ouro de Cada Demanda
 

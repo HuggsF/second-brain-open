@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Rate limiting do Bling em produção
 
 Análise em 08/10/2026 às 11:10–11:12 de Brasília, por leitura dos logs PM2 e SQLite. A PR #9 deve reduzir sobreposição e chamadas desnecessárias, mas não implementa uma solução completa para os 429. Parte do tratamento de rate limiting já existe em produção e permanece sem alteração na PR.
@@ -132,7 +137,6 @@ Nenhum processo foi recarregado, configuração/flag alterada ou pedido reproces
 Backlog formal: [DEM-16 Rate limiting Bling por conta e recuperação de throttling](https://github.com/userTI10/hub-logistico/issues/10). Revisão: [PR #9](https://github.com/userTI10/hub-logistico/pull/9).
 
 Ambiente: [[hub-producao]]. Proteções: [[protecoes-processamento-emissao-hub]]. Comparativo: [[comparativo-prod-homolog-postman]].
-
 
 ## Pós-deploy validado às 12:06 de Brasília
 PRs #1/#9/#11 integradas e implantadas. Janela igual de cinco minutos: 3 429 antes, 13 depois, sob tráfego distinto. Fechamento ampliado: 15 429, duas etiquetas confirmadas e dois pedidos concluídos, 13 reaproveitamentos sem segunda emissão. Zero erro terminal ou nova falha. DEM-16 permanece alta; não atribuir causalidade/redução à alteração nem declarar quota solucionada. Gate de observação distingue 429 recuperável de erro terminal. [[deploy-validacao-hub-2026-10-08]].

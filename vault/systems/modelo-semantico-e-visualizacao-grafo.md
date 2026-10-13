@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Modelo semântico e visualização do grafo
 
 Data: 2026-10-08
@@ -62,7 +67,6 @@ Atualizar Markdown, índice vetorial e manifesto são etapas distintas, cada uma
 ## Critérios de aceite
 
 Reabrir o dashboard preserva organização estável; rótulos não se sobrepõem na janela alvo; seleção destaca uma vizinhança legível; filtros não deixam arestas órfãs; todas as referências levam a fontes existentes; regras/gaps não interrompem o fluxo de sistemas; propostas e integrações parciais têm identificação visível; alteração no vault chega ao painel pela geração documentada do manifesto.
-
 
 ## Implementação local em 2026-10-08
 

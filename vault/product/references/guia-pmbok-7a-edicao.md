@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: Guia-PMBOK-7a-Edicao.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1fiyHfcoNAkd_OTU_UwOqOhxUs18fsxyz` | **SHA-256:** `f400cc8822fb64786d3dc7c5fb143090458b1c8b5577593f1acb978d8e332aba`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1fiyHfcoNAkd_OTU_UwOqOhxUs18fsxyz
+source_sha256: f400cc8822fb64786d3dc7c5fb143090458b1c8b5577593f1acb978d8e332aba
+original_file: Guia-PMBOK-7a-Edicao.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: Guia-PMBOK-7a-Edicao.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `Guia-PMBOK-7a-Edicao.pdf`
 - **Identificador no Drive:** `1fiyHfcoNAkd_OTU_UwOqOhxUs18fsxyz`
 - **Tamanho do Texto Extraído:** 698062 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/Guia-PMBOK-7a-Edicao.txt`
 
 ---
 
@@ -20,7 +22,6 @@
 
 ```text
 --- PÁGINA 1 ---
-
 
 --- PÁGINA 2 ---
 PADRÃO DE 

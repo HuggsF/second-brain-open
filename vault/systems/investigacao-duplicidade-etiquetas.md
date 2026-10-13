@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Relatório de Incidente Técnico: Duplicidade de Etiquetas e Cobrança Dupla de Frete (J&T Express / Bling)
 
 **Data do Incidente/Análise:** 2026-10-07  
@@ -63,7 +68,7 @@ await blingAdapter.updateTracking(job.erp_id, tracking, accessToken);
 
 ## 2.1. Comparativo Arquitetural em Fluxogramas
 
-### 🔴 Fluxo com Erro (Antes do Fix — Geração Duplicada e Frete Duplo)
+### Fluxo com Erro (Antes do Fix — Geração Duplicada e Frete Duplo)
 
 ```mermaid
 flowchart TD
@@ -103,7 +108,7 @@ flowchart TD
 
 ---
 
-### 🟢 Fluxo Corrigido (Depois do Fix — Proteção em 3 Camadas)
+### Fluxo Corrigido (Depois do Fix — Proteção em 3 Camadas)
 
 ```mermaid
 flowchart TD

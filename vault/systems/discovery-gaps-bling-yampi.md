@@ -1,4 +1,9 @@
-# 🔍 Discovery Técnico: Gaps Estruturais Bling ERP & Checkout Yampi
+---
+type: system
+status: active
+date: 2026-10-09
+---
+# Discovery Técnico: Gaps Estruturais Bling ERP & Checkout Yampi
 
 **Data:** 07/10/2026  
 **Origem:** Reunião de Alinhamento e Discovery com Operação E-commerce, Gestão (Tadeu / Davi) e Engenharia  
@@ -6,7 +11,7 @@
 
 ---
 
-## 📌 GAP 1: Cadastro do Hub Logístico no Bling (Aplicativo de Logística vs. Usuário de API)
+## GAP 1: Cadastro do Hub Logístico no Bling (Aplicativo de Logística vs. Usuário de API)
 
 ### 1.1. O que foi relatado pela Operação
 > *"O hub de Tadeu está cadastrado no Bling apenas como API e não como Aplicativo de Logística. Por causa disso, as informações do hub não saem nativamente nas telas fiscais e de expedição do Bling... não aparece o campo da transportadora nem o objeto de postagem preenchido na interface da logística."* (min 20:58 e 25:25)
@@ -34,7 +39,7 @@ No ecossistema do Bling ERP, existem duas modalidades distintas de acoplamento:
 
 ---
 
-## 📌 GAP 2: Pedidos Aprovados na Yampi que não Entram no Bling
+## GAP 2: Pedidos Aprovados na Yampi que não Entram no Bling
 
 ### 2.1. O que foi relatado pela Operação
 > *"Tem pedido que está aprovado e pago na Yampi, mas não aparece no Bling, ou demora horas para aparecer. Se a sincronização falha, a gente só descobre quando o cliente reclama no SAC... temos que ir manualmente na Yampi caçar o pedido."* (min 27:04 e 27:32)

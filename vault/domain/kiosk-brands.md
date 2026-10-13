@@ -1,3 +1,8 @@
+---
+type: domain
+status: active
+date: 2026-10-09
+---
 # Domínio de Negócio: Holding KIOSK Brands
 
 ## Sobre a Holding

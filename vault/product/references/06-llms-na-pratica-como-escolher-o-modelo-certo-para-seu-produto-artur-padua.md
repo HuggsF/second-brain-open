@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 06_LLMs_na_pr_tica_como_escolher_o_modelo_certo_para_seu_produto_-_Artur_Padua.pptx Microsoft PowerPoint
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1FLKVPisXyS2Rfuw2Ng5sgz8ujVUXmzRH` | **SHA-256:** `a013b90b997829c02c68c803f5c9eb5f8bbc0cdf66d3381db125b22e1bdde0b5`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1FLKVPisXyS2Rfuw2Ng5sgz8ujVUXmzRH
+source_sha256: a013b90b997829c02c68c803f5c9eb5f8bbc0cdf66d3381db125b22e1bdde0b5
+original_file: 06_LLMs_na_pr_tica_como_escolher_o_modelo_certo_para_seu_produto_-_Artur_Padua.pptx Microsoft PowerPoint
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 06_LLMs_na_pr_tica_como_escolher_o_modelo_certo_para_seu_produto_-_Artur_Padua.pptx Microsoft PowerPoint
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `06_LLMs_na_pr_tica_como_escolher_o_modelo_certo_para_seu_produto_-_Artur_Padua.pptx Microsoft PowerPoint`
 - **Identificador no Drive:** `1FLKVPisXyS2Rfuw2Ng5sgz8ujVUXmzRH`
 - **Tamanho do Texto Extraído:** 26191 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/06_LLMs_na_pr_tica_como_escolher_o_modelo_certo_para_seu_produto_-_Artur_Padua.txt`
 
 ---
 
@@ -30,7 +32,6 @@ Trajetória:
 Head of AI Product Management
 Artur Ferreira Padua
 linkedin.com/in/artur-padua
-
 
 --- PÁGINA 3 ---
 02. 
@@ -79,7 +80,6 @@ Praticar e testar
 sempre.
 Aproveitar o boom de 
 novas ferramentas.
-
 
 --- PÁGINA 6 ---
 Kevin Weil

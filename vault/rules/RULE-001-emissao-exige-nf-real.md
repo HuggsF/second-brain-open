@@ -2,7 +2,7 @@
 id: RULE-001
 title: Toda nova emissão de etiqueta exige NF real
 status: active
-source: vault/systems/protecoes-processamento-emissao-hub.md:45
+source: vault/systems/protecoes-processamento-emissao-hub.md:50
 domain: logistica
 ---
 
@@ -18,4 +18,4 @@ Toda nova emissão exige NF com número positivo, série, chave de 44 dígitos n
 
 ## Playbooks que a validam
 
-PB-001 (suíte automatizada do Hub) e PB-002 (emissão bloqueada sem NF real). As execuções ficam no registro local e se consultam com `cli.py evidence RULE-001` ou pela ferramenta MCP `get_rule_evidence`.
+PB-001 (suíte automatizada do Hub) e PB-002 (emissão bloqueada sem NF real). Os protocolos gerais PB-004 (resiliência), PB-005 (carga e estresse), PB-006 (sagas e outbox) e PB-007 (disaster recovery) também declaram validá-la. As execuções ficam no registro local e se consultam com `cli.py evidence RULE-001` ou pela ferramenta MCP `get_rule_evidence`.

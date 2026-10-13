@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Backlog da análise do Hub Logístico
 
 ## Consolidação do diário de bordo — 08/10/2026
@@ -17,7 +22,6 @@ Próximas ações: reconciliar as 14 remessas com contrato de retificação J&T 
 Relatório privado por registro: [comparativo Bling/hub/J&T](C:/KIOSK/hub-logistico/.deploy-state/nota-reconciliacao-detalhada.private.json). [Resumo de deploy, testes e rollback](C:/KIOSK/hub-logistico/.deploy-state/nota-final-results.json). Chaves individuais e PDFs ficam privados; a issue externa contém somente resumo agregado.
 
 Memória relacionada: [[hub-producao]], [[hub-homologacao]], [[deploy-validacao-hub-2026-10-08]], [[backlog-analise-hub-logistico]]. Os registros anteriores abaixo são históricos.
-
 
 Data: 2026-10-08
 Status: implementação local parcial; pendências no radar
@@ -104,7 +108,6 @@ Aceite: teste de resposta perdida e crash após emissão comprova reconciliaçã
 npm test executado em 2026-10-08: quatro cenários aprovados em tests/suite_duplicidade.test.js, SQLite em memória e chamadas externas simuladas. Isso não mede cobertura total nem valida concorrência, cancelamento, contrato Corpem ou múltiplos volumes.
 Referências: [[investigacao-duplicidade-etiquetas]], [[implantacao-instancia-homologacao]], [[bling-api-v3-especificacao-pedidos]], [[radar-demandas]].
 
-
 ## Implementação local em 2026-10-08
 
 Ajustes autorizados por Hugo na branch fix/fila-rastreios-hml, sem deploy.
@@ -154,10 +157,8 @@ Documentação detalhada e evidências sanitizadas na branch fix/fila-rastreios-
 
 Issue: https://github.com/userTI10/hub-logistico/issues/10. Procedimento e diagnóstico: [[rate-limiting-bling-producao]].
 
-
 ## Integração e validação em produção — 08/10/2026
 PRs #1/#9/#11 integradas; SHA 1111ea15 implantado em produção e HML. 26 testes npm, três ensaios Python e CI Node 18/20 aprovados. DEM-09/10/11/15 têm proteções implantadas; DEM-11 seed/guarda HML comprovados por testes e ambiente pausado. Lease e reconciliação do processing4532, validade/conector e reconciliação automática continuam pendentes. Corpem e volumes não foram definidos por presunção. DEM-16 continua alta: 13 429 em cinco minutos posteriores, quota por conta ainda não implementada. Rollback HML exercitado e banco preservado; produção permanece ativa após verificação. [[deploy-validacao-hub-2026-10-08]].
-
 
 ## Atualização — PR #13 e auditoria fiscal, 08/10/2026
 

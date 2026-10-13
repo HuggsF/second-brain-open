@@ -1,4 +1,9 @@
-# 🛡️ Governança de Prompts, Structured Outputs & Segurança de IA
+---
+type: product
+status: active
+date: 2026-10-13
+---
+# Governança de Prompts, Structured Outputs & Segurança de IA
 
 > **Padrão de Engenharia de Prompts e Defesa em Profundidade**  
 > **Framework:** Sophia Faria & Fabrício Carraro (PM3 AI Product Specialist)  

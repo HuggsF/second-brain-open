@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Second Brain — evolução local do frontend
 Data: 2026-10-08 · KIOSK Brands · escopo local.
 

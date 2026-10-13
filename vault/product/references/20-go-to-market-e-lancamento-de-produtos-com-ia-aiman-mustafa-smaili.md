@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 20_Go-to-Market_e_Lan_amento_de_Produtos_com_IA_-_Aiman_Mustafa_Smaili.pptx Microsoft PowerPoint
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1JMm2Dr5JN52cC-PVFBQPOFyMhZz5mfvu` | **SHA-256:** `5a2fccadb202282a16ebf06a36216181964019a18cde1406b852ea8c1881bc3a`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1JMm2Dr5JN52cC-PVFBQPOFyMhZz5mfvu
+source_sha256: 5a2fccadb202282a16ebf06a36216181964019a18cde1406b852ea8c1881bc3a
+original_file: 20_Go-to-Market_e_Lan_amento_de_Produtos_com_IA_-_Aiman_Mustafa_Smaili.pptx Microsoft PowerPoint
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 20_Go-to-Market_e_Lan_amento_de_Produtos_com_IA_-_Aiman_Mustafa_Smaili.pptx Microsoft PowerPoint
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `20_Go-to-Market_e_Lan_amento_de_Produtos_com_IA_-_Aiman_Mustafa_Smaili.pptx Microsoft PowerPoint`
 - **Identificador no Drive:** `1JMm2Dr5JN52cC-PVFBQPOFyMhZz5mfvu`
 - **Tamanho do Texto Extraído:** 17392 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/20_Go-to-Market_e_Lan_amento_de_Produtos_com_IA_-_Aiman_Mustafa_Smaili.txt`
 
 ---
 
@@ -31,7 +33,6 @@ Inteligência Itaú), FIAP e Alura.
 AI Product Manager Specialist
 Aiman Mustafa
 linkedin.com/in/aimansmaili/
-
 
 --- PÁGINA 3 ---
 Conteúdo desta aula
@@ -59,7 +60,6 @@ Planejando o
 go-to-market de 
 funcionalidades 
 GenAI
-
 
 --- PÁGINA 4 ---
 Conteúdo desta aula

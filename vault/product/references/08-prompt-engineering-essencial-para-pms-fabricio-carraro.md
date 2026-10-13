@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 08_Prompt_Engineering_essencial_para_PMs_-_Fabr_cio_Carraro.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1XKj6zuAhKVngbpRr7apq3aF1meUXB7AQ` | **SHA-256:** `66c8b698403e230cdd62c3618257cc964894f739df160c1c5c41e01fae4457ed`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1XKj6zuAhKVngbpRr7apq3aF1meUXB7AQ
+source_sha256: 66c8b698403e230cdd62c3618257cc964894f739df160c1c5c41e01fae4457ed
+original_file: 08_Prompt_Engineering_essencial_para_PMs_-_Fabr_cio_Carraro.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 08_Prompt_Engineering_essencial_para_PMs_-_Fabr_cio_Carraro.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `08_Prompt_Engineering_essencial_para_PMs_-_Fabr_cio_Carraro.pdf`
 - **Identificador no Drive:** `1XKj6zuAhKVngbpRr7apq3aF1meUXB7AQ`
 - **Tamanho do Texto Extraído:** 6496 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/08_Prompt_Engineering_essencial_para_PMs_-_Fabr_cio_Carraro.txt`
 
 ---
 
@@ -23,7 +25,6 @@
 Prompt Engineering
 essencial para PMs
 Fabrício Carraro
-
 
 --- PÁGINA 2 ---
 Autor do livro "Inteligência Artificial e 
@@ -45,7 +46,6 @@ de Prompt?
 Princípios para a 
 criação de um 
 prompt ideal
-
 
 --- PÁGINA 5 ---
 Você precisa escrever um texto para um post de Instagram sobre Inteligência 

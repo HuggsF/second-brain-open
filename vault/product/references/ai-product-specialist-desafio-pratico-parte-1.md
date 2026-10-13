@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: AI_Product_Specialist_Desafio_pr_tico_-_Parte_1.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `12tvaabroVEK4zNCIvhT95Od7OruQfXhm` | **SHA-256:** `f1d7678363222211538fd9a5c5735ad653b27f023ce23b61764d5b4e9131eb5d`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 12tvaabroVEK4zNCIvhT95Od7OruQfXhm
+source_sha256: f1d7678363222211538fd9a5c5735ad653b27f023ce23b61764d5b4e9131eb5d
+original_file: AI_Product_Specialist_Desafio_pr_tico_-_Parte_1.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: AI_Product_Specialist_Desafio_pr_tico_-_Parte_1.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `AI_Product_Specialist_Desafio_pr_tico_-_Parte_1.pdf`
 - **Identificador no Drive:** `12tvaabroVEK4zNCIvhT95Od7OruQfXhm`
 - **Tamanho do Texto Extraído:** 5917 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/AI_Product_Specialist_Desafio_pr_tico_-_Parte_1.txt`
 
 ---
 
@@ -22,7 +24,6 @@
 --- PÁGINA 1 ---
 .AI PRODUCT SPECIALIST
 DESAFIO PRÁTICO
-
 
 --- PÁGINA 2 ---
 O desaﬁo prático da Formação AI Product Specialist é composto por 3 partes, que você pode realizar ao 

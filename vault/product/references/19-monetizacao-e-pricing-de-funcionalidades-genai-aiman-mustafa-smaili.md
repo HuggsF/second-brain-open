@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 19_Monetiza_o_e_Pricing_de_funcionalidades_GenAI_-_Aiman_Mustafa_Smaili.pptx Microsoft PowerPoint
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `11ynMHD_0aNaJcGcPhytHz4ZJ9uDfg5a1` | **SHA-256:** `719922ddb18b78051e251c8db24f801069838f02f5bd5b1c2faba5106fee0d72`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 11ynMHD_0aNaJcGcPhytHz4ZJ9uDfg5a1
+source_sha256: 719922ddb18b78051e251c8db24f801069838f02f5bd5b1c2faba5106fee0d72
+original_file: 19_Monetiza_o_e_Pricing_de_funcionalidades_GenAI_-_Aiman_Mustafa_Smaili.pptx Microsoft PowerPoint
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 19_Monetiza_o_e_Pricing_de_funcionalidades_GenAI_-_Aiman_Mustafa_Smaili.pptx Microsoft PowerPoint
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `19_Monetiza_o_e_Pricing_de_funcionalidades_GenAI_-_Aiman_Mustafa_Smaili.pptx Microsoft PowerPoint`
 - **Identificador no Drive:** `11ynMHD_0aNaJcGcPhytHz4ZJ9uDfg5a1`
 - **Tamanho do Texto Extraído:** 15356 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/19_Monetiza_o_e_Pricing_de_funcionalidades_GenAI_-_Aiman_Mustafa_Smaili.txt`
 
 ---
 
@@ -31,7 +33,6 @@ Inteligência Itaú), FIAP e Alura.
 AI Product Manager Specialist
 Aiman Mustafa
 linkedin.com/in/aimansmaili/
-
 
 --- PÁGINA 3 ---
 Conteúdo desta aula
@@ -52,7 +53,6 @@ Modelos de
 monetização em 
 IA
 
-
 --- PÁGINA 4 ---
 Conteúdo desta aula
 02. 
@@ -71,7 +71,6 @@ de IA
 Modelos de 
 monetização em 
 IA
-
 
 --- PÁGINA 5 ---
 Qual é o melhor modelo para

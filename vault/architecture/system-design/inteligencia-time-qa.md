@@ -1,10 +1,12 @@
-# 🧪 Base de Inteligência Técnica: Agente & Time QA
+---
+type: architecture
+status: intelligence
+date: 2026-10-12
+---
+# Base de Inteligência Técnica: Agente & Time QA
 
 > **Origem do Conhecimento:** *Descomplicando System Design* — Conteúdo Principal (Days 11, 14, 21, 24, 28).  
-> **Objetivo:** Fornecer chunks estruturados de testes de carga, concorrência, confiabilidade e auditoria para o time de QA.  
-> **Status:** `#status/intelligence` | **Data:** 2026-10-12
-
----
+> **Objetivo:** Fornecer chunks estruturados de testes de carga, concorrência, confiabilidade e auditoria para o time de QA.
 
 ## 1. Pirâmide de Testes de Carga & Estresse (Day 24)
 
@@ -71,7 +73,7 @@ Estágio 6: Soak / Endurance Test (6h-24h) ─────► Caçar vazamentos 
 
 ---
 
-## 🤖 Seção MBA Full Cycle — IA Generativa Aplicada ao Time QA
+## Seção MBA Full Cycle — IA Generativa Aplicada ao Time QA
 
 > **Origem:** MBA Full Cycle — Engenharia de Software com IA 2026 (Módulos 06-08, 06-09)  
 > **Data de Adição:** 2026-10-12
@@ -132,4 +134,3 @@ O MBA Full Cycle ensina um pipeline completo de avaliação de prompts com métr
   - [ ] Conformidade com engineering guidelines
   - [ ] Performance dentro dos SLOs
 - *Ação:* Adicionar checklist de validação como gate obrigatório antes de merge de código gerado por IA.
-

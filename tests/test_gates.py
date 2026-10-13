@@ -12,19 +12,17 @@ from core.gates import (
 
 class TestQualityGates(unittest.TestCase):
     def test_grounding_gate_with_real_adr(self):
+        import hashlib
+        from config import settings
         gate = GroundingGate()
-        # ADR-006 existe e tem hash conhecido (bytes CRLF no disco, como fixa o .gitattributes)
-        payload = {
-            "citations": [
-                {
-                    "document": "adrs/ADR-006-implementacao-flowlogger-observabilidade-semaforos.md",
-                    "sha256": "e7fc880557cfc7d75ba7bb48122728c50e84da93c10a66e1981f37bdbefd43f5",
-                }
-            ]
-        }
-        result = gate.evaluate(payload)
+        # Hash dos bytes atuais do ADR-006 (CRLF no disco): fixar o valor quebrava o teste a cada edição da nota.
+        document = "adrs/ADR-006-implementacao-flowlogger-observabilidade-semaforos.md"
+        digest = hashlib.sha256((settings.vault_dir / document).read_bytes()).hexdigest()
+        result = gate.evaluate({"citations": [{"document": document, "sha256": digest}]})
         assert result.passed is True
         assert result.semaphore == Semaphore.GREEN
+        stale = gate.evaluate({"citations": [{"document": document, "sha256": "0" * 64}]})
+        assert stale.passed is False
 
 
     def test_grounding_gate_rejects_hallucinated_document(self):

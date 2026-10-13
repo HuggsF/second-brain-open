@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Observabilidade pós-deploy do Hub Logístico
 
 Data: 2026-10-08. Implantado em HML e produção; observação aprovada com alerta de 429. Resultado e evidências em deploy-validacao-2026-10-08.md.
@@ -41,6 +46,5 @@ A observação curta não substitui métricas contínuas, alertas ou reconcilia�
 ## Evidência remota nesta sessão
 
 MCP autenticado ao SRV-API; /healthz interno e público validado em ambos os ambientes na revisão 1111ea15eb9c67a6a17ef78c47cff0793a5f6dc6. Produção ativa e HML pausada. PM2 save executado após estabilidade. Erros 429 geraram aviso e a fila progrediu sem novas falhas ou inconsistências; ver deploy-validacao-2026-10-08.md.
-
 
 Estado efetivo e política de rollback: [[deploy-validacao-hub-2026-10-08]], [[hub-producao]], [[hub-homologacao]].

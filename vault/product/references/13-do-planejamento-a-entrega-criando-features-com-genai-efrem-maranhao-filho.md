@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 13_Do_planejamento_entrega_criando_features_com_GenAI_-_frem_Maranh_o_Filho.pptx_1_.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `13s2vLoUEYXzG63C2oWdYM0hFXjrSaHq9` | **SHA-256:** `d54c987aa01444a58f656e86b3ab49b832223d14364645f5fc38b9cdb2568456`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 13s2vLoUEYXzG63C2oWdYM0hFXjrSaHq9
+source_sha256: d54c987aa01444a58f656e86b3ab49b832223d14364645f5fc38b9cdb2568456
+original_file: 13_Do_planejamento_entrega_criando_features_com_GenAI_-_frem_Maranh_o_Filho.pptx_1_.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 13_Do_planejamento_entrega_criando_features_com_GenAI_-_frem_Maranh_o_Filho.pptx_1_.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `13_Do_planejamento_entrega_criando_features_com_GenAI_-_frem_Maranh_o_Filho.pptx_1_.pdf`
 - **Identificador no Drive:** `13s2vLoUEYXzG63C2oWdYM0hFXjrSaHq9`
 - **Tamanho do Texto Extraído:** 4722 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/13_Do_planejamento_entrega_criando_features_com_GenAI_-_frem_Maranh_o_Filho.pptx_1_.txt`
 
 ---
 
@@ -56,7 +58,6 @@ Conteúdo desta aula
 --- PÁGINA 4 ---
 Do MVP ao 
 Produto final
-
 
 --- PÁGINA 5 ---
 Analisar o comportamento das 

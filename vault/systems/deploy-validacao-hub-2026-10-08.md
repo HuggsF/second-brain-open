@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Validação do deploy — 08/10/2026
 
 ## Consolidação do diário de bordo — 08/10/2026
@@ -18,7 +23,6 @@ Relatório privado por registro: [comparativo Bling/hub/J&T](C:/KIOSK/hub-logist
 
 Memória relacionada: [[hub-producao]], [[hub-homologacao]], [[deploy-validacao-hub-2026-10-08]], [[backlog-analise-hub-logistico]]. Os registros anteriores abaixo são históricos.
 
-
 ## Atualização — PR #13 e auditoria fiscal, 08/10/2026
 
 Revisão corrente de produção e HML: 3cf7250afe30931a54621093638e1b0f76f64169. PR #13 integrada com CI Node 18/20; 36 cenários JavaScript e 3 testes Python aprovados localmente, npm test também aprovado nos releases Linux isolados. HML permanece com worker/emissão bloqueados e lojas desligadas. Produção ativa, só Espírito Santo automática, HTTP interno/público saudáveis e bancos íntegros; PM2 persistido. Arquivos de produção conferidos por manifesto sem divergência.
@@ -36,7 +40,6 @@ Rollback pronto: sudo -n python3 /home/ti-kiosk/hub-deploy/deploy-control.py rol
 Evidências locais: C:/KIOSK/hub-logistico/.deploy-state/nota-final-results.json; nota-cross-audit.private.json; nota-pdf-all-results.private.json; PDFs em nota-labels.private. Esses arquivos não foram publicados. Esta atualização substitui os registros anteriores para o estado corrente.
 
 ## Histórico da implantação anterior (12:06 de Brasília)
-
 
 As PRs [#1](https://github.com/userTI10/hub-logistico/pull/1), [#9](https://github.com/userTI10/hub-logistico/pull/9) e [#11](https://github.com/userTI10/hub-logistico/pull/11) foram integradas. Produção e homologação receberam 1111ea15eb9c67a6a17ef78c47cff0793a5f6dc6 pelo pacote Git exportado e transferido via SSH. SHA-256 do tar: 728c4fd7cc3c7ab5471eeb862bd97ed82c916ad30a28bfd23b74fed0c2b05593. Os 49 arquivos do manifesto de cada ambiente conferiram, sem divergência.
 
@@ -78,6 +81,5 @@ Quota/cooldown por conta, OAuth single-flight e retomada por etapa: DEM-16. Recu
 HML recebeu atualização manual controlada; HEAD local foi alinhado ao SHA implantado. Existem diferenças de final de linha em Git (sem diferença de conteúdo ao ignorar EOL); o manifesto do pacote confere integralmente. A branch remota hml ainda está em b288985: promover a revisão por PR antes de executar novamente o workflow HML, para evitar retorno à revisão anterior. Pipeline de produção automático não foi criado.
 
 Evidências: evidencias/deploy-comparacao-janelas-2026-10-08.json, deploy-prod-observacao-final-2026-10-08.json, deploy-prod-health-final-2026-10-08.json e deploy-hml-health-2026-10-08.json. Logs PM2 por offset desde preparação incluem três 429 anteriores à troca; para atribuição pós-deploy usar os eventos SQLite por horário/id, sem somar as duas fontes.
-
 
 Memória relacionada: [[hub-producao]], [[hub-homologacao]], [[post-deploy-observabilidade-hub]], [[rate-limiting-bling-producao]].

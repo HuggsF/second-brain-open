@@ -1,10 +1,9 @@
+---
+type: adr
+status: Aceito
+date: 2026-10-12
+---
 # ADR-012: Adoção de Padrões Arquiteturais de System Design para os 4 Agentes Especialistas
-
-## Status
-Aceito
-
-## Data
-2026-10-12
 
 ## Contexto
 O ecossistema de software e inteligência operacional da KIOSK Brands (Hub Logístico, integrações Bling v3, Touti Cosmetics, SAP, Salesforce e o próprio Second Brain) lida com desafios crescentes de escala, concorrência distribuída, limites de vazão de APIs parceiras (*rate limiting*) e tolerância a falhas. 

@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 10_Usando_RAGs_para_potencializar.pptx.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1FJqlnadNeCcD4gxkEb27fsG2DqOnJsLc` | **SHA-256:** `5ee026051c5db87b338e80dcb5572d60cabc59b73c622510d93d818259e55b81`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1FJqlnadNeCcD4gxkEb27fsG2DqOnJsLc
+source_sha256: 5ee026051c5db87b338e80dcb5572d60cabc59b73c622510d93d818259e55b81
+original_file: 10_Usando_RAGs_para_potencializar.pptx.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 10_Usando_RAGs_para_potencializar.pptx.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `10_Usando_RAGs_para_potencializar.pptx.pdf`
 - **Identificador no Drive:** `1FJqlnadNeCcD4gxkEb27fsG2DqOnJsLc`
 - **Tamanho do Texto Extraído:** 9685 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/10_Usando_RAGs_para_potencializar.pptx.txt`
 
 ---
 
@@ -24,7 +26,6 @@ Usando RAGs para
 potencializar sua 
 entrega de valor
 Juliano Oliveira
-
 
 --- PÁGINA 2 ---
 Itaú-Unibanco

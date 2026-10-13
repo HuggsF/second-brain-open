@@ -1,9 +1,12 @@
-# ⚡ Eixo 3: Sistemas Distribuídos, Eventos & Concorrência
+---
+type: architecture
+status: reference
+date: 2026-10-13
+---
+# Eixo 3: Sistemas Distribuídos, Eventos & Concorrência
 
 > **Módulos de Origem:** Day 11 (Princípios de Concorrência e Paralelismo), Day 13 (Comunicação Assíncrona - Mensageria, Eventos e Streaming), Day 18 (CQRS), Day 19 (Saga Pattern), Day 20 (Event Sourcing Pattern).  
-> **Status:** `#status/reference` | **Agentes Beneficiados:** `🤖 DEV` e `🤖 PRODUTO / ARQUITETURA`
-
----
+> **Agentes Beneficiados:** `🤖 DEV` e `🤖 PRODUTO / ARQUITETURA`
 
 ## 1. Concorrência vs Paralelismo & Primitivas de Sincronização
 

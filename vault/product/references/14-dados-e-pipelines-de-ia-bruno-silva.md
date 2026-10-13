@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 14_Dados_e_Pipelines_de_IA_-_Bruno_Silva.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1qLNOCr4jpQLpdS_aK93K_kOhkTrfcl2x` | **SHA-256:** `91cf52f99f391b532a8c661a1d37591bcc05342eed343c5f9bc4f991a49ab721`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1qLNOCr4jpQLpdS_aK93K_kOhkTrfcl2x
+source_sha256: 91cf52f99f391b532a8c661a1d37591bcc05342eed343c5f9bc4f991a49ab721
+original_file: 14_Dados_e_Pipelines_de_IA_-_Bruno_Silva.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 14_Dados_e_Pipelines_de_IA_-_Bruno_Silva.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `14_Dados_e_Pipelines_de_IA_-_Bruno_Silva.pdf`
 - **Identificador no Drive:** `1qLNOCr4jpQLpdS_aK93K_kOhkTrfcl2x`
 - **Tamanho do Texto Extraído:** 19448 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/14_Dados_e_Pipelines_de_IA_-_Bruno_Silva.txt`
 
 ---
 
@@ -32,7 +34,6 @@ Loft > Unico > Ume
 Principal PM
 Bruno Ricardo
 linkedin.com/in/brunorsilva
-
 
 --- PÁGINA 3 ---
 02. 

@@ -1,17 +1,22 @@
-# 📮 Postman Collection: Hub Logístico & Integrações
+---
+type: system
+status: active
+date: 2026-10-09
+---
+# Postman Collection: Hub Logístico & Integrações
 
 Esta coleção do Postman foi estruturada para permitir o teste unitário de cada requisição individual das APIs do **Hub Logístico**, **Bling ERP v3** e **J&T Express**, sem depender do fluxo completo automatizado.
 
 ---
 
-## 📁 Arquivos Gerados no Repositório
+## Arquivos Gerados no Repositório
 
 * **Collection (v2.1.0):** [`hub-logistico/postman/Hub_Logistico_API.postman_collection.json`](file:///C:/KIOSK/hub-logistico/postman/Hub_Logistico_API.postman_collection.json)
 * **Environment (HML):** [`hub-logistico/postman/Hub_Logistico_HML.postman_environment.json`](file:///C:/KIOSK/hub-logistico/postman/Hub_Logistico_HML.postman_environment.json)
 
 ---
 
-## 📂 Estrutura das Pastas da Collection
+## Estrutura das Pastas da Collection
 
 ### 1. `Hub Logístico (APIs do Hub)`
 Permite testar o comportamento do servidor em Homologação (`https://hub-hml.touticosmetics.com.br`):
@@ -42,7 +47,7 @@ Permite disparar chamadas diretas para a API oficial do Bling com token OAuth2:
 
 ---
 
-## 🚀 Como Importar no Postman:
+## Como Importar no Postman:
 
 1. Abra o **Postman**.
 2. Clique no botão **Import** (canto superior esquerdo).

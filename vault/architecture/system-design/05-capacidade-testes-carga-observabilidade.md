@@ -1,9 +1,12 @@
-# 📊 Eixo 5: Capacidade, Testes de Carga & Observabilidade
+---
+type: architecture
+status: reference
+date: 2026-10-13
+---
+# Eixo 5: Capacidade, Testes de Carga & Observabilidade
 
 > **Módulos de Origem:** Day 14 (Performance, Capacidade e Escalabilidade), Day 23 (Capacity Planning), Day 24 (Testes de Carga e Estresse), Day 28 (Observabilidade e Monitoramento).  
-> **Status:** `#status/reference` | **Agentes Beneficiados:** `🤖 QA` e `🤖 DEVOPS`
-
----
+> **Agentes Beneficiados:** `🤖 QA` e `🤖 DEVOPS`
 
 ## 1. Capacity Planning & Modelagem Matemática de Filas
 

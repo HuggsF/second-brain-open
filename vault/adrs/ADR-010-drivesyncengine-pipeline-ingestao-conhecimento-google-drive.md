@@ -1,10 +1,10 @@
+---
+type: adr
+scope: second-brain
+status: Aceito
+date: 2026-10-12
+---
 # ADR-010: DriveSyncEngine — Pipeline Automatizado de Ingestão de Conhecimento via Google Drive
-
-## Status
-Aceito
-
-## Data
-2026-10-12
 
 ## Contexto
 O Second Brain precisa de um mecanismo robusto e reutilizável para sincronizar documentos de produto e formação do Google Drive para o Vault local, garantindo rastreabilidade de conteúdo (SHA-256), extração textual automática (PDF, PPTX, DOCX, TXT, imagens) e atualização do grafo de conhecimento. Anteriormente, a ingestão era feita manualmente, copiando arquivos e criando notas no Vault sem integridade verificável.

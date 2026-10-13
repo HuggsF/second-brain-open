@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 16_Guardrails_Seguran_a_e_Prote_o_do_Usu_rio_na_pr_tica_-_Juliana_Ara_jo.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1JLVBHps99SwbMvoxDv5Kr-1WlugBjny_` | **SHA-256:** `edff9323e77097d54980414328cbb6367e685c736b40c377513d4746d974a6a5`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1JLVBHps99SwbMvoxDv5Kr-1WlugBjny_
+source_sha256: edff9323e77097d54980414328cbb6367e685c736b40c377513d4746d974a6a5
+original_file: 16_Guardrails_Seguran_a_e_Prote_o_do_Usu_rio_na_pr_tica_-_Juliana_Ara_jo.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 16_Guardrails_Seguran_a_e_Prote_o_do_Usu_rio_na_pr_tica_-_Juliana_Ara_jo.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `16_Guardrails_Seguran_a_e_Prote_o_do_Usu_rio_na_pr_tica_-_Juliana_Ara_jo.pdf`
 - **Identificador no Drive:** `1JLVBHps99SwbMvoxDv5Kr-1WlugBjny_`
 - **Tamanho do Texto Extraído:** 12700 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/16_Guardrails_Seguran_a_e_Prote_o_do_Usu_rio_na_pr_tica_-_Juliana_Ara_jo.txt`
 
 ---
 

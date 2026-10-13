@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 02_Medindo_e_provando_resultado_de_produtos_com_IA_-_Lucca_Kazan.pdf
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1sWyya8MSqaB-j15tH0rkU1s0Konxx0lB` | **SHA-256:** `254e4a3d177c2fc04881fd2be82be7d29b9d5d52b183aef936dda153476df1ac`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1sWyya8MSqaB-j15tH0rkU1s0Konxx0lB
+source_sha256: 254e4a3d177c2fc04881fd2be82be7d29b9d5d52b183aef936dda153476df1ac
+original_file: 02_Medindo_e_provando_resultado_de_produtos_com_IA_-_Lucca_Kazan.pdf
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 02_Medindo_e_provando_resultado_de_produtos_com_IA_-_Lucca_Kazan.pdf
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `02_Medindo_e_provando_resultado_de_produtos_com_IA_-_Lucca_Kazan.pdf`
 - **Identificador no Drive:** `1sWyya8MSqaB-j15tH0rkU1s0Konxx0lB`
 - **Tamanho do Texto Extraído:** 10464 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/02_Medindo_e_provando_resultado_de_produtos_com_IA_-_Lucca_Kazan.txt`
 
 ---
 
@@ -59,7 +61,6 @@ métricas
 
 --- PÁGINA 4 ---
 Introdução
-
 
 --- PÁGINA 5 ---
 AI é probabilística

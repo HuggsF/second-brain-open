@@ -1,18 +1,20 @@
-# 📚 Referência de Produto: 05_Arquiteturas_de_IA_e_Modelos_Multimodais_-_Fabr_cio_Carraro.pptx Microsoft PowerPoint
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `1dS9MwDHJ_WMJpI0p8Wa9uAS2ADQu2y_c` | **SHA-256:** `70a6835c092d56e9468178fbc934d6f7dba244e63ad8748679f53ea4e0267543`  
-> **Status:** `#status/reference` | **Data de Ingestão:** 2026-10-12  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
 ---
+type: reference
+status: reference
+date: 2026-10-12
+source: Google Drive (AI Product Specialist)
+drive_file_id: 1dS9MwDHJ_WMJpI0p8Wa9uAS2ADQu2y_c
+source_sha256: 70a6835c092d56e9468178fbc934d6f7dba244e63ad8748679f53ea4e0267543
+original_file: 05_Arquiteturas_de_IA_e_Modelos_Multimodais_-_Fabr_cio_Carraro.pptx Microsoft PowerPoint
+provenance: Extraído automaticamente pelo DriveSyncEngine
+---
+# Referência de Produto: 05_Arquiteturas_de_IA_e_Modelos_Multimodais_-_Fabr_cio_Carraro.pptx Microsoft PowerPoint
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `05_Arquiteturas_de_IA_e_Modelos_Multimodais_-_Fabr_cio_Carraro.pptx Microsoft PowerPoint`
 - **Identificador no Drive:** `1dS9MwDHJ_WMJpI0p8Wa9uAS2ADQu2y_c`
 - **Tamanho do Texto Extraído:** 25872 caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/05_Arquiteturas_de_IA_e_Modelos_Multimodais_-_Fabr_cio_Carraro.txt`
 
 ---
 
@@ -25,14 +27,12 @@ IA e Modelos
 Multimodais
 Fabrício Carraro
 
-
 --- PÁGINA 2 ---
  
 
 --- PÁGINA 3 ---
 Arquiteturas de 
 Deep Learning
-
 
 --- PÁGINA 4 ---
 Modelos com múltiplas camadas (redes neurais profundas) 
