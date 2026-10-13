@@ -28,6 +28,7 @@ function el(tag, attrs, ...children) {
   if (v==null || v===false) continue;
   if (k==='class') node.className=v;
   else if (k==='text') node.textContent=v;
+  else if (k==='style') node.style.cssText=String(v); // CSSOM: the BFF CSP (style-src 'self') drops style attributes
   else if (k.startsWith('on') && typeof v==='function') node.addEventListener(k.slice(2),v);
   else if (k==='value') node.value=v;
   else if (k==='checked') node.checked=!!v;
