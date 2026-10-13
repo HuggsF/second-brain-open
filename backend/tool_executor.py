@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tool Executor — Ponte entre o Orquestrador e as ferramentas MCP/Qdrant/SSH.
 
 Cada ferramenta é exposta como uma função async que retorna um dict com resultado.
@@ -36,7 +36,7 @@ _READ_ONLY = {
 async def search_knowledge(query: str, category: str = None) -> dict:
     """Busca vetorial no Qdrant."""
     retriever = BrainRetriever()
-    result = retriever.query(query, limit=5, category=category)
+    result = retriever.query(query, limit=5, category=category, include_content=True)
     sources = result.get("sources", [])
     return {
         "tool": "search_knowledge_base",
@@ -44,10 +44,11 @@ async def search_knowledge(query: str, category: str = None) -> dict:
         "total": len(sources),
         "sources": [
             {
-                "document": s.get("document", ""),
-                "section": s.get("section", ""),
+                "document": s.get("file_path") or "",
+                "title": s.get("doc_title") or "",
+                "section": s.get("section") or "",
                 "score": round(s.get("score", 0), 3),
-                "excerpt": (s.get("content", "") or "")[:200],
+                "excerpt": (s.get("content") or "")[:200],
             }
             for s in sources
         ],
@@ -89,7 +90,7 @@ async def list_rules_with_evidence() -> dict:
                 {
                     "id": r.get("id", ""),
                     "title": r.get("title", ""),
-                    "status": r.get("last_result", "unknown"),
+                    "status": r.get("state", "unknown"),  # "state" from evidence.list_rules() (fix: was "last_result")
                 }
                 for r in rules[:10]
             ],
