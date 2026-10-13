@@ -1,9 +1,14 @@
 ---
 type: adr
-status: proposed
+scope: second-brain
+status: Proposto
 date: 2026-10-13
+related: [ADR-013, ADR-014]
 ---
 # ADR-016: Adoção de Padrões de UX e Design System para Interfaces KIOSK
+
+> Esta ADR trata do próprio repositório `second-brain` (skill em `.agents/skills/` e `dashboard/DESIGN.md`);
+> os princípios valem também para as demais interfaces KIOSK.
 
 ## Contexto
 
@@ -24,6 +29,11 @@ Uma análise de discovery do produto **UX Engine** (designmotionhq.com) revelou 
 
 Issues abertas no frontend: UX-01 (navegação por relação), UX-02 (troca de vista com zero resultados), MOB-01, A11Y-01.
 
+## Alternativas Consideradas
+- **Adotar o UX Engine (designmotionhq.com):** cobre as 8 capacidades, mas cria dependência de vendor e roda em
+  Claude Code, enquanto a equipe usa Antigravity/Gemini.
+- **Seguir sem padrão formal:** custo zero, mas mantém as lacunas da tabela acima e a inconsistência entre telas e sessões.
+
 ## Decisão
 
 Adotar formalmente 8 princípios de UX como **skill de agente** e documentar o **design system** do Second Brain Dashboard:
@@ -34,7 +44,7 @@ Adotar formalmente 8 princípios de UX como **skill de agente** e documentar o *
 
 3. **Os 8 princípios** (Intent Discovery, Information Hierarchy, State Completeness, Form UX, Feedback & Affordance, UX Auditor, Design System, Visual Character) devem ser consultados antes de qualquer modificação de interface.
 
-4. **Não comprar ferramentas externas** neste momento. Os conceitos são universais e foram internalizados como skills próprios, evitando dependência de vendor e incompatibilidade de plataforma (UX Engine é Claude Code, nós usamos Antigravity/Gemini).
+4. **Não comprar ferramentas externas** neste momento: os conceitos foram internalizados como skills próprios (ver Alternativas Consideradas).
 
 ## Consequências
 
@@ -45,12 +55,11 @@ Adotar formalmente 8 princípios de UX como **skill de agente** e documentar o *
 - Custo zero (skill internalizado)
 - Base para futuro time de produto/design
 
-### Negativas
+### Desafios / Riscos
 - Overhead inicial de leitura do DESIGN.md a cada sessão (mitigado por progressive disclosure do Antigravity)
 - Skill precisa ser mantido atualizado quando tokens mudarem
 - Não substitui designer real para decisões de produto complexas
 
-### Riscos
 - Agente pode ser excessivamente rígido ao aplicar regras (mitigação: skill usa linguagem flexível, não mandatória)
 - DESIGN.md pode ficar desatualizado se tokens CSS mudarem sem atualizar o doc (mitigação: incluir no checklist de PR)
 

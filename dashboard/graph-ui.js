@@ -43,7 +43,7 @@ function render(main,U){
   inspector.append(tabs);
   const body=el('div',{class:'inspector-content'});inspector.append(body);
   const ref=item.document||item.source_file;
-  if(tab==='source'){body.append(button('Abrir fonte completa →',()=>U.openDoc(ref),'primary'));const doc=G.documents[ref];body.append(el('p',{class:'legend-note'},doc?doc.text.slice(0,420)+'…':'Fonte indisponível.'));return;}
+  if(tab==='source'){body.append(button('Abrir fonte completa →',()=>U.openDoc(ref),'primary'));const doc=G.documents[ref];body.append(el('p',{class:'legend-note'},doc?C.stripFrontmatter(doc.text).slice(0,420)+'…':'Fonte indisponível.'));return;}
   if(tab==='summary'){
    if(selectedEdge){body.append(el('p',{},'De '+G.nodes.find(n=>n.id===item.source).label+' para '+G.nodes.find(n=>n.id===item.target).label+'. Esta direção é a relação curada no catálogo.'));}
    else {body.append(el('p',{},'Domínio: '+(domainNames[item.domain]||item.domain)+'. '+(item.issues?.length?item.issues.length+' pendências vinculadas.':'Sem pendências vinculadas no catálogo.')));}

@@ -4,7 +4,7 @@
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
-const pages = {workflows:['🔀','Workflows de IA'],agents:['⚡','Agentes em Ação'],architecture:['🏛','System Design'],observability:['◉','Observabilidade'],product:['🎯','Produto & OKRs'],overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],graph:['◎','Grafo'],teams:['⚙','Times'],queries:['⌕','Consultas']};
+const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],nexus:['🏢','Nexus Office']};
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
 const categories = {all:'Todas as fontes',architecture:'Arquitetura · System Design',playbooks:'Playbooks',systems:'Sistemas',adrs:'Decisões · ADRs',product:'Produto',domain:'Domínio',daily:'Memória diária',general:'Geral'};
 let storageOK = true, noticeTimer;
@@ -40,6 +40,16 @@ function el(tag, attrs, ...children) {
 function button(text, action, cls='') {return el('button',{type:'button',class:cls,onclick:action},text);}
 function badge(text, cls='') {return el('span',{class:'pill '+cls},text);}
 function empty(title,description,action) {return el('div',{class:'empty'},el('h2',{},title),el('p',{},description),action||null);}
+function confirmAction({title,description,confirmLabel}) {
+ // Modal <dialog>; focus starts on Cancel and Esc cancels, so a stray Enter never confirms.
+ return new Promise(resolve=>{
+  const box=el('dialog',{class:'confirm-dialog','aria-labelledby':'confirm-title','aria-describedby':'confirm-description'});
+  const cancel=button('Cancelar',()=>box.close('cancel'),'subtle');
+  box.append(el('h2',{id:'confirm-title'},title),el('p',{id:'confirm-description'},description),el('div',{class:'action-row'},cancel,button(confirmLabel,()=>box.close('confirm'),'danger')));
+  box.addEventListener('close',()=>{resolve(box.returnValue==='confirm');box.remove();});
+  document.body.append(box);box.showModal();cancel.focus();
+ });
+}
 function notify(message) {
  $('notice').textContent=message; $('notice').classList.add('visible');
  clearTimeout(noticeTimer); noticeTimer=setTimeout(()=>$('notice').classList.remove('visible'),6000);
@@ -50,6 +60,7 @@ function persist() {
 }
 function readRoute() {
  const p=new URLSearchParams(location.hash.slice(1)), r=Object.fromEntries(p);
+ if(r.page==='agents')r.page='workflows'; // "Agentes em Ação" was a second entry for the same Arena
  r.page=Object.hasOwn(pages,r.page)?r.page:'overview';
  r.view=(dataOK?G.views:[]).some(v=>v.id===r.view)?r.view:(dataOK?G.views[0].id:'flow');
  r.q=(r.q||'').slice(0,500);
@@ -174,7 +185,7 @@ function overview(main){
  const next=el('section',{class:'panel'},panelTitle('Prepare a próxima evolução','Conhecimento → contexto → decisão'));
  const checklist=[['✓','Fontes verificáveis','Hashes, linhas e relações acompanham cada consulta.'],['✓','Planos de agentes','Modele dependências, papéis, ferramentas e orçamento.'],['→','Backend GraphRAG e execução','Contratos definidos; API, SSE e execução ainda não conectados.']];
  next.append(el('div',{class:'progress-list'},...checklist.map(([mark,title,description])=>el('div',{class:'progress-item'},el('span',{class:'progress-mark'},mark),el('div',{},el('strong',{},title),el('p',{},description))))));
- next.append(el('div',{class:'action-row'},button('Preparar um plano →',()=>navigate({page:'agents'}),'subtle')));
+ next.append(el('div',{class:'action-row'},button('Preparar um plano →',()=>navigate({page:'workflows'}),'subtle')));
  main.append(el('div',{class:'grid-2'},env,next));
 }
 function knowledge(main){
@@ -184,7 +195,7 @@ function knowledge(main){
  const layout=el('div',{class:'knowledge-layout'},el('section',{'aria-label':'Fontes do vault'},count,results),reader);
  function list(){
   results.replaceChildren();
-  let refs=route.q?C.search(G,route.q,{kind:'document',category:route.category,limit:50}):Object.entries(G.documents).filter(([ref])=>route.category==='all'||ref.split('/')[0]===route.category).map(([ref,d])=>({document:ref,label:d.title,snippet:d.text.split(/\r?\n/).find(l=>l.trim()&&!l.startsWith('#'))||'',lineStart:1,lineEnd:1}));
+  let refs=route.q?C.search(G,route.q,{kind:'document',category:route.category,limit:50}):Object.entries(G.documents).filter(([ref])=>route.category==='all'||ref.split('/')[0]===route.category).map(([ref,d])=>({document:ref,label:d.title,snippet:C.stripFrontmatter(d.text).split(/\r?\n/).find(l=>l.trim()&&!l.startsWith('#'))||'',lineStart:1,lineEnd:1}));
   if(route.favorites==='1')refs=refs.filter(r=>saved.favorites.includes(r.document));
   count.textContent=refs.length+' fontes'+(route.q?' encontradas':'')+(route.favorites==='1'?' favoritas':'');
   if(!refs.length){results.append(empty('Nenhuma fonte encontrada','Tente outro termo ou remova os filtros.',button('Limpar filtros',()=>navigate({q:'',category:'all',favorites:null,doc:null}),'subtle')));return;}
@@ -230,12 +241,20 @@ function render(){
  if(route.page==='teams'){if(window.BrainTeams)window.BrainTeams.render(main,api);else main.append(empty('Módulo de times indisponível','Recarregue a página e verifique teams-ui.js.',button('Tentar novamente',()=>location.reload())));}
 
   if(route.page==='queries'){if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de consultas indisponível','Recarregue a página e verifique workbench.js.',button('Tentar novamente',()=>location.reload())));}
-  if(route.page==='agents'||route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='nexus'){
+    main.append(head('NEXUS OFFICE','Escritório de agentes em tempo real.','Agentes executando tarefas reais com busca vetorial, queries SQL e aprovação humana.',[
+      button('Abrir em nova aba ↗',()=>window.open('http://127.0.0.1:5173','_blank'),'subtle')
+    ]));
+    const frame=el('iframe',{src:'http://127.0.0.1:5173',style:'width:100%;height:calc(100vh - 180px);border:none;border-radius:8px;background:#0a0a0a;'});
+    frame.onerror=()=>{frame.replaceWith(empty('Nexus não está rodando','Inicie o servidor: .venv\\Scripts\\python.exe -m backend.ws_server e cd nexus && npm run dev',button('Tentar novamente',()=>render())));};
+    main.append(frame);
+  }
  if(route.page==='knowledge'&&route.doc&&!route.section&&matchMedia('(max-width:650px)').matches)requestAnimationFrame(()=>{const reader=main.querySelector('.reader');reader?.focus({preventScroll:true});reader?.scrollIntoView({block:'start'});});
  $('snapshot-label').textContent='Snapshot '+G.snapshot_id.slice(0,8)+' · '+formatDate(G.built_at);
  if(!storageOK)notify('Persistência indisponível. Alterações permanecem apenas nesta sessão.');
 }
-const api={el,button,badge,empty,notify,persist,navigate,update,head,panelTitle,select,exportJSON,copy,documentTitle,openDoc,renderReader,row,formatDate,graph:G,core:C,markdown:M,saved,categories,evidence,get route(){return route;}};
+const api={el,button,badge,empty,confirmAction,notify,persist,navigate,update,head,panelTitle,select,exportJSON,copy,documentTitle,openDoc,renderReader,row,formatDate,graph:G,core:C,markdown:M,saved,categories,evidence,get route(){return route;}};
 window.BrainUI=api;
 document.querySelector('.skip').addEventListener('click',e=>{e.preventDefault();$('main').focus();$('main').scrollIntoView({block:'start'});});
 window.addEventListener('hashchange',()=>{if(location.hash==='#main')return;render();$('main').focus({preventScroll:true});if(!route.section)window.scrollTo({top:0});});

@@ -106,6 +106,13 @@ class BffWorkflowRouteTests(unittest.TestCase):
         self.assertEqual(self.status('/api/workflow/unknown', 'POST', b'{}', post), 404)
         self.assertFalse(self.api.audit_file.exists())
 
+    def test_refusal_with_unread_body_arrives_as_http_status(self):
+        # Answering before reading the body made Windows reset the socket (ConnectionAbortedError).
+        body = b'{"agent": "' + b'x' * 60000 + b'"}'
+        for _ in range(10):
+            self.assertEqual(self.status('/api/workflow/execute-step', 'POST', body, {'Origin': 'https://evil.example', 'Content-Type': 'application/json'}), 403)
+            self.assertEqual(self.status('/api/workflow/execute-step', 'POST', body, {'Origin': self.origin, 'Content-Type': 'application/json'}), 401)
+
 
 class DashboardServeTests(unittest.TestCase):
     def setUp(self):
@@ -145,6 +152,11 @@ class DashboardServeTests(unittest.TestCase):
             self.assertEqual(self.call('/api/workflow/execute-step', 'POST', b'{}', headers)[0], 403)
         self.assertEqual(self.call('/api/workflow/execute-step', 'OPTIONS')[0], 405)
         self.assertFalse(self.api.audit_file.exists())
+
+    def test_refusal_with_unread_body_arrives_as_http_status(self):
+        body = b'{"agent": "' + b'x' * 60000 + b'"}'
+        for _ in range(10):
+            self.assertEqual(self.call('/api/workflow/execute-step', 'POST', body, {'Origin': 'https://evil.example', 'Content-Type': 'application/json'})[0], 403)
 
 
 if __name__ == '__main__':

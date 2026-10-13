@@ -31,6 +31,7 @@
   --panel:      #18201b;   /* Superfície de cards */
   --panel2:     #1d2720;   /* Superfície elevada */
   --border:     #334038;   /* Bordas e divisores */
+  --field-border: #65736a; /* Contorno de campos, ≥ 3:1 */
   --text:       #edf3ed;   /* Texto primário */
   --muted:      #aab9ae;   /* Texto secundário */
   --accent:     #b8f37b;   /* Cor de destaque (verde limão) */
@@ -54,6 +55,7 @@
   --panel:      #fff;
   --panel2:     #f1f5ee;
   --border:     #c6d2c4;
+  --field-border: #7e9080;
   --text:       #1b291e;
   --muted:      #4c6251;
   --accent:     #39671f;
@@ -139,20 +141,23 @@ h3   { font-size: 16px; line-height: 1.5; }
 
 ## 5. Bordas e Arredondamento
 
-```css
-/* Border radius scale */
---r-xs:   4px;    /* Código, tags pequenas */
---r-sm:   8px;    /* Inputs, textareas */
---r-md:   9px;    /* Botões, nav items */
---r-lg:   10px;   /* Cards de resultado, small panels */
---r-xl:   14px;   /* Painéis principais */
---r-2xl:  16px;   /* Dialogs */
---r-pill: 20px;   /* Pills, badges */
---r-full: 9999px; /* Botões circulares (icon-button) */
-```
+Escala usada no CSS. São valores literais: ainda não há variáveis de raio em `:root`.
+
+| Raio | Uso |
+|---|---|
+| 4px | Código, tags pequenas |
+| 8px | Inputs, textareas |
+| 9px | Botões, nav items |
+| 10px | Cards de resultado, painéis pequenos |
+| 14px | Painéis principais |
+| 16px | Dialogs |
+| 20px | Pills, badges |
+| 9999px | Botões circulares (icon-button) |
 
 ### Bordas
-- Cor padrão: `var(--border)` (#334038 dark, #c6d2c4 light)
+- Divisores e superfícies: `var(--border)` (#334038 dark, #c6d2c4 light). É decorativo: 1,5:1 contra o painel.
+- Contorno de campos (input, select, textarea): `var(--field-border)` (#65736a dark, #7e9080 light), ≥ 3:1 contra
+  `--bg`, `--panel` e `--panel2` (WCAG 1.4.11).
 - Largura: 1px solid
 - Active/selected: `var(--accent)` com stroke-width 2.5
 
@@ -185,6 +190,7 @@ dialog::backdrop { background: #08100acf; backdrop-filter: blur(4px); }
 | Active | `.active` | `--panel2` | `--accent` | `--accent` |
 | Icon | `.icon-button` | transparent | — | `--text` |
 | Disabled | `:disabled` | — | — | opacity 0.7 |
+| Danger | `.danger` | transparent | `--danger` | `--danger` |
 
 Todos: min-height 42px, border-radius 9px, font-weight 550
 
@@ -225,13 +231,20 @@ Todos: min-height 42px, border-radius 9px, font-weight 550
 /* Variantes: .warn (border --warn), .error (border+color --danger) */
 ```
 
+### Confirmação de ação destrutiva
+
+Use `U.confirmAction({title, description, confirmLabel})` (em `app.js`), que devolve uma Promise<boolean>.
+Abre um `<dialog>` modal com foco inicial em **Cancelar**; Esc cancela; o botão de confirmação usa `.danger`.
+Obrigatório para tudo que apaga dado persistido (disco ou navegador); o gate `destructive_confirm` em
+`dashboard/tests/ux-gates.test.cjs` verifica.
+
 ### Inputs
 
 ```css
 input, select, textarea {
   background: var(--bg);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid var(--field-border);
   border-radius: 8px;
   padding: 10px 12px;
   min-height: 44px;
@@ -275,8 +288,8 @@ input, select, textarea {
 ## 9. Acessibilidade
 
 - **Focus visible**: outline 3px solid `--accent`, offset 4px
-- **Skip link**: Pula para `#content`
-- **Reduced motion**: Remove todas as transitions
+- **Skip link**: Pula para `#main`
+- **Reduced motion**: Remove transitions e animations (inclusive as da Arena)
 - **Min touch target**: 42-44px em todos os interativos
 - **sr-only**: Classe disponível para texto oculto visualmente
 - **Contraste mínimo**: 4.5:1 para texto, 3:1 para elementos grandes

@@ -2,6 +2,7 @@
 import base64
 import json
 import os
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Literal, Optional
@@ -19,6 +20,49 @@ PIN = ROOT / '.runtime' / 'known_hosts'
 EXPECTED = '3cf7250afe30931a54621093638e1b0f76f64169'
 mcp = FastMCP('Hub observations (read only)')
 mcp.add_middleware(TraceMiddleware('Hub observations (read only)'))
+
+# --- PM2 read-only tools: validation and helpers ---
+
+_PM2_APP_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$')
+_PM2_MAX_LINES = 500
+
+
+def _valid_pm2_app_name(name: str) -> bool:
+    """Validates a PM2 app name against a strict allowlist pattern."""
+    return bool(name and _PM2_APP_RE.match(name))
+
+
+def _clamp_lines(n: int) -> int:
+    """Clamps line count to [1, _PM2_MAX_LINES]."""
+    return max(1, min(int(n), _PM2_MAX_LINES))
+
+
+def _ssh_exec(command: str) -> str:
+    """Opens an SSH session to the server, runs one command and returns stdout.
+    Raises RuntimeError on any failure. Reuses the same host-key pin,
+    credentials and timeouts as observe_hub."""
+    client = paramiko.SSHClient()
+    try:
+        client.load_host_keys(str(PIN))
+        client.set_missing_host_key_policy(paramiko.RejectPolicy())
+        key = paramiko.RSAKey.from_private_key_file(
+            os.getenv('SRV_API_KEY_PATH', r'C:\KIOSK\SRV-API_key.pem'))
+        client.connect(
+            os.getenv('SRV_API_HOST', '191.233.18.195'),
+            port=int(os.getenv('SRV_API_PORT', '22')),
+            username=os.getenv('SRV_API_USER', 'ti-kiosk'),
+            pkey=key, timeout=10,
+            banner_timeout=10, auth_timeout=10,
+            allow_agent=False, look_for_keys=False)
+        _, stdout, _ = client.exec_command(command, timeout=30)
+        data = stdout.read(256 * 1024 + 1)
+        if len(data) > 256 * 1024:
+            raise ValueError('Oversized response')
+        return data.decode('utf-8')
+    except Exception:
+        raise RuntimeError('SSH_UNAVAILABLE') from None
+    finally:
+        client.close()
 
 
 def command_for(environment):
@@ -89,6 +133,44 @@ def observe_hub(environment: Literal['production','hml'], task_id: Optional[str]
         raise RuntimeError('OBSERVATION_SOURCE_UNAVAILABLE') from None
     finally:
         client.close()
+
+
+@mcp.tool()
+def pm2_status(task_id: Optional[str] = None) -> list:
+    """Lists all PM2 processes on the server (read-only). Returns JSON array with name, status, cpu, memory and pm_id for each process. Task_id: optional label that groups this call with others of the same task."""
+    raw = _ssh_exec('sudo -n pm2 jlist')
+    try:
+        processes = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        raise RuntimeError('PM2_INVALID_RESPONSE') from None
+    if not isinstance(processes, list):
+        raise RuntimeError('PM2_INVALID_RESPONSE')
+    # Return only safe, observable fields — never env vars or config.
+    safe = []
+    for p in processes:
+        if not isinstance(p, dict):
+            continue
+        env = p.get('pm2_env') or {}
+        monit = p.get('monit') or {}
+        safe.append({
+            'pm_id': p.get('pm_id'),
+            'name': p.get('name'),
+            'status': env.get('status'),
+            'restarts': env.get('restart_time'),
+            'uptime': env.get('pm_uptime'),
+            'memory': monit.get('memory'),
+            'cpu': monit.get('cpu'),
+        })
+    return safe
+
+
+@mcp.tool()
+def pm2_logs(app_name: str, lines: int = 100, task_id: Optional[str] = None) -> str:
+    """Reads the last N lines of a PM2 app log (read-only, max 500). app_name must match a running process name (e.g. 'hub', 'api-jt-bling'). Task_id: optional label that groups this call with others of the same task."""
+    if not _valid_pm2_app_name(app_name):
+        raise RuntimeError(f'INVALID_APP_NAME: "{app_name}" rejected by validation')
+    safe_lines = _clamp_lines(lines)
+    return _ssh_exec(f'sudo -n pm2 logs {app_name} --lines {safe_lines} --nostream')
 
 
 if __name__ == '__main__':

@@ -40,4 +40,12 @@ class BuildTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.run_build()
         edge['target']='a';self.data['edges']=[edge,dict(edge)]
         with self.assertRaises(ValueError):self.run_build()
+    def test_title_skips_frontmatter_comments(self):
+        (self.root/'vault/adrs').mkdir()
+        (self.root/'vault/adrs/ADR-001-x.md').write_bytes(b'---\r\ntype: adr\r\n# scope: second-brain\r\n---\r\n# ADR-001: Real\r\n')
+        (self.root/'vault/_templates').mkdir()
+        (self.root/'vault/_templates/adr.md').write_bytes(b'---\r\ntype: adr\r\n# scope: second-brain\r\n---\r\n# ADR-{NNN}: Modelo\r\n')
+        data=self.run_build()
+        self.assertEqual(data['documents']['adrs/ADR-001-x.md']['title'],'ADR-001: Real')
+        self.assertEqual(data['templates'][0]['title'],'ADR-{NNN}: Modelo')
 if __name__=='__main__':unittest.main()

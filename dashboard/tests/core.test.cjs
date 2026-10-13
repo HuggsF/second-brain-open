@@ -163,3 +163,8 @@ test('UMD funciona no browser sem rede/eval e strings não confiáveis permanece
   assert.equal(hits[0].label, '<script>alert(1)</script>');
   assert.equal(core.search(null, 'test').length, 0);
 });
+test('stripFrontmatter removes only a leading YAML block, so snippets start at the note body', () => {
+    assert.equal(core.stripFrontmatter('---\r\ntype: adr\r\n# scope: x\r\n---\r\n# Title\r\nBody'), '# Title\r\nBody');
+    assert.equal(core.stripFrontmatter('# Title\n\n---\nnot: frontmatter\n---\n'), '# Title\n\n---\nnot: frontmatter\n---\n');
+    assert.equal(core.stripFrontmatter('---\nunterminated: yes\n'), '---\nunterminated: yes\n');
+});

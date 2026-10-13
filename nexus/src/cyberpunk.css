@@ -1,0 +1,1335 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEXUS — CYBERPUNK THEME  v2.0
+   Carregado APÓS office.css — sobrescreve via cascata.
+   Fontes: Orbitron (display) · Share Tech Mono (terminal) · Rajdhani (UI labels)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── @property: border animado GPU-accelerated ──────────────────────────── */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* ── Tokens de design ───────────────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  /* Fundos */
+  --void:       #05050a;
+  --panel:      #0d0b1a;
+  --card:       #12111a;
+  --surface2:   #1e1b2e;
+
+  /* Neon primários */
+  --cyan:       #00f0ff;
+  --cyan-dim:   #008b94;
+  --cyan-ice:   #43fbff;
+  --aqua:       #00ffcc;
+
+  /* Neon secundários */
+  --magenta:    #ff007f;
+  --magenta-hi: #ff3d94;
+  --crimson:    #ff0055;
+
+  /* Neon terciários */
+  --violet:     #a78bfa;
+  --violet-deep:#7000ff;
+  --violet-dark:#7c3aed;
+
+  /* Amber / warning */
+  --amber:      #ffe600;
+  --amber-dim:  #ffb703;
+
+  /* Verde status */
+  --green:      #39ff14;
+  --green-dim:  #00ff66;
+
+  /* Texto */
+  --ink:        #f0f2f5;
+  --ink-dim:    #e0e6ed;
+  --muted:      #94a3b8;
+  --ghost:      #8c92a4;
+
+  /* Fontes */
+  --font-display: 'Orbitron', sans-serif;
+  --font-mono:    'Share Tech Mono', 'JetBrains Mono', monospace;
+  --font-ui:      'Rajdhani', 'Inter', sans-serif;
+
+  /* Glows */
+  --glow-cyan-sm: 0 0 8px rgba(0,240,255,0.35), 0 0 16px rgba(0,240,255,0.15);
+  --glow-cyan-md: 0 0 15px rgba(0,240,255,0.5), 0 0 35px rgba(0,240,255,0.25), 0 0 60px rgba(0,240,255,0.08);
+  --glow-violet-sm: 0 0 8px rgba(167,139,250,0.4), 0 0 20px rgba(167,139,250,0.15);
+  --glow-magenta-sm: 0 0 8px rgba(255,0,127,0.4), 0 0 20px rgba(255,0,127,0.15);
+  --glow-green-sm: 0 0 8px rgba(57,255,20,0.45), 0 0 20px rgba(57,255,20,0.2);
+  --glow-amber-sm: 0 0 8px rgba(255,230,0,0.45), 0 0 20px rgba(255,230,0,0.2);
+
+  /* Scanline overlay */
+  --scanline: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    rgba(0,240,255,0.012) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+}
+
+/* ── Reset base cyberpunk ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--void);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+::selection { color: #fff; background: rgba(0,240,255,0.25); }
+
+button:focus-visible, input:focus-visible,
+textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+/* ── Scanlines overlay global ───────────────────────────────────────────── */
+.office-app::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background:
+    linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.18) 50%),
+    linear-gradient(90deg,
+      rgba(255,0,0,0.025),
+      rgba(0,255,0,0.012),
+      rgba(0,0,255,0.025)
+    );
+  background-size: 100% 4px, 5px 100%;
+  opacity: 0.55;
+}
+
+/* Scanline sweep animada */
+.office-app::after {
+  content: '';
+  position: fixed;
+  top: -30%;
+  left: 0;
+  right: 0;
+  height: 30%;
+  pointer-events: none;
+  z-index: 9998;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0,240,255,0.03) 50%,
+    transparent
+  );
+  animation: scanMove 10s linear infinite;
+}
+
+@keyframes scanMove {
+  0%   { top: -30%; }
+  100% { top: 110%; }
+}
+
+/* ── App shell ──────────────────────────────────────────────────────────── */
+.office-app {
+  background: var(--void);
+  background-image:
+    radial-gradient(ellipse at 15% 0%, rgba(112,0,255,0.1) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 95%, rgba(0,240,255,0.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,0,127,0.03) 0%, transparent 60%);
+  position: relative;
+}
+
+/* ── Grid de fundo holográfico no office-floor ──────────────────────────── */
+.office-floor {
+  position: relative;
+  border: 1px solid rgba(0,240,255,0.12);
+  border-radius: 4px;
+  background: var(--panel);
+  box-shadow: var(--glow-cyan-sm);
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(112,0,255,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(0,240,255,0.06) 0%, transparent 40%),
+    linear-gradient(rgba(0,240,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+  animation: gridDrift 15s linear infinite;
+  overflow: hidden;
+}
+
+@keyframes gridDrift {
+  0%   { background-position: 0 0, 0 0, 0 0,   0 0; }
+  100% { background-position: 0 0, 0 0, 0 60px, 60px 0; }
+}
+
+/* Corte angular no office-floor: sem border-radius arredondado */
+.office-floor::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: none;
+  border-top: 1px solid rgba(0,240,255,0.2);
+  border-left: 1px solid rgba(0,240,255,0.1);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 20px,
+    100% 100%,
+    20px 100%,
+    0 calc(100% - 20px)
+  );
+}
+
+/* ── App header ─────────────────────────────────────────────────────────── */
+.app-header {
+  border-bottom: 1px solid rgba(0,240,255,0.12);
+  background: rgba(13,11,26,0.85);
+  backdrop-filter: blur(14px);
+}
+
+/* ── Brand / Logo ───────────────────────────────────────────────────────── */
+.brand strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 0 20px rgba(0,240,255,0.4);
+}
+
+.brand-period { color: var(--cyan) !important; }
+
+.brand small {
+  font-family: var(--font-mono) !important;
+  letter-spacing: 3px !important;
+  color: var(--cyan-dim) !important;
+  font-size: 9px !important;
+}
+
+.brand-mark {
+  background: linear-gradient(135deg, var(--violet-dark), var(--cyan-dim));
+  border-radius: 8px;
+  box-shadow: var(--glow-cyan-sm);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.btn {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--violet-dark) 0%, #6d28d9 100%);
+  border: 1px solid rgba(167,139,250,0.4);
+  color: #fff;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  box-shadow: var(--glow-violet-sm);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed 0%, var(--cyan-dim) 200%);
+  box-shadow: var(--glow-cyan-md);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+.btn-secondary {
+  font-family: var(--font-mono);
+  color: var(--muted);
+  background: var(--card);
+  border-color: rgba(167,139,250,0.2);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.btn-secondary:hover:not(:disabled) {
+  color: var(--cyan);
+  border-color: rgba(0,240,255,0.35);
+  background: rgba(0,240,255,0.06);
+  box-shadow: var(--glow-cyan-sm);
+}
+
+/* ── Tabs ───────────────────────────────────────────────────────────────── */
+.workspace-tabs {
+  border-bottom: 1px solid rgba(0,240,255,0.1);
+}
+.tab {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--ghost);
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.tab:hover { color: var(--cyan); }
+.tab-active {
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0,240,255,0.6);
+}
+.tab-active::after {
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  box-shadow: 0 0 8px var(--cyan);
+}
+
+/* ── Rooms — clip-path angular ──────────────────────────────────────────── */
+.room {
+  border: 1px solid rgba(0,240,255,0.1);
+  border-radius: 2px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(167,139,250,0.04);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    14px 100%,
+    0 calc(100% - 14px)
+  );
+}
+
+.room:hover {
+  border-color: rgba(0,240,255,0.25);
+  box-shadow: var(--glow-cyan-sm);
+}
+
+.room::after {
+  background: var(--panel);
+  border-radius: 0;
+}
+
+/* Room tints */
+.room-research     { background: rgba(0,240,255,0.025); }
+.room-development  { background: rgba(57,255,20,0.02); }
+.room-writing      { background: rgba(255,0,127,0.025); }
+.room-meeting      { background: rgba(167,139,250,0.03); }
+.room-orchestrator { background: rgba(112,0,255,0.04); }
+
+/* Room status — ambient glow */
+.room.status-working  {
+  border-color: rgba(57,255,20,0.3);
+  box-shadow: var(--glow-green-sm), inset 0 0 20px rgba(57,255,20,0.04);
+}
+.room.status-thinking {
+  border-color: rgba(167,139,250,0.35);
+  box-shadow: var(--glow-violet-sm), inset 0 0 20px rgba(167,139,250,0.05);
+}
+.room.status-waitingApproval {
+  border-color: rgba(255,230,0,0.4);
+  box-shadow: var(--glow-amber-sm), inset 0 0 20px rgba(255,230,0,0.04);
+}
+.room.status-done {
+  border-color: rgba(0,240,255,0.35);
+  box-shadow: var(--glow-cyan-sm), inset 0 0 20px rgba(0,240,255,0.04);
+}
+
+/* Room lights — neon indicators */
+.room-light {
+  background: var(--surface2);
+  box-shadow: 0 0 4px rgba(0,240,255,0.2);
+  border-radius: 50%;
+}
+.room.status-working      .room-light { background: var(--green);   box-shadow: 0 0 10px var(--green),   0 0 22px rgba(57,255,20,0.35);   animation: neonLightPulse 2s ease-in-out infinite; }
+.room.status-thinking     .room-light { background: var(--violet);  box-shadow: 0 0 10px var(--violet),  0 0 22px rgba(167,139,250,0.35); animation: neonLightPulse 2.5s ease-in-out infinite; }
+.room.status-waitingApproval .room-light { background: var(--amber); box-shadow: 0 0 10px var(--amber), 0 0 22px rgba(255,230,0,0.35);   animation: neonLightPulse 1.5s ease-in-out infinite; }
+.room.status-done         .room-light { background: var(--cyan);    box-shadow: 0 0 10px var(--cyan),   0 0 22px rgba(0,240,255,0.35); }
+
+@keyframes neonLightPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(0.85); }
+}
+
+/* Room headings */
+.room-number {
+  font-family: var(--font-mono);
+  border-color: rgba(0,240,255,0.15);
+  background: rgba(0,240,255,0.06);
+  color: var(--cyan);
+}
+.room-title {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.room-description { color: var(--ghost); }
+
+/* Window strip holographic */
+.window-strip {
+  border-color: rgba(0,240,255,0.15);
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0,240,255,0.04) 0 24px,
+    rgba(0,240,255,0.1) 24px 25px
+  );
+}
+
+/* ── Desk & Furniture — cyberpunk dark tech ─────────────────────────────── */
+.desk {
+  border-color: #2d2447;
+  background: linear-gradient(180deg, #1a1330 0%, #14102a 100%);
+  box-shadow: 0 3px 0 #0d0a1a, 0 6px 8px rgba(0,0,0,0.35), 0 0 15px rgba(0,240,255,0.04);
+}
+.desk::before, .desk::after { background: #252040; }
+
+.desk-monitor {
+  border-color: #1e1b3a;
+  background: linear-gradient(135deg, #1a0a3a, #0a1a2a);
+  box-shadow: 0 0 14px rgba(0,240,255,0.18), 0 2px 0 #0d0a1a;
+}
+.desk-monitor::after {
+  background: var(--cyan);
+  box-shadow: 0 5px var(--violet);
+  opacity: 0.45;
+}
+.room-development .desk-monitor { background: linear-gradient(135deg, #0a1a3a, #0a2a1a); }
+.room-development .desk-monitor::after { background: var(--green); box-shadow: 5px 5px var(--cyan); }
+.room-writing .desk-monitor { background: linear-gradient(135deg, #2a0a1a, #1a0a2a); }
+.room-writing .desk-monitor::after { background: var(--magenta); box-shadow: 0 5px var(--magenta); opacity: 0.3; }
+.room-orchestrator .desk { border-color: #2d1a47; background: linear-gradient(180deg, #1a0d30 0%, #140f2a 100%); }
+
+.desk-keyboard {
+  border-color: #2a2545;
+  background: repeating-linear-gradient(90deg, #1a1530 0 3px, #252040 3px 4px);
+}
+.desk-chair  { border-color: #2d2555; background: #1e1840; box-shadow: 0 2px 0 #0d0a1a; }
+.desk-chair::after { background: #15102a; }
+.room-development .desk-chair { background: #152030; border-color: #1a3040; }
+.room-writing     .desk-chair { background: #2a1520; border-color: #3a1a25; }
+.room-orchestrator .desk-chair { background: #1a1540; border-color: #2a1a55; }
+
+.desk-item { border-color: #252040; background: #1a1530; box-shadow: 2px 2px 0 #0d0a1a; }
+.desk-item::after { background: #3d3560; }
+.desk-item + .desk-item { border-color: rgba(0,240,255,0.25); background: rgba(0,240,255,0.12); }
+.bookshelf  { border-color: #2a2040; background: #1a1530; box-shadow: 2px 2px 0 #0d0a1a; }
+.shelf-book { background: rgba(0,240,255,0.2); }
+.shelf-book:nth-child(2n) { background: rgba(167,139,250,0.3); }
+.shelf-book:nth-child(3n) { background: rgba(255,0,127,0.25); }
+
+.plant-pot { background: #1a1530; border-color: #2a2040; }
+.plant-pot::after { background: #252040; }
+.plant-leaf { background: rgba(57,255,20,0.28); border-color: rgba(57,255,20,0.38); }
+.plant-leaf:nth-child(3) { background: rgba(57,255,20,0.33); }
+
+.meeting-table {
+  border-color: #2a2545;
+  background: linear-gradient(180deg, #151030 0%, #110d25 100%);
+  box-shadow: 0 3px 0 #0d0a1a, 0 0 18px rgba(0,240,255,0.06);
+}
+.meeting-table::before { border-color: #2a2050; background: rgba(167,139,250,0.15); }
+.meeting-table::after  { border-color: rgba(0,240,255,0.25); background: rgba(0,240,255,0.1); }
+.meeting-seat { border-color: #2a2550; background: #1a1540; }
+
+/* ── Walkway ────────────────────────────────────────────────────────────── */
+.floor-walkway {
+  background: var(--panel);
+  color: var(--surface2);
+  font-family: var(--font-mono);
+  letter-spacing: 3px;
+  font-size: 9px;
+}
+.floor-walkway::before, .floor-walkway::after { background: rgba(0,240,255,0.1); }
+.floor-entry { border-color: rgba(0,240,255,0.12); background: var(--panel); color: var(--ghost); }
+.floor-entry::after { border-bottom-color: var(--ghost); }
+
+/* ── Agent stations ─────────────────────────────────────────────────────── */
+.agent-button {
+  font-family: var(--font-ui);
+  color: var(--ink-dim);
+  background: rgba(167,139,250,0.03);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.agent-button:hover {
+  border-color: rgba(0,240,255,0.2);
+  background: rgba(0,240,255,0.04);
+  box-shadow: 0 0 12px rgba(0,240,255,0.08);
+}
+.agent-selected {
+  background: rgba(167,139,250,0.07);
+  border-color: rgba(167,139,250,0.3) !important;
+  box-shadow: 0 0 18px rgba(167,139,250,0.1);
+}
+.agent-button.agent-selected::after {
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan);
+  border-radius: 50%;
+}
+
+/* Avatars dark tints */
+.agent-avatar    { background: rgba(167,139,250,0.1); }
+.avatar-manager  { background: rgba(167,139,250,0.12); }
+.avatar-researcher { background: rgba(0,240,255,0.08); }
+.avatar-coder    { background: rgba(57,255,20,0.06); }
+.avatar-writer   { background: rgba(255,0,127,0.08); }
+.avatar-reviewer { background: rgba(167,139,250,0.08); }
+
+.agent-label strong, .agent-label > span:first-child {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--ink);
+}
+.agent-role {
+  font-family: var(--font-mono);
+  color: var(--ghost);
+  letter-spacing: 0.5px;
+  font-size: 10px;
+}
+
+/* ── Status badges — neon ───────────────────────────────────────────────── */
+.status-badge {
+  font-family: var(--font-mono);
+  color: var(--ghost);
+  background: rgba(100,116,139,0.1);
+  letter-spacing: 0.5px;
+}
+.status-badge.status-idle         { color: var(--ghost);   background: rgba(100,116,139,0.1); }
+.status-badge.status-working      { color: var(--green);   background: rgba(57,255,20,0.08);  }
+.status-badge.status-thinking     { color: var(--violet);  background: rgba(167,139,250,0.1); }
+.status-badge.status-waitingApproval { color: var(--amber); background: rgba(255,230,0,0.08); }
+.status-badge.status-done         { color: var(--cyan);    background: rgba(0,240,255,0.08);  }
+
+.status-working  .status-dot,
+.status-thinking .status-dot { animation: status-pulse 2.8s ease-in-out infinite; }
+
+.typing-indicator { color: var(--violet); }
+.progress-track   { background: rgba(167,139,250,0.1); }
+.progress-fill    {
+  background: linear-gradient(90deg, var(--violet), var(--cyan), var(--violet));
+  background-size: 200% 100%;
+  animation: neonGradient 3s linear infinite;
+}
+
+@keyframes neonGradient {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* ── Status legend ──────────────────────────────────────────────────────── */
+.status-legend { font-family: var(--font-mono); color: var(--ghost); font-size: 10px; }
+.status-legend .status-working      { color: var(--green); }
+.status-legend .status-thinking     { color: var(--violet); }
+.status-legend .status-waitingApproval { color: var(--amber); }
+.status-legend .status-done         { color: var(--cyan); }
+
+/* ── Phase indicator ────────────────────────────────────────────────────── */
+.phase-indicator {
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+  background: rgba(0,240,255,0.06);
+  color: var(--cyan);
+  border: 1px solid rgba(0,240,255,0.15);
+}
+
+/* ── Side panel ─────────────────────────────────────────────────────────── */
+.side-panel {
+  background: var(--card);
+  border: 1px solid rgba(0,240,255,0.1);
+  box-shadow: var(--glow-violet-sm);
+  border-radius: 2px;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 16px) 0,
+    100% 16px,
+    100% 100%,
+    0 100%
+  );
+}
+.panel-header {
+  border-bottom: 1px solid rgba(0,240,255,0.08);
+  background: rgba(13,11,26,0.6);
+}
+.panel-header h2, .panel-header h3 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  letter-spacing: 1px;
+  font-size: 12px !important;
+  text-transform: uppercase;
+}
+.panel-header svg { color: var(--ghost); }
+
+.live-indicator {
+  font-family: var(--font-mono);
+  color: var(--green);
+  letter-spacing: 1px;
+}
+.live-indicator::before {
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green), 0 0 3px rgba(57,255,20,0.6);
+}
+
+.activity-stream { scrollbar-color: rgba(0,240,255,0.15) transparent; }
+
+/* ── Log entries ────────────────────────────────────────────────────────── */
+.log-entry { border-bottom-color: rgba(167,139,250,0.06); }
+.log-avatar { background: rgba(167,139,250,0.1); color: var(--violet); border-radius: 4px; }
+.log-avatar.avatar-manager    { color: var(--violet);  background: rgba(167,139,250,0.1); }
+.log-avatar.avatar-researcher { color: var(--cyan);    background: rgba(0,240,255,0.08); }
+.log-avatar.avatar-coder      { color: var(--green);   background: rgba(57,255,20,0.06); }
+.log-avatar.avatar-writer     { color: var(--magenta); background: rgba(255,0,127,0.08); }
+.log-avatar.avatar-reviewer   { color: var(--violet);  background: rgba(167,139,250,0.08); }
+
+.log-meta strong { font-family: var(--font-ui); font-weight: 700; color: var(--ink-dim); }
+.log-meta time, .log-meta > span { font-family: var(--font-mono); color: var(--ghost); }
+.log-message { font-family: var(--font-mono); color: var(--muted); font-size: 11px; }
+.log-entry .section-label { color: var(--cyan); }
+
+.empty-state { color: var(--ghost); }
+.empty-state svg { color: rgba(167,139,250,0.25); }
+.empty-state h3 { color: var(--muted); font-family: var(--font-ui); }
+
+.section-label {
+  font-family: var(--font-mono);
+  color: var(--ghost);
+  letter-spacing: 1.5px;
+  font-size: 9px;
+}
+
+.notice {
+  color: var(--muted);
+  border-color: rgba(167,139,250,0.12);
+  background: rgba(167,139,250,0.03);
+}
+
+/* ── Bottom summary ─────────────────────────────────────────────────────── */
+.bottom-summary {
+  background: var(--card);
+  border: 1px solid rgba(0,240,255,0.1);
+  box-shadow: var(--glow-violet-sm);
+  border-radius: 2px;
+}
+.summary-item { border-right-color: rgba(0,240,255,0.08); }
+.summary-item > svg { color: var(--violet); }
+.summary-value {
+  font-family: var(--font-display);
+  color: var(--ink);
+  text-shadow: 0 0 12px rgba(0,240,255,0.3);
+  font-size: 17px !important;
+  letter-spacing: 0;
+}
+.summary-label { font-family: var(--font-mono); color: var(--ghost); font-size: 10px; }
+
+/* ── Team strip ─────────────────────────────────────────────────────────── */
+.team-button {
+  border-color: rgba(0,240,255,0.1);
+  background: var(--card);
+  border-radius: 2px;
+}
+.team-button:hover {
+  border-color: rgba(0,240,255,0.25);
+  background: rgba(0,240,255,0.03);
+}
+.team-button.agent-selected {
+  border-color: rgba(167,139,250,0.35);
+  background: rgba(167,139,250,0.06);
+}
+.team-avatar { background: rgba(167,139,250,0.1); color: var(--violet); }
+.team-avatar.avatar-researcher { background: rgba(0,240,255,0.08); color: var(--cyan); }
+.team-avatar.avatar-coder      { background: rgba(57,255,20,0.06);  color: var(--green); }
+.team-avatar.avatar-writer     { background: rgba(255,0,127,0.08); color: var(--magenta); }
+.team-info strong { font-family: var(--font-ui); font-weight: 700; color: var(--ink-dim); }
+.team-info span, .team-info small {
+  font-family: var(--font-mono);
+  color: var(--ghost);
+  font-size: 10px;
+}
+
+/* ── Detail panel ───────────────────────────────────────────────────────── */
+.detail-back { color: var(--cyan); font-family: var(--font-mono); }
+.detail-back:hover { color: var(--violet); }
+.detail-heading { border-bottom-color: rgba(0,240,255,0.08); }
+.detail-heading h2, .detail-heading h3 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 14px !important;
+}
+.detail-heading p { font-family: var(--font-mono); color: var(--ghost); }
+
+.detail-metrics .metric {
+  border-color: rgba(0,240,255,0.1);
+  background: rgba(167,139,250,0.03);
+  border-radius: 2px;
+}
+.metric span { font-family: var(--font-mono); color: var(--ghost); font-size: 10px; }
+.metric strong {
+  font-family: var(--font-display);
+  color: var(--violet);
+  text-shadow: 0 0 10px rgba(167,139,250,0.5);
+}
+
+.memory-item {
+  font-family: var(--font-mono);
+  color: var(--muted);
+  background: rgba(167,139,250,0.02);
+  border-color: rgba(0,240,255,0.08);
+  border-radius: 2px;
+}
+.memory-item::before { background: var(--cyan); }
+
+.history-item { border-bottom-color: rgba(0,240,255,0.06); color: var(--muted); }
+.history-item::before { background: var(--violet); }
+.history-item time { font-family: var(--font-mono); color: var(--ghost); }
+
+/* ── Approval banner ────────────────────────────────────────────────────── */
+.approval-banner {
+  background: rgba(255,230,0,0.05);
+  border-color: rgba(255,230,0,0.25);
+  color: var(--amber);
+  border-radius: 2px;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  animation: approvalPulse 2s ease-in-out infinite;
+}
+
+@keyframes approvalPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,230,0,0.2); }
+  50%       { box-shadow: 0 0 20px rgba(255,230,0,0.5), 0 0 40px rgba(255,230,0,0.15); }
+}
+
+.approval-banner .btn {
+  font-family: var(--font-mono);
+  color: var(--amber);
+  border-color: rgba(255,230,0,0.3);
+  background: rgba(255,230,0,0.06);
+}
+.approval-banner .btn:hover {
+  background: rgba(255,230,0,0.12);
+  box-shadow: var(--glow-amber-sm);
+}
+
+/* ── Speech bubbles — HUD terminal style ────────────────────────────────── */
+.speech-bubble {
+  background: rgba(13,11,26,0.95) !important;
+  border: 1px solid rgba(0,240,255,0.3) !important;
+  color: var(--ink) !important;
+  box-shadow: 0 0 18px rgba(0,240,255,0.15), 0 4px 14px rgba(0,0,0,0.5) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 2px !important;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  ) !important;
+}
+
+.bubble-text {
+  font-family: var(--font-mono) !important;
+  color: var(--aqua) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.3px;
+}
+
+.bubble-tail {
+  border-top-color: rgba(13,11,26,0.95) !important;
+  filter: drop-shadow(0 2px 4px rgba(0,240,255,0.2));
+}
+
+/* Bubble variants */
+.bubble-handoff {
+  border-color: rgba(167,139,250,0.4) !important;
+  background: rgba(13,11,26,0.95) !important;
+}
+.bubble-handoff .bubble-text { color: var(--violet) !important; }
+.bubble-handoff .bubble-tail { border-top-color: rgba(13,11,26,0.95) !important; }
+
+.bubble-approval {
+  border-color: rgba(255,230,0,0.4) !important;
+  background: rgba(13,11,26,0.95) !important;
+  animation: approvalPulse 1.5s ease-in-out infinite;
+}
+.bubble-approval .bubble-text { color: var(--amber) !important; }
+.bubble-approval .bubble-tail { border-top-color: rgba(13,11,26,0.95) !important; }
+
+.bubble-celebration {
+  border-color: rgba(57,255,20,0.4) !important;
+  background: rgba(13,11,26,0.95) !important;
+}
+.bubble-celebration .bubble-text { color: var(--green) !important; font-weight: 700 !important; }
+.bubble-celebration .bubble-tail { border-top-color: rgba(13,11,26,0.95) !important; }
+
+/* ── Transfer packets — neon trail ─────────────────────────────────────── */
+.transfer-packet {
+  background: rgba(13,11,26,0.9);
+  border: 1px solid rgba(0,240,255,0.3);
+  border-radius: 2px;
+  filter: drop-shadow(0 0 8px var(--cyan));
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+.transfer-context_share    { background: rgba(57,255,20,0.06);   border-color: rgba(57,255,20,0.3); }
+.transfer-handoff_review   { background: rgba(167,139,250,0.06); border-color: rgba(167,139,250,0.3); }
+
+/* ── Collaboration chips ────────────────────────────────────────────────── */
+.collab-chip {
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  background: rgba(167,139,250,0.06);
+  color: var(--violet);
+  border-color: rgba(167,139,250,0.2);
+  border-radius: 2px;
+}
+.collab-chip.avatar-researcher { background: rgba(0,240,255,0.05); color: var(--cyan);    border-color: rgba(0,240,255,0.2); }
+.collab-chip.avatar-coder      { background: rgba(57,255,20,0.04); color: var(--green);   border-color: rgba(57,255,20,0.2); }
+.collab-chip.avatar-writer     { background: rgba(255,0,127,0.05); color: var(--magenta); border-color: rgba(255,0,127,0.2); }
+.collab-chip.avatar-reviewer   { background: rgba(167,139,250,0.05); color: var(--violet); border-color: rgba(167,139,250,0.2); }
+.collab-chip.avatar-manager    { background: rgba(112,0,255,0.05); color: var(--violet);  border-color: rgba(112,0,255,0.2); }
+
+/* ── Mission strip ──────────────────────────────────────────────────────── */
+.mission-strip {
+  background: rgba(167,139,250,0.03);
+  border-color: rgba(0,240,255,0.1);
+  border-radius: 2px;
+}
+.mission-strip .section-label { color: var(--cyan-dim); }
+.mission-strip p { font-family: var(--font-mono); color: var(--muted); font-size: 11px; }
+.mission-icon { background: rgba(167,139,250,0.08); color: var(--violet); border-radius: 2px; }
+.mission-progress { font-family: var(--font-mono); color: var(--violet); }
+
+/* ── Task dialog ────────────────────────────────────────────────────────── */
+.task-overlay {
+  background: rgba(5,5,10,0.82);
+  backdrop-filter: blur(8px);
+}
+
+.task-dialog {
+  background: var(--card) !important;
+  border: 1px solid rgba(0,240,255,0.2) !important;
+  color: var(--ink) !important;
+  border-radius: 2px !important;
+  box-shadow:
+    0 0 50px rgba(0,240,255,0.12),
+    0 0 100px rgba(112,0,255,0.08) !important;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 20px,
+    100% 100%,
+    20px 100%,
+    0 calc(100% - 20px)
+  );
+}
+
+.task-dialog h2 {
+  font-family: var(--font-display) !important;
+  color: var(--ink) !important;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-size: 18px !important;
+}
+.task-dialog p { font-family: var(--font-mono) !important; color: var(--muted) !important; }
+
+.form-label { font-family: var(--font-mono); color: var(--ghost); letter-spacing: 1px; }
+
+.task-input {
+  background: rgba(167,139,250,0.04) !important;
+  border: 1px solid rgba(0,240,255,0.15) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-mono) !important;
+  border-radius: 2px !important;
+}
+.task-input::placeholder { color: var(--ghost) !important; }
+.task-input:focus { border-color: rgba(0,240,255,0.4) !important; box-shadow: 0 0 12px rgba(0,240,255,0.1) !important; }
+
+.preset {
+  font-family: var(--font-mono);
+  border-color: rgba(167,139,250,0.15);
+  background: rgba(167,139,250,0.03);
+  color: var(--ghost);
+  border-radius: 2px;
+  letter-spacing: 0.3px;
+}
+.preset:hover { color: var(--violet); border-color: rgba(167,139,250,0.35); background: rgba(167,139,250,0.08); }
+
+.dialog-actions { border-top-color: rgba(0,240,255,0.08); }
+
+/* ── Panel footer ───────────────────────────────────────────────────────── */
+.panel-footer {
+  font-family: var(--font-mono);
+  color: var(--ghost);
+  border-top-color: rgba(0,240,255,0.08);
+  background: rgba(13,11,26,0.4);
+}
+
+/* ── Activity indicators ────────────────────────────────────────────────── */
+.activity-working i { background: var(--green); }
+.activity-thinking { color: var(--violet); }
+.activity-done { color: var(--cyan); }
+
+/* ── Floor heading ──────────────────────────────────────────────────────── */
+.floor-heading h1, .floor-heading h2 {
+  font-family: var(--font-display);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.floor-heading p { font-family: var(--font-mono); color: var(--ghost); }
+.floor-heading .section-label {
+  font-family: var(--font-mono);
+  color: var(--cyan-dim);
+  letter-spacing: 3px;
+}
+
+.simulation-badge {
+  font-family: var(--font-mono);
+  background: rgba(167,139,250,0.06);
+  border-color: rgba(167,139,250,0.2);
+  color: var(--violet);
+  letter-spacing: 0.5px;
+}
+
+/* ── Room selected ──────────────────────────────────────────────────────── */
+.room-selected {
+  box-shadow: 0 0 0 1px var(--cyan), var(--glow-cyan-sm) !important;
+  border-color: rgba(0,240,255,0.5) !important;
+}
+
+/* ── Celebration ────────────────────────────────────────────────────────── */
+.is-celebrating .office-floor {
+  box-shadow: 0 0 50px rgba(0,240,255,0.2), 0 0 100px rgba(57,255,20,0.1);
+}
+.confetti-piece {
+  background: hsl(var(--hue, 180), 100%, 60%);
+  border-radius: 1px;
+  box-shadow: 0 0 4px currentColor;
+}
+
+/* ── Motion toggle ──────────────────────────────────────────────────────── */
+.motion-toggle {
+  color: var(--ghost);
+  border-color: rgba(0,240,255,0.15);
+  background: var(--card);
+}
+.motion-toggle:hover { color: var(--cyan); background: rgba(0,240,255,0.05); }
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.app-footer, footer {
+  font-family: var(--font-mono);
+  color: var(--surface2);
+  border-top-color: rgba(0,240,255,0.08);
+}
+
+/* ── Floor controls ─────────────────────────────────────────────────────── */
+.floor-controls .btn-icon {
+  color: var(--ghost);
+  border-color: rgba(0,240,255,0.15);
+  background: var(--card);
+}
+.floor-controls .btn-icon:hover { color: var(--cyan); background: rgba(0,240,255,0.05); }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,240,255,0.15); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,240,255,0.35); box-shadow: 0 0 6px rgba(0,240,255,0.4); }
+
+/* ── Holographic border rotativo (conic gradient) ───────────────────────── */
+@keyframes rotate-border { to { --angle: 360deg; } }
+
+/* Aplicar no office-floor ao celebrar */
+.is-celebrating .office-floor::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--angle),
+    var(--cyan),
+    var(--violet-deep),
+    var(--magenta),
+    var(--green),
+    var(--cyan)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: rotate-border 3s linear infinite;
+  z-index: 10;
+}
+
+/* ── Glitch no brand name (sutil, a cada 8s) ────────────────────────────── */
+.brand strong {
+  animation: brandGlitch 8s ease-in-out infinite;
+}
+
+@keyframes brandGlitch {
+  0%, 92%, 100% {
+    text-shadow: 0 0 20px rgba(0,240,255,0.4);
+    transform: none;
+  }
+  94% {
+    text-shadow: -2px 0 var(--magenta), 2px 0 var(--cyan);
+    transform: translateX(1px);
+  }
+  96% {
+    text-shadow: 2px 0 var(--magenta), -2px 0 var(--cyan);
+    transform: translateX(-1px);
+  }
+  98% {
+    text-shadow: 0 0 20px rgba(0,240,255,0.4);
+    transform: none;
+  }
+}
+
+/* ── @keyframes herdados (mantém compatibilidade com office.css) ────────── */
+@keyframes neon-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+@keyframes cyber-glow {
+  0%, 100% { box-shadow: var(--glow-cyan-sm); }
+  50%       { box-shadow: var(--glow-cyan-md); }
+}
+
+/* Pausa global quando reduzido-motion está ativo */
+.sim-paused .office-app::after { animation-play-state: paused; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEXUS CYBERPUNK — Patch v2.1 (elementos faltantes + refinamentos)
+   Cobrindo todas as classes identificadas no JSX audit
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Room heading (interior do room) ───────────────────────────────────── */
+.room-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.room-heading svg {
+  color: var(--cyan-dim);
+  opacity: 0.5;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+/* ── Room task (texto da tarefa atual do agente) ────────────────────────── */
+.room-task {
+  color: var(--ghost) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  line-height: 1.5 !important;
+  border-left: 2px solid rgba(0,240,255,0.15);
+  padding-left: 6px;
+  margin-top: 8px !important;
+}
+
+/* ── Room agent progress wrapper ────────────────────────────────────────── */
+.room-agent-progress {
+  color: var(--ghost) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  margin-top: 8px !important;
+}
+.room-agent-progress > span {
+  color: var(--cyan-dim) !important;
+  letter-spacing: 0.3px;
+}
+
+/* ── Agent station ──────────────────────────────────────────────────────── */
+.agent-station {
+  position: relative;
+  margin-top: 6px;
+}
+
+/* ── Avatar cyberpunk — skin tones e cores do background ────────────────── */
+.agent-avatar {
+  border-radius: 8px !important;
+  border: 1px solid rgba(167,139,250,0.15) !important;
+  box-shadow: 0 0 8px rgba(167,139,250,0.1) !important;
+}
+/* Shimmer scan line no avatar */
+.agent-avatar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0,240,255,0.04) 45%,
+    rgba(0,240,255,0.08) 50%,
+    rgba(0,240,255,0.04) 55%,
+    transparent 100%
+  );
+  animation: avatarScan 4s ease-in-out infinite;
+  border-radius: inherit;
+}
+@keyframes avatarScan {
+  0%, 100% { opacity: 0; transform: translateY(-100%); }
+  40%       { opacity: 1; }
+  60%       { opacity: 1; }
+  90%       { opacity: 0; transform: translateY(100%); }
+}
+
+/* Avatar — cores específicas por agente em cyberpunk */
+.avatar-manager   { --shirt: #6d28d9; --hair: #2d1b3d; --skin: #c8a080; background: rgba(112,0,255,0.12) !important; border-color: rgba(112,0,255,0.25) !important; }
+.avatar-researcher { --shirt: #0d7c8f; --hair: #5c3b1e; --skin: #e8b090; background: rgba(0,240,255,0.08) !important; border-color: rgba(0,240,255,0.2) !important; }
+.avatar-coder     { --shirt: #166534; --hair: #2a2e40; --skin: #d4a07a; background: rgba(57,255,20,0.06) !important; border-color: rgba(57,255,20,0.15) !important; }
+.avatar-writer    { --shirt: #9d174d; --hair: #3d2218; --skin: #d4967a; background: rgba(255,0,127,0.08) !important; border-color: rgba(255,0,127,0.2) !important; }
+.avatar-reviewer  { --shirt: #5b21b6; --hair: #252836; --skin: #a87356; background: rgba(167,139,250,0.08) !important; border-color: rgba(167,139,250,0.2) !important; }
+
+/* ── Status dot — cor por status ────────────────────────────────────────── */
+.status-badge.status-idle         .status-dot { background: var(--ghost); }
+.status-badge.status-working      .status-dot { background: var(--green);   box-shadow: 0 0 5px var(--green); }
+.status-badge.status-thinking     .status-dot { background: var(--violet);  box-shadow: 0 0 5px var(--violet); }
+.status-badge.status-waitingApproval .status-dot { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
+.status-badge.status-done         .status-dot { background: var(--cyan);    box-shadow: 0 0 5px var(--cyan); }
+
+/* ── Activity indicator — todos os estados ──────────────────────────────── */
+.activity-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+.activity-working i {
+  background: var(--green) !important;
+  box-shadow: 0 0 4px var(--green);
+}
+.activity-thinking {
+  color: var(--violet) !important;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.activity-waiting .wait-icon {
+  font-size: 13px;
+  animation: neonLightPulse 1.5s ease-in-out infinite;
+}
+.activity-done .done-icon {
+  color: var(--cyan) !important;
+  font-size: 12px;
+  font-weight: 900;
+  text-shadow: 0 0 8px var(--cyan);
+}
+.think-dots {
+  color: var(--violet);
+  letter-spacing: 2px;
+  animation: neonLightPulse 2s ease-in-out infinite;
+}
+
+/* ── Walkway-label (corredor central) ───────────────────────────────────── */
+.walkway-label {
+  font-family: var(--font-mono) !important;
+  font-size: 9px !important;
+  letter-spacing: 3px !important;
+  color: rgba(0,240,255,0.3) !important;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.walkway-label svg { color: rgba(0,240,255,0.3); }
+
+/* ── Transfer overlay ───────────────────────────────────────────────────── */
+.transfer-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* ── Simulation badge — header ──────────────────────────────────────────── */
+.simulation-badge {
+  font-family: var(--font-mono) !important;
+  background: rgba(0,240,255,0.05) !important;
+  border-color: rgba(0,240,255,0.15) !important;
+  color: var(--cyan-dim) !important;
+  border-radius: 2px !important;
+  letter-spacing: 0.5px;
+}
+.simulation-badge .status-dot {
+  background: var(--green) !important;
+  box-shadow: 0 0 6px var(--green);
+  animation: neonLightPulse 2s ease-in-out infinite;
+}
+
+/* ── Speed button ───────────────────────────────────────────────────────── */
+.speed-button {
+  font-family: var(--font-mono) !important;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+/* ── Motion preference label ────────────────────────────────────────────── */
+.motion-preference {
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  color: var(--ghost) !important;
+  letter-spacing: 0.3px;
+}
+
+/* ── Floor meta (ícones e texto abaixo do heading) ──────────────────────── */
+.floor-meta {
+  font-family: var(--font-mono) !important;
+  color: var(--ghost) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.3px;
+}
+.floor-meta svg { color: var(--cyan-dim) !important; }
+
+/* ── Workspace meta label ───────────────────────────────────────────────── */
+.workspace-meta {
+  font-family: var(--font-mono) !important;
+  color: var(--ghost) !important;
+  letter-spacing: 2px !important;
+}
+
+/* ── Log content ────────────────────────────────────────────────────────── */
+.log-content { min-width: 0; flex: 1 1 auto; }
+
+/* ── Detail / agent panel ───────────────────────────────────────────────── */
+.agent-detail { padding: 8px 18px 20px; }
+.detail-heading .agent-avatar { box-shadow: var(--glow-violet-sm) !important; }
+.detail-heading h2, .detail-heading h3 { color: var(--ink) !important; }
+.detail-heading p { color: var(--ghost) !important; font-family: var(--font-mono) !important; }
+
+/* ── Memory and history lists ───────────────────────────────────────────── */
+.memory-list, .history-list { padding: 0; margin: 10px 0 20px; list-style: none; }
+.memory-item::before { background: var(--cyan) !important; }
+.history-item::before { background: var(--violet) !important; }
+
+/* ── Room decor (wrapper da mesa + objetos) ─────────────────────────────── */
+.room-decor {
+  position: relative;
+  flex: 0 0 98px;
+  height: 98px;
+  margin: 8px 0 0;
+  pointer-events: none;
+}
+
+/* ── Task presets ───────────────────────────────────────────────────────── */
+.task-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 22px;
+}
+
+/* ── Typing indicator neon ──────────────────────────────────────────────── */
+.typing-indicator i {
+  background: var(--violet) !important;
+  box-shadow: 0 0 4px var(--violet);
+}
+
+/* ── Log entry section label accent ────────────────────────────────────── */
+.log-entry .section-label { color: var(--cyan) !important; }
+
+/* ── Status legend dots neon ────────────────────────────────────────────── */
+.status-legend .status-dot {
+  box-shadow: 0 0 5px currentColor;
+}
+
+/* ── Approval banner — icon color ───────────────────────────────────────── */
+.approval-banner svg { color: var(--amber) !important; }
+.approval-banner p { font-family: var(--font-mono) !important; font-size: 11px !important; }
+.approval-banner strong { color: var(--amber) !important; }
+
+/* ── Dialog close button ────────────────────────────────────────────────── */
+.task-dialog > header .btn-icon {
+  background: rgba(167,139,250,0.06) !important;
+  color: var(--ghost) !important;
+  border: 1px solid rgba(167,139,250,0.15) !important;
+}
+.task-dialog > header .btn-icon:hover {
+  color: var(--cyan) !important;
+  border-color: rgba(0,240,255,0.3) !important;
+}
+
+/* ── Room grid areas (garantir cores para tints com overflow: hidden) ───── */
+/* office.css define overflow:hidden no .room — mantemos clip-path no lugar */
+/* Mas removemos overflow:hidden dos rooms para que speech bubbles apareçam */
+.room {
+  overflow: visible !important;
+}
+/* Recriar o efeito de corte angular via ::before pseudo-element sem clipar children */
+.room::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 2px;
+  /* Borda decorativa angular — sem clip-path no container para bubbles não sumirem */
+}
+/* Manter clip-path somente via background-clip trick via box-shadow interno */
+
+/* ── Speech bubble — fix clip (overflow visible no room acima já resolve) ── */
+.agent-station {
+  position: relative;
+  z-index: 10;  /* garante que bubbles fiquem acima dos decors */
+}
+.speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 200px;
+  z-index: 20;
+}
+
+/* ── Workspace layout responsive ────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .workspace-layout {
+    grid-template-columns: 1fr;
+  }
+  .side-panel {
+    clip-path: none;
+    border-radius: 2px;
+  }
+}
+
+/* ── Neon data stream on progress fill ──────────────────────────────────── */
+.progress-fill {
+  position: relative;
+  overflow: hidden;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: dataStream 2s linear infinite;
+}
+@keyframes dataStream {
+  0%   { left: -50%; }
+  100% { left: 150%; }
+}
+
+/* ── Celebration overlay — confetti neon ────────────────────────────────── */
+.celebration-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+}
+
+/* ── Reduced motion global pause ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+.sim-paused .office-app::after { animation-play-state: paused; }
+.sim-paused .gridDrift { animation-play-state: paused; }

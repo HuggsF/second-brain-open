@@ -131,6 +131,14 @@ def handler_for(store, dashboard, port, workflow=None):
             return self.send(200,file.read_bytes(),mimetypes.guess_type(file)[0] or 'application/octet-stream')
 
         def do_POST(self):
+            # Read the (bounded) body before any refusal: closing a socket with unread data makes
+            # Windows reset it, and the client sees a network error instead of the status.
+            try: length = int(self.headers.get('Content-Length','0'))
+            except ValueError: length = -1
+            if length < 0 or length > MAX_BODY_BYTES:
+                self.close_connection = True
+                return self.error(400 if length < 0 else 413,'INVALID_LENGTH' if length < 0 else 'BODY_TOO_LARGE')
+            body = self.rfile.read(length) if length > 0 else b''
             # Writes need an explicit same-origin Origin header, unlike reads (CSRF guard).
             if self.headers.get('Host') != f'127.0.0.1:{port}' or self.headers.get('Sec-Fetch-Site') == 'cross-site' or self.headers.get('Origin') != origin:
                 return self.error(403,'ORIGIN_DENIED')
@@ -139,11 +147,6 @@ def handler_for(store, dashboard, port, workflow=None):
             path = unquote(urlsplit(self.path).path)
             if not path.startswith('/api/workflow/'):
                 return self.error(405,'READ_ONLY_API')
-            try: length = int(self.headers.get('Content-Length','0'))
-            except ValueError: return self.error(400,'INVALID_LENGTH')
-            if length > MAX_BODY_BYTES:
-                return self.error(413,'BODY_TOO_LARGE')
-            body = self.rfile.read(length) if length > 0 else b''
             if path == '/api/workflow/execute-step' and self.headers.get('Content-Type','').split(';')[0].strip() != 'application/json':
                 return self.error(415,'JSON_REQUIRED')
             result = workflow.handle('POST',path,body)

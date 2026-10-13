@@ -971,9 +971,8 @@ function render(main, U) {
   main.append(container);
 
   // Agent Drawer Elements
-  const backdrop = el('div', { class: 'drawer-backdrop', onclick: () => closeDrawer() });
-  const drawer = el('div', { class: 'agent-drawer' });
-  document.body.append(backdrop, drawer);
+  // The agent drawer is a modal <dialog> created on open and removed on close (see openAgentDrawer).
+  let drawer = null;
 
   // Initial welcome message in stream
   renderInitialStream();
@@ -1348,7 +1347,7 @@ function render(main, U) {
             `├── Extensão: ${doc.lines} linhas · Categoria: ${doc.category}\n` +
             `├── Título: "${doc.title}"\n` +
             `└── Conteúdo lido:\n` +
-            `│   ${doc.text.slice(0, 160).replace(/\r?\n/g, ' ')}...`;
+            `│   ${U.core.stripFrontmatter(doc.text).slice(0, 160).replace(/\r?\n/g, ' ')}...`;
           step.realSuccess = true;
           return;
         }
@@ -1800,6 +1799,12 @@ function render(main, U) {
             switchTab('audit');
           }, 'subtle'),
           button('🗑️ Limpar Auditoria em Disco', async () => {
+            const ok = await U.confirmAction({
+              title: 'Apagar o log de auditoria?',
+              description: 'Todos os passos registrados em .runtime/workflow_audit.jsonl serão apagados do disco. Não há como desfazer.',
+              confirmLabel: 'Apagar log'
+            });
+            if (!ok) return;
             try {
               const res = await fetch('/api/workflow/reset-audit', { method: 'POST' });
               if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2047,16 +2052,18 @@ function render(main, U) {
 
   function openMcpInspector(step) {
     const isOk = step.realSuccess !== false;
-    const modal = el('div', { class: 'mcp-inspector-modal', onclick: (e) => { if (e.target === modal) modal.remove(); } });
+    // Modal <dialog>: the browser traps focus and closes it on Esc; a click on the backdrop also closes.
+    const modal = el('dialog', { class: 'mcp-inspector-modal', 'aria-labelledby': 'mcp-inspector-title', onclick: (e) => { if (e.target === modal) modal.close(); } });
+    modal.addEventListener('close', () => modal.remove());
     const card = el('div', { class: 'mcp-inspector-card' });
 
     const header = el('div', { class: 'mcp-inspector-header' },
       el('div', { style: 'display:flex;align-items:center;gap:10px;' },
         badge(isOk ? 'HTTP 200 OK' : 'GAPS DETECTED', isOk ? 'good' : 'warn'),
-        el('h3', { style: 'margin:0;' }, `🛠️ Chamada MCP: ${step.toolName}`),
+        el('h3', { id: 'mcp-inspector-title', style: 'margin:0;' }, `🛠️ Chamada MCP: ${step.toolName}`),
         badge(step.agent ? (AGENTS[step.agent]?.name || step.agent) : 'Agente', 'accent')
       ),
-      button('×', () => modal.remove(), 'icon-button')
+      el('button', { type: 'button', class: 'icon-button', 'aria-label': 'Fechar inspeção', onclick: () => modal.close() }, '×')
     );
     card.append(header);
 
@@ -2116,29 +2123,33 @@ function render(main, U) {
     card.append(body);
 
     const footer = el('div', { style: 'padding:14px 20px;background:var(--panel2);border-top:1px solid var(--border);display:flex;justify-content:flex-end;' },
-      button('Fechar Inspeção', () => modal.remove(), 'primary')
+      button('Fechar Inspeção', () => modal.close(), 'primary')
     );
     card.append(footer);
 
     modal.append(card);
     document.body.append(modal);
+    modal.showModal();
   }
 
   function openAgentDrawer(agentKey) {
     const agent = AGENTS[agentKey];
     activeDrawerAgent = agentKey;
 
-    drawer.replaceChildren();
+    drawer?.close();
+    drawer = el('dialog', { class: 'agent-drawer', 'aria-labelledby': 'agent-drawer-title', onclick: (e) => { if (e.target === drawer) closeDrawer(); } });
+    const opened = drawer;
+    opened.addEventListener('close', () => { opened.remove(); if (drawer === opened) { drawer = null; activeDrawerAgent = null; } });
     drawer.append(
       el('div', { style: 'display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;' },
         el('div', { style: 'display:flex;align-items:center;gap:10px;' },
-          el('span', { style: 'font-size:28px;' }, agent.avatar),
+          el('span', { style: 'font-size:28px;', 'aria-hidden': 'true' }, agent.avatar),
           el('div', {},
-            el('h2', { style: 'margin:0;' }, agent.name),
+            el('h2', { id: 'agent-drawer-title', style: 'margin:0;' }, agent.name),
             badge(agent.roleLabel, 'accent')
           )
         ),
-        button('×', () => closeDrawer(), 'icon-button')
+        el('button', { type: 'button', class: 'icon-button', 'aria-label': 'Fechar painel do agente', onclick: () => closeDrawer() }, '×')
       ),
       el('p', { class: 'small muted', style: 'line-height:1.5;margin-bottom:20px;' }, agent.scope),
       el('h3', {}, 'Ferramentas MCP Autorizadas'),
@@ -2160,13 +2171,12 @@ function render(main, U) {
       drawer.append(el('p', { class: 'small muted', style: 'margin-top:10px;' }, 'Nenhuma ação executada por este agente na missão corrente até o momento.'));
     }
 
-    drawer.classList.add('open');
-    backdrop.classList.add('open');
+    document.body.append(drawer);
+    drawer.showModal();
   }
 
   function closeDrawer() {
-    drawer.classList.remove('open');
-    backdrop.classList.remove('open');
+    drawer?.close();
   }
 
   function togglePlanView() {
