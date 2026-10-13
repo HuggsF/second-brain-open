@@ -1,13 +1,13 @@
-# 📐 HLD (High Level Design): [Nome do Sistema / Solução]
-
-> **Status:** `#status/draft` (`#status/draft` | `#status/review` | `#status/approved`)  
-> **Autor(es):** [Time ARQUITETURA / Engenheiro Líder]  
-> **Data:** [AAAA-MM-DD]  
-> **Versão:** 1.0.0  
-> **PRD Relacionado:** [[nome-do-prd]]  
-> **Origem Metodológica:** MBA Full Cycle — Módulo 07 (Design & Arquitetura de Software com IA)
-
 ---
+type: architecture
+status: "{draft | review | approved}"
+date: "{AAAA-MM-DD}"
+author: "{Time ARQUITETURA / Engenheiro Líder}"
+version: 1.0.0
+related: ["[[nome-do-prd]]"]
+source: "MBA Full Cycle — Módulo 07 (Design & Arquitetura de Software com IA)"
+---
+# HLD (High Level Design): [Nome do Sistema / Solução]
 
 ## 1. Visão Geral & Contexto de Negócio
 *Descrição em alto nível do objetivo arquitetural do sistema, seu papel no ecossistema KIOSK Brands e os limites de fronteira do domínio.*

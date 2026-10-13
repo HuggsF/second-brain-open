@@ -1,14 +1,14 @@
-# 📋 PRD de Feature: [Nome da Feature]
-
-> **Status:** `#status/draft` (`#status/draft` | `#status/review` | `#status/approved` | `#status/implemented`)  
-> **Autor:** [Nome / Agente Responsável]  
-> **Data de Criação:** [AAAA-MM-DD]  
-> **Última Atualização:** [AAAA-MM-DD]  
-> **Versão:** 1.0.0  
-> **Target Release:** [v2.x / Sprint X]  
-> **Origem Metodológica:** Padrão MBA Full Cycle (Módulo 07: Design Docs com IA)
-
 ---
+type: product
+status: "{draft | review | approved | implemented}"
+date: "{AAAA-MM-DD}"
+updated: "{AAAA-MM-DD}"
+author: "{Nome / Agente Responsável}"
+version: 1.0.0
+target_release: "{v2.x / Sprint X}"
+source: "Padrão MBA Full Cycle (Módulo 07: Design Docs com IA)"
+---
+# PRD de Feature: [Nome da Feature]
 
 ## 1. Resumo Executivo
 *Descreva em 2 a 3 frases claras o que a feature faz, qual dor essencial resolve e por que é prioridade estratégica no ecossistema KIOSK.*

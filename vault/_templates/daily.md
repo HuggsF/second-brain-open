@@ -1,3 +1,7 @@
+---
+type: daily
+date: "{YYYY-MM-DD}"
+---
 # {YYYY-MM-DD} — {Título ou contexto da sessão}
 
 ## Participantes

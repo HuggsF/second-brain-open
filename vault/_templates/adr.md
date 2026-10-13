@@ -1,10 +1,10 @@
+---
+type: adr
+status: "{Proposto | Aceito | Depreciado | Substituído por ADR-NNN}"
+date: "{YYYY-MM-DD}"
+# scope: second-brain   ← só quando a decisão é sobre este repositório (CLAUDE.md §6)
+---
 # ADR-{NNN}: {Título descritivo da decisão}
-
-## Status
-{Proposto | Aceito | Depreciado | Substituído por ADR-NNN}
-
-## Data
-{YYYY-MM-DD}
 
 ## Contexto
 {Descreva o cenário atual, os problemas enfrentados e as forças que motivam esta decisão. Inclua referências a sistemas, regras ou demandas existentes usando wikilinks: [[nome-do-documento]].}

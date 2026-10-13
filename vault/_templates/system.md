@@ -1,3 +1,8 @@
+---
+type: system
+status: "{active | draft | deprecated}"
+date: "{YYYY-MM-DD}"
+---
 # {Nome do Sistema}
 
 ## Visão Geral

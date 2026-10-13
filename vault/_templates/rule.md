@@ -4,7 +4,6 @@ title: {Título curto e descritivo da regra}
 status: {active | draft | deprecated}
 source: {vault/systems/documento-fonte.md:linha}
 domain: {logistica | fiscal | ecommerce | atendimento | infra}
-team: {logistics | erp-integrations | crm-salesforce | platform | ecommerce}
 ---
 
 # RULE-{NNN}: {Título curto e descritivo da regra}
