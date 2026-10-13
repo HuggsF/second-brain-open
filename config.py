@@ -23,6 +23,7 @@ class Settings(BaseModel):
     ollama_url: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
     embedding_model: str = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
     chat_model: str = os.getenv("OLLAMA_CHAT_MODEL", "llama3.2:3b")
+    default_profile: str = "kiosk"  # perfil usado quando BRAIN_PROFILE não está definido
 
     # Chunking Config
     chunk_size: int = 800
