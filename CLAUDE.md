@@ -21,6 +21,12 @@ Follow every numbered item; do not paraphrase a subset.
 
 - Never write a credential value anywhere (files, commits, logs, replies, test fixtures). Cite
   `path:line` instead. Sources: `.env`, the SRV-API key file, the GitHub token, `.runtime/`.
+  Provider API keys (`OPENROUTER_API_KEY` and any `api_key_env` in profiles) follow the same rule:
+  never log, print, copy or embed the value; only the environment variable name appears in code
+  and profiles.
+- Task content sent to a cloud provider goes only to providers configured in the profile with a
+  no-data-retention guarantee (`extra.provider.data_collection: deny`). The core never sends
+  content to a provider outside the profile chain.
 - Never commit `.env`, `.runtime/`, `.brain_hashes.json` or backups of them (`.gitignore` covers
   them; do not weaken it).
 - Never commit the raw text of courses or books (`extracted_drive/`, `extracted_pm3/`, `downloads_*`):
@@ -37,7 +43,7 @@ Follow every numbered item; do not paraphrase a subset.
 
 ## 3. Proof commands and local gates
 
-- Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api tests.test_drive_sync tests.test_protocol tests.test_agnostic_core tests.test_events tests.test_local_tasks tests.test_local_tasks_mcp tests.test_local_tasks_cli`
+- Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api tests.test_drive_sync tests.test_protocol tests.test_agnostic_core tests.test_events tests.test_local_tasks tests.test_local_tasks_mcp tests.test_local_tasks_cli tests.test_providers tests.test_openai_compat_client`
 - Dashboard JS: `node --test --test-isolation=none dashboard/tests/*.test.cjs` (Node 24)
   and `.\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py`.
 - `integration.test.cjs` compares citation hashes with the current vault bytes: after any vault

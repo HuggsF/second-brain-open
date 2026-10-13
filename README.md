@@ -143,6 +143,23 @@ agnóstico; vocabulário, limites e preço de referência vêm do perfil em `pro
   validade do schema (as chaves exigidas presentes), não se os valores extraídos estão certos. A amostra é
   pequena; refaça a medida ao trocar de modelo.
 
+### Provedores de nuvem
+
+O perfil pode definir uma cadeia de provedores (`providers`) que são tentados em ordem
+([ADR-018](vault/adrs/ADR-018-provedores-nuvem-com-reserva-local.md)). Se o primeiro falhar (timeout,
+erro HTTP, chave ausente), o próximo é tentado. O último é normalmente o Ollama local.
+
+**Configuração:**
+
+1. Adicione `OPENROUTER_API_KEY=sk-or-v1-...` ao arquivo `.env` (nunca versionado).
+2. Defina `BRAIN_ENV_FILE` para apontar para o `.env` se o CLI não rodar na raiz:
+   `BRAIN_ENV_FILE=C:/KIOSK/second-brain/.env`.
+3. Em https://openrouter.ai/settings/privacy, marque **data_collection: deny** e ative o ZDR
+   (zero data retention) para os modelos usados.
+4. O motivo `local_unavailable` no envelope indica que nenhum provedor (nuvem + local) estava
+   disponível; `escalate` com outro motivo indica que o modelo respondeu mas a saída não cumpriu
+   o schema.
+
 ## Vault
 
 | Pasta | Conteúdo |
@@ -186,7 +203,7 @@ Regras e playbooks usam o frontmatter próprio validado por `cli.py evidence --l
 Não há CI; o gate é rodado à mão (lista completa em CLAUDE.md, seção 3):
 
 ```powershell
-.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api tests.test_drive_sync
+.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api tests.test_drive_sync tests.test_protocol tests.test_agnostic_core tests.test_events tests.test_local_tasks tests.test_local_tasks_mcp tests.test_local_tasks_cli tests.test_providers tests.test_openai_compat_client
 node --test --test-isolation=none dashboard/tests/*.test.cjs
 .\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py
 ```
