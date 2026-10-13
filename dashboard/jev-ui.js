@@ -391,7 +391,22 @@
 
   // ── Column 3: Observability with topology ────────────────────────────────
 
-  function renderObsColWithTopology(container, env, obs) {
+  function getLastObsSnapshot(executions, environment) {
+    if (!executions || !executions.length) return null;
+    const filtered = executions.filter(e => e.environment === environment);
+    if (!filtered.length) return null;
+    const sorted = filtered.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+    const lastExec = sorted[0];
+    if (!lastExec) return null;
+    return {
+      ts: lastExec.ts,
+      result: lastExec.result,
+      summary: lastExec.summary,
+      environment: lastExec.environment,
+    };
+  }
+
+  function renderObsColWithTopology(container, env, obs, fallbackExecSample) {
     container.replaceChildren();
     const envMeta = ENV_META[env] || { label: env, icon: '⬜', obsPath: null };
 
@@ -403,13 +418,34 @@
     }
 
     if (!obs || obs._unavailable) {
-      container.append(
-        el('p', { class: 'jev-obs-unavailable' }, '⚠ BFF não disponível (HTTP ', obs ? String(obs.status) : 'network', ')'),
-        el('p', { class: 'jev-obs-note' },
-          'Para ver dados ao vivo, acesse a aba ',
-          el('a', { href: '#page=observability', class: 'jev-link' }, '📡 Observabilidade'), '.'
-        )
-      );
+      const lastSnapshot = getLastObsSnapshot(fallbackExecSample || [], env);
+      if (lastSnapshot) {
+        container.append(
+          el('div', { class: 'jev-obs-offline' },
+            el('p', { class: 'jev-obs-unavailable' }, '⚠️ Offline — BFF não disponível (HTTP ', obs ? String(obs.status) : 'network', ')'),
+            el('div', { class: 'jev-obs-last-snapshot' },
+              el('div', { class: 'jev-obs-snapshot-label' }, 'Última captura:'),
+              el('div', { class: 'jev-obs-snapshot-ts' }, fmtDate(lastSnapshot.ts)),
+              el('div', { class: 'jev-obs-snapshot-result' }, 
+                resultBadge(lastSnapshot.result)
+              ),
+              lastSnapshot.summary ? el('div', { class: 'jev-obs-snapshot-summary' }, lastSnapshot.summary) : null,
+            ),
+            el('p', { class: 'jev-obs-note' },
+              'Para captura ao vivo, acesse a aba ',
+              el('a', { href: '#page=observability', class: 'jev-link' }, '📡 Observabilidade'), '.'
+            ),
+          )
+        );
+      } else {
+        container.append(
+          el('p', { class: 'jev-obs-unavailable' }, '⚠ BFF não disponível (HTTP ', obs ? String(obs.status) : 'network', ')'),
+          el('p', { class: 'jev-obs-note' },
+            'Para ver dados ao vivo, acesse a aba ',
+            el('a', { href: '#page=observability', class: 'jev-link' }, '📡 Observabilidade'), '.'
+          )
+        );
+      }
       return;
     }
 
@@ -483,7 +519,7 @@
       if (!execs.length) {
         container.append(el('p', { class: 'jev-empty' }, 'Nenhuma execução registrada.'));
         const env = pb._enriched?.environment || pb.environment || 'local';
-        renderObsColWithTopology(obsColEl, env, { _unavailable: true });
+        renderObsColWithTopology(obsColEl, env, { _unavailable: true }, execs);
         return;
       }
 
@@ -510,7 +546,7 @@
         obsColEl.replaceChildren(obsLoading);
         fetchObsSnapshot(env).then(obs => {
           obsColEl._lastExecsSample = execs;
-          renderObsColWithTopology(obsColEl, env, obs);
+          renderObsColWithTopology(obsColEl, env, obs, execs);
           if (obs && !obs._unavailable && window.BrainHubTopology && window.BrainHubTopologyUI) {
             try {
               const adapted = adaptObsPayload(obs, env);
@@ -526,7 +562,7 @@
           obsColEl.replaceChildren(el('p', { class: 'jev-obs-unavailable' }, '⚠ Erro ao carregar obs: ', err.message));
         });
       } else {
-        renderObsColWithTopology(obsColEl, env, null);
+        renderObsColWithTopology(obsColEl, env, null, []);
       }
     }).catch(err => {
       loading.remove();
@@ -712,6 +748,12 @@
 .jev-obs-ok .jev-obs-metric-val { color: #bbf7d0; }
 .jev-obs-bad .jev-obs-metric-val { color: #fca5a5; }
 .jev-obs-unavailable { color: #fcd34d; font-size: 0.82rem; margin: 0 0 0.5rem; }
+.jev-obs-offline { display: flex; flex-direction: column; gap: 0.6rem; }
+.jev-obs-last-snapshot { background: #1a1a1a; border: 1px solid #b45309; border-radius: 6px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.jev-obs-snapshot-label { font-size: 0.7rem; text-transform: uppercase; color: var(--muted, #888); font-weight: 600; letter-spacing: 0.05em; }
+.jev-obs-snapshot-ts { font-size: 0.8rem; font-family: monospace; color: #fbbf24; font-weight: 600; }
+.jev-obs-snapshot-result { font-size: 0.8rem; }
+.jev-obs-snapshot-summary { font-size: 0.75rem; color: var(--muted, #999); white-space: pre-wrap; word-break: break-word; margin-top: 0.2rem; }
 .jev-obs-note { color: var(--muted, #888); font-size: 0.8rem; margin: 0; }
 .jev-link { color: var(--accent, #6ee7b7); }
 .jev-topology-section-head { margin-bottom: 0.75rem; }
