@@ -20,3 +20,7 @@ chrome_drive_dump.html
 
 # Credenciais locais (remover manualmente)
 credenciais_recife.txt
+
+# Texto bruto de cursos e livros (arquivado em archive/material-cursos-bruto)
+extracted_drive/
+extracted_pm3/
