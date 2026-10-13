@@ -21,6 +21,19 @@ class TestSecondBrainCore(unittest.TestCase):
         self.assertEqual(first_chunk["metadata"]["category"], "adrs")
         self.assertIn("ADR-001", first_chunk["metadata"]["doc_title"])
 
+    def test_chunker_strips_frontmatter_into_metadata(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            vault = Path(tmp)
+            note = vault / "adrs" / "ADR-900-x.md"
+            note.parent.mkdir()
+            note.write_bytes("\r\n".join(['---', 'type: adr', 'status: Aceito', 'date: 2026-10-12', '---', '# ADR-900: Teste', '', 'Intro.', '', '## Decisão', '', 'Usar X.', '']).encode("utf-8"))
+            chunks = MarkdownChunker(chunk_size=500, overlap=50).chunk_file(note, vault)
+        self.assertEqual([c["metadata"]["section"] for c in chunks], ["Introdução", "Decisão"])
+        self.assertNotIn("status: Aceito", chunks[0]["content"])
+        self.assertEqual(chunks[0]["metadata"]["doc_title"], "ADR-900: Teste")
+        self.assertEqual((chunks[1]["metadata"]["status"], chunks[1]["metadata"]["doc_type"]), ("Aceito", "adr"))
+
     def test_hasher_diff(self):
         test_manifest = settings.base_dir / ".test_manifest.json"
         manifest_mgr = ManifestManager(manifest_path=test_manifest)
