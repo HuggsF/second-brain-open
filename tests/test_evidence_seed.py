@@ -1,4 +1,4 @@
-import json
+﻿import json
 import re
 import tempfile
 import unittest
@@ -17,7 +17,8 @@ class TestRealSeed(unittest.TestCase):
         defs = evidence.load_definitions(settings.vault_dir)
         self.assertEqual(defs.errors, [])
         self.assertEqual(sorted(defs.rules), ["RULE-001", "RULE-002"])
-        self.assertEqual(sorted(defs.playbooks), ["PB-001", "PB-002", "PB-003", "PB-004", "PB-005", "PB-006", "PB-007"])
+        expected_pbs = ["PB-001", "PB-002", "PB-003", "PB-004", "PB-005", "PB-006", "PB-007", "PB-008", "PB-009", "PB-010"]
+        self.assertEqual(sorted(defs.playbooks), expected_pbs)
         self.assertEqual(evidence.lint(defs), [])
         self.assertEqual(defs.playbooks["PB-001"].validates, ["RULE-001", "RULE-002"])
         self.assertEqual(defs.playbooks["PB-002"].environment, "hml")
@@ -62,7 +63,7 @@ class TestRealSeed(unittest.TestCase):
 
     def test_all_new_notes_use_crlf(self):
         notes = sorted((settings.vault_dir / "rules").glob("*.md")) + sorted((settings.vault_dir / "playbooks").glob("*.md"))
-        self.assertEqual(len(notes), 9)
+        self.assertEqual(len(notes), 12)
         for note in notes:
             data = note.read_bytes()
             self.assertTrue(data.count(b"\r\n") > 0, note.name)

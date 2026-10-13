@@ -1,10 +1,14 @@
 ---
-title: "PB-009 — Plano de Observabilidade do Hub Logístico"
-date: 2026-10-13
-type: playbook
+id: PB-009
+title: "Plano de Observabilidade do Hub Logístico"
+status: active
+validates: [RULE-001, RULE-002]
+environment: production
+targets: [Hub Logístico, Srv-API, PM2, SQLite]
 origin: "Post-mortem incidente OAuth 13/10/2026"
 tags: [playbook, observabilidade, monitoramento, hub-logistico, alertas]
 ---
+
 
 # PB-009: Plano de Observabilidade — Hub Logístico
 

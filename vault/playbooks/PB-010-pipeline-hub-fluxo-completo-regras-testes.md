@@ -4,7 +4,7 @@ title: "Pipeline Hub Logístico — Fluxo Completo, Tabelas, Estados e Regras"
 status: active
 date: 2026-10-13
 validates: [RULE-001, RULE-002]
-environment: prod/hml
+environment: hml
 targets: [Hub Logístico, Bling API v3, J&T Express API]
 origin: "Incidente OAuth 13/10/2026 — documentação insuficiente não permitia responder perguntas básicas sobre o fluxo"
 tags: [playbook, hub-logistico, pipeline, testes, regras-negocio]

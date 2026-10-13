@@ -1,4 +1,4 @@
-"""Testes unitários para a camada de Quality Gates do Compound AI System."""
+﻿"""Testes unitários para a camada de Quality Gates do Compound AI System."""
 import unittest
 from core.gates import (
     GroundingGate,
@@ -45,9 +45,9 @@ class TestQualityGates(unittest.TestCase):
         valid_plan = {
             "version": 1,
             "steps": [
-                {"id": "step_1", "role": "researcher", "dependsOn": [], "tools": ["search"], "budgetSeconds": 30},
-                {"id": "step_2", "role": "architect", "dependsOn": ["step_1"], "tools": ["validate_plan"], "budgetSeconds": 45},
-                {"id": "step_3", "role": "dev", "dependsOn": ["step_2"], "tools": ["generate_patch"], "budgetSeconds": 60},
+                {"id": "step_1", "role": "researcher", "dependsOn": [], "tools": ["search_knowledge_base"], "budgetSeconds": 30},
+                {"id": "step_2", "role": "reviewer", "dependsOn": ["step_1"], "tools": ["validate_plan"], "budgetSeconds": 45},
+                {"id": "step_3", "role": "coder", "dependsOn": ["step_2"], "tools": ["run_tests"], "budgetSeconds": 60},
             ],
         }
         result = gate.evaluate(valid_plan)
@@ -60,8 +60,8 @@ class TestQualityGates(unittest.TestCase):
         cyclic_plan = {
             "version": 1,
             "steps": [
-                {"id": "step_a", "role": "dev", "dependsOn": ["step_b"], "tools": ["generate_patch"], "budgetSeconds": 30},
-                {"id": "step_b", "role": "qa", "dependsOn": ["step_a"], "tools": ["run_concurrency_test"], "budgetSeconds": 30},
+                {"id": "step_a", "role": "coder", "dependsOn": ["step_b"], "tools": ["run_tests"], "budgetSeconds": 30},
+                {"id": "step_b", "role": "reviewer", "dependsOn": ["step_a"], "tools": ["validate_plan"], "budgetSeconds": 30},
             ],
         }
         result = gate.evaluate(cyclic_plan)

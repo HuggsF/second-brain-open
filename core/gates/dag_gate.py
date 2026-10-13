@@ -2,17 +2,15 @@
 
 Valida planos de execução de múltiplos agentes garantindo que o fluxo seja um
 Grafo Acíclico Direcionado (DAG) sem loops infinitos, com papéis e ferramentas autorizados.
+
+NOTE: ALLOWED_ROLES and ALLOWED_TOOLS are derived from core/domain/nexus/entities.py,
+which is the single source of truth for Nexus agent roles and tool permissions.
+Do NOT hardcode role or tool names here.
 """
 from typing import Any, Dict, List, Set
 from core.gates.base import BaseGate, GateResult, Semaphore
+from core.domain.nexus.entities import ALLOWED_ROLES, ALLOWED_TOOLS
 
-ALLOWED_ROLES = {"researcher", "architect", "dev", "qa", "devops", "writer", "reviewer"}
-ALLOWED_TOOLS = {
-    "search", "read_graph", "read_sources", "search_knowledge_base",
-    "get_adr", "get_system_architecture", "validate_plan", "validate_adr_schema",
-    "run_concurrency_test", "run_preflight_checklist", "generate_patch",
-    "inspect_api_contract", "compare_hml_prod_payloads"
-}
 
 
 class DagGate(BaseGate):
