@@ -1,6 +1,7 @@
 """Cliente para APIs compativeis com OpenAI (chat/completions)."""
 from __future__ import annotations
 
+import math
 import os
 import time
 from typing import Optional
@@ -8,6 +9,18 @@ from typing import Optional
 import httpx
 
 from core.local_tasks.ollama_client import Completion, LocalModelError
+
+PROBE_TIMEOUT_SECONDS = 5.0  # teto da sonda de disponibilidade
+
+
+def _token_count(usage, key: str) -> int:
+    """Contador de tokens do bloco usage; ausente, nao numerico, negativo ou nao finito vale 0."""
+    value = usage.get(key) if isinstance(usage, dict) else None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return 0
+    if not math.isfinite(value) or value < 0:
+        return 0
+    return int(value)
 
 
 class OpenAICompatClient:
@@ -83,19 +96,20 @@ class OpenAICompatClient:
         except (ValueError, KeyError, TypeError, IndexError):
             raise LocalModelError("local_unavailable", "response missing choices[0].message.content") from None
 
-        usage = data.get("usage") or {}
+        usage = data.get("usage")
         return Completion(
             text=text,
-            tokens_in=int(usage.get("prompt_tokens") or 0),
-            tokens_out=int(usage.get("completion_tokens") or 0),
+            tokens_in=_token_count(usage, "prompt_tokens"),
+            tokens_out=_token_count(usage, "completion_tokens"),
             ms=ms,
             model=model,
         )
 
     def available(self) -> bool:
-        """GET {base_url}/models com timeout de 5 s. Nunca levanta."""
+        """GET {base_url}/models com o timeout do cliente, no maximo 5 s. Nunca levanta."""
+        timeout = httpx.Timeout(min(float(self.timeout), PROBE_TIMEOUT_SECONDS))
         try:
-            with httpx.Client(base_url=self.base_url, timeout=5.0, transport=self._transport) as client:
+            with httpx.Client(base_url=self.base_url, timeout=timeout, transport=self._transport) as client:
                 resp = client.get("/models")
             return resp.status_code < 400
         except Exception:
