@@ -55,7 +55,7 @@ export function simulationReducer(state, action) {
       if (event.type === 'completion') { agent.status = 'done'; agent.progress = 100; agent.completed = 1;
         if (simulation.agents.every(a => a.status === 'done')) { simulation.mode = 'completed'; simulation.needsApproval = false; }
       }
-      if (event.type === 'message') simulation.logs = [{id:event.id,agentId:agent.id,agentName:agent.name,message:event.payload.message,at:event.timestamp,kind:'info'},...simulation.logs].slice(0,60);
+      if (event.type === 'message') simulation.logs = [{id:event.id,agentId:agent.id,agentName:agent.name,message:event.payload.message,at:event.timestamp,kind:'info',source:'backend-python'},...simulation.logs].slice(0,60);
       if (event.type === 'collaboration') simulation.collabEvents = [...simulation.collabEvents,{id:event.id,type:event.payload.subtype,
         agentId:agent.id,from:event.payload.from || agent.id,to:event.payload.to || [],bubble:event.payload.bubble || null,at:event.timestamp,consumed:false}].slice(-120);
       break;

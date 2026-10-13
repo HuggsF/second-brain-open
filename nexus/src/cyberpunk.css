@@ -1171,6 +1171,39 @@ textarea:focus-visible, [tabindex]:focus-visible {
   box-shadow: 0 0 6px var(--green);
   animation: neonLightPulse 2s ease-in-out infinite;
 }
+.simulation-badge.ws-badge {
+  background: rgba(0, 255, 136, 0.1) !important;
+  border-color: rgba(0, 255, 136, 0.4) !important;
+  color: #00ff88 !important;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+.simulation-badge.ws-badge .status-dot {
+  background: #00ff88 !important;
+  box-shadow: 0 0 8px #00ff88;
+}
+.simulation-badge.ws-connecting {
+  background: rgba(255, 184, 0, 0.1) !important;
+  border-color: rgba(255, 184, 0, 0.4) !important;
+  color: #ffb800 !important;
+}
+.simulation-badge.ws-connecting .status-dot {
+  background: #ffb800 !important;
+  box-shadow: 0 0 8px #ffb800;
+}
+.source-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  margin-left: 8px;
+  box-shadow: 0 0 6px rgba(0, 255, 136, 0.2);
+  letter-spacing: 0.5px;
+}
 
 /* ── Speed button ───────────────────────────────────────────────────────── */
 .speed-button {

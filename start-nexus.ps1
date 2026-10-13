@@ -47,6 +47,8 @@ if ($AdapterMode -eq "local") {
 }
 
 # ── Modo ws: WebSocket backend + Vite ─────────────────────────────────────
+$env:VITE_ADAPTER_MODE = "ws"
+$env:VITE_WS_URL = "ws://127.0.0.1:8848"
 Write-Host "1/2 Iniciando WebSocket backend em ws://127.0.0.1:8848 ..." -ForegroundColor Green
 $WsJob = Start-Job -ScriptBlock {
     param($root, $py)

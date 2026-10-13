@@ -42,7 +42,7 @@ export default function ActivityPanel({ state, selectAgent, visible = true }) {
         return <article className={'log-entry log-' + log.kind + ' log-enter'} key={log.id} data-log-id={log.id}>
           <button className={'log-avatar avatar-' + agent.id} aria-label={'Abrir agente ' + agent.name}
             type="button" onClick={event => selectAgent(agent.id, event.currentTarget)}>{agent.name.slice(0, 1)}</button>
-          <div className="log-content"><div className="log-meta"><strong>{log.agentName}</strong><time>{time(log.at)}</time></div>
+          <div className="log-content"><div className="log-meta"><strong>{log.agentName}</strong><time>{time(log.at)}</time>{log.source === 'backend-python' && <span className="source-badge">⚡ Backend Python</span>}</div>
             <p className="log-message">{log.message}</p>
             {(log.kind === 'handoff' || log.kind === 'approval' || log.kind === 'success') &&
               <span className="phase-indicator">{log.kind === 'handoff' ? 'Passagem de contexto' : log.kind === 'approval' ? 'Decisão local' : 'Entrega registrada'}</span>}
@@ -50,6 +50,6 @@ export default function ActivityPanel({ state, selectAgent, visible = true }) {
         </article>;
       })}
     </div>
-    <div className="panel-footer"><span className="status-dot" aria-hidden="true" /> Memória local · sem serviços conectados</div>
+    <div className="panel-footer"><span className="status-dot" aria-hidden="true" /> {state.connection?.mode === 'ws' ? (state.connection?.status === 'connected' ? 'Backend Python Ativo (Porta 8848) · FastMCP & Qdrant' : 'Conectando ao Backend Python...') : 'Memória local · sem serviços conectados'}</div>
   </>;
 }

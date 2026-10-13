@@ -430,6 +430,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:fo
 .brand small { display: block; color: #9399ad; font-size: 10px; font-weight: 600; letter-spacing: 1.75px; margin-top: 6px; }
 .simulation-badge { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; margin-right: 8px; font-size: 12px; border: 1px solid #eceaf5; border-radius: 8px; background: #f4f2fb; color: #9586b5; }
 .simulation-badge .status-dot { color: #9b8dbd; }
+.simulation-badge.ws-badge { background: #edf9f0; border-color: #a3e6b4; color: #15803d; font-weight: 600; }
+.simulation-badge.ws-badge .status-dot { background: #22c55e; color: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.simulation-badge.ws-connecting { background: #fefce8; border-color: #fde047; color: #a16207; }
+.simulation-badge.ws-connecting .status-dot { background: #eab308; color: #eab308; }
+.source-badge { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: #edf9f0; color: #16a34a; border: 1px solid #bbf7d0; margin-left: 8px; letter-spacing: .5px; }
 .workspace-meta { font-size: 10px; font-weight: 600; letter-spacing: 1.3px; color: #a7acba; padding-left: 2px; }
 .workspace-presence { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; color: #959cab; font-size: 12px; white-space: nowrap; }
 .workspace-presence .live-indicator { gap: 0; }

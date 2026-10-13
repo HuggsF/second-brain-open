@@ -69,12 +69,13 @@ async def handler(websocket):
                     except asyncio.CancelledError:
                         pass
 
+                mission_id = message.get("missionId", 1)
                 task_text = action.get("payload", "")
                 if not task_text or not isinstance(task_text, str):
                     await websocket.send(json.dumps({
                         "type": "REJECT",
                         "commandId": message.get("commandId", ""),
-                        "missionId": message.get("missionId", 0),
+                        "missionId": mission_id,
                         "revision": 1,
                         "reason": "Empty task",
                     }))
@@ -84,38 +85,41 @@ async def handler(websocket):
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
-                    "missionId": message.get("missionId", 0),
+                    "missionId": mission_id,
                     "revision": 1,
                 }))
 
-                # Iniciar missão em background
+                # Iniciar missão em background com missionId alinhado ao frontend
                 orchestrator = Orchestrator()
                 mission_task = asyncio.create_task(
-                    _run_mission(websocket, orchestrator, task_text)
+                    _run_mission(websocket, orchestrator, task_text, mission_id)
                 )
 
             elif action_type == "APPROVE":
+                mission_id = message.get("missionId", orchestrator.mission_id)
                 orchestrator.approve()
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
-                    "missionId": message.get("missionId", 0),
+                    "missionId": mission_id,
                     "revision": orchestrator.sequence + 1,
                 }))
 
             elif action_type == "START":
+                mission_id = message.get("missionId", 1)
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
-                    "missionId": message.get("missionId", 0),
+                    "missionId": mission_id,
                     "revision": 1,
                 }))
 
             elif action_type in ("PAUSE", "RESUME", "RESET"):
+                mission_id = message.get("missionId", 0)
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
-                    "missionId": message.get("missionId", 0),
+                    "missionId": mission_id,
                     "revision": 1,
                 }))
 
@@ -129,19 +133,19 @@ async def handler(websocket):
             mission_task.cancel()
 
 
-async def _run_mission(websocket, orchestrator, task_text):
+async def _run_mission(websocket, orchestrator, task_text, mission_id=None):
     """Executa uma missão e envia eventos ao frontend."""
-    log.info(f"🚀 Missão iniciada: '{task_text[:80]}'")
+    log.info(f"🚀 Missão iniciada (missionId={mission_id}): '{task_text[:80]}'")
     try:
-        async for event in orchestrator.run_mission(task_text):
+        async for event in orchestrator.run_mission(task_text, mission_id=mission_id):
             payload = json.dumps(event)
             try:
                 await websocket.send(payload)
-                log.info(f"  📤 {event['agentId']}:{event['type']} → {event.get('payload', {}).get('bubble', '')[:40]}")
+                log.info(f"  📤 [{event['agentId']}] {event['type']} → {event.get('payload', {}).get('bubble', '')[:40]}")
             except websockets.exceptions.ConnectionClosed:
                 log.warning("Conexão fechada durante missão")
                 return
-        log.info("✅ Missão concluída")
+        log.info(f"✅ Missão {mission_id} concluída")
     except asyncio.CancelledError:
         log.info("🔶 Missão cancelada (nova missão recebida)")
     except Exception as exc:

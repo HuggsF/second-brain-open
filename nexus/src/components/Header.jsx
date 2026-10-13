@@ -12,8 +12,14 @@ export default function Header({ workspace, reducedMotion, speed, actions }) {
             title="Menos movimento: preferência manual ou do sistema">
             {reducedMotion ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
-          <span id="motion-preference" className="motion-preference">{reducedMotion ? workspace.systemReducedMotion ? "Menos movimento · sistema" : "Menos movimento · manual" : "Movimento padrão"}</span>
-          <span className="simulation-badge"><span className="status-dot" /> Simulação local</span>
+          {workspace.connection?.mode === 'ws' ? (
+            <span className={`simulation-badge ${workspace.connection?.status === 'connected' ? 'ws-badge' : 'ws-connecting'}`}
+              title="Conectado ao WebSocket backend Python em ws://127.0.0.1:8848">
+              <span className="status-dot" /> {workspace.connection?.status === 'connected' ? 'Python Backend (8848)' : 'Conectando Backend...'}
+            </span>
+          ) : (
+            <span className="simulation-badge"><span className="status-dot" /> Simulação local</span>
+          )}
           <button className="btn btn-secondary speed-button" type="button" onClick={() => actions.setSpeed(speed === 1 ? 2 : 1)}
             aria-label={'Velocidade da simulação: ' + speed + ' vezes. Clique para alternar.'}><Zap size={15} /> {speed}×</button>
           <button type="button" className="btn btn-primary" onClick={actions.openTask}><Plus size={17} /> Nova tarefa</button>

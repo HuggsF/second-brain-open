@@ -81,6 +81,16 @@ export function createAdapter(mode = 'local', bindings) {
   }
   const unsubscribeTransport = mode === 'local' ? null : transport.subscribe(input => {
     if (disposed) return;
+    if (input?.type === 'CONNECTION') {
+      bindings.dispatch({
+        type: 'PROTOCOL_STATE',
+        payload: {
+          ...bindings.getState(),
+          connection: { mode, status: input.status || 'connected', error: null, url: input.url }
+        }
+      });
+      return;
+    }
     if (input?.type === 'ACK' || input?.type === 'REJECT') {
       // A later mission cancels all commands from the former generation.
       if (bindings.getState().missionId !== ledger.optimistic.missionId) return;
