@@ -17,9 +17,12 @@ def _caller(context) -> str:
 
 
 class TraceMiddleware(Middleware):
-    def __init__(self, server_name: str, path: Optional[Path] = None):
+    def __init__(self, server_name: str, path: Optional[Path] = None,
+                 content_args: frozenset = frozenset()):
         self.server_name = server_name
         self.path = path
+        # Arguments that are the content of the call: logged as {"chars": n}, never the text.
+        self.content_args = frozenset(content_args)
 
     def _begin(self, context) -> Optional[tracing.CallState]:
         try:
@@ -56,7 +59,7 @@ class TraceMiddleware(Middleware):
                     "status": status,
                     "duration_ms": int((time.perf_counter() - started) * 1000),
                     "caller": state.caller,
-                    "args": tracing.redact_args(context.message.arguments),
+                    "args": tracing.redact_args(context.message.arguments, self.content_args),
                     "error_type": error_type,
                 },
                 state.path,

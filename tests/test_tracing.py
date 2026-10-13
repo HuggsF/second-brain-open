@@ -63,6 +63,15 @@ class TestRedact(unittest.TestCase):
         self.assertEqual(out["api_key"], "[redacted]")
         self.assertEqual(out["q"], "ok")
 
+    def test_content_args_become_char_counts(self):
+        out = tracing.redact_args({"text": "CONTEUDO-SENTINELA" * 3, "q": "ok", "source": None},
+                                  content_args=frozenset({"text", "source"}))
+        self.assertEqual(out["text"], {"chars": 54})
+        self.assertIsNone(out["source"])
+        self.assertEqual(out["q"], "ok")
+        self.assertNotIn("SENTINELA", json.dumps(out))
+        self.assertEqual(tracing.redact_args({"text": "abc"})["text"], "abc")
+
     def test_redact_truncates_and_keeps_original(self):
         original = {"q": "a" * 500, "command": "b" * 800}
         snapshot = dict(original)
