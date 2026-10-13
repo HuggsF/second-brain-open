@@ -10,3 +10,22 @@ paid_reference:                 # preço usado para estimar a economia (USD por 
   model: reference-small
   input: 0.15
   output: 0.60
+providers:
+  - kind: openai_compatible
+    name: openrouter
+    model: google/gemma-4-27b-it
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    timeout_seconds: 20
+    structured: json_schema
+    extra:
+      provider:
+        data_collection: deny
+        zdr: true
+    price:
+      input: 0.10
+      output: 0.20
+  - kind: ollama
+    model: llama3.2:3b
+    timeout_seconds: 120
+    keep_alive: 30m
