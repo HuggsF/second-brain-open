@@ -7,8 +7,11 @@ Follow every numbered item; do not paraphrase a subset.
 ## 1. What this repository is / is not
 
 - Is: KIOSK Brands' local, offline engineering knowledge base. Python 3 (`.venv`), Qdrant +
-  Ollama for retrieval, four FastMCP servers in `mcp_servers/`, a loopback BFF in `backend/`,
-  a static dashboard in `dashboard/` (dev server `dashboard/serve.py`), and the Markdown `vault/` that is the system of record.
+  Ollama for retrieval, five FastMCP servers in `mcp_servers/` (the fifth, `local_tasks_mcp.py`, runs
+  small tasks on the local model), a loopback BFF in `backend/`, a static dashboard in `dashboard/`
+  (dev server `dashboard/serve.py`), the agnostic core (`core/protocol/`, `core/local_tasks/`,
+  `core/events.py`) with the instance profiles in `profiles/`, and the Markdown `vault/` that is the
+  system of record.
 - Is not: the Hub Logístico or the SRV-API server. Those are other repositories and machines
   (`C:/KIOSK/hub-logistico`, production host); read-only from here. Is not the place for 360
   analysis results: they live in `C:/KIOSK/analise-360`.
@@ -34,11 +37,15 @@ Follow every numbered item; do not paraphrase a subset.
 
 ## 3. Proof commands and local gates
 
-- Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api tests.test_drive_sync`
+- Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api tests.test_drive_sync tests.test_protocol tests.test_agnostic_core tests.test_events tests.test_local_tasks tests.test_local_tasks_mcp tests.test_local_tasks_cli`
 - Dashboard JS: `node --test --test-isolation=none dashboard/tests/*.test.cjs` (Node 24)
   and `.\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py`.
 - `integration.test.cjs` compares citation hashes with the current vault bytes: after any vault
   edit, run `.\.venv\Scripts\python.exe dashboard\build_graph.py` first or that test fails.
+- Local-task quality (needs Ollama already running; not part of the gate above):
+  `.\.venv\Scripts\python.exe cli.py task-eval` exits 1 when overall accuracy over
+  `tests/golden_dataset_local_tasks.json` is below `--min-accuracy` (default 0.6). It makes real
+  model calls and takes minutes (about 20 s per call on this machine).
 - Typecheck / lint / format: none configured. Coverage or quality gates: none.
 - CI: none. The suite above is the only gate and is run by hand.
 
@@ -96,6 +103,8 @@ Follow every numbered item; do not paraphrase a subset.
 - New prohibition, proof command, path or host policy → this file.
 - Dated decision with a discarded alternative → an ADR in `vault/adrs/`.
 - Business rule → `vault/domain/`; session narrative → `vault/daily/`.
+- New code in `core/` does not cite the instance (brands, Hub, SULTS, Holmes, SRV-API, Salesforce, SAP):
+  that vocabulary goes to `profiles/<name>/`; `tests/test_agnostic_core.py` enforces it.
 
 ## 10. Configuration this file relies on
 
