@@ -85,6 +85,9 @@ design_system: "dashboard/DESIGN.md"
 | 2026-10-13 | Criação do skill ux-engine-kiosk | 8 princípios de design para agentes, inspirado em UX Engine + XIAS + ux-pilot |
 | 2026-10-13 | ADR-016 aprovada | Adoção formal de padrões de UX e design system |
 | 2026-10-13 | Upgrade do skill para v2 | Product Workflow, UX Brief, Gates nomeados, Critique Mode |
+| 2026-10-13 | Ação destrutiva passa por `confirmAction` (dialog, foco em Cancelar) | P0: "Limpar Auditoria em Disco" apagava o log com um clique |
+| 2026-10-13 | Gates estáticos em `dashboard/tests/ux-gates.test.cjs` | Primeiro passo de automação do UX Auditor (ver `dashboard/analysis/ux-maturity-2026-10-13.md`) |
+| 2026-10-13 | `--field-border` (3:1), fonte mínima 11px, reduced-motion cobre animações | Gates `non_text_contrast`, `font_min`, `reduced_motion` |
 
 ---
 
@@ -96,6 +99,8 @@ design_system: "dashboard/DESIGN.md"
 | UX-02 | P1 | Trocar vista com zero resultados mantém doc anterior | `app.js:164-167` | 🟡 Aberto |
 | A11Y-01 | P2 | Contraste insuficiente em alguns elementos muted | `style.css` | 🟡 Aberto |
 | MOB-01 | P1 | Layout quebra em mobile narrow | `style.css` | 🟡 Aberto |
+| UX-P0-01 | P0 | Limpar auditoria sem confirmação | `dashboard/agent-arena.js` | ✅ Resolvido (sprint 1) |
+| UX-MOB-02 | P1 | Entre ~650 e 900px a navegação horizontal passa por baixo da marca | `style.css` (rail ≤ 900px) | 🟡 Aberto |
 
 ---
 
