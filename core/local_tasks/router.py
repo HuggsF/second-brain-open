@@ -146,7 +146,7 @@ def _summarize(text, target_words, profile, client):
 
 def _validate(text, template, source, profile, client):
     result = tasks.validate_document(text, template)
-    if source is None:
+    if not source:
         return "ok", None, result, (0, 0, 0), False
     user_text = tasks.review_input(text, source)
     if estimate_tokens(user_text) > profile.max_input_tokens:

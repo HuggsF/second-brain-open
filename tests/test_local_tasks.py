@@ -507,6 +507,17 @@ class NestedRequiredTests(unittest.TestCase):
         self.assertEqual((out["missing"], out["errors"]), (["labels"], []))
 
 
+class EmptySourceTests(unittest.TestCase):
+    setUp = RouterTests.setUp
+    run_task = RouterTests.run_task
+
+    def test_empty_source_does_not_call_the_model(self):
+        fc = FakeClient()
+        env = self.run_task("validate", client=fc, text=ADR_MD, template="adr@1", source="")
+        self.assertEqual((env["status"], fc.calls, env["cost"]["tier"]), ("ok", 0, "deterministic"))
+        self.assertTrue(env["payload"]["valid"])
+
+
 class StatusTests(unittest.TestCase):
     def setUp(self):
         from core import events
