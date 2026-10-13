@@ -20,10 +20,11 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-COURSE_ROOT = Path(r"C:\Users\huggs\Downloads\Descomplicando System Design")
-VAULT_DIR = Path(r"c:\Huggs\seccond-brain\vault")
+REPO_ROOT = Path(__file__).resolve().parent.parent
+COURSE_ROOT = Path(os.environ.get("SYSTEM_DESIGN_COURSE_ROOT", Path.home() / "Downloads" / "Descomplicando System Design"))
+VAULT_DIR = REPO_ROOT / "vault"
 SYSTEM_DESIGN_VAULT = VAULT_DIR / "architecture" / "system-design"
-OUTPUT_DIR = Path(r"c:\Huggs\seccond-brain\extracted_system_design")
+OUTPUT_DIR = REPO_ROOT / "extracted_system_design"
 
 
 def probe_video(file_path: Path):
