@@ -16,7 +16,7 @@ function queries(main,U){
   for(const entry of U.saved.history){
    history.append(el('div',{class:'history-item'},button(entry.query,()=>{input.value=entry.query;run(entry.query);},'row-link')));
   }
-  if(U.saved.history.length)history.append(button('Limpar histórico',()=>{U.saved.history=[];U.persist();renderHistory();notify('Histórico removido deste navegador.');},'subtle'));
+  if(U.saved.history.length)history.append(button('Limpar histórico',async()=>{if(!await U.confirmAction({title:'Limpar o histórico de consultas?',description:'As últimas consultas salvas neste navegador serão apagadas. Não há como desfazer.',confirmLabel:'Limpar histórico'}))return;U.saved.history=[];U.persist();renderHistory();notify('Histórico removido deste navegador.');},'subtle'));
   history.append(el('hr'),el('h3',{},'Como a recuperação funciona'),el('div',{class:'contract-list'},el('p',{},'1. Busca termos em títulos, entidades e texto completo.'),el('p',{},'2. Expande até dois saltos no catálogo curado.'),el('p',{},'3. Mostra fontes, linhas e hashes reais.'),el('p',{},'4. Registra lacunas; não preenche ausência com inferências.')));
  }
  function renderResults(){

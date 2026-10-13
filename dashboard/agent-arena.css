@@ -369,7 +369,7 @@
 }
 
 .event-time {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
   font-family: monospace;
 }
@@ -488,7 +488,7 @@
 
 .packet-capsule text {
   fill: #ffffff;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   font-family: system-ui, -apple-system, sans-serif;
   text-anchor: middle;
@@ -575,7 +575,7 @@
 .chat-protocol-badge {
   display: inline-block;
   padding: 2px 7px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   font-family: monospace;
   border-radius: 4px;
@@ -801,13 +801,13 @@
 
 .proof-seq {
   font-family: monospace;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--muted);
 }
 
 .proof-rtt {
   font-family: monospace;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--good);
   font-weight: 700;
 }
@@ -822,7 +822,7 @@
 
 .proof-details code {
   font-family: "Consolas", monospace;
-  font-size: 10px;
+  font-size: 11px;
   background: rgba(0, 0, 0, 0.3);
   padding: 1px 4px;
   border-radius: 3px;

@@ -1800,6 +1800,12 @@ function render(main, U) {
             switchTab('audit');
           }, 'subtle'),
           button('🗑️ Limpar Auditoria em Disco', async () => {
+            const ok = await U.confirmAction({
+              title: 'Apagar o log de auditoria?',
+              description: 'Todos os passos registrados em .runtime/workflow_audit.jsonl serão apagados do disco. Não há como desfazer.',
+              confirmLabel: 'Apagar log'
+            });
+            if (!ok) return;
             try {
               const res = await fetch('/api/workflow/reset-audit', { method: 'POST' });
               if (!res.ok) throw new Error('HTTP ' + res.status);

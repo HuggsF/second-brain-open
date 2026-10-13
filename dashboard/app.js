@@ -40,6 +40,16 @@ function el(tag, attrs, ...children) {
 function button(text, action, cls='') {return el('button',{type:'button',class:cls,onclick:action},text);}
 function badge(text, cls='') {return el('span',{class:'pill '+cls},text);}
 function empty(title,description,action) {return el('div',{class:'empty'},el('h2',{},title),el('p',{},description),action||null);}
+function confirmAction({title,description,confirmLabel}) {
+ // Modal <dialog>; focus starts on Cancel and Esc cancels, so a stray Enter never confirms.
+ return new Promise(resolve=>{
+  const box=el('dialog',{class:'confirm-dialog','aria-labelledby':'confirm-title','aria-describedby':'confirm-description'});
+  const cancel=button('Cancelar',()=>box.close('cancel'),'subtle');
+  box.append(el('h2',{id:'confirm-title'},title),el('p',{id:'confirm-description'},description),el('div',{class:'action-row'},cancel,button(confirmLabel,()=>box.close('confirm'),'danger')));
+  box.addEventListener('close',()=>{resolve(box.returnValue==='confirm');box.remove();});
+  document.body.append(box);box.showModal();cancel.focus();
+ });
+}
 function notify(message) {
  $('notice').textContent=message; $('notice').classList.add('visible');
  clearTimeout(noticeTimer); noticeTimer=setTimeout(()=>$('notice').classList.remove('visible'),6000);
@@ -235,7 +245,7 @@ function render(){
  $('snapshot-label').textContent='Snapshot '+G.snapshot_id.slice(0,8)+' · '+formatDate(G.built_at);
  if(!storageOK)notify('Persistência indisponível. Alterações permanecem apenas nesta sessão.');
 }
-const api={el,button,badge,empty,notify,persist,navigate,update,head,panelTitle,select,exportJSON,copy,documentTitle,openDoc,renderReader,row,formatDate,graph:G,core:C,markdown:M,saved,categories,evidence,get route(){return route;}};
+const api={el,button,badge,empty,confirmAction,notify,persist,navigate,update,head,panelTitle,select,exportJSON,copy,documentTitle,openDoc,renderReader,row,formatDate,graph:G,core:C,markdown:M,saved,categories,evidence,get route(){return route;}};
 window.BrainUI=api;
 document.querySelector('.skip').addEventListener('click',e=>{e.preventDefault();$('main').focus();$('main').scrollIntoView({block:'start'});});
 window.addEventListener('hashchange',()=>{if(location.hash==='#main')return;render();$('main').focus({preventScroll:true});if(!route.section)window.scrollTo({top:0});});
