@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, lazy, Suspense } from 'react';
 import { Network, Play, Pause, Check, RotateCcw, Zap, ShieldCheck, Layers, Sparkles } from 'lucide-react';
 import { STATUS, number, Avatar } from './Shared.jsx';
 import Header from './Header.jsx';
@@ -12,6 +12,10 @@ import { useMotionTimeline } from '../hooks/useMotionTimeline.js';
 import { useBubbleQueue } from '../hooks/useBubbleQueue.js';
 import { useTransfers } from '../hooks/useTransfers.js';
 import { useCelebration } from '../hooks/useCelebration.js';
+
+// ── Feature flag: VITE_RENDER_MODE=3d → isometric 3D scene ─────────────────
+const use3D = import.meta.env.VITE_RENDER_MODE === '3d';
+const OfficeFloor3D = use3D ? lazy(() => import('../scene/OfficeFloor3D.jsx')) : null;
 export default function Workspace() {
   const { workspace, simulation: state, actions, effectiveReducedMotion: reducedMotion } = useSimulation();
   const { selectedId, taskOpen, speed, missionId } = workspace;
@@ -82,8 +86,15 @@ export default function Workspace() {
               <p>{state.task}</p></div><span className="mission-progress">{progress}%</span></div>
             <div className="floor-meta"><span className={'phase-indicator phase-' + state.mode} role="status">
               <span className="status-dot" /> {phase}</span><span>{paused ? 'Progresso congelado' : state.needsApproval ? 'A equipe espera sua decisão' : 'Etapa ' + state.tick + ' de ' + TOTAL_STEPS}</span></div>
-            <OfficeFloor simulation={state} missionId={missionId} paused={paused} reducedMotion={reducedMotion}
-              bubbles={bubbles} transfers={transfers} onSelect={selectAgent} selectedId={selectedId} celebrating={celebrating} />
+            {use3D ? (
+              <Suspense fallback={<div className="office-floor" style={{display:'flex',alignItems:'center',justifyContent:'center',color:'#00f0ff',fontFamily:'Share Tech Mono'}}>Carregando cena 3D…</div>}>
+                <OfficeFloor3D simulation={state} missionId={missionId} paused={paused} reducedMotion={reducedMotion}
+                  bubbles={bubbles} transfers={transfers} onSelect={selectAgent} selectedId={selectedId} celebrating={celebrating} />
+              </Suspense>
+            ) : (
+              <OfficeFloor simulation={state} missionId={missionId} paused={paused} reducedMotion={reducedMotion}
+                bubbles={bubbles} transfers={transfers} onSelect={selectAgent} selectedId={selectedId} celebrating={celebrating} />
+            )}
             <div className="status-legend" aria-label="Legenda dos estados">
               {['idle', 'working', 'thinking', 'waitingApproval', 'done'].map(status =>
                 <span key={status} className={'legend-item status-' + status}><i className="status-dot" />{STATUS[status]}</span>)}
