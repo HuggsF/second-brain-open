@@ -556,6 +556,68 @@ class PaidReferenceTests(unittest.TestCase):
         self.assertEqual((env["status"], env["reason"]), ("error", None))
 
 
+class ClockClient(FakeClient):
+    """Cada chamada avança o relógio falso em `step` segundos."""
+
+    def __init__(self, clock, step, *answers):
+        super().__init__(*answers)
+        self.clock, self.step = clock, step
+
+    def chat(self, model, system, user, schema):
+        self.clock[0] += self.step
+        return super().chat(model, system, user, schema)
+
+
+class LimitsTests(unittest.TestCase):
+    setUp = RouterTests.setUp
+    run_task = RouterTests.run_task
+
+    def test_max_blocks_default_and_from_yaml(self):
+        self.assertEqual(_profile().max_blocks, 4)
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(Path(tmp), "p", "labels:\n  type: [a]\nmax_blocks: 2\n")
+            self.assertEqual(load_profile("p", root=Path(tmp)).max_blocks, 2)
+            _write(Path(tmp), "q", "labels:\n  type: [a]\n")
+            self.assertEqual(load_profile("q", root=Path(tmp)).max_blocks, 4)
+
+    def test_summarize_above_max_blocks_escalates_without_calls(self):
+        text = "\n\n".join(c * 30 for c in "abcde")
+        fc = FakeClient()
+        env = self.run_task("summarize", client=fc, text=text, profile=_profile_small())
+        self.assertEqual((env["status"], env["reason"], fc.calls), ("escalate", "input_too_large", 0))
+        self.assertEqual(env["cost"]["tier"], "deterministic")
+
+    def test_total_deadline_escalates_timeout_with_spent_cost(self):
+        from core.local_tasks import router
+        clock = [0.0]
+        # timeout 5 s x (1 + 1 retry) x 2 = prazo de 20 s; cada chamada leva 15 s.
+        fc = ClockClient(clock, 15, {"summary": "s1", "key_points": []},
+                         {"summary": "s2", "key_points": []}, {"summary": "s3", "key_points": []})
+        text = "\n\n".join(c * 30 for c in "abc")
+        with mock.patch.object(router, "_clock", lambda: clock[0]):
+            env = self.run_task("summarize", client=fc, text=text, profile=_profile_small())
+        self.assertEqual((env["status"], env["reason"]), ("escalate", "timeout"))
+        self.assertEqual(fc.calls, 2)
+        self.assertEqual((env["cost"]["tier"], env["cost"]["tokens_in"]), ("local", 20))
+
+    def test_deadline_also_bounds_retries(self):
+        from core.local_tasks import router
+        clock = [0.0]
+        fc = ClockClient(clock, 25, "nao json", GOOD)
+        with mock.patch.object(router, "_clock", lambda: clock[0]):
+            env = self.run_task(client=fc)
+        self.assertEqual((env["status"], env["reason"], fc.calls), ("escalate", "timeout", 1))
+        self.assertEqual(env["cost"]["tokens_in"], 10)
+
+    def test_within_deadline_is_unchanged(self):
+        from core.local_tasks import router
+        clock = [0.0]
+        fc = ClockClient(clock, 1, GOOD)
+        with mock.patch.object(router, "_clock", lambda: clock[0]):
+            env = self.run_task(client=fc)
+        self.assertEqual(env["status"], "ok")
+
+
 class StatusTests(unittest.TestCase):
     def setUp(self):
         from core import events

@@ -5,6 +5,7 @@ labels:
 timeout_seconds: 30
 max_input_tokens: 6000
 retries: 1
+max_blocks: 4
 paid_reference:
   model: reference-small
   input: 0.15

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import time
 
 from jsonschema import Draft202012Validator
 
@@ -14,6 +15,27 @@ from core.local_tasks.ollama_client import LocalModelError, OllamaClient
 from core.local_tasks.profile import Profile, ProfileNotFound, load_profile
 from core.protocol import registry
 from core.protocol.envelope import TASKS, make_envelope
+
+_clock = time.monotonic
+
+
+class _Deadline:
+    """Envolve o cliente: depois do prazo total do run_task, nova chamada ao modelo vira timeout."""
+
+    def __init__(self, client, seconds: float):
+        self._client = client
+        self._end = _clock() + seconds
+
+    def chat(self, model, system, user, schema):
+        if _clock() >= self._end:
+            raise LocalModelError("timeout", "prazo total da tarefa")
+        return self._client.chat(model, system, user, schema)
+
+
+def deadline_seconds(profile: Profile) -> float:
+    """Prazo total de um run_task: timeout_seconds x (1 + retries) x 2."""
+    return profile.timeout_seconds * (1 + max(0, profile.retries)) * 2
+
 
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
 
@@ -143,7 +165,10 @@ def _summarize(text, target_words, profile, client):
             usage[i] += used[i]
         return status, reason, payload
 
-    for block in tasks.split_blocks(text, max_chars):
+    blocks = tasks.split_blocks(text, max_chars)
+    if len(blocks) > profile.max_blocks:
+        return "escalate", "input_too_large", {}, (0, 0, 0)
+    for block in blocks:
         status, reason, payload = call(block)
         if status != "ok":
             return status, reason, {}, tuple(usage)
@@ -182,7 +207,7 @@ def _execute(task, text, template, target_words, source, profile, client):
             registry.load_schema(template)
         except registry.UnknownTemplate:
             return "invalid", "unknown_template", {}, det
-    client = client or OllamaClient(timeout=profile.timeout_seconds)
+    client = _Deadline(client or OllamaClient(timeout=profile.timeout_seconds), deadline_seconds(profile))
     if task == "summarize":
         status, reason, payload, used = _summarize(text, target_words, profile, client)
         modelled = True
