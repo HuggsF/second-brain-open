@@ -67,9 +67,9 @@ Follow every numbered item; do not paraphrase a subset.
 - Specs: `.superpowers/specs/` · Plans: `.superpowers/plans/` · Ledger:
   `.superpowers/ledger/ledger.md` · Handoffs: `.superpowers/handoffs/`.
 - Spec, plan and handoff files are named `yyyy-MM-dd-HH-mm-{name}`.
-- ADRs: `vault/adrs/ADR-NNN-*.md`, numbered in sequence (ADR-001 to ADR-015 at 2026-10-13). A decision
+- ADRs: `vault/adrs/ADR-NNN-*.md`, numbered in sequence (ADR-001 to ADR-016 at 2026-10-13). A decision
   about this repository itself takes the next number and declares `scope: second-brain` in its
-  frontmatter (ADR-004, 005, 010, 014, 015 do).
+  frontmatter (ADR-004, 005, 010, 014, 015, 016 do).
 - MCP call trace: `.runtime/trace-log.jsonl` (local, never committed); read it with `cli.py trace <trace_id>`.
 
 ## 7. Skills
