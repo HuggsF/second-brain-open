@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 from fastmcp import Client
 from backend.store import Store
+from backend.workflow_api import MAX_BODY_BYTES, WorkflowApi
 from mcp_servers.hub_observability_mcp import mcp
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,8 +54,10 @@ class Collector:
             self.stop.wait(60)
 
 
-def handler_for(store, dashboard, port):
+def handler_for(store, dashboard, port, workflow=None):
     origin = f'http://127.0.0.1:{port}'
+    workflow = workflow or WorkflowApi(ROOT, port=port)
+    if not workflow.port: workflow.port = port
     class Handler(BaseHTTPRequestHandler):
         def log_message(self,*args):
             pass  # Includes bootstrap secrets in URL: deliberately never access-log them.
@@ -75,6 +78,13 @@ def handler_for(store, dashboard, port):
         def error(self,status,code):
             self.send(status,{'schema_version':1,'error':code,'request_id':str(uuid.uuid4())})
 
+        def has_session(self):
+            cookie = SimpleCookie()
+            try: cookie.load(self.headers.get('Cookie',''))
+            except Exception: return False
+            token = cookie.get('brain_session')
+            return bool(token) and store.authorize(token.value,'session')
+
         def do_GET(self):
             if self.headers.get('Host') != f'127.0.0.1:{port}' or self.headers.get('Sec-Fetch-Site') == 'cross-site' or self.headers.get('Origin',origin) != origin:
                 return self.error(403,'ORIGIN_DENIED')
@@ -87,21 +97,20 @@ def handler_for(store, dashboard, port):
                     return self.error(401,'LINK_EXPIRED')
                 session = store.issue('session',8*3600)
                 return self.send(302,b'','text/plain',{'Location':'/dashboard/#page=observability','Set-Cookie':f'brain_session={session}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800'})
-            cookie = SimpleCookie()
-            try: cookie.load(self.headers.get('Cookie',''))
-            except Exception: return self.error(401,'AUTH_REQUIRED')
-            token = cookie.get('brain_session')
-            if not token or not store.authorize(token.value,'session'):
-                if path.startswith('/v1/'):
+            if not self.has_session():
+                if path.startswith(('/v1/','/api/')):
                     return self.error(401,'AUTH_REQUIRED')
                 return self.send(401,b'<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Conectar Second Brain</title><h1>Sessao local necessaria</h1><p>Execute python -m backend.server --issue-link e abra o link de uso unico gerado em .runtime/connect.url.</p></html>','text/html; charset=utf-8')
             query = parse_qs(url.query)
+            if path.startswith('/api/workflow/'):
+                result = workflow.handle('GET',path,b'')
+                return self.send(result[0],result[1],extra=result[2]) if result else self.error(404,'NOT_FOUND')
             if path.startswith('/v1/'):
                 if query.get('space',['kiosk']) != ['kiosk']:
                     return self.error(403,'SPACE_DENIED')
                 envelope = {'schema_version':1,'space_id':'kiosk','request_id':str(uuid.uuid4())}
                 if path == '/v1/capabilities':
-                    return self.send(200,{**envelope,'authentication':'local-session','observability':{'enabled':True,'interval_seconds':60,'stale_after_seconds':180,'targets':list(TARGETS)},'semantic_retrieval':False,'agent_execution':False})
+                    return self.send(200,{**envelope,'authentication':'local-session','observability':{'enabled':True,'interval_seconds':60,'stale_after_seconds':180,'targets':list(TARGETS)},'semantic_retrieval':False,'agent_execution':False,'workflow_audit':True})
                 if path in ('/v1/observability','/v1/observability/history'):
                     env = query.get('environment',['production'])
                     if len(env)!=1 or env[0] not in TARGETS:
@@ -121,7 +130,24 @@ def handler_for(store, dashboard, port):
                 return self.error(404,'NOT_FOUND')
             return self.send(200,file.read_bytes(),mimetypes.guess_type(file)[0] or 'application/octet-stream')
 
-        def do_POST(self): self.error(405,'READ_ONLY_API')
+        def do_POST(self):
+            # Writes need an explicit same-origin Origin header, unlike reads (CSRF guard).
+            if self.headers.get('Host') != f'127.0.0.1:{port}' or self.headers.get('Sec-Fetch-Site') == 'cross-site' or self.headers.get('Origin') != origin:
+                return self.error(403,'ORIGIN_DENIED')
+            if not self.has_session():
+                return self.error(401,'AUTH_REQUIRED')
+            path = unquote(urlsplit(self.path).path)
+            if not path.startswith('/api/workflow/'):
+                return self.error(405,'READ_ONLY_API')
+            try: length = int(self.headers.get('Content-Length','0'))
+            except ValueError: return self.error(400,'INVALID_LENGTH')
+            if length > MAX_BODY_BYTES:
+                return self.error(413,'BODY_TOO_LARGE')
+            body = self.rfile.read(length) if length > 0 else b''
+            if path == '/api/workflow/execute-step' and self.headers.get('Content-Type','').split(';')[0].strip() != 'application/json':
+                return self.error(415,'JSON_REQUIRED')
+            result = workflow.handle('POST',path,body)
+            return self.send(result[0],result[1],extra=result[2]) if result else self.error(404,'NOT_FOUND')
     return Handler
 
 
