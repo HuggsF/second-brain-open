@@ -348,3 +348,119 @@ class RouterTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def _profile_small(max_tokens=10):
+    p = _profile()
+    return Profile(name=p.name, labels=p.labels, local_model=p.local_model,
+                   timeout_seconds=p.timeout_seconds, max_input_tokens=max_tokens,
+                   retries=p.retries, paid_reference=p.paid_reference)
+
+
+SUMMARY = {"summary": "s", "key_points": ["k"]}
+
+
+class SummarizeTests(unittest.TestCase):
+    setUp = RouterTests.setUp
+    run_task = RouterTests.run_task
+
+    def test_summarize_small_input_single_call(self):
+        fc = FakeClient(SUMMARY)
+        env = self.run_task("summarize", client=fc, target_words=50)
+        self.assertEqual((env["status"], fc.calls), ("ok", 1))
+        self.assertEqual(env["payload"], SUMMARY)
+        from core.local_tasks import tasks
+        system, _ = tasks.prompt("summarize", "t", _profile(), tasks.output_schema("summarize", None), 50)
+        self.assertIn("50 words", system)
+        self.assertEqual(env["cost"]["tier"], "local")
+
+    def test_summarize_large_input_map_reduce_calls_blocks_plus_one(self):
+        text = "\n\n".join(["a" * 30, "b" * 30, "c" * 30])
+        fc = FakeClient({"summary": "s1", "key_points": []}, {"summary": "s2", "key_points": []},
+                        {"summary": "s3", "key_points": []}, {"summary": "final", "key_points": ["k"]})
+        env = self.run_task("summarize", client=fc, text=text, profile=_profile_small())
+        self.assertEqual((env["status"], fc.calls), ("ok", 4))
+        self.assertEqual(env["payload"]["summary"], "final")
+        self.assertEqual((env["cost"]["tokens_in"], env["cost"]["tokens_out"]), (40, 20))
+        self.assertIn("s1", fc.users[3])
+        self.assertIn("s3", fc.users[3])
+
+    def test_summarize_reduce_too_large_escalates(self):
+        text = "\n\n".join(["a" * 30, "b" * 30, "c" * 30])
+        big = {"summary": "x" * 30, "key_points": []}
+        fc = FakeClient(big, big, big)
+        env = self.run_task("summarize", client=fc, text=text, profile=_profile_small())
+        self.assertEqual((env["status"], env["reason"]), ("escalate", "input_too_large"))
+
+    def test_summarize_block_escalation_propagates(self):
+        text = "\n\n".join(["a" * 30, "b" * 30])
+        fc = FakeClient({"summary": "s1", "key_points": []}, LocalModelError("timeout"))
+        env = self.run_task("summarize", client=fc, text=text, profile=_profile_small())
+        self.assertEqual((env["status"], env["reason"]), ("escalate", "timeout"))
+        self.assertEqual(env["cost"]["tokens_in"], 10)
+
+    def test_split_blocks_never_exceeds_limit(self):
+        from core.local_tasks import tasks
+        text = "\n\n".join(["p" * 25, "word " * 30 + "\n" + "line two " * 5, "z" * 100, "short"])
+        for limit in (10, 40, 64):
+            blocks = tasks.split_blocks(text, limit)
+            self.assertTrue(blocks)
+            self.assertTrue(all(0 < len(b) <= limit for b in blocks), limit)
+            self.assertEqual("".join(blocks).replace("\n", "").replace(" ", ""),
+                             text.replace("\n", "").replace(" ", ""))
+        self.assertEqual(tasks.split_blocks("a\n\nb", 100), ["a\n\nb"])
+
+
+ADR_MD = ("---\r\ntype: adr\r\nstatus: accepted\r\ndate: 2026-10-13\r\n---\r\n\r\n"
+          "# Use local tasks\r\n\r\nBody text.\r\n")
+
+
+class ValidateTests(unittest.TestCase):
+    setUp = RouterTests.setUp
+    run_task = RouterTests.run_task
+
+    def test_validate_markdown_crlf_bom_frontmatter(self):
+        doc = b"\xef\xbb\xbf" + ADR_MD.encode("utf-8")
+        fc = FakeClient()
+        env = self.run_task("validate", client=fc, text=doc.decode("utf-8"), template="adr@1")
+        self.assertEqual(env["status"], "ok", env)
+        self.assertEqual(env["payload"], {"valid": True, "missing": [], "errors": [], "review": []})
+        self.assertEqual((fc.calls, env["cost"]["tier"]), (0, "deterministic"))
+
+    def test_validate_reports_missing_keys(self):
+        doc = "---\ntype: adr\nstatus: accepted\n---\n# T\n"
+        env = self.run_task("validate", client=FakeClient(), text=doc, template="adr@1")
+        self.assertEqual(env["status"], "ok")
+        self.assertFalse(env["payload"]["valid"])
+        self.assertEqual(env["payload"]["missing"], ["date"])
+
+    def test_validate_missing_title_and_wrong_type(self):
+        from core.local_tasks import tasks
+        out = tasks.validate_document("---\ntype: adr\nstatus: 3\ndate: 2026-10-13\n---\nno heading\n", "adr@1")
+        self.assertEqual(out["missing"], ["title"])
+        self.assertEqual(len(out["errors"]), 1)
+        self.assertIn("status", out["errors"][0])
+
+    def test_validate_no_frontmatter_is_invalid_not_exception(self):
+        from core.local_tasks import tasks
+        out = tasks.validate_document("# Just a title\n", "adr@1")
+        self.assertFalse(out["valid"])
+        self.assertTrue(out["errors"])
+
+    def test_validate_accepts_dict(self):
+        from core.local_tasks import tasks
+        out = tasks.validate_document({"type": "adr", "status": "x", "date": "d", "title": "t"}, "adr@1")
+        self.assertTrue(out["valid"])
+
+    def test_validate_unknown_template_is_invalid_status(self):
+        env = self.run_task("validate", client=FakeClient(), text=ADR_MD, template="nope@1")
+        self.assertEqual((env["status"], env["reason"]), ("invalid", "unknown_template"))
+
+    def test_validate_with_source_calls_model_once_and_returns_review(self):
+        fc = FakeClient({"review": ["status contradicts source"]})
+        env = self.run_task("validate", client=fc, text=ADR_MD, template="adr@1", source="the source")
+        self.assertEqual((env["status"], fc.calls), ("ok", 1))
+        self.assertEqual(env["payload"]["review"], ["status contradicts source"])
+        self.assertTrue(env["payload"]["valid"])
+        self.assertEqual(env["cost"]["tier"], "local")
+        self.assertIn("the source", fc.users[0])

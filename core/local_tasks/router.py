@@ -81,22 +81,9 @@ def _errors(schema: dict, obj: dict) -> list[str]:
     return [f"{'/'.join(str(p) for p in e.absolute_path) or '<root>'}: {e.message}" for e in errs]
 
 
-def _execute(task, text, template, target_words, profile, client):
-    """Devolve (status, reason, payload, cost)."""
+def _ask(task, system, user, schema, profile, client):
+    """Laço de tentativas. Devolve (status, reason, payload, (tokens_in, tokens_out, ms))."""
     model = profile.local_model
-    det = _cost(model, "deterministic", 0, 0, 0, profile)
-    if task not in TASKS:
-        return "invalid", "unknown_task", {}, det
-    if task == "extract":
-        try:
-            registry.load_schema(template)
-        except registry.UnknownTemplate:
-            return "invalid", "unknown_template", {}, det
-    if estimate_tokens(text) > profile.max_input_tokens:
-        return "escalate", "input_too_large", {}, det
-    schema = tasks.output_schema(task, template)
-    system, user = tasks.prompt(task, text, profile, schema, target_words)
-    client = client or OllamaClient(timeout=profile.timeout_seconds)
     tin = tout = ms = 0
     last_errors: list[str] = []
     for _ in range(1 + max(0, profile.retries)):
@@ -106,9 +93,9 @@ def _execute(task, text, template, target_words, profile, client):
         try:
             done = client.chat(model, system, prompt_user, schema)
         except LocalModelError as exc:
-            return "escalate", exc.reason, {}, _cost(model, "local", tin, tout, ms, profile)
+            return "escalate", exc.reason, {}, (tin, tout, ms)
         except Exception:
-            return "error", None, {}, _cost(model, "local", tin, tout, ms, profile)
+            return "error", None, {}, (tin, tout, ms)
         tin += done.tokens_in
         tout += done.tokens_out
         ms += done.ms
@@ -121,11 +108,85 @@ def _execute(task, text, template, target_words, profile, client):
             continue
         payload, why = tasks.postprocess(task, obj, profile)
         if payload is None:
-            return "escalate", why, {}, _cost(model, "local", tin, tout, ms, profile)
+            return "escalate", why, {}, (tin, tout, ms)
         last_errors = _errors(schema, payload)
         if not last_errors:
-            return "ok", None, payload, _cost(model, "local", tin, tout, ms, profile)
-    return "escalate", "schema_invalid", {}, _cost(model, "local", tin, tout, ms, profile)
+            return "ok", None, payload, (tin, tout, ms)
+    return "escalate", "schema_invalid", {}, (tin, tout, ms)
+
+
+def _summarize(text, target_words, profile, client):
+    """Map-reduce de um nível. Devolve (status, reason, payload, usage)."""
+    schema = tasks.output_schema("summarize", None)
+    max_chars = profile.max_input_tokens * 4
+    if len(text) <= max_chars:
+        system, user = tasks.prompt("summarize", text, profile, schema, target_words)
+        return _ask("summarize", system, user, schema, profile, client)
+    usage = [0, 0, 0]
+    summaries: list[str] = []
+
+    def call(chunk):
+        system, user = tasks.prompt("summarize", chunk, profile, schema, target_words)
+        status, reason, payload, used = _ask("summarize", system, user, schema, profile, client)
+        for i in range(3):
+            usage[i] += used[i]
+        return status, reason, payload
+
+    for block in tasks.split_blocks(text, max_chars):
+        status, reason, payload = call(block)
+        if status != "ok":
+            return status, reason, {}, tuple(usage)
+        summaries.append(payload["summary"])
+    joined = "\n\n".join(summaries)
+    if len(joined) > max_chars:
+        return "escalate", "input_too_large", {}, tuple(usage)
+    status, reason, payload = call(joined)
+    return status, reason, payload, tuple(usage)
+
+
+def _validate(text, template, source, profile, client):
+    result = tasks.validate_document(text, template)
+    if source is None:
+        return "ok", None, result, (0, 0, 0), False
+    user_text = tasks.review_input(text, source)
+    if estimate_tokens(user_text) > profile.max_input_tokens:
+        return "escalate", "input_too_large", {}, (0, 0, 0), False
+    schema = tasks.output_schema("validate", template)
+    system, user = tasks.prompt("validate", user_text, profile, schema, 0)
+    status, reason, payload, used = _ask("validate", system, user, schema, profile, client)
+    if status == "ok":
+        result["review"] = payload["review"]
+        payload = result
+    return status, reason, payload, used, True
+
+
+def _execute(task, text, template, target_words, source, profile, client):
+    """Devolve (status, reason, payload, cost)."""
+    model = profile.local_model
+    det = _cost(model, "deterministic", 0, 0, 0, profile)
+    if task not in TASKS:
+        return "invalid", "unknown_task", {}, det
+    if task in ("extract", "validate"):
+        try:
+            registry.load_schema(template)
+        except registry.UnknownTemplate:
+            return "invalid", "unknown_template", {}, det
+    client = client or OllamaClient(timeout=profile.timeout_seconds)
+    if task == "summarize":
+        status, reason, payload, used = _summarize(text, target_words, profile, client)
+        modelled = True
+    elif task == "validate":
+        status, reason, payload, used, modelled = _validate(text, template, source, profile, client)
+    else:
+        if estimate_tokens(text) > profile.max_input_tokens:
+            return "escalate", "input_too_large", {}, det
+        schema = tasks.output_schema(task, template)
+        system, user = tasks.prompt(task, text, profile, schema, target_words)
+        status, reason, payload, used = _ask(task, system, user, schema, profile, client)
+        modelled = True
+    if not modelled or (used == (0, 0, 0) and reason == "input_too_large"):
+        return status, reason, payload, det
+    return status, reason, payload, _cost(model, "local", *used, profile)
 
 
 def run_task(task: str, *, text: str, template: str | None = None, target_words: int = 120,
@@ -154,7 +215,7 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
             status, reason, out = "error", None, {}
             cost = _cost(settings.chat_model, "deterministic", 0, 0, 0, None)
     if profile is not None:
-        status, reason, out, cost = _execute(task, text, template, target_words, profile, client)
+        status, reason, out, cost = _execute(task, text, template, target_words, source, profile, client)
     result = make_envelope("task.result", env_task, sender="router", to="caller", payload=out,
                            template=template, trace_id=trace_id, parent_id=request["id"],
                            status=status, reason=reason, cost=cost)
