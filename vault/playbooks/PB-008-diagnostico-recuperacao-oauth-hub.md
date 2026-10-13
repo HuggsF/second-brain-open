@@ -1,11 +1,15 @@
 ---
-title: "PB-008 — Diagnóstico e Recuperação de Falhas OAuth no Hub Logístico"
-date: 2026-10-13
-type: playbook
+id: PB-008
+title: "Diagnóstico e Recuperação de Falhas OAuth no Hub Logístico"
+status: active
+validates: [RULE-001, RULE-002]
+environment: production
+targets: [Hub Logístico, Bling OAuth, J&T Adapter]
 severity: P1
 trigger: "Pedidos entrando em 'failed' com erros 404/FORBIDDEN na API do Bling"
 tags: [playbook, hub-logistico, bling, oauth, incidente]
 ---
+
 
 # PB-008: Diagnóstico e Recuperação de Falhas OAuth no Hub
 
