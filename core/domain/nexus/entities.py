@@ -1,4 +1,4 @@
-"""Nexus domain entities — canonical source of truth for agents, rooms and tools.
+﻿"""Nexus domain entities — canonical source of truth for agents, rooms and tools.
 
 All other modules that need these definitions (DagGate, Orchestrator, constants3d.js)
 must derive from here.  Do NOT import any I/O or third-party libraries from this file.
@@ -137,4 +137,40 @@ HANDOFF_TYPES = frozenset({
     "handoff_review",
     "celebration",
     "approval",
+})
+
+
+# ── Auto-approved tools (read-only, no mutation, no external I/O) ──────────────
+# Tools in this set can be executed by the Orchestrator without human approval.
+# CLAUDE.md §2: run_safe_command (SSH to prod) is intentionally excluded.
+# Must be a subset of ALLOWED_TOOLS.
+AUTO_TOOLS: FrozenSet[str] = frozenset({
+    "search_knowledge_base",
+    "get_adr",
+    "get_brain_status",
+    "list_rules",
+    "get_rule_evidence",
+    "get_system_architecture",
+    "read_vault_file",
+})
+
+# ── Mission domain constants ───────────────────────────────────────────────────
+
+MISSION_STATUSES = frozenset({
+    "pending",
+    "running",
+    "awaiting_approval",
+    "completed",
+    "failed",
+    "cancelled",
+})
+
+# Canonical field names for mission/step events (used in ws_server + Nexus frontend)
+MISSION_EVENT_FIELDS = frozenset({
+    "missionId",    # int — unique per Orchestrator lifecycle
+    "agentId",      # str — one of ALLOWED_ROLES
+    "type",         # str — event type (status_change, collaboration, tool_result, ...)
+    "sequence",     # int — monotonically increasing within a mission
+    "timestamp",    # float — ms since epoch (JS-compatible)
+    "payload",      # dict — event-specific data
 })

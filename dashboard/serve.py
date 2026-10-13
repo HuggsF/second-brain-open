@@ -1,4 +1,4 @@
-"""Serve the dashboard and the Workflow Studio API on loopback, without a session.
+﻿"""Serve the dashboard and the Workflow Studio API on loopback, without a session.
 
 For local development only. The BFF (python -m backend.server) serves the same dashboard and the
 same /api/workflow/* routes behind a session, plus /v1/* for observability.
@@ -18,6 +18,9 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from backend.workflow_api import MAX_BODY_BYTES, WorkflowApi  # noqa: E402
+from config import settings  # noqa: E402
+from core import evidence  # noqa: E402
+from core.evidence_store import EvidenceStore, EvidenceStoreError  # noqa: E402
 
 STATIC_SUFFIXES = {'.html', '.css', '.js', '.json', '.svg', '.jpg', '.png', '.webp', '.md'}
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
@@ -26,61 +29,54 @@ CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 
 
 # ── Playbooks API ─────────────────────────────────────────────────────────────
 
-def _parse_frontmatter(text):
-    """Extract YAML-like frontmatter dict from a markdown file."""
-    meta = {}
-    if not text.startswith('---'):
-        return meta
-    end = text.find('\n---', 3)
-    if end == -1:
-        return meta
-    for line in text[3:end].splitlines():
-        if ':' not in line:
-            continue
-        key, _, val = line.partition(':')
-        key, val = key.strip(), val.strip()
-        if val.startswith('[') and val.endswith(']'):
-            val = [v.strip().strip("'\"") for v in val[1:-1].split(',') if v.strip()]
-        meta[key] = val
-    return meta
-
-
 class PlaybooksApi:
-    """Serves vault/playbooks/*.md as a simple REST API."""
+    """Serves vault/playbooks/*.md as a simple REST API.
+
+    Uses core.evidence as the single source of truth for playbook definitions,
+    and core.evidence_store.EvidenceStore for reading/writing execution records.
+    This eliminates the local _parse_frontmatter duplicate (IC-3).
+    """
 
     def __init__(self, vault_dir: Path):
-        self.playbooks_dir = vault_dir / 'playbooks'
+        self.vault_dir = vault_dir
         self.root = vault_dir.parent  # project root (parent of vault/)
+        self._defs_cache: object = None  # lazily loaded definitions
+
+    def _load_defs(self):
+        """Load or return cached playbook definitions from core.evidence."""
+        if self._defs_cache is None:
+            self._defs_cache = evidence.load_definitions(self.vault_dir)
+        return self._defs_cache
+
+    def _store(self) -> EvidenceStore:
+        """Open the EvidenceStore (creates DB if needed)."""
+        db_path = self.root / '.runtime' / 'evidence.db'
+        return EvidenceStore(path=db_path)
 
     def _all_playbooks(self):
-        """Return sorted list of playbook metadata dicts."""
-        if not self.playbooks_dir.is_dir():
-            return []
+        """Return sorted list of playbook metadata dicts using core.evidence definitions."""
+        defs = self._load_defs()
         results = []
-        for f in sorted(self.playbooks_dir.glob('*.md')):
-            try:
-                text = f.read_text(encoding='utf-8', errors='replace')
-            except OSError:
-                continue
-            meta = _parse_frontmatter(text)
-            pb_id = meta.get('id') or f.stem.split('-')[0].upper() + '-' + f.stem.split('-')[1] if '-' in f.stem else f.stem
+        for pb in sorted(defs.playbooks.values(), key=lambda p: p.id):
+            # Also append filename by finding the file in vault/playbooks/
+            filename = Path(pb.path).name
             results.append({
-                'id': meta.get('id', f.stem),
-                'title': meta.get('title', f.stem),
-                'status': meta.get('status', 'draft'),
-                'validates': meta.get('validates', []),
-                'environment': meta.get('environment', ''),
-                'targets': meta.get('targets', []),
-                'filename': f.name,
+                'id': pb.id,
+                'title': pb.title,
+                'status': pb.status,
+                'validates': pb.validates,
+                'environment': pb.environment,
+                'targets': pb.targets,
+                'filename': filename,
             })
         return results
 
     # ── JEV helpers ───────────────────────────────────────────────────────────
 
     def _executions(self, playbook_id=None):
-        """Read executions from seed-executions.json + evidence.db SQLite."""
+        """Read executions from seed-executions.json + EvidenceStore."""
         results = []
-        # 1. Seed JSON
+        # 1. Seed JSON (historical executions imported at startup)
         seed_path = self.root / 'evidence' / 'seed-executions.json'
         if seed_path.exists():
             try:
@@ -89,27 +85,24 @@ class PlaybooksApi:
                         results.append({**entry, '_origin': 'seed'})
             except Exception:
                 pass
-        # 2. SQLite evidence.db
-        db_path = self.root / '.runtime' / 'evidence.db'
-        if db_path.exists():
-            try:
-                import sqlite3 as _sq
-                with _sq.connect(str(db_path)) as conn:
-                    conn.row_factory = _sq.Row
-                    if playbook_id:
-                        rows = conn.execute(
-                            'SELECT * FROM executions WHERE playbook_id=? ORDER BY ts DESC LIMIT 50',
-                            (playbook_id,),
-                        )
-                    else:
-                        rows = conn.execute(
-                            'SELECT * FROM executions ORDER BY ts DESC LIMIT 200'
-                        )
-                    results.extend([{**dict(r), '_origin': 'db'} for r in rows])
-            except Exception:
-                pass
+        # 2. EvidenceStore (SQLite via domain layer — eliminates raw SQL, IC-3)
+        try:
+            store = self._store()
+            if playbook_id:
+                rows = store.latest(playbook_id, limit=50)
+            else:
+                # No direct "all" method — iterate over known playbook IDs
+                defs = self._load_defs()
+                rows = []
+                for pb_id in sorted(defs.playbooks):
+                    rows.extend(store.latest(pb_id, limit=20))
+                # Sort all rows by ts descending, keep top 200
+                rows = sorted(rows, key=lambda r: r.get('ts', ''), reverse=True)[:200]
+            results.extend([{**r, '_origin': 'db'} for r in rows])
+        except EvidenceStoreError:
+            pass
         # Deduplicate by import_key (seed entries already in the DB)
-        seen = set()
+        seen: set = set()
         unique = []
         for item in results:
             key = item.get('import_key') or id(item)
@@ -118,47 +111,52 @@ class PlaybooksApi:
                 unique.append(item)
         return unique
 
-    def _record_execution(self, body_bytes):
-        """Write a new execution to evidence.db via raw SQL."""
+    def _record_execution(self, body_bytes: bytes):
+        """Validate and write a new execution via core.evidence + EvidenceStore (IC-3)."""
         try:
             payload = json.loads(body_bytes.decode('utf-8'))
         except Exception:
             return 400, {'error': 'INVALID_JSON'}
+        # Required fields check
         required = ('playbook_id', 'result', 'environment', 'summary')
         for field in required:
             if not payload.get(field):
                 return 400, {'error': 'MISSING_FIELD', 'field': field}
-        valid_results = ('pass', 'fail', 'error', 'skipped')
-        valid_envs = ('hml', 'production', 'local')
-        if payload['result'] not in valid_results:
-            return 400, {'error': 'INVALID_RESULT', 'valid': list(valid_results)}
-        if payload['environment'] not in valid_envs:
-            return 400, {'error': 'INVALID_ENVIRONMENT', 'valid': list(valid_envs)}
-        db_path = self.root / '.runtime' / 'evidence.db'
-        if not db_path.exists():
-            return 503, {'error': 'DB_NOT_FOUND'}
+        # Load definitions (fresh load to pick up any new playbooks added since startup)
+        defs = self._load_defs()
+        # Delegate validation to domain layer
+        clean, error = evidence.validate_execution(
+            defs,
+            playbook_id=payload['playbook_id'],
+            result=payload['result'],
+            summary=payload['summary'],
+            evidence_ref=payload.get('evidence_ref', ''),
+            environment=payload['environment'],
+        )
+        if error:
+            return 400, {'error': 'VALIDATION_FAILED', 'detail': error}
+        # Write via EvidenceStore (domain layer — no raw SQL)
         try:
-            import sqlite3 as _sq
-            import datetime as _dt
-            ts = _dt.datetime.now().astimezone().isoformat()
-            with _sq.connect(str(db_path)) as conn:
-                conn.execute(
-                    """INSERT INTO executions
-                       (playbook_id, ts, result, environment, evidence_ref, summary,
-                        trace_id, task_label, source, recorded_by)
-                       VALUES (?,?,?,?,?,?,?,?,?,?)""",
-                    (
-                        payload['playbook_id'], ts, payload['result'],
-                        payload['environment'], payload.get('evidence_ref', ''),
-                        payload['summary'], payload.get('trace_id', ''),
-                        payload.get('task_label', ''), payload.get('source', 'dashboard'),
-                        payload.get('recorded_by', 'user'),
-                    ),
-                )
-                row_id = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
-            return 201, {'id': row_id, 'ts': ts, 'status': 'recorded'}
-        except Exception as exc:
-            return 500, {'error': 'DB_WRITE_FAILED', 'detail': str(exc)}
+            store = self._store()
+            row_id = store.record(
+                playbook_id=payload['playbook_id'],
+                result=payload['result'],
+                environment=payload['environment'],
+                evidence_ref=clean['evidence_ref'],
+                summary=clean['summary'],
+                trace_id=payload.get('trace_id') or None,
+                task_label=payload.get('task_label') or None,
+                source=payload.get('source', 'dashboard'),
+                recorded_by=payload.get('recorded_by', 'user'),
+            )
+        except EvidenceStoreError as exc:
+            return 503, {'error': 'DB_UNAVAILABLE', 'detail': str(exc)}
+        if row_id is None:
+            return 409, {'error': 'DUPLICATE_IMPORT_KEY'}
+        # Invalidate definitions cache so next GET picks up any schema changes
+        self._defs_cache = None
+        from core import tracing
+        return 201, {'id': row_id, 'ts': tracing.now_iso(), 'status': 'recorded'}
 
     # ── Routing ───────────────────────────────────────────────────────────────
 
@@ -185,25 +183,36 @@ class PlaybooksApi:
         # GET /api/playbooks/{id} — single playbook content
         m = re.match(r'^/api/playbooks/([A-Za-z0-9_\-\.]+)$', path)
         if m:
-            pb_id = unquote(m.group(1))
-            if not self.playbooks_dir.is_dir():
-                return 404, {'error': 'VAULT_NOT_FOUND'}
-            # Find by id frontmatter or by filename prefix
-            for f in sorted(self.playbooks_dir.glob('*.md')):
-                try:
-                    text = f.read_text(encoding='utf-8', errors='replace')
-                except OSError:
-                    continue
-                meta = _parse_frontmatter(text)
-                fid = meta.get('id', f.stem)
-                if fid.upper() == pb_id.upper() or f.stem.upper().startswith(pb_id.upper()):
-                    return 200, {
-                        'id': fid,
-                        'filename': f.name,
-                        'content': text,
-                        'meta': meta,
-                    }
-            return 404, {'error': 'NOT_FOUND', 'id': pb_id}
+            pb_id = unquote(m.group(1)).upper()
+            defs = self._load_defs()
+            pb = defs.playbooks.get(pb_id)
+            if pb is None:
+                # Fallback: try prefix match
+                for k, v in defs.playbooks.items():
+                    if k.upper().startswith(pb_id):
+                        pb = v
+                        break
+            if pb is None:
+                return 404, {'error': 'NOT_FOUND', 'id': pb_id}
+            # Read raw content for markdown rendering
+            pb_path = self.vault_dir / pb.path
+            try:
+                content = pb_path.read_text(encoding='utf-8', errors='replace')
+            except OSError:
+                content = ''
+            return 200, {
+                'id': pb.id,
+                'filename': Path(pb.path).name,
+                'content': content,
+                'meta': {
+                    'id': pb.id,
+                    'title': pb.title,
+                    'status': pb.status,
+                    'validates': pb.validates,
+                    'environment': pb.environment,
+                    'targets': pb.targets,
+                },
+            }
 
         return None
 
