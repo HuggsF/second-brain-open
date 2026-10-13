@@ -57,18 +57,21 @@ def make_handler(api, directory=None):
             return super().do_GET()
 
         def do_POST(self):
+            # Read the (bounded) body before any refusal: closing a socket with unread data makes
+            # Windows reset it, and the client sees a network error instead of the status.
+            try:
+                length = int(self.headers.get('Content-Length', '0'))
+            except ValueError:
+                length = -1
+            if length < 0 or length > MAX_BODY_BYTES:
+                self.close_connection = True
+                return self.send_json(400 if length < 0 else 413, {'error': 'INVALID_LENGTH' if length < 0 else 'BODY_TOO_LARGE'})
+            body = self.rfile.read(length) if length > 0 else b''
             # No CORS: only the page served from this same origin may write the audit log.
             host = self.headers.get('Host', '')
             if not host or self.headers.get('Origin') not in (f'http://{host}',) or self.headers.get('Sec-Fetch-Site') == 'cross-site':
                 return self.send_json(403, {'error': 'ORIGIN_DENIED'})
             path = unquote(urlparse(self.path).path)
-            try:
-                length = int(self.headers.get('Content-Length', '0'))
-            except ValueError:
-                return self.send_json(400, {'error': 'INVALID_LENGTH'})
-            if length > MAX_BODY_BYTES:
-                return self.send_json(413, {'error': 'BODY_TOO_LARGE'})
-            body = self.rfile.read(length) if length > 0 else b''
             if path == '/api/workflow/execute-step' and self.headers.get('Content-Type', '').split(';')[0].strip() != 'application/json':
                 return self.send_json(415, {'error': 'JSON_REQUIRED'})
             result = api.handle('POST', path, body)
