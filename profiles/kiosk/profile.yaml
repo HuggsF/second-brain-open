@@ -3,7 +3,7 @@ labels:
   type: [adr, system, architecture, product, reference, team, domain, daily, rule, playbook, demand]
   team: [logistics, erp-integrations, crm-salesforce, platform, ecommerce]
 local_model: llama3.2:3b        # opcional; padrão do núcleo
-timeout_seconds: 30
+timeout_seconds: 120
 max_input_tokens: 6000
 retries: 1
 paid_reference:                 # preço usado para estimar a economia (USD por 1M tokens)
