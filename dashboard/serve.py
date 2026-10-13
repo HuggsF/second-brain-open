@@ -9,6 +9,7 @@ from urllib.parse import urlparse, unquote
 import argparse
 import json
 import os
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parent
@@ -23,7 +24,87 @@ CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 
        "connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'")
 
 
-def make_handler(api, directory=None):
+# ── Playbooks API ─────────────────────────────────────────────────────────────
+
+def _parse_frontmatter(text):
+    """Extract YAML-like frontmatter dict from a markdown file."""
+    meta = {}
+    if not text.startswith('---'):
+        return meta
+    end = text.find('\n---', 3)
+    if end == -1:
+        return meta
+    for line in text[3:end].splitlines():
+        if ':' not in line:
+            continue
+        key, _, val = line.partition(':')
+        key, val = key.strip(), val.strip()
+        if val.startswith('[') and val.endswith(']'):
+            val = [v.strip().strip("'\"") for v in val[1:-1].split(',') if v.strip()]
+        meta[key] = val
+    return meta
+
+
+class PlaybooksApi:
+    """Serves vault/playbooks/*.md as a simple REST API."""
+
+    def __init__(self, vault_dir: Path):
+        self.playbooks_dir = vault_dir / 'playbooks'
+
+    def _all_playbooks(self):
+        """Return sorted list of playbook metadata dicts."""
+        if not self.playbooks_dir.is_dir():
+            return []
+        results = []
+        for f in sorted(self.playbooks_dir.glob('*.md')):
+            try:
+                text = f.read_text(encoding='utf-8', errors='replace')
+            except OSError:
+                continue
+            meta = _parse_frontmatter(text)
+            pb_id = meta.get('id') or f.stem.split('-')[0].upper() + '-' + f.stem.split('-')[1] if '-' in f.stem else f.stem
+            results.append({
+                'id': meta.get('id', f.stem),
+                'title': meta.get('title', f.stem),
+                'status': meta.get('status', 'draft'),
+                'validates': meta.get('validates', []),
+                'environment': meta.get('environment', ''),
+                'targets': meta.get('targets', []),
+                'filename': f.name,
+            })
+        return results
+
+    def handle(self, path):
+        """Return (status, payload) or None if path doesn't match."""
+        if path == '/api/playbooks/' or path == '/api/playbooks':
+            return 200, {'playbooks': self._all_playbooks()}
+
+        m = re.match(r'^/api/playbooks/([A-Za-z0-9_\-\.]+)$', path)
+        if m:
+            pb_id = unquote(m.group(1))
+            if not self.playbooks_dir.is_dir():
+                return 404, {'error': 'VAULT_NOT_FOUND'}
+            # Find by id frontmatter or by filename prefix
+            for f in sorted(self.playbooks_dir.glob('*.md')):
+                try:
+                    text = f.read_text(encoding='utf-8', errors='replace')
+                except OSError:
+                    continue
+                meta = _parse_frontmatter(text)
+                fid = meta.get('id', f.stem)
+                if fid.upper() == pb_id.upper() or f.stem.upper().startswith(pb_id.upper()):
+                    return 200, {
+                        'id': fid,
+                        'filename': f.name,
+                        'content': text,
+                        'meta': meta,
+                    }
+            return 404, {'error': 'NOT_FOUND', 'id': pb_id}
+
+        return None
+
+
+def make_handler(api, playbooks_api=None, directory=None):
     static_root = Path(directory) if directory else api.root / 'dashboard'
 
     class DashboardHandler(SimpleHTTPRequestHandler):
@@ -52,6 +133,13 @@ def make_handler(api, directory=None):
         def do_GET(self):
             path = unquote(urlparse(self.path).path)
             if path.startswith('/api/'):
+                # Try playbooks API first
+                if playbooks_api and path.startswith('/api/playbooks'):
+                    result = playbooks_api.handle(path)
+                    if result is not None:
+                        status, payload = result
+                        return self.send_json(status, payload)
+                # Fall through to workflow API
                 result = api.handle('GET', path, b'')
                 return self.send_json(*result) if result else self.send_json(404, {'error': 'NOT_FOUND'})
             return super().do_GET()
@@ -103,10 +191,13 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=8847)
     args = parser.parse_args()
     api = WorkflowApi(PROJECT_ROOT, port=args.port)
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(api, ROOT))
+    pb_api = PlaybooksApi(PROJECT_ROOT / 'vault')
+    pb_count = len(pb_api._all_playbooks())
+    server = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(api, pb_api, ROOT))
     server.daemon_threads = True
     print(f'Dashboard & Workflow API running: http://127.0.0.1:{args.port}/', flush=True)
-    print(f'Server PID: {os.getpid()} | Audit log: {api.audit_file}', flush=True)
+    print(f'Server PID: {os.getpid()} | Audit log: {api.audit_file} | Playbooks: {pb_count}', flush=True)
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
