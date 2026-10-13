@@ -10,7 +10,8 @@ from core.local_tasks import router
 from core.trace_middleware import TraceMiddleware
 
 mcp = FastMCP("Local tasks")
-mcp.add_middleware(TraceMiddleware("Local tasks"))
+# Os argumentos destas ferramentas são o conteúdo da tarefa: o trace guarda só o tamanho.
+mcp.add_middleware(TraceMiddleware("Local tasks", content_args=frozenset({"text", "document", "source"})))
 
 
 def _sender(ctx: Optional[Context]) -> str:
@@ -21,7 +22,11 @@ def _sender(ctx: Optional[Context]) -> str:
 
 
 def _trace_id(task_id: Optional[str]) -> Optional[str]:
-    return tracing.derive_trace_id(task_id)[0] if task_id else None
+    """trace_id do envelope = o da chamada MCP: derivado do task_id ou o do middleware."""
+    if task_id:
+        return tracing.derive_trace_id(task_id)[0]
+    state = tracing.current_call.get()
+    return state.trace_id if state is not None else None
 
 
 @mcp.tool()

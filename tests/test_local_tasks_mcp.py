@@ -54,6 +54,23 @@ class LocalTasksMcpTests(unittest.TestCase):
         self.assertEqual(env["trace_id"], records[0]["trace_id"])
         self.assertEqual(env["trace_id"], tracing.derive_trace_id("DEM-7")[0])
 
+    def test_task_content_never_reaches_trace_or_events_log(self):
+        sentinel = "SENTINELA-DO-CONTEUDO-0451"
+        self.call("classify", {"text": f"abc {sentinel} def"}, GOOD)
+        self.call("validate", {"document": sentinel, "template": "adr@1", "source": sentinel},
+                  {"review": []})
+        (rec, _) = tracing.read_recent(10, self.trace_log)
+        self.assertEqual(rec["args"]["text"], {"chars": len(f"abc {sentinel} def")})
+        self.assertNotIn(sentinel, self.trace_log.read_text(encoding="utf-8"))
+        self.assertNotIn(sentinel, self.events_log.read_text(encoding="utf-8"))
+
+    def test_without_task_id_envelope_shares_the_call_trace_id(self):
+        env = self.call("classify", {"text": "t"}, GOOD)
+        (rec,) = tracing.read_recent(10, self.trace_log)
+        self.assertEqual(env["trace_id"], rec["trace_id"])
+        lines = [json.loads(l) for l in self.events_log.read_text(encoding="utf-8").splitlines()]
+        self.assertEqual({l["trace_id"] for l in lines}, {rec["trace_id"]})
+
     def test_unknown_template_is_refused_with_invalid(self):
         env = self.call("extract", {"text": "t", "template": "nao-existe@1"})
         self.assertEqual(env["status"], "invalid")
