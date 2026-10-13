@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "brain.task/1 envelope",
+  "type": "object",
+  "required": [
+    "protocol",
+    "kind",
+    "id",
+    "from",
+    "to",
+    "task",
+    "payload",
+    "ts"
+  ],
+  "properties": {
+    "protocol": {
+      "const": "brain.task/1"
+    },
+    "kind": {
+      "enum": [
+        "task.request",
+        "task.result",
+        "task.event"
+      ]
+    },
+    "id": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "parent_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "from": {
+      "type": "string",
+      "minLength": 1
+    },
+    "to": {
+      "enum": [
+        "local",
+        "caller"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$"
+    },
+    "template": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "invalid",
+        "escalate",
+        "error",
+        null
+      ]
+    },
+    "reason": {
+      "enum": [
+        "local_unavailable",
+        "schema_invalid",
+        "input_too_large",
+        "unknown_template",
+        "unknown_task",
+        "no_valid_label",
+        "profile_not_found",
+        "timeout",
+        null
+      ]
+    },
+    "cost": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "tier",
+            "tokens_in",
+            "tokens_out",
+            "ms",
+            "paid_equivalent_usd"
+          ],
+          "properties": {
+            "model": {
+              "type": "string"
+            },
+            "tier": {
+              "enum": [
+                "local",
+                "deterministic",
+                "cloud"
+              ]
+            },
+            "tokens_in": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "tokens_out": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "paid_equivalent_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "provider": {
+              "type": "string"
+            },
+            "actual_usd": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ts": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

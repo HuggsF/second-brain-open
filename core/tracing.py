@@ -114,14 +114,26 @@ def _summarise(value: Any, limit: int, depth: int = 0) -> Any:
     return mask_sensitive(repr(value))[:limit]
 
 
-def redact_args(args: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-    """Bounded, JSON-safe copy of the call arguments with secret-looking values masked."""
+def _content_size(value: Any) -> Any:
+    if value is None:
+        return None
+    text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, default=repr)
+    return {"chars": len(text)}
+
+
+def redact_args(args: Optional[Dict[str, Any]], content_args: frozenset = frozenset()) -> Dict[str, Any]:
+    """Bounded, JSON-safe copy of the call arguments with secret-looking values masked.
+
+    Keys in `content_args` carry user content: only their size is kept ({"chars": n}).
+    """
     out: Dict[str, Any] = {}
     for key, value in (args or {}).items():
         name = str(key)
         if name == "task_id":
             continue
-        if _is_secret_key(name):
+        if name in content_args:
+            out[name] = _content_size(value)
+        elif _is_secret_key(name):
             out[name] = "[redacted]"
         else:
             out[name] = _summarise(value, _COMMAND_LIMIT if name == "command" else _DEFAULT_LIMIT)

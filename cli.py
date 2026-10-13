@@ -1,6 +1,8 @@
 import sys
 import os
 import re
+import json
+from pathlib import Path
 
 if sys.platform == "win32":
     try:
@@ -8,6 +10,15 @@ if sys.platform == "win32":
         sys.stderr.reconfigure(encoding="utf-8")
     except Exception:
         pass
+
+from config import settings
+
+try:
+    from dotenv import load_dotenv
+    if settings.env_file.exists():
+        load_dotenv(settings.env_file, override=False)
+except ImportError:
+    pass  # python-dotenv optional; CI pode não ter
 
 import click
 from rich.console import Console
@@ -267,5 +278,144 @@ def evidence(rule_id, do_lint, do_import):
         raise SystemExit(1)
 
 
+_TASK_EXIT = {"ok": 0, "escalate": 2}
+_GOLDEN_LOCAL_TASKS = Path(__file__).parent / "tests" / "golden_dataset_local_tasks.json"
+
+
+def _read_text_file(path: str) -> str:
+    try:
+        return Path(path).read_text(encoding="utf-8-sig")
+    except UnicodeDecodeError:
+        raise click.ClickException(f"arquivo não está em UTF-8: {path}") from None
+
+
+def _task_text(text, file_path):
+    if (text is None) == (file_path is None):
+        raise click.UsageError("informe exatamente um entre TEXT e --file")
+    return text if text is not None else _read_text_file(file_path)
+
+
+def _emit_task(task: str, **kwargs):
+    from core.local_tasks import router
+    envelope = router.run_task(task, sender="cli", **kwargs)
+    click.echo(json.dumps(envelope, ensure_ascii=False, indent=2))
+    raise SystemExit(_TASK_EXIT.get(envelope.get("status"), 1))
+
+
+@cli.group()
+def task():
+    """Tarefas pequenas executadas pelo modelo local."""
+
+
+@task.command("classify")
+@click.argument("text", required=False)
+@click.option("--file", "file_path", type=click.Path(exists=True, dir_okay=False), default=None, help="Lê o texto de um arquivo UTF-8")
+def task_classify(text, file_path):
+    _emit_task("classify", text=_task_text(text, file_path))
+
+
+@task.command("extract")
+@click.option("--template", required=True, help="Template, ex.: adr@1")
+@click.argument("text", required=False)
+@click.option("--file", "file_path", type=click.Path(exists=True, dir_okay=False), default=None, help="Lê o texto de um arquivo UTF-8")
+def task_extract(template, text, file_path):
+    _emit_task("extract", text=_task_text(text, file_path), template=template)
+
+
+@task.command("summarize")
+@click.option("--words", "words", type=int, default=120, show_default=True, help="Tamanho alvo do resumo, em palavras")
+@click.argument("text", required=False)
+@click.option("--file", "file_path", type=click.Path(exists=True, dir_okay=False), default=None, help="Lê o texto de um arquivo UTF-8")
+def task_summarize(words, text, file_path):
+    _emit_task("summarize", text=_task_text(text, file_path), target_words=words)
+
+
+@task.command("validate")
+@click.option("--template", required=True, help="Template, ex.: adr@1")
+@click.option("--source", "source_path", type=click.Path(exists=True, dir_okay=False), default=None, help="Fonte para conferência pelo modelo")
+@click.argument("text", required=False)
+@click.option("--file", "file_path", type=click.Path(exists=True, dir_okay=False), default=None, help="Lê o documento de um arquivo UTF-8")
+def task_validate(template, source_path, text, file_path):
+    document = _task_text(text, file_path)
+    source = _read_text_file(source_path) if source_path else None
+    _emit_task("validate", text=document, template=template, source=source)
+
+
+@task.command("status")
+def task_status():
+    """Estado do runtime local (mesmo de local_tasks_status).
+
+    event_write_failures é contado por processo: aqui vale só para este comando;
+    as falhas do servidor MCP aparecem em local_tasks_status.
+    """
+    from core.local_tasks import router
+    click.echo(json.dumps(router.status(), ensure_ascii=False, indent=2))
+
+
+def _case_passed(case: dict, envelope: dict) -> bool:
+    if envelope.get("status") != "ok":
+        return False
+    payload = envelope.get("payload") or {}
+    expect = case.get("expect") or {}
+    if "labels" in expect:
+        labels = payload.get("labels") or {}
+        if any(labels.get(k) != v for k, v in expect["labels"].items()):
+            return False
+    if "required_keys" in expect and any(k not in payload for k in expect["required_keys"]):
+        return False
+    if "min_points" in expect and len(payload.get("key_points") or []) < expect["min_points"]:
+        return False
+    if "valid" in expect and payload.get("valid") != expect["valid"]:
+        return False
+    return True
+
+
+@cli.command("task-eval")
+@click.option("--min-accuracy", type=float, default=0.6, show_default=True, help="Acerto geral mínimo; abaixo disso sai com 1")
+@click.option("--profile", "profile_name", default=None, help="Nome do perfil (padrão: perfil ativo)")
+def task_eval(min_accuracy, profile_name):
+    """Avalia as tarefas locais contra tests/golden_dataset_local_tasks.json."""
+    from core.local_tasks import router
+    from core.local_tasks.providers import build_client
+    try:
+        profile = router.load_profile(profile_name)
+        client = build_client(profile)
+        info = router.status(profile)  # sondagem curta
+    except Exception as exc:
+        click.echo(f"Erro ao preparar a avaliação: {exc}")
+        raise SystemExit(1)
+    if not info["model_available"]:
+        click.echo(f"Modelo local indisponível ({info['local_model']}): inicie o Ollama e baixe o modelo antes de avaliar.")
+        raise SystemExit(1)
+    cases = json.loads(_GOLDEN_LOCAL_TASKS.read_text(encoding="utf-8"))
+    stats: dict = {}
+    for case in cases:
+        envelope = router.run_task(
+            case["task"], text=case["text"], template=case.get("template"),
+            target_words=case.get("target_words", 120), source=case.get("source"),
+            sender="task-eval", profile=profile, client=client,
+        )
+        row = stats.setdefault(case["task"], {"cases": 0, "passed": 0, "escalate": 0,
+                                                "ms_total": 0, "tiers": {}})
+        row["cases"] += 1
+        row["passed"] += int(_case_passed(case, envelope))
+        row["escalate"] += int(envelope.get("status") == "escalate")
+        cost = envelope.get("cost") or {}
+        row["ms_total"] += cost.get("ms", 0)
+        tier = cost.get("tier", "unknown")
+        row["tiers"][tier] = row["tiers"].get(tier, 0) + 1
+    for name, row in stats.items():
+        avg_ms = row["ms_total"] / row["cases"] if row["cases"] else 0
+        tiers_str = " ".join(f"{t}={c}" for t, c in sorted(row["tiers"].items()))
+        click.echo(f"{name}: casos={row['cases']} acertos={row['passed']} escalate={row['escalate']} "
+                   f"acerto={row['passed'] / row['cases']:.0%} latência_média_ms={avg_ms:.0f} {tiers_str}")
+    total = sum(r["cases"] for r in stats.values())
+    accuracy = sum(r["passed"] for r in stats.values()) / total if total else 0.0
+    click.echo(f"Acerto geral: {accuracy:.0%} (mínimo {min_accuracy:.0%})")
+    if accuracy < min_accuracy:
+        raise SystemExit(1)
+
+
 if __name__ == "__main__":
     cli()
+

@@ -1,0 +1,133 @@
+[
+  {
+    "id": "classify-adr",
+    "task": "classify",
+    "text": "Architecture decision record: we chose PostgreSQL over MongoDB for the order service. Status: accepted. Alternatives discarded: MongoDB, DynamoDB.",
+    "expect": {
+      "labels": {
+        "type": "adr"
+      }
+    }
+  },
+  {
+    "id": "classify-daily",
+    "task": "classify",
+    "text": "Daily note 2026-03-04. Today I fixed a flaky test, reviewed two pull requests and wrote the handoff for tomorrow's session.",
+    "expect": {
+      "labels": {
+        "type": "daily"
+      }
+    }
+  },
+  {
+    "id": "classify-rule",
+    "task": "classify",
+    "text": "Business rule: an order above the credit limit must be blocked until a manager approves it. Source: finance policy. Status: active.",
+    "expect": {
+      "labels": {
+        "type": "rule"
+      }
+    }
+  },
+  {
+    "id": "extract-adr-basic",
+    "task": "extract",
+    "template": "adr@1",
+    "text": "ADR: Use a message queue between services. Status: accepted. Date: 2026-01-10. Type: adr. The services exchange events asynchronously.",
+    "expect": {
+      "required_keys": [
+        "date",
+        "status",
+        "title",
+        "type"
+      ]
+    }
+  },
+  {
+    "id": "extract-rule",
+    "task": "extract",
+    "template": "rule@1",
+    "text": "Rule R-12: Orders above the credit limit are blocked. Status: active. Source: finance policy. Domain: sales.",
+    "expect": {
+      "required_keys": [
+        "id",
+        "title",
+        "status",
+        "source",
+        "domain"
+      ]
+    }
+  },
+  {
+    "id": "extract-handoff",
+    "task": "extract",
+    "template": "handoff@1",
+    "text": "Handoff from agent-a to agent-b on 2026-02-01. Summary: finished the importer. Done: importer, tests. Pending: docs. Decisions: use CSV. Files: importer.py, test_importer.py.",
+    "expect": {
+      "required_keys": [
+        "from",
+        "to",
+        "date",
+        "summary",
+        "done",
+        "pending",
+        "decisions",
+        "files"
+      ]
+    }
+  },
+  {
+    "id": "summarize-short",
+    "task": "summarize",
+    "target_words": 40,
+    "text": "The team migrated the reporting job from a nightly cron to an event-driven worker. The change cut the delay of reports from eight hours to five minutes. Two incidents happened during the rollout, both caused by missing retries. Retries were added and the incidents did not repeat.",
+    "expect": {
+      "min_points": 2
+    }
+  },
+  {
+    "id": "summarize-process",
+    "task": "summarize",
+    "target_words": 50,
+    "text": "Deployments follow three steps. First, the pipeline builds and tests the change. Second, a reviewer approves it. Third, the release is promoted to production during the maintenance window. Rollbacks are done by redeploying the previous version.",
+    "expect": {
+      "min_points": 2
+    }
+  },
+  {
+    "id": "summarize-incident",
+    "task": "summarize",
+    "target_words": 40,
+    "text": "On Monday the search service slowed down because an index was rebuilt during peak hours. Response time tripled for forty minutes. The rebuild was stopped, the index restored from a snapshot, and the schedule moved to the early morning.",
+    "expect": {
+      "min_points": 2
+    }
+  },
+  {
+    "id": "validate-valid-adr",
+    "task": "validate",
+    "template": "adr@1",
+    "text": "---\ntype: adr\nstatus: accepted\ndate: 2026-01-10\n---\n# Adopt message queue\n\nWe adopt a message queue between services.",
+    "expect": {
+      "valid": true
+    }
+  },
+  {
+    "id": "validate-missing-status",
+    "task": "validate",
+    "template": "adr@1",
+    "text": "---\ntype: adr\ndate: 2026-01-10\n---\n# Adopt message queue\n\nBody.",
+    "expect": {
+      "valid": false
+    }
+  },
+  {
+    "id": "validate-no-frontmatter",
+    "task": "validate",
+    "template": "adr@1",
+    "text": "# Just a title\n\nNo frontmatter here.",
+    "expect": {
+      "valid": false
+    }
+  }
+]

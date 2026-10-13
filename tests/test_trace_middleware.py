@@ -10,7 +10,7 @@ from core import tracing
 from core.trace_middleware import TraceMiddleware
 
 
-def build_server(path: Optional[Path] = None, traced: bool = True) -> FastMCP:
+def build_server(path: Optional[Path] = None, traced: bool = True, content_args=frozenset()) -> FastMCP:
     server = FastMCP("test")
 
     @server.tool()
@@ -27,7 +27,7 @@ def build_server(path: Optional[Path] = None, traced: bool = True) -> FastMCP:
         return {"success": False}
 
     if traced:
-        server.add_middleware(TraceMiddleware("test", path=path))
+        server.add_middleware(TraceMiddleware("test", path=path, content_args=content_args))
     return server
 
 
@@ -107,6 +107,12 @@ class TestTraceMiddleware(unittest.TestCase):
         text = self.path.read_text(encoding="utf-8")
         self.assertNotIn("super-secret-value", text)
         self.assertIn("[redacted]", text)
+
+    def test_content_args_are_logged_as_char_counts(self):
+        call(build_server(self.path, content_args=frozenset({"a"})), "ok", {"a": "SENTINELA-CONTEUDO"})
+        (rec,) = self.records()
+        self.assertEqual(rec["args"], {"a": {"chars": 18}})
+        self.assertNotIn("SENTINELA", self.path.read_text(encoding="utf-8"))
 
     def test_result_is_identical_with_and_without_middleware(self):
         traced = call(build_server(self.path), "ok", {"a": "x"})
