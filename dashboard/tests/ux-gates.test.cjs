@@ -50,6 +50,14 @@ test('modal_semantics: overlays are <dialog> elements (focus trap, Esc, top laye
     assert.deepEqual(offenders, []);
 });
 
+test('hierarchy: one navigation entry per screen, the default page first', () => {
+    const app = read('app.js');
+    const pages = [...app.match(/const pages = \{(.*?)\};/)[1].matchAll(/(\w+):\[/g)].map(m => m[1]);
+    assert.equal(pages[0], 'overview', 'the default page (overview) must lead the navigation');
+    assert.ok(!pages.includes('agents'), '"agents" and "workflows" render the same Arena; keep one entry');
+    assert.match(app, /if\(r\.page==='agents'\)r\.page='workflows'/, 'old #page=agents links must still open the Arena');
+});
+
 test('reduced_motion: the global reduced-motion rule also stops animations', () => {
     const rule = read('style.css').match(/@media\s*\(prefers-reduced-motion:\s*reduce\)\{(.*?\})\}/);
     assert.ok(rule, 'style.css needs a prefers-reduced-motion rule');

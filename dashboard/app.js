@@ -4,7 +4,7 @@
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
-const pages = {workflows:['🔀','Workflows de IA'],agents:['⚡','Agentes em Ação'],architecture:['🏛','System Design'],observability:['◉','Observabilidade'],product:['🎯','Produto & OKRs'],overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],graph:['◎','Grafo'],teams:['⚙','Times'],queries:['⌕','Consultas']};
+const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade']};
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
 const categories = {all:'Todas as fontes',architecture:'Arquitetura · System Design',playbooks:'Playbooks',systems:'Sistemas',adrs:'Decisões · ADRs',product:'Produto',domain:'Domínio',daily:'Memória diária',general:'Geral'};
 let storageOK = true, noticeTimer;
@@ -60,6 +60,7 @@ function persist() {
 }
 function readRoute() {
  const p=new URLSearchParams(location.hash.slice(1)), r=Object.fromEntries(p);
+ if(r.page==='agents')r.page='workflows'; // "Agentes em Ação" was a second entry for the same Arena
  r.page=Object.hasOwn(pages,r.page)?r.page:'overview';
  r.view=(dataOK?G.views:[]).some(v=>v.id===r.view)?r.view:(dataOK?G.views[0].id:'flow');
  r.q=(r.q||'').slice(0,500);
@@ -184,7 +185,7 @@ function overview(main){
  const next=el('section',{class:'panel'},panelTitle('Prepare a próxima evolução','Conhecimento → contexto → decisão'));
  const checklist=[['✓','Fontes verificáveis','Hashes, linhas e relações acompanham cada consulta.'],['✓','Planos de agentes','Modele dependências, papéis, ferramentas e orçamento.'],['→','Backend GraphRAG e execução','Contratos definidos; API, SSE e execução ainda não conectados.']];
  next.append(el('div',{class:'progress-list'},...checklist.map(([mark,title,description])=>el('div',{class:'progress-item'},el('span',{class:'progress-mark'},mark),el('div',{},el('strong',{},title),el('p',{},description))))));
- next.append(el('div',{class:'action-row'},button('Preparar um plano →',()=>navigate({page:'agents'}),'subtle')));
+ next.append(el('div',{class:'action-row'},button('Preparar um plano →',()=>navigate({page:'workflows'}),'subtle')));
  main.append(el('div',{class:'grid-2'},env,next));
 }
 function knowledge(main){
@@ -240,7 +241,7 @@ function render(){
  if(route.page==='teams'){if(window.BrainTeams)window.BrainTeams.render(main,api);else main.append(empty('Módulo de times indisponível','Recarregue a página e verifique teams-ui.js.',button('Tentar novamente',()=>location.reload())));}
 
   if(route.page==='queries'){if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de consultas indisponível','Recarregue a página e verifique workbench.js.',button('Tentar novamente',()=>location.reload())));}
-  if(route.page==='agents'||route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
  if(route.page==='knowledge'&&route.doc&&!route.section&&matchMedia('(max-width:650px)').matches)requestAnimationFrame(()=>{const reader=main.querySelector('.reader');reader?.focus({preventScroll:true});reader?.scrollIntoView({block:'start'});});
  $('snapshot-label').textContent='Snapshot '+G.snapshot_id.slice(0,8)+' · '+formatDate(G.built_at);
  if(!storageOK)notify('Persistência indisponível. Alterações permanecem apenas nesta sessão.');
