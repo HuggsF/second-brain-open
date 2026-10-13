@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "demand@1",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "status",
+    "priority",
+    "requester_team",
+    "owner_team",
+    "created",
+    "due"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string"
+    },
+    "requester_team": {
+      "type": "string"
+    },
+    "owner_team": {
+      "type": "string"
+    },
+    "created": {
+      "type": "string"
+    },
+    "due": {
+      "type": "string"
+    },
+    "sections": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}
