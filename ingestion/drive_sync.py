@@ -10,6 +10,7 @@ import re
 import json
 import hashlib
 import subprocess
+import unicodedata
 import urllib.request
 import zipfile
 import xml.etree.ElementTree as ET
@@ -37,6 +38,21 @@ except ImportError:
             clean = re.sub(r'\[/?[a-zA-Z0-9_\s#]+\]', '', clean)
             print(clean)
     console = DummyConsole()
+
+
+def reference_slug(filename: str) -> str:
+    """ASCII kebab-case slug for a Drive file name, without extensions or copy suffixes."""
+    name = filename
+    while True:
+        stripped = re.sub(r"\.(pdf|pptx?|docx?|xlsx?|png|jpe?g|txt)$", "", name.strip(), flags=re.IGNORECASE)
+        if stripped == name.strip():
+            break
+        name = stripped
+    name = re.sub(r"-\s*Microsoft PowerPoint", "", name, flags=re.IGNORECASE)
+    name = re.sub(r"\(\d+\)", "", name)
+    name = re.sub(r"\.(pptx?|pdf|docx?)(_\d+_)?", "", name, flags=re.IGNORECASE)
+    folded = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-z0-9]+", "-", folded.lower()).strip("-")
 
 
 class DriveSyncEngine:
@@ -238,29 +254,38 @@ class DriveSyncEngine:
             return None
 
     def generate_vault_reference(self, filename: str, file_id: str, text: str, sha256: str) -> Path:
-        """Cria uma nota estruturada no Vault em vault/product/references/ tornando o conhecimento rastreável."""
-        slug = re.sub(r'[^a-z0-9]+', '-', filename.lower()).strip('-')
-        ref_path = self.references_dir / f"{slug}.md"
+        """Cria uma nota estruturada no Vault em vault/product/references/ tornando o conhecimento rastreável.
+
+        Uma nota que já cita o mesmo SHA-256 é reaproveitada e nunca sobrescrita (o mesmo arquivo
+        pode aparecer no Drive com outro nome ou File ID).
+        """
+        if re.fullmatch(r"[0-9a-f]{64}", sha256 or ""):
+            for existing in sorted(self.references_dir.glob("*.md")):
+                if f"source_sha256: {sha256}" in existing.read_text(encoding="utf-8-sig"):
+                    return existing
+        ref_path = self.references_dir / f"{reference_slug(filename)}.md"
+        if ref_path.exists():
+            ref_path = self.references_dir / f"{reference_slug(filename)}-{file_id[:8].lower()}.md"
 
         sample = text[:800].replace("\r", "").strip() if text else "Sem conteúdo textual extraído."
 
-        md_content = f"""# 📚 Referência de Produto: {filename}
-
-> **Origem:** Google Drive (`AI Product Specialist`)  
-> **File ID:** `{file_id}` | **SHA-256:** `{sha256}`  
-> **Status:** `#status/reference` | **Data de Ingestão:** {datetime.now(timezone.utc).strftime('%Y-%m-%d')}  
-> **Rastreabilidade:** Extraído automaticamente pelo `DriveSyncEngine`
-
+        md_content = f"""---
+type: reference
+status: reference
+date: {datetime.now(timezone.utc).strftime('%Y-%m-%d')}
+source: Google Drive (AI Product Specialist)
+drive_file_id: {json.dumps(file_id)}
+source_sha256: {sha256}
+original_file: {json.dumps(filename, ensure_ascii=False)}
 ---
+# Referência de Produto: {filename}
 
 ## 1. Metadados do Documento
 
 - **Nome do Arquivo Original:** `{filename}`
 - **Identificador no Drive:** `{file_id}`
 - **Tamanho do Texto Extraído:** {len(text)} caracteres
-- **Caminho Local do Texto Bruto:** `extracted_drive/{Path(filename).stem}.txt`
-
----
+- **Rastreabilidade:** extraído pelo `DriveSyncEngine`; o texto bruto fica fora do repositório.
 
 ## 2. Excerto Inicial & Tópicos Principais
 
@@ -268,15 +293,13 @@ class DriveSyncEngine:
 {sample}
 ```
 
----
-
 ## 3. Conexões de Produto & Squads
 
 - [[product-vision-ai-specialist]] · Alinhamento estratégico com a Visão de Produto da KIOSK Brands.
 - [[prd-second-brain-platform-v2]] · Requisitos e critérios de aceitação do sistema autônomo.
 - [[product-discovery-rice-radar]] · Matriz RICE e esteira de Discovery contínuo.
 """
-        ref_path.write_text(md_content, encoding="utf-8")
+        ref_path.write_bytes(md_content.replace("\r\n", "\n").replace("\n", "\r\n").encode("utf-8"))
         return ref_path
 
     def run(self, auto_rebuild_graph: bool = True) -> Dict[str, Any]:

@@ -1,10 +1,12 @@
-# 🚀 Base de Inteligência Técnica: Agente & Time DEVOPS / SRE
+---
+type: architecture
+status: intelligence
+date: 2026-10-12
+---
+# Base de Inteligência Técnica: Agente & Time DEVOPS / SRE
 
 > **Origem do Conhecimento:** *Descomplicando System Design* — Conteúdo Principal (Days 1, 7, 8, 10, 21, 22, 25, 26, 27, 28).  
-> **Objetivo:** Fornecer chunks estruturados de infraestrutura, resiliência, observabilidade e confiabilidade contínua.  
-> **Status:** `#status/intelligence` | **Data:** 2026-10-12
-
----
+> **Objetivo:** Fornecer chunks estruturados de infraestrutura, resiliência, observabilidade e confiabilidade contínua.
 
 ## 1. Roteamento de Borda, Load Balancers & Gateways (Days 1, 7, 8)
 
@@ -98,7 +100,7 @@
 
 ---
 
-## 🤖 Seção MBA Full Cycle — IA Generativa Aplicada ao Time DEVOPS
+## Seção MBA Full Cycle — IA Generativa Aplicada ao Time DEVOPS
 
 > **Origem:** MBA Full Cycle — Engenharia de Software com IA 2026 (Módulos 02-05, 03-02, 06)  
 > **Data de Adição:** 2026-10-12
@@ -139,4 +141,3 @@
   5. Security (TLS, secrets management, RBAC)
   6. Disaster Recovery (RTO, RPO, backups)
 - *Ação:* Criar `vault/architecture/engineering-guidelines-devops.md` consumível pelo Agente DEVOPS.
-

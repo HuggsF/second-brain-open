@@ -1,10 +1,9 @@
+---
+type: adr
+status: Proposto
+date: 2026-10-07
+---
 # ADR-001: Migração dos Sistemas de Atendimento e Processos (SULTS e Holmes) para Salesforce
-
-## Status
-Proposto (Em análise pelo time de engenharia)
-
-## Data
-2026-10-07
 
 ## Contexto
 A holding **KIOSK Brands** opera com centenas de franquias no formato de quiosques e lojas em shoppings e terminais (marcas Touti, Amavia e Yes! Cosméticos). Atualmente, a operação de suporte e processos está fragmentada em duas ferramentas legadas:

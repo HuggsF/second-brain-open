@@ -1,11 +1,13 @@
-# 🔍 Gap Analysis: Second Brain vs Padrões MBA Full Cycle
-
-> **Data:** 2026-10-12  
-> **Fonte de Referência:** MBA Full Cycle — Engenharia de Software com IA 2026  
-> **Repositório Auditado:** `c:\Huggs\seccond-brain` (core/, dashboard/, mcp_servers/, vault/, tests/)  
-> **Status:** `#status/active` | `#type/gap-analysis`
-
 ---
+type: architecture
+status: active
+date: 2026-10-12
+tags: [gap-analysis]
+---
+# Gap Analysis: Second Brain vs Padrões MBA Full Cycle
+
+> **Fonte de Referência:** MBA Full Cycle — Engenharia de Software com IA 2026  
+> **Repositório Auditado:** este repositório (core/, dashboard/, mcp_servers/, vault/, tests/)
 
 ## Resumo Executivo
 
@@ -15,13 +17,13 @@ O Second Brain da KIOSK Brands já possui uma base sólida com 12 ADRs, 6 guias 
 
 ## Dimensão 1: Design Docs & Documentação Assistida por IA
 
-### ✅ O que já temos
+### O que já temos
 - 12 ADRs formalizados (ADR-001 a ADR-012)
 - Templates de ADR no vault
 - PRD do Second Brain Platform v2
 - Index de System Design
 
-### ❌ Gaps Identificados
+### Gaps Identificados
 
 | # | Gap | MBA Referência | Impacto | Prioridade |
 |---|---|---|---|---|
@@ -35,12 +37,12 @@ O Second Brain da KIOSK Brands já possui uma base sólida com 12 ADRs, 6 guias 
 
 ## Dimensão 2: Prompt Engineering & Gestão de Prompts
 
-### ✅ O que já temos
+### O que já temos
 - Prompts nos agentes MCP (embutidos no código)
 - System prompts nos `mcp_servers/`
 - CLAUDE.md com regras básicas
 
-### ❌ Gaps Identificados
+### Gaps Identificados
 
 | # | Gap | MBA Referência | Impacto | Prioridade |
 |---|---|---|---|---|
@@ -53,13 +55,13 @@ O Second Brain da KIOSK Brands já possui uma base sólida com 12 ADRs, 6 guias 
 
 ## Dimensão 3: Desenvolvimento de Aplicações com IA & Skills
 
-### ✅ O que já temos
+### O que já temos
 - CLAUDE.md como arquivo de inicialização
 - MCP servers funcionais (4 servidores)
 - Pipeline de ingestão automatizado
 - Docker-compose para infra local
 
-### ❌ Gaps Identificados
+### Gaps Identificados
 
 | # | Gap | MBA Referência | Impacto | Prioridade |
 |---|---|---|---|---|
@@ -71,12 +73,12 @@ O Second Brain da KIOSK Brands já possui uma base sólida com 12 ADRs, 6 guias 
 
 ## Dimensão 4: Avaliação Contínua & Qualidade
 
-### ✅ O que já temos
+### O que já temos
 - Evals básicos no diretório `evals/`
 - pytest.ini configurado
 - Diretório `tests/` com estrutura
 
-### ❌ Gaps Identificados
+### Gaps Identificados
 
 | # | Gap | MBA Referência | Impacto | Prioridade |
 |---|---|---|---|---|

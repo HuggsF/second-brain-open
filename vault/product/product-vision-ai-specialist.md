@@ -1,4 +1,9 @@
-# 🎯 Visão de Produto & Estratégia AI-First (Second Brain KIOSK Brands)
+---
+type: product
+status: active
+date: 2026-10-13
+---
+# Visão de Produto & Estratégia AI-First (Second Brain KIOSK Brands)
 
 > **Documento Oficial de Estratégia e Escopo de Produto**  
 > **Framework:** AI Product Specialist (Metodologia PM3 / Double Diamond / AI Triad Metrics)  
@@ -252,9 +257,8 @@ graph TD
 - [[ADR-011-growth-loop-data-flywheel-golden-dataset]] · Growth Loop, Data Flywheel e Golden Dataset.
 
 ### Referências Externas (Drive: AI Product Specialist)
-- [[references/02-medindo-e-provando-resultado-de-produtos-com-ia-lucca-kazan-pdf]] · Métricas L1/L2, HHH e RAGAS.
-- [[references/14-avalia-o-e-observabilidade-mantendo-o-controle-dos-llms-ok-pptx-microsoft-powerpoint]] · Observabilidade, Goldenset e DeepEval.
-- [[references/17-modelos-de-maturidade-e-readiness-de-ia-juliana-ara-jo-pdf]] · Readiness em 5 Dimensões.
-- [[references/19-monetiza-o-e-pricing-de-funcionalidades-genai-aiman-mustafa-smaili-pptx-microsoft-powerpoint]] · Unit Economics de Tokens e Pricing.
-- [[references/20-go-to-market-e-lan-amento-de-produtos-com-ia-aiman-mustafa-smaili-pptx-microsoft-powerpoint]] · GTM, Onboarding e Growth Loops.
-
+- [[references/02-medindo-e-provando-resultado-de-produtos-com-ia-lucca-kazan]] · Métricas L1/L2, HHH e RAGAS.
+- [[references/14-avaliacao-e-observabilidade-mantendo-o-controle-dos-llms]] · Observabilidade, Goldenset e DeepEval.
+- [[references/17-modelos-de-maturidade-e-readiness-de-ia-juliana-araujo]] · Readiness em 5 Dimensões.
+- [[references/19-monetizacao-e-pricing-de-funcionalidades-genai-aiman-mustafa-smaili]] · Unit Economics de Tokens e Pricing.
+- [[references/20-go-to-market-e-lancamento-de-produtos-com-ia-aiman-mustafa-smaili]] · GTM, Onboarding e Growth Loops.

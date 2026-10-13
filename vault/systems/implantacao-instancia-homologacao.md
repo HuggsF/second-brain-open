@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Implantação da Instância de Homologação (SRV-API)
 
 **Data:** 2026-10-07  
@@ -77,7 +82,6 @@ Credenciais padrão: `admin` / `admin123`.
 
 ### Opção B: Via Domínio Público Oficial (Após criação do DNS)
 `https://hub-hml.touticosmetics.com.br`
-
 
 ## Proteção local atualizada em 2026-10-08
 

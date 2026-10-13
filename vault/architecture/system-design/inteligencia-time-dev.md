@@ -1,10 +1,12 @@
-# 💻 Base de Inteligência Técnica: Agente & Time DEV
+---
+type: architecture
+status: intelligence
+date: 2026-10-12
+---
+# Base de Inteligência Técnica: Agente & Time DEV
 
 > **Origem do Conhecimento:** *Descomplicando System Design* — Conteúdo Principal (Days 4, 6, 9, 11, 12, 13, 18, 19, 20).  
-> **Objetivo:** Fornecer chunks estruturados de decisão e padrões arquiteturais para a dupla de engenharia Full-Cycle da KIOSK Brands.  
-> **Status:** `#status/intelligence` | **Data:** 2026-10-12
-
----
+> **Objetivo:** Fornecer chunks estruturados de decisão e padrões arquiteturais para a dupla de engenharia Full-Cycle da KIOSK Brands.
 
 ## 1. Concorrência Segura & Primitivas de Sincronização (Day 11)
 
@@ -104,7 +106,7 @@
 
 ---
 
-## 🤖 Seção MBA Full Cycle — IA Generativa Aplicada ao Time DEV
+## Seção MBA Full Cycle — IA Generativa Aplicada ao Time DEV
 
 > **Origem:** MBA Full Cycle — Engenharia de Software com IA 2026 (Módulos 06, 08, 03)  
 > **Data de Adição:** 2026-10-12

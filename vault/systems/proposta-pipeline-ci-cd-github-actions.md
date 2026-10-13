@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Pipeline de homologação do Hub Logístico
 
 Atualizado em 2026-10-08. Workflow existente no checkout; execução remota atual não revalidada.

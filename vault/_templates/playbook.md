@@ -5,7 +5,6 @@ status: {active | draft | deprecated}
 validates: [{RULE-NNN}]
 environment: {local | hml | production}
 targets: [{Sistema alvo}]
-team: {logistics | erp-integrations | crm-salesforce | platform | ecommerce}
 ---
 
 # PB-{NNN}: {Nome descritivo do cenário de teste}

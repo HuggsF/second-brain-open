@@ -1,10 +1,15 @@
-# 🧭 Radar de Demandas & Multi-Frentes (KIOSK Brands)
+---
+type: radar
+status: active
+date: 2026-10-09
+---
+# Radar de Demandas & Multi-Frentes (KIOSK Brands)
 
 Este painel central permite acompanhar todas as demandas ativas em paralelo pelas marcas e ecossistemas (Touti, Amavia, Yes! Cosmetics, Holmes, Sults, SAP, etc.) sem perda de contexto.
 
 ---
 
-## 🚦 Status Atual das Demandas
+## Status Atual das Demandas
 
 | ID | Frente / Sistema | Demanda / Iniciativa | Status | Responsável Atual | Bloqueio / Próximo Passo | Doc / Evidência |
 | :---: | :--- | :--- | :---: | :---: | :--- | :---: |
@@ -29,7 +34,7 @@ Este painel central permite acompanhar todas as demandas ativas em paralelo pela
 
 ---
 
-## 🏷️ Dicionário de Tags de Status
+## Dicionário de Tags de Status
 - `#status/doing` ➔ **Comigo agora** (estou ativamente desenvolvendo ou testando).
 - `#status/blocked-externo` ➔ **Bloqueado por terceiros** (esperando DNS, chave de API, aprovação de gerente, resposta de fornecedor).
 - `#status/pending` ➔ **Pronto para iniciar** assim que a dependência destravar.
@@ -38,9 +43,8 @@ Este painel central permite acompanhar todas as demandas ativas em paralelo pela
 
 ---
 
-## 🔄 Fluxo de Auditoria Semanal
+## Fluxo de Auditoria Semanal
 Toda sexta-feira ou antes de reuniões com Tadeu/Davi:
 1. Filtrar o que está em `#status/blocked-externo` para cobrar os responsáveis no chat.
 2. Mover o que foi homologado para `#status/done`.
 3. Atualizar a coluna **Bloqueio / Próximo Passo** para dar visibilidade imediata em 30 segundos.
-

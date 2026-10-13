@@ -1,15 +1,19 @@
+---
+type: adr
+scope: second-brain
+status: Aceito
+date: 2026-10-09
+---
 # ADR-004: Trace IDs e log unificado nas chamadas das ferramentas MCP do Second Brain
 
 > Esta ADR trata do próprio repositório `second-brain`, não do Hub Logístico.
 
-## Status
-Aprovado e implementado (2026-10-09)
-
-## Data
-2026-10-09
-
 ## Contexto
 A análise 360 do Second Brain (perfil Piloto, 2026-10-09) concluiu "Não apto". Entre as causas transversais está a impossibilidade de reconstituir qual ação de agente levou a qual efeito: os quatro servidores MCP não registavam nada, o gateway SSH tinha só um log próprio sem identificador de tarefa e o `request_id` do BFF era descartado (findings D09 e D07; risco transversal XR-04).
+
+## Alternativas Consideradas
+- **Decorador por ferramenta:** repete o código 15 vezes e uma ferramenta nova sem o decorador fica sem rasto.
+- **Ferramentas `iniciar_tarefa` e `encerrar_tarefa`:** guardam estado escondido no processo e atribuem mal as chamadas quando duas tarefas se misturam.
 
 ## Decisão
 1. Todas as chamadas das 15 ferramentas MCP passam por um middleware FastMCP (`core/trace_middleware.py`) que grava um registo em `.runtime/trace-log.jsonl`.
@@ -19,10 +23,6 @@ A análise 360 do Second Brain (perfil Piloto, 2026-10-09) concluiu "Não apto".
 5. O gateway SSH emite eventos filhos (`ssh.exec`, `ssh.refused`) com o mesmo `trace_id`; o antigo `gateway-audit.jsonl` deixa de existir.
 6. O campo `caller` usa o nome do cliente MCP do handshake (`client_info.name`), sem tentar identificar pessoas ou agentes.
 7. Consulta: `cli.py trace <trace_id>` e `cli.py trace --recent N`.
-
-## Alternativas descartadas
-- **Decorador por ferramenta:** repete o código 15 vezes e uma ferramenta nova sem o decorador fica sem rasto.
-- **Ferramentas `iniciar_tarefa` e `encerrar_tarefa`:** guardam estado escondido no processo e atribuem mal as chamadas quando duas tarefas se misturam.
 
 ## Consequências
 - O log é local e não é à prova de adulteração: serve de evidência para o responsável, não para terceiros.

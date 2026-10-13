@@ -1,10 +1,13 @@
-# 🏗️ Desafios Técnicos & Padrões Arquiteturais — MBA Full Cycle Aplicados à KIOSK
-
-> **Origem:** MBA Full Cycle — Módulo 04 (Desafios Técnicos) + Módulo 02 (Bônus: System Design)  
-> **Aplicação:** KIOSK Brands — Bling, Hub, Touti, SAP, Salesforce  
-> **Status:** `#status/active` | `#type/guide` | **Data:** 2026-10-12
-
 ---
+type: architecture
+status: active
+date: 2026-10-12
+source: "MBA Full Cycle — Módulo 04 (Desafios Técnicos) + Módulo 02 (Bônus: System Design)"
+tags: [guide]
+---
+# Desafios Técnicos & Padrões Arquiteturais — MBA Full Cycle Aplicados à KIOSK
+
+> **Aplicação:** KIOSK Brands — Bling, Hub, Touti, SAP, Salesforce
 
 ## 1. Desafio 1 — Ingestão e Busca Semântica (M04-01)
 

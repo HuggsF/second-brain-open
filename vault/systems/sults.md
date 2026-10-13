@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Sistema Operacional de Franquias: SULTS (KIOSK Brands)
 
 ## Visão Geral

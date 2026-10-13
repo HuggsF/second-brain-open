@@ -1,10 +1,9 @@
+---
+type: adr
+status: Aceito
+date: 2026-10-12
+---
 # ADR-009: Modelo de Maturidade de IA em 5 Dimensões e AI Readiness da KIOSK Brands
-
-## Status
-Aceito
-
-## Data
-2026-10-12
 
 ## Contexto
 A KIOSK Brands opera um ecossistema de IA crescente (Second Brain, 9 squads autônomos, integrações de ERP e automações logísticas) sem um **framework formal para medir e evoluir o nível de maturidade organizacional em IA**. Decisões sobre investimento em infraestrutura, contratação de capacidades, governança ética e adoção de ferramentas eram feitas de forma reativa e sem uma métrica comparável ao longo do tempo.
@@ -83,7 +82,7 @@ Adotar o **Modelo de Maturidade de IA em 5 Dimensões** como instrumento formal 
 - **Operações (Touti, Amavia, Yes!):** Diretamente impactados pela evolução da dimensão 4 (Democratização do Acesso).
 
 ## Referências
-- [[references/17-modelos-de-maturidade-e-readiness-de-ia-juliana-ara-jo-pdf]]
-- [[references/16-guardrails-seguran-a-e-prote-o-do-usu-rio-na-pr-tica-juliana-ara-jo-pdf]]
+- [[references/17-modelos-de-maturidade-e-readiness-de-ia-juliana-araujo]]
+- [[references/16-guardrails-seguranca-e-protecao-do-usuario-na-pratica-juliana-araujo]]
 - [[product/product-vision-ai-specialist]] — Seção 8 (Modelo de Maturidade & AI Readiness)
 - [[ADR-007-hierarquia-metricas-l1-l2-framework-hhh-ragas]] — Métricas L2 alimentam a dimensão 5 (LLMOps)

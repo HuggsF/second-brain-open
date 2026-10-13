@@ -2,7 +2,7 @@
 id: RULE-002
 title: Em homologação nenhum job chama ERP, J&T ou WMS
 status: active
-source: vault/systems/protecoes-processamento-emissao-hub.md:34
+source: vault/systems/protecoes-processamento-emissao-hub.md:39
 domain: logistica
 ---
 
@@ -18,4 +18,4 @@ Em homologação o motor mantém os jobs pendentes sem chamar ERP, J&T ou WMS, e
 
 ## Playbooks que a validam
 
-PB-001 (suíte automatizada do Hub) e PB-003 (homologação sem chamada externa). As execuções se consultam com `cli.py evidence RULE-002` ou pela ferramenta MCP `get_rule_evidence`.
+PB-001 (suíte automatizada do Hub) e PB-003 (homologação sem chamada externa). Os protocolos gerais PB-004 (resiliência), PB-005 (carga e estresse) e PB-007 (disaster recovery) também declaram validá-la. As execuções se consultam com `cli.py evidence RULE-002` ou pela ferramenta MCP `get_rule_evidence`.

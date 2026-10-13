@@ -1,13 +1,9 @@
+---
+type: adr
+status: Aceito
+date: 2026-10-07
+---
 # ADR-002: Backup, Clonagem Local e Versionamento do Hub Logístico de Etiquetas
-
-## Status
-Executado com Sucesso (Concluído em 07/10/2026)
-* Repositório Privado GitHub: `https://github.com/userTI10/hub-logistico`
-* Diretório Local: `C:\KIOSK\hub-logistico`
-* Commit Inicial: `992f2a9` (feat: initial commit hub logistico modular v4.1.0)
-
-## Data
-2026-10-07
 
 ## Contexto
 Durante a auditoria técnica realizada no primeiro dia de trabalho no servidor de produção `SRV-API` (`191.233.18.195`), identificou-se que os 7 serviços essenciais da KIOSK Brands operam sem controle de versão Git ativo no servidor.

@@ -18,3 +18,4 @@ dialog{background:var(--panel);color:var(--text);border:1px solid var(--border);
 .row-link .row-title,.row-link .row-meta{display:block}.row-link .row-meta{font-weight:400}.citation-card h3{margin-top:12px}
 .edge-label{font-size:12px}
 .legend-dot.good{background:var(--good)}
+.markdown-meta{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0 0 18px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);font-size:13px}.markdown-meta dt{color:var(--muted);font-weight:600}.markdown-meta dd{margin:0;overflow-wrap:anywhere}

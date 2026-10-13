@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Integrações Bling — Touti (Second Brain)
 
 ## Visão geral

@@ -1,11 +1,14 @@
-# 🤖 Desenvolvimento de Aplicações com IA — Padrões de Código e Agentes
-
-> **Origem:** MBA Full Cycle — Módulo 08: Desenvolvimento de Aplicações com IA  
-> **Complemento:** Módulo 03 (Lives) — Quick Wins, Agentes de IA, Docker Offload  
-> **Aplicação:** KIOSK Brands Second Brain — 4 Agentes Especialistas  
-> **Status:** `#status/active` | `#type/guide` | **Data:** 2026-10-12
-
 ---
+type: architecture
+status: active
+date: 2026-10-12
+source: "MBA Full Cycle — Módulo 08: Desenvolvimento de Aplicações com IA"
+tags: [guide]
+---
+# Desenvolvimento de Aplicações com IA — Padrões de Código e Agentes
+
+> **Complemento:** Módulo 03 (Lives) — Quick Wins, Agentes de IA, Docker Offload  
+> **Aplicação:** KIOSK Brands Second Brain — 4 Agentes Especialistas
 
 ## 1. Os 7 Pilares do Desenvolvimento com IA (M08)
 

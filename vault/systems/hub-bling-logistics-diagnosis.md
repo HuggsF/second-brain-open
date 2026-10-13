@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Investigação: UPDATE do Bling sem objeto logístico
 
 Evidências coletadas em 08/10/2026, às 17:54–17:58 de Brasília. Apenas leitura de código, logs e SQLite de produção; nenhuma renovação OAuth, requisição de emissão, atualização no Bling, cancelamento ou reprocessamento foi executado na investigação.

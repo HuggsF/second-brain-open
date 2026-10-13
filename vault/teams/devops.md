@@ -1,3 +1,8 @@
+---
+type: team
+status: active
+date: 2026-10-13
+---
 # Time: DevOps & Infraestrutura (SRE & Confiabilidade)
 
 ## Escopo

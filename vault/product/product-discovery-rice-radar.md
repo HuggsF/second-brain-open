@@ -1,4 +1,9 @@
-# 📊 Discovery Contínuo & Matriz RICE de Priorização (KIOSK Brands)
+---
+type: product
+status: active
+date: 2026-10-13
+---
+# Discovery Contínuo & Matriz RICE de Priorização (KIOSK Brands)
 
 > **Documento de Priorização de Produto & Discovery com IA**  
 > **Framework:** RICE Scoring (Reach, Impact, Confidence, Effort) + Double Diamond  

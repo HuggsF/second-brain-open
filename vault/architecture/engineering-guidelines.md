@@ -1,11 +1,12 @@
-# 📏 Engineering Guidelines — Padrões Globais de Engenharia de Software
-
-> **Status:** `#status/active` | `#type/guideline`  
-> **Data:** 2026-10-12  
-> **Origem:** MBA Full Cycle — Módulo 07 (Engineering Guidelines) & Módulo 08 (Dev com IA)  
-> **Público:** Desenvolvedores e Agentes Especialistas (DEV, DEVOPS, QA, ARQUITETURA)
-
 ---
+type: architecture
+status: active
+date: 2026-10-12
+source: "MBA Full Cycle — Módulo 07 (Engineering Guidelines) & Módulo 08 (Dev com IA)"
+audience: "Desenvolvedores e Agentes Especialistas (DEV, DEVOPS, QA, ARQUITETURA)"
+tags: [guideline]
+---
+# Engineering Guidelines — Padrões Globais de Engenharia de Software
 
 ## 1. Princípios Fundamentais de Design
 1. **Spec-Driven Development (SDD):** Toda implementação complexa deve derivar de um PRD ou FDD validado. Agentes de IA atuam a partir de especificações explícitas.

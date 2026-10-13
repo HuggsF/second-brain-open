@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+import yaml
 from typing import Dict, List, Any
 from config import settings
 
@@ -10,6 +11,8 @@ class MarkdownChunker:
 
     def chunk_file(self, file_path: Path, vault_dir: Path = settings.vault_dir) -> List[Dict[str, Any]]:
         text = file_path.read_text(encoding="utf-8")
+        text, front = self._split_frontmatter(text)
+        extra = {key: str(front[name]) for key, name in (("status", "status"), ("doc_type", "type")) if front.get(name) is not None}
         rel_path = file_path.relative_to(vault_dir).as_posix()
         category = file_path.parent.name if file_path.parent != vault_dir else "general"
 
@@ -38,7 +41,8 @@ class MarkdownChunker:
                         "doc_title": doc_title,
                         "section": header,
                         "category": category,
-                        "chunk_index": chunk_idx
+                        "chunk_index": chunk_idx,
+                        **extra
                     }
                 })
                 chunk_idx += 1
@@ -55,12 +59,25 @@ class MarkdownChunker:
                             "doc_title": doc_title,
                             "section": header,
                             "category": category,
-                            "chunk_index": chunk_idx
+                            "chunk_index": chunk_idx,
+                            **extra
                         }
                     })
                     chunk_idx += 1
 
         return chunks
+
+    @staticmethod
+    def _split_frontmatter(text: str) -> tuple[str, Dict[str, Any]]:
+        """Remove o frontmatter YAML inicial do texto e devolve os campos dele."""
+        match = re.match(r"^---\r?\n(.*?)\r?\n---\r?\n", text, re.DOTALL)
+        if not match:
+            return text, {}
+        try:
+            data = yaml.safe_load(match.group(1))
+        except yaml.YAMLError:
+            return text, {}
+        return text[match.end():], data if isinstance(data, dict) else {}
 
     def _split_by_headers(self, text: str) -> List[tuple[str, str]]:
         # Regex para identificar ## ou ###

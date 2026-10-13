@@ -1,10 +1,9 @@
+---
+type: adr
+status: Aceito
+date: 2026-10-12
+---
 # ADR-007: Adoção da Hierarquia de Métricas L1/L2 e Framework HHH para Avaliação Contínua de IA
-
-## Status
-Aceito
-
-## Data
-2026-10-12
 
 ## Contexto
 O Second Brain utilizava uma estrutura métrica plana dividida em "Métricas de Negócio" e "Métricas de Qualidade do Sistema de IA" sem uma taxonomia formal que diferenciasse **leading indicators** (ações do time que influenciam o resultado) de **performance indicators** (qualidade do motor de IA em si). Isso dificultava:
@@ -80,7 +79,7 @@ Adotar a **Hierarquia de Métricas em 3 Níveis** e o **Framework HHH + RAGAS** 
 - **Stakeholders Executivos (Tadeu, Davi):** Consumidores do dashboard de métricas L1 sem necessidade de conhecimento técnico L2.
 
 ## Referências
-- [[references/02-medindo-e-provando-resultado-de-produtos-com-ia-lucca-kazan-pdf]]
-- [[references/14-avalia-o-e-observabilidade-mantendo-o-controle-dos-llms-ok-pptx-microsoft-powerpoint]]
+- [[references/02-medindo-e-provando-resultado-de-produtos-com-ia-lucca-kazan]]
+- [[references/14-avaliacao-e-observabilidade-mantendo-o-controle-dos-llms]]
 - [[product/product-vision-ai-specialist]] — Seções 4.1, 4.2 e 4.3 (Hierarquia de Métricas)
 - [[ADR-006-implementacao-flowlogger-observabilidade-semaforos]] — Rastreabilidade E2E que alimenta as métricas L2

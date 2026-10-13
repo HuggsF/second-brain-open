@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Auditoria de Repositórios GitHub: Conta Corporativa
 
 ## Data da Auditoria
@@ -29,7 +34,7 @@
 
 ---
 
-## 💡 Cruzamento entre Servidor de Produção (`SRV-API`) e GitHub
+## Cruzamento entre Servidor de Produção (`SRV-API`) e GitHub
 
 1. **`agentesdeia` e `projetodeengenharia`:**
    * Repositórios recentes (criados/atualizados nesta semana). O repositório `agentesdeia` é especialmente alinhado com o seu objetivo de criar agentes de atendimento e tracking de pedidos!

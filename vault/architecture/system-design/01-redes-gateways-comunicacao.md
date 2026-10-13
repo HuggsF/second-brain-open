@@ -1,9 +1,12 @@
-# 🌐 Eixo 1: Redes, Gateways & Comunicação
+---
+type: architecture
+status: reference
+date: 2026-10-13
+---
+# Eixo 1: Redes, Gateways & Comunicação
 
 > **Módulos de Origem:** Day 1 (Protocolos de Rede), Day 7 (Load Balancers e Proxies Reversos), Day 8 (API Gateways), Day 09 (Backend for Frontends - BFFs), Day 10 (Service Mesh Pattern), Day 12 (Comunicação Síncrona).  
-> **Status:** `#status/reference` | **Agentes Beneficiados:** `🤖 DEV` e `🤖 DEVOPS`
-
----
+> **Agentes Beneficiados:** `🤖 DEV` e `🤖 DEVOPS`
 
 ## 1. Fundamentos de Rede & Camadas OSI em Larga Escala
 

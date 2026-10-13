@@ -1,11 +1,13 @@
-# 🚀 Plano de Evolução Estrutural da Plataforma Second Brain
-
-> **Origem:** MBA Full Cycle — Engenharia de Software com IA 2026  
-> **Status:** `#status/active` | `#type/roadmap`  
-> **Data:** 2026-10-12  
-> **Objetivo:** Roteiro formal de evolução técnica em fases para transformar o Second Brain da KIOSK Brands em uma plataforma autônoma de engenharia de software de nível MBA.
-
 ---
+type: architecture
+status: active
+date: 2026-10-12
+source: MBA Full Cycle — Engenharia de Software com IA 2026
+tags: [roadmap]
+---
+# Plano de Evolução Estrutural da Plataforma Second Brain
+
+> **Objetivo:** Roteiro formal de evolução técnica em fases para transformar o Second Brain da KIOSK Brands em uma plataforma autônoma de engenharia de software de nível MBA.
 
 ## 1. Visão Estratégica & Diagnóstico de Maturidade
 
@@ -33,7 +35,7 @@ timeline
 
 ## 2. Detalhamento das Fases
 
-### 🟢 Fase 1: Fundação, Especificação & Base de Conhecimento (Status: ✅ Concluída)
+### Fase 1: Fundação, Especificação & Base de Conhecimento (Status: ✅ Concluída)
 - [x] **Ingestão e Manifest do MBA Full Cycle:** Varredura dos 8 módulos (321 vídeos, 22 PDFs, 7 ZIPs) e geração de `extracted_full_cycle/full_cycle_manifest.json`.
 - [x] **Diagnóstico Formal de Gaps:** Publicação de `vault/architecture/full-cycle-gap-analysis.md` mapeando 14 gaps prioritários.
 - [x] **Guias de Referência no Vault:**
@@ -47,7 +49,7 @@ timeline
 
 ---
 
-### 🟡 Fase 2: Prompt Ops & Pipeline de Avaliação Contínua (Status: 📋 Próxima)
+### Fase 2: Prompt Ops & Pipeline de Avaliação Contínua (Status: 📋 Próxima)
 - **Objetivo:** Estabelecer controle estatístico e comportamental sobre as respostas dos agentes e prompts de geração de código.
 - **Entregáveis:**
   1. **Golden Datasets Curados:** Criação de `evals/golden_datasets/` contendo casos de teste nominais e adversariais para DEV, DEVOPS, QA e ARQUITETURA.
@@ -57,7 +59,7 @@ timeline
 
 ---
 
-### 🟠 Fase 3: Autonomia Agêntica com MCP Servers & PRPs (Status: 📋 Planejada)
+### Fase 3: Autonomia Agêntica com MCP Servers & PRPs (Status: 📋 Planejada)
 - **Objetivo:** Transformar os 4 agentes em executores autônomos orientados a especificações técnicas.
 - **Entregáveis:**
   1. **Implementação de ReAct nos Servidores MCP:** Habilitar raciocínio passo a passo antes de mutações de banco ou chamadas às APIs de Bling, Hub e ERP.
@@ -67,7 +69,7 @@ timeline
 
 ---
 
-### 🔵 Fase 4: Busca Semântica Avançada & Observabilidade Total (Status: 📋 Planejada)
+### Fase 4: Busca Semântica Avançada & Observabilidade Total (Status: 📋 Planejada)
 - **Objetivo:** Maximizar o recall do conhecimento corporativo e a visibilidade de telemetria da plataforma.
 - **Entregáveis:**
   1. **Motor RAG Híbrido:** Evolução da busca em JSON para PostgreSQL com extensão `pgvector`, combinando Full-Text Search (BM25) e Cosine Similarity.

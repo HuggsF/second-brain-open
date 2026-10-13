@@ -1,10 +1,12 @@
-# 🏛️ Base de Inteligência Técnica: Agente & Time ARQUITETURA / PRODUTO
+---
+type: architecture
+status: intelligence
+date: 2026-10-12
+---
+# Base de Inteligência Técnica: Agente & Time ARQUITETURA / PRODUTO
 
 > **Origem do Conhecimento:** *Descomplicando System Design* — Conteúdo Principal (Days 0, 2, 3, 4, 5, 6, 15, 16, 17, 23).  
-> **Objetivo:** Fornecer chunks estruturados de governança, trade-offs, modelagem de dados e capacidade para Arquitetura e Produto.  
-> **Status:** `#status/intelligence` | **Data:** 2026-10-12
-
----
+> **Objetivo:** Fornecer chunks estruturados de governança, trade-offs, modelagem de dados e capacidade para Arquitetura e Produto.
 
 ## 1. Metodologia de System Design & Requisitos (Day 0)
 
@@ -74,7 +76,7 @@ Adicionar sempre uma margem de segurança (*Headroom*) de 50%, configurando o po
 
 ---
 
-## 🤖 Seção MBA Full Cycle — IA Generativa Aplicada ao Time ARQUITETURA & PRODUTO
+## Seção MBA Full Cycle — IA Generativa Aplicada ao Time ARQUITETURA & PRODUTO
 
 > **Origem:** MBA Full Cycle — Engenharia de Software com IA 2026 (Módulos 06, 07, 08, 02)  
 > **Data de Adição:** 2026-10-12
@@ -137,4 +139,3 @@ Adicionar sempre uma margem de segurança (*Headroom*) de 50%, configurando o po
   - Centraliza padrões de design (clean architecture, naming conventions, tratamento de exceções, idempotência, segurança).
   - É injetado diretamente no system prompt ou context window dos agentes desenvolvedores e revisores de código para garantir conformidade automática.
 - *Ação:* Criar e manter `vault/architecture/engineering-guidelines.md` como contrato vivo para humanos e agentes.
-

@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Proteções locais de processamento e emissão do Hub
 
 Atualizado em 2026-10-08. Implantado em produção e HML no SRV-API em 1111ea15eb9c67a6a17ef78c47cff0793a5f6dc6. PRs #1, #9 e #11 integradas; detalhes em deploy-validacao-2026-10-08.md.
@@ -46,7 +51,6 @@ A consulta de NF usa GET /nfe/{id}. Toda nova emissão exige número positivo, s
 
 npm test inclui 26 cenários aprovados, com CI Node 18/20 e execução em releases Linux isolados. Três testes Python verificam o controle e preservação de banco no rollback. A concorrência usa duas conexões ao mesmo SQLite temporário. No tráfego natural observado após implantação, dois pedidos concluíram com duas etiquetas confirmadas e rastreios consistentes; contrato Corpem e cobertura completa dos cenários operacionais permanecem pendentes.
 Referências: [[backlog-analise-hub-logistico]], [[modelo-semantico-e-visualizacao-grafo]].
-
 
 ## Atualização — PR #13 e auditoria fiscal, 08/10/2026
 

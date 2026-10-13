@@ -17,7 +17,7 @@ class TestRealSeed(unittest.TestCase):
         defs = evidence.load_definitions(settings.vault_dir)
         self.assertEqual(defs.errors, [])
         self.assertEqual(sorted(defs.rules), ["RULE-001", "RULE-002"])
-        self.assertEqual(sorted(defs.playbooks), ["PB-001", "PB-002", "PB-003"])
+        self.assertEqual(sorted(defs.playbooks), ["PB-001", "PB-002", "PB-003", "PB-004", "PB-005", "PB-006", "PB-007"])
         self.assertEqual(evidence.lint(defs), [])
         self.assertEqual(defs.playbooks["PB-001"].validates, ["RULE-001", "RULE-002"])
         self.assertEqual(defs.playbooks["PB-002"].environment, "hml")
@@ -55,14 +55,14 @@ class TestRealSeed(unittest.TestCase):
         text = (settings.base_dir / path).read_text(encoding="utf-8-sig").splitlines()[int(line) - 1]
         self.assertIn("36 cenários JavaScript", text)
         self.assertIn("3 testes Python", text)
-        self.assertIn(":53", entry["evidence_ref"])
+        self.assertIn(":57", entry["evidence_ref"])
         self.assertIn("36", entry["summary"])
         note = (settings.base_dir / path).read_text(encoding="utf-8-sig").splitlines()
         self.assertIn("PR #13", note[int(line) - 2] + note[int(line) - 3])  # the cited line sits under the PR #13 update heading
 
     def test_all_new_notes_use_crlf(self):
         notes = sorted((settings.vault_dir / "rules").glob("*.md")) + sorted((settings.vault_dir / "playbooks").glob("*.md"))
-        self.assertEqual(len(notes), 5)
+        self.assertEqual(len(notes), 9)
         for note in notes:
             data = note.read_bytes()
             self.assertTrue(data.count(b"\r\n") > 0, note.name)

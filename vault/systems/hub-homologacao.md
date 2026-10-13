@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Hub — Homologação
 
 ## Consolidação do diário de bordo — 08/10/2026
@@ -18,7 +23,6 @@ Relatório privado por registro: [comparativo Bling/hub/J&T](C:/KIOSK/hub-logist
 
 Memória relacionada: [[hub-producao]], [[hub-homologacao]], [[deploy-validacao-hub-2026-10-08]], [[backlog-analise-hub-logistico]]. Os registros anteriores abaixo são históricos.
 
-
 ## Atualização — PR #13 e auditoria fiscal, 08/10/2026
 
 Revisão corrente de produção e HML: 3cf7250afe30931a54621093638e1b0f76f64169. PR #13 integrada com CI Node 18/20; 36 cenários JavaScript e 3 testes Python aprovados localmente, npm test também aprovado nos releases Linux isolados. HML permanece com worker/emissão bloqueados e lojas desligadas. Produção ativa, só Espírito Santo automática, HTTP interno/público saudáveis e bancos íntegros; PM2 persistido. Arquivos de produção conferidos por manifesto sem divergência.
@@ -36,7 +40,6 @@ Rollback pronto: sudo -n python3 /home/ti-kiosk/hub-deploy/deploy-control.py rol
 Evidências locais: C:/KIOSK/hub-logistico/.deploy-state/nota-final-results.json; nota-cross-audit.private.json; nota-pdf-all-results.private.json; PDFs em nota-labels.private. Esses arquivos não foram publicados. Esta atualização substitui os registros anteriores para o estado corrente.
 
 ## Histórico da implantação anterior (12:06 de Brasília)
-
 
 Estado validado em 08/10/2026. Revisão implantada 1111ea15eb9c67a6a17ef78c47cff0793a5f6dc6. Este documento representa HML; produção tem documentação própria em [[hub-producao]].
 

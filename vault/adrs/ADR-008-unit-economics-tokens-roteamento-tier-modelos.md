@@ -1,10 +1,9 @@
+---
+type: adr
+status: Aceito
+date: 2026-10-12
+---
 # ADR-008: Unit Economics de Tokens e Roteamento por Tier de Modelos de IA
-
-## Status
-Aceito
-
-## Data
-2026-10-12
 
 ## Contexto
 O Second Brain interage com LLMs para orquestração de missões operacionais, diagnósticos de ERP, busca semântica e auditoria de automações. Cada chamada consome tokens de entrada (system prompt + user prompt + contexto RAG) e tokens de saída (resposta do modelo). Sem uma estratégia de gestão financeira, o custo operacional de IA poderia crescer descontroladamente à medida que as holdings Touti, Amavia e Yes! ampliam o uso do copiloto.
@@ -56,7 +55,7 @@ Cada frente de demanda (ex: DEM-01 Reconciliação J&T) tem custo por execução
 - **ROI estimado: > 60x** por missão automatizada.
 
 ### 4. Calculadora Interativa no Dashboard
-Implementada em [`dashboard/product-ui.js`](file:///c:/Huggs/seccond-brain/dashboard/product-ui.js), a calculadora permite ajuste dinâmico de:
+Implementada em `dashboard/product-ui.js`, a calculadora permite ajuste dinâmico de:
 - Volume semanal de requisições (slider 1.000 – 200.000).
 - Modelo selecionado (5 opções com preços atualizados).
 - Projeção automática de custo semanal/mensal e economia em homem-hora.
@@ -81,7 +80,7 @@ Implementada em [`dashboard/product-ui.js`](file:///c:/Huggs/seccond-brain/dashb
 - **FinOps/Operações:** Monitora budget diário e alertas de overage.
 
 ## Referências
-- [[references/19-monetiza-o-e-pricing-de-funcionalidades-genai-aiman-mustafa-smaili-pptx-microsoft-powerpoint]]
-- [[references/06-llms-na-pr-tica-como-escolher-o-modelo-certo-para-seu-produto-artur-padua-pptx-microsoft-powerpoint]]
+- [[references/19-monetizacao-e-pricing-de-funcionalidades-genai-aiman-mustafa-smaili]]
+- [[references/06-llms-na-pratica-como-escolher-o-modelo-certo-para-seu-produto-artur-padua]]
 - [[product/product-vision-ai-specialist]] — Seção 7 (Unit Economics de Tokens)
 - [[ADR-007-hierarquia-metricas-l1-l2-framework-hhh-ragas]] — L2 Metrics de eficiência de tokens

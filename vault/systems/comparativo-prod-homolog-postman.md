@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Comparativo do fluxo logístico em produção e homologação
 
 Verificação em 08/10/2026, às 10:34:55 de Brasília. A produção automatiza somente a loja Espírito Santo; HML está sem conectores e não reproduz hoje um fluxo completo de emissão. A collection Postman contém divergências que impedem usá-la como prova desse fluxo.

@@ -1,12 +1,14 @@
-# 🏛️ Índice Mestre de System Design — Second Brain
+---
+type: architecture
+status: active
+date: 2026-10-12
+---
+# Índice Mestre de System Design — Second Brain
 
 > **Origem do Conhecimento:** Curso Completo *Descomplicando System Design*  
 > **Volume de Conhecimento:** 30 Módulos | 254 Aulas | 42.72 Horas | 21.50 GB  
-> **Status:** `#status/active` | **Data de Ingestão:** 2026-10-12  
-> **Local dos Arquivos de Mídia:** `C:\Users\huggs\Downloads\Descomplicando System Design`  
+> **Local dos Arquivos de Mídia:** fora do repositório (variável `SYSTEM_DESIGN_COURSE_ROOT` do `ingestion/system_design_sync.py`)  
 > **Manifesto Estruturado:** `extracted_system_design/system_design_manifest.json`
-
----
 
 ## 1. Visão Geral e Propósito no Second Brain
 

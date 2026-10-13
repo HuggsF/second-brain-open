@@ -1,3 +1,8 @@
+---
+type: system
+status: active
+date: 2026-10-09
+---
 # Auditoria de Repositórios e Serviços: Servidor SRV-API
 
 ## Data da Auditoria
