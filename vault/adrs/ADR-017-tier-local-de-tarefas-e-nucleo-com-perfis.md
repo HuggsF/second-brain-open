@@ -1,7 +1,7 @@
 ---
 type: adr
 scope: second-brain
-status: Aceito
+status: "Substituído por ADR-018"
 date: 2026-10-13
 related: [ADR-004, ADR-008, ADR-014]
 ---
