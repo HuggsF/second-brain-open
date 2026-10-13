@@ -378,7 +378,7 @@ def task_eval(min_accuracy):
         envelope = router.run_task(
             case["task"], text=case["text"], template=case.get("template"),
             target_words=case.get("target_words", 120), source=case.get("source"),
-            sender="cli", profile=profile, client=client,
+            sender="task-eval", profile=profile, client=client,
         )
         row = stats.setdefault(case["task"], {"cases": 0, "passed": 0, "escalate": 0})
         row["cases"] += 1

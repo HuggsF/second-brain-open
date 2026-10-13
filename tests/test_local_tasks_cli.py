@@ -138,6 +138,16 @@ class LocalTasksCliTests(unittest.TestCase):
         self.assertEqual(result.exit_code, 0, result.output)
         self.assertIn("validate", result.output)
 
+    def test_task_eval_records_events_with_its_own_sender(self):
+        fake = AlwaysClient({"nope": 1})
+        fake.available = lambda model: True
+        result = self.invoke(["task-eval", "--min-accuracy", "0"], fake)
+        self.assertEqual(result.exit_code, 0, result.output)
+        rows = [json.loads(l) for l in (self.dir / "events.jsonl").read_text(encoding="utf-8").splitlines()]
+        requests = [r for r in rows if r["kind"] == "task.request"]
+        self.assertEqual(len(requests), 12)
+        self.assertEqual({r["from"] for r in requests}, {"task-eval"})
+
     def test_task_eval_exits_1_when_ollama_unavailable(self):
         fake = mock.Mock()
         fake.available.return_value = False
