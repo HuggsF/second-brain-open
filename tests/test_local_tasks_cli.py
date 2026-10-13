@@ -108,6 +108,11 @@ class LocalTasksCliTests(unittest.TestCase):
             self.assertNotIn("Traceback", result.output)
         self.assertEqual(fake.calls, 0)
 
+    def test_status_help_says_failures_are_per_process(self):
+        result = self.runner.invoke(cli_module.cli, ["task", "status", "--help"])
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("por processo", result.output)
+
     def test_summarize_passes_words(self):
         fake = FakeClient({"summary": "s", "key_points": ["a"]})
         result = self.invoke(["task", "summarize", "--words", "33", "texto curto"], fake)

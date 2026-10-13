@@ -334,7 +334,11 @@ def task_validate(template, source_path, text, file_path):
 
 @task.command("status")
 def task_status():
-    """Estado do runtime local (mesmo de local_tasks_status)."""
+    """Estado do runtime local (mesmo de local_tasks_status).
+
+    event_write_failures é contado por processo: aqui vale só para este comando;
+    as falhas do servidor MCP aparecem em local_tasks_status.
+    """
     from core.local_tasks import router
     click.echo(json.dumps(router.status(), ensure_ascii=False, indent=2))
 
