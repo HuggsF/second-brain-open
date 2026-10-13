@@ -159,10 +159,19 @@ class LocalTasksCliTests(unittest.TestCase):
         self.assertEqual(len(requests), 12)
         self.assertEqual({r["from"] for r in requests}, {"task-eval"})
 
+    def test_task_eval_reports_latency_and_tier(self):
+        fake = AlwaysClient({"nope": 1})
+        fake.available = lambda model: True
+        result = self._invoke_eval(["task-eval", "--min-accuracy", "0"], fake)
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("latência_média_ms=", result.output)
+        self.assertIn("local=", result.output)
+
     def test_task_eval_exits_1_when_ollama_unavailable(self):
         fake = mock.Mock()
         fake.available.return_value = False
         with mock.patch.object(router, "OllamaClient", return_value=fake), \
+                mock.patch.object(router, "build_client", return_value=fake), \
                 mock.patch.object(router, "run_task") as run_task:
             result = self.runner.invoke(cli_module.cli, ["task-eval"])
         self.assertEqual(result.exit_code, 1, result.output)

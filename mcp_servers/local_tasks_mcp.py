@@ -5,6 +5,16 @@ from typing import Any, Dict, Optional
 from fastmcp import Context, FastMCP
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from config import settings
+
+try:
+    from dotenv import load_dotenv
+    if settings.env_file.exists():
+        load_dotenv(settings.env_file, override=False)
+except ImportError:
+    pass
+
 from core import tracing
 from core.local_tasks import router
 from core.trace_middleware import TraceMiddleware

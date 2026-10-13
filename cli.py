@@ -11,6 +11,15 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+from config import settings
+
+try:
+    from dotenv import load_dotenv
+    if settings.env_file.exists():
+        load_dotenv(settings.env_file, override=False)
+except ImportError:
+    pass  # python-dotenv optional; CI pode não ter
+
 import click
 from rich.console import Console
 from rich.panel import Panel
@@ -363,13 +372,15 @@ def _case_passed(case: dict, envelope: dict) -> bool:
 
 @cli.command("task-eval")
 @click.option("--min-accuracy", type=float, default=0.6, show_default=True, help="Acerto geral mínimo; abaixo disso sai com 1")
-def task_eval(min_accuracy):
+@click.option("--profile", "profile_name", default=None, help="Nome do perfil (padrão: perfil ativo)")
+def task_eval(min_accuracy, profile_name):
     """Avalia as tarefas locais contra tests/golden_dataset_local_tasks.json."""
     from core.local_tasks import router
+    from core.local_tasks.providers import build_client
     try:
-        profile = router.load_profile()
-        client = router.OllamaClient(timeout=profile.timeout_seconds, keep_alive=profile.keep_alive)
-        info = router.status(profile)  # sondagem curta; o client da avaliação usa o timeout do perfil
+        profile = router.load_profile(profile_name)
+        client = build_client(profile)
+        info = router.status(profile)  # sondagem curta
     except Exception as exc:
         click.echo(f"Erro ao preparar a avaliação: {exc}")
         raise SystemExit(1)
@@ -384,13 +395,20 @@ def task_eval(min_accuracy):
             target_words=case.get("target_words", 120), source=case.get("source"),
             sender="task-eval", profile=profile, client=client,
         )
-        row = stats.setdefault(case["task"], {"cases": 0, "passed": 0, "escalate": 0})
+        row = stats.setdefault(case["task"], {"cases": 0, "passed": 0, "escalate": 0,
+                                                "ms_total": 0, "tiers": {}})
         row["cases"] += 1
         row["passed"] += int(_case_passed(case, envelope))
         row["escalate"] += int(envelope.get("status") == "escalate")
+        cost = envelope.get("cost") or {}
+        row["ms_total"] += cost.get("ms", 0)
+        tier = cost.get("tier", "unknown")
+        row["tiers"][tier] = row["tiers"].get(tier, 0) + 1
     for name, row in stats.items():
+        avg_ms = row["ms_total"] / row["cases"] if row["cases"] else 0
+        tiers_str = " ".join(f"{t}={c}" for t, c in sorted(row["tiers"].items()))
         click.echo(f"{name}: casos={row['cases']} acertos={row['passed']} escalate={row['escalate']} "
-                   f"acerto={row['passed'] / row['cases']:.0%}")
+                   f"acerto={row['passed'] / row['cases']:.0%} latência_média_ms={avg_ms:.0f} {tiers_str}")
     total = sum(r["cases"] for r in stats.values())
     accuracy = sum(r["passed"] for r in stats.values()) / total if total else 0.0
     click.echo(f"Acerto geral: {accuracy:.0%} (mínimo {min_accuracy:.0%})")
@@ -400,3 +418,4 @@ def task_eval(min_accuracy):
 
 if __name__ == "__main__":
     cli()
+
