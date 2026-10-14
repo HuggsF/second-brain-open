@@ -1,11 +1,16 @@
 """Cadeia de provedores: especificacao, parse e construcao de cliente."""
 from __future__ import annotations
 
+import dataclasses
 import os
+import time
 from dataclasses import dataclass, field
 
 from config import settings
-from core.local_tasks.ollama_client import LocalModelError
+from core.local_tasks.ollama_client import LocalModelError, OllamaClient
+from core.local_tasks.openai_compat_client import OpenAICompatClient
+
+_clock = time.perf_counter
 
 KINDS = ("openai_compatible", "ollama")
 STRUCTURED = ("json_schema", "json_object", "none")
@@ -82,42 +87,58 @@ def parse_providers(name: str, raw, defaults: dict) -> tuple[ProviderSpec, ...]:
     return tuple(specs)
 
 
+def is_configured(spec: ProviderSpec) -> bool:
+    """A chave exigida pelo provedor esta no ambiente e nao e vazia (ou nao e exigida)."""
+    if spec.kind == "openai_compatible" and spec.api_key_env:
+        return bool(os.environ.get(spec.api_key_env, ""))
+    return True
+
+
+def probe_client(spec: ProviderSpec, timeout: float):
+    """Cliente usado so para sondar a disponibilidade, com o timeout curto do status."""
+    if spec.kind == "ollama":
+        return OllamaClient(base_url=spec.base_url, timeout=timeout)
+    return OpenAICompatClient(base_url=spec.base_url, api_key_env=spec.api_key_env, timeout=timeout)
+
+
 class FallbackClient:
-    """Tenta provedores em ordem; guarda quem respondeu em ``last_provider``."""
+    """Tenta provedores em ordem; guarda quem respondeu em ``last_provider``.
+
+    ``last_provider`` volta a ``None`` no início de cada chamada: depois de uma chamada em que
+    todos falharam, não sobra o provedor de uma resposta anterior. O ``ms`` devolvido soma o
+    tempo das tentativas que falharam antes da resposta; o erro final leva esse tempo em ``ms``.
+    """
 
     def __init__(self, entries: list[tuple[ProviderSpec, object]]):
         self.entries = list(entries)
         self.last_provider: ProviderSpec | None = None
 
     def chat(self, model: str, system: str, user: str, schema: dict):
+        self.last_provider = None
         last_error: LocalModelError | None = None
-        tried = False
+        failed_ms = 0
         for spec, client in self.entries:
-            # Pula provedor openai_compatible cuja chave esta ausente ou vazia no ambiente
-            if spec.kind == "openai_compatible" and spec.api_key_env:
-                key = os.environ.get(spec.api_key_env, "")
-                if not key:
-                    continue
-            tried = True
+            if not is_configured(spec):
+                continue  # chave exigida e ausente ou vazia: pula sem chamar
+            started = _clock()
             try:
                 result = client.chat(spec.model, system, user, schema)
-                self.last_provider = spec
-                return result
             except LocalModelError as exc:
+                failed_ms += int((_clock() - started) * 1000)
                 last_error = exc
                 continue
-        if last_error is not None:
-            raise last_error
-        if not tried:
-            raise LocalModelError("local_unavailable", "no usable provider")
-        raise LocalModelError("local_unavailable", "no provider responded")
+            self.last_provider = spec
+            if failed_ms:
+                result = dataclasses.replace(result, ms=result.ms + failed_ms)
+            return result
+        if last_error is None:
+            last_error = LocalModelError("local_unavailable", "no usable provider")
+        last_error.ms = failed_ms
+        raise last_error
 
 
 def build_client(profile):
     """Constroi o cliente conforme o perfil. Sem providers: OllamaClient como antes."""
-    from core.local_tasks.ollama_client import OllamaClient
-    from core.local_tasks.openai_compat_client import OpenAICompatClient
-
     if not profile.providers:
         return OllamaClient(
             timeout=profile.timeout_seconds,

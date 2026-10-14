@@ -17,6 +17,7 @@ class LocalModelError(Exception):
         super().__init__(f"{reason}: {detail}" if detail else reason)
         self.reason = reason
         self.detail = detail
+        self.ms = 0  # tempo gasto até a falha, quando quem levanta o mede (cadeia de provedores)
 
 
 @dataclass
