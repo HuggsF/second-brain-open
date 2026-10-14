@@ -9,8 +9,8 @@ from unittest import mock
 
 from core import tracing
 
-from backend.orchestrator import Orchestrator
 from backend import ws_server
+from backend.orchestrator import Orchestrator
 from backend.ws_server import _run_mission
 
 
@@ -91,13 +91,18 @@ class FakeWebSocket(DummyWebSocket):
 
     def __init__(self, messages):
         super().__init__()
-        self._messages = [json.dumps(m) for m in messages]
+        # Itens callable rodam entre mensagens (inspeção do estado intermediário)
+        self._messages = [m if callable(m) else json.dumps(m) for m in messages]
 
     def __aiter__(self):
         return self._iterate()
 
     async def _iterate(self):
         for raw in self._messages:
+            await asyncio.sleep(0)
+            if callable(raw):
+                raw()
+                continue
             yield raw
         await asyncio.sleep(0)  # deixa a missão agendada começar
 
@@ -135,11 +140,52 @@ class TestWsServerNewTaskValidation(unittest.IsolatedAsyncioTestCase):
         return sent[0]
 
     async def test_new_task_with_invalid_mission_id_is_rejected(self):
-        for bad in (True, 0, 2 ** 53, "abc", -3, 1.5, [1]):
-            with self.subTest(mission_id=bad):
-                expected = bad if isinstance(bad, (int, str)) and bad is not True else None
-                reject = await self._assert_rejected(self._new_task(missionId=bad), expected)
+        cases = [
+            (True, None),
+            (0, 0),
+            (2 ** 53, None),
+            (-3, -3),
+            ("abc", "abc"),
+            ("x" * 64, "x" * 64),
+            ("x" * 100, None),
+            (10 ** 400, None),
+            (1.5, None),
+            ([1], None),
+        ]
+        for bad, expected_echo in cases:
+            with self.subTest(mission_id=bad if not isinstance(bad, int) or bad < 10 ** 20 else "huge"):
+                reject = await self._assert_rejected(
+                    self._new_task(missionId=bad), expected_echo
+                )
                 self.assertIn("mission.id", reject["reason"])
+
+    async def test_rejected_new_task_does_not_cancel_running_mission(self):
+        release = asyncio.Event()
+        runs = []
+
+        async def fake_run_mission(websocket, orchestrator, task_text, mission_id=None):
+            runs.append(task_text)
+            try:
+                await release.wait()
+            except asyncio.CancelledError:
+                runs.append(f"cancelled:{task_text}")
+                raise
+
+        snapshots = []
+        ws = FakeWebSocket([
+            self._new_task("primeira", missionId=1),
+            self._new_task("   ", missionId=2),
+            lambda: snapshots.append(list(runs)),
+            self._new_task("segunda", missionId=3),
+        ])
+        with mock.patch.object(ws_server, "_run_mission", fake_run_mission):
+            await ws_server.handler(ws)
+
+        self.assertEqual(snapshots, [["primeira"]])
+        self.assertEqual(runs, ["primeira", "cancelled:primeira", "segunda"])
+        self.assertEqual(
+            [m["type"] for m in ws.sent], ["ACK", "REJECT", "ACK"]
+        )
 
     async def test_new_task_over_4000_chars_is_rejected(self):
         reject = await self._assert_rejected(
