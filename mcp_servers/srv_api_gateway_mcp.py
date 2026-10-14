@@ -8,6 +8,9 @@ import paramiko
 from fastmcp import FastMCP
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from core.trace_middleware import TraceMiddleware
+from core.policy.commands import (
+    DOCKER_READ_ONLY, READ_ONLY_COMMANDS, SHELL_META, SYSTEMCTL_READ_ONLY, blocked_phrase, check_read_only,
+)
 from core.tracing import emit_child
 
 # Carregar variáveis de ambiente
@@ -134,39 +137,12 @@ def srv_api_view_logs(service_name: str, lines: int = 50, task_id: Optional[str]
     res = _exec_command(cmd)
     return res["stdout"] if res["success"] else f"Erro ao ler logs: {res['stderr']}"
 
-# Comandos de inspeção aceites por omissão (só leitura). Defesa em camadas, não uma fronteira de segurança:
-# a fronteira real é o utilizador SSH ter só permissões de leitura no servidor.
-_READ_ONLY_COMMANDS = {
-    "ls", "cat", "head", "tail", "ps", "df", "du", "free", "uptime", "hostname", "uname",
-    "whoami", "date", "journalctl", "grep", "wc", "docker", "systemctl", "find",
-}
-_DOCKER_READ_ONLY = {"ps", "logs", "inspect", "stats", "images", "top", "version", "info"}
-_SYSTEMCTL_READ_ONLY = {"status", "list-units", "is-active", "is-enabled", "show", "list-unit-files"}
-_SHELL_META = re.compile(r"[;&|<>`$(){}\\\n\r]")
-_SENSITIVE_FRAGMENTS = (".pem", ".env", "id_rsa", "id_ed25519", "/etc/shadow", "sudoers", ".ssh/", ".private.json")
-
-
-def _check_read_only(command: str) -> str:
-    """Devolve '' se o comando é de inspeção aceite, senão o motivo da recusa."""
-    if _SHELL_META.search(command):
-        return "contém encadeamento, redirecionamento ou substituição de shell"
-    parts = command.split()
-    if not parts:
-        return "comando vazio"
-    prog = parts[0]
-    if prog not in _READ_ONLY_COMMANDS:
-        return f"'{prog}' não está na lista de comandos de inspeção"
-    if prog == "docker" and (len(parts) < 2 or parts[1] not in _DOCKER_READ_ONLY):
-        return "só subcomandos docker de leitura (ps, logs, inspect, stats, images, top, version, info)"
-    if prog == "systemctl" and (len(parts) < 2 or parts[1] not in _SYSTEMCTL_READ_ONLY):
-        return "só subcomandos systemctl de leitura (status, list-units, is-active, ...)"
-    if prog == "find" and any(a in parts for a in ("-exec", "-execdir", "-delete", "-ok", "-fprint")):
-        return "find com ação de escrita/execução"
-    lowered = command.lower()
-    for frag in _SENSITIVE_FRAGMENTS:
-        if frag in lowered:
-            return f"referência a caminho sensível ('{frag}')"
-    return ""
+# Política de comandos: fonte única em core.policy.commands (aliases mantidos para os testes).
+_READ_ONLY_COMMANDS = READ_ONLY_COMMANDS
+_DOCKER_READ_ONLY = DOCKER_READ_ONLY
+_SYSTEMCTL_READ_ONLY = SYSTEMCTL_READ_ONLY
+_SHELL_META = SHELL_META
+_check_read_only = check_read_only
 
 
 @mcp.tool()
@@ -181,16 +157,15 @@ def srv_api_run_safe_command(command: str, task_id: Optional[str] = None) -> Dic
         command: Comando simples, ex: 'ls -la /var/www', 'docker ps', 'ps aux'
     task_id: optional label that groups this call with others of the same task
     """
-    forbidden = ["rm -rf", "mkfs", "dd if=", ":(){ :|:& };:", "shutdown", "reboot", "init 0"]
-    for danger in forbidden:
-        if danger in command:
-            emit_child("ssh.refused", "refused", {"command": command, "reason": f"blocked: {danger}"})
-            return {
-                "success": False,
-                "exit_code": -1,
-                "stdout": "",
-                "stderr": f"Comando bloqueado por política de segurança do MCP: contém '{danger}'"
-            }
+    danger = blocked_phrase(command)
+    if danger:
+        emit_child("ssh.refused", "refused", {"command": command, "reason": f"blocked: {danger}"})
+        return {
+            "success": False,
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": f"Comando bloqueado por política de segurança do MCP: contém '{danger}'"
+        }
 
     if not ALLOW_ARBITRARY:
         reason = _check_read_only(command)

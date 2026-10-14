@@ -12,7 +12,7 @@ import re
 from typing import AsyncGenerator
 
 from backend.tool_executor import execute as exec_tool
-from core.domain.nexus.entities import AUTO_TOOLS  # noqa: E402 — runtime import (backend layer)
+from core.policy import make_identity
 
 
 # Mapeamento dos agentes do Nexus
@@ -67,9 +67,7 @@ DEFAULT_STEPS = [
     {"agent": "researcher", "tool": "search_knowledge_base", "input": {"query": ""}, "bubble": "Pesquisando no vault..."},
 ]
 
-# AUTO_TOOLS é a fonte de verdade de tools sem aprovação: importada de core/domain/nexus/entities.py
-# run_safe_command (SSH prod) fica fora por política CLAUDE.md §2.
-# Importado acima: from core.domain.nexus.entities import AUTO_TOOLS
+# Quem decide se uma ferramenta roda sem aprovação é o corretor (core.broker / core.policy).
 
 # Limites do event-protocol.js do Nexus; acima disso o frontend descarta o evento.
 # São contados em unidades UTF-16 (String.length do JS), não em code points.
@@ -192,12 +190,19 @@ class Orchestrator:
                               bubble=step.get("bubble", "Trabalhando..."))
             await self._pause(0.5)
 
-            # Executar ferramenta real (só as de leitura local; o resto é recusado)
-            if step["tool"] in AUTO_TOOLS:
-                result = await exec_tool(step["tool"], **step["input"])
+            # Executar via corretor: ele decide, executa e grava o rastro com a identidade do agente
+            try:
+                identity = make_identity(step["agent"])
+            except ValueError as exc:
+                result = {"tool": step["tool"], "refused": True, "error": f"agente inválido: {exc}"}
             else:
-                result = {"tool": step["tool"], "refused": True,
-                          "error": f"{step['tool']} exige aprovação humana explícita; não executado pela missão."}
+                result = await exec_tool(step["tool"], identity=identity,
+                                         task_id=f"M{self.mission_id}", **step["input"])
+                if result.get("refused") and result.get("verdict") == "deny":
+                    result["error"] = f"{step['tool']} negado pela política: {result.get('reason', '')}"
+                elif result.get("refused"):
+                    result["error"] = (f"{step['tool']} exige aprovação humana explícita; "
+                                       "não executado pela missão.")
 
             # Formatar resultado para o balão
             summary = self._summarize_result(result)

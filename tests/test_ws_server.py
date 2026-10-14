@@ -1,7 +1,12 @@
 """Testes unitários e de integração para backend/ws_server e backend/orchestrator."""
 import asyncio
 import json
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
+
+from core import tracing
 
 from backend.orchestrator import Orchestrator
 from backend.ws_server import _run_mission
@@ -75,6 +80,61 @@ class TestWsServerMissionRunner(unittest.IsolatedAsyncioTestCase):
         self.assertGreater(len(ws.sent), 0)
         for msg in ws.sent:
             self.assertEqual(msg.get("missionId"), 7)
+
+
+class TestOrchestratorBroker(unittest.IsolatedAsyncioTestCase):
+    async def _run(self, task, steps=None):
+        orchestrator = Orchestrator(pace=0)
+        events = []
+        patches = [mock.patch.object(orchestrator, "_match_pattern", return_value=steps)] if steps else []
+        for p in patches:
+            p.start()
+        try:
+            async for event in orchestrator.run_mission(task, mission_id=42):
+                events.append(event)
+                if event.get("type") == "approval_request":
+                    orchestrator.approve()
+        finally:
+            for p in patches:
+                p.stop()
+        return events
+
+    async def test_orchestrator_calls_carry_agent_identity_and_mission_task_id(self):
+        async def fake(**kwargs):
+            return {"tool": "fake", "found": False, "available": []}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / "trace.jsonl"
+            fakes = {n: fake for n in ("search_knowledge_base", "get_system_architecture", "list_rules")}
+            with mock.patch.object(tracing, "TRACE_LOG", log),                     mock.patch.dict("core.broker.IMPLEMENTATIONS", fakes):
+                await self._run("diagnosticar erro no hub")
+            rows = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines() if line.strip()]
+        broker = [r for r in rows if r["server"] == "broker"]
+        self.assertEqual(len(broker), 3)
+        for r in broker:
+            self.assertTrue(r["caller"].startswith("agent:"), r)
+            self.assertEqual(r["task_label"], "M42")
+
+    async def test_orchestrator_refuses_run_safe_command_step_without_executing(self):
+        calls = []
+
+        async def fake_ssh(**kwargs):
+            calls.append(kwargs)
+            return {"tool": "run_safe_command", "success": True}
+
+        steps = [{"agent": "coder", "tool": "run_safe_command", "input": {"command": "docker ps"}, "bubble": "x"}]
+        with tempfile.TemporaryDirectory() as tmp,                 mock.patch.object(tracing, "TRACE_LOG", Path(tmp) / "trace.jsonl"),                 mock.patch.dict("core.broker.IMPLEMENTATIONS", {"run_safe_command": fake_ssh}):
+            events = await self._run("qualquer", steps)
+        self.assertEqual(calls, [])
+        messages = [e["payload"].get("message", "") for e in events if e["type"] == "message"]
+        self.assertTrue(any("exige aprovação" in m for m in messages), messages)
+
+    async def test_orchestrator_invalid_agent_role_is_refused_not_crashing(self):
+        steps = [{"agent": "intruso", "tool": "get_brain_status", "input": {}, "bubble": "x"}]
+        events = await self._run("qualquer", steps)
+        messages = [e["payload"].get("message", "") for e in events if e["type"] == "message"]
+        self.assertTrue(any("intruso" in m for m in messages), messages)
+        self.assertEqual(events[-1]["type"], "completion")
 
 
 if __name__ == "__main__":
