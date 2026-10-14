@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 from backend.store import Store
 from backend.server import handler_for
 from backend.workflow_api import MAX_BODY_BYTES, WorkflowApi
-from dashboard.serve import make_handler
+from dashboard.serve import PlaybooksApi, make_handler
 
 
 def make_root(tmp):
@@ -164,6 +164,11 @@ class DashboardServeTests(unittest.TestCase):
             self.assertIn("frame-ancestors 'none'", other_csp, other)
         self.assertEqual(self.call('/dashboard/jev/x.map')[0], 404)
         self.assertEqual(self.call('/dashboard/jev/../../backend/server.py')[0], 404)
+        # The JEV's default Regras tab also works on the dev server (health needs /v1, absent here).
+        self.server.RequestHandlerClass = make_handler(self.api, PlaybooksApi(dashboard.parent / 'vault'), directory=dashboard)
+        status, _, body = self.call('/api/rules')
+        self.assertEqual(status, 200)
+        self.assertIsInstance(json.loads(body)['rules'], list)
 
     def test_refuses_cross_origin_writes(self):
         for headers in ({'Origin': 'https://evil.example', 'Content-Type': 'application/json'}, {'Content-Type': 'application/json'}):

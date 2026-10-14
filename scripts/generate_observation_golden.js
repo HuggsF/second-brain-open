@@ -1,6 +1,8 @@
 // Gera tests/fixtures/observation_golden.json: entradas fixas e saidas do project() de
 // dashboard/hub-topology.js (fonte da verdade). O teste Python compara o porte contra este arquivo.
-// Uso: node scripts/generate_observation_golden.js
+// Uso: node scripts/generate_observation_golden.js          (regrava o golden)
+//      node scripts/generate_observation_golden.js --check  (nao grava; sai com 1 se divergir)
+// Regra: ao mudar dashboard/hub-topology.js, regere o golden e ajuste core/domain/observation/projection.py.
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
@@ -178,5 +180,17 @@ const cases = INPUTS.map(([name, environment, latest, now]) => ({
   expected: expectedOf(environment, latest, now)
 }));
 const out = path.join(__dirname, '..', 'tests', 'fixtures', 'observation_golden.json');
-fs.writeFileSync(out, JSON.stringify({cases}, null, 2) + '\n');
+const rendered = JSON.stringify({cases}, null, 2) + '\n';
+if (process.argv.includes('--check')) {
+  // Drift check: never writes. Fails when dashboard/hub-topology.js project() no longer matches the golden.
+  const committed = fs.existsSync(out) ? fs.readFileSync(out, 'utf8').replace(/\r\n/g, '\n') : null;
+  if (committed === rendered) {
+    console.log('observation golden is up to date (' + cases.length + ' cases)');
+    process.exit(0);
+  }
+  console.error('tests/fixtures/observation_golden.json is out of date with dashboard/hub-topology.js project().');
+  console.error('Run: node scripts/generate_observation_golden.js, review the diff and make core/domain/observation/projection.py match.');
+  process.exit(1);
+}
+fs.writeFileSync(out, rendered);
 console.log('wrote ' + cases.length + ' cases to ' + path.relative(process.cwd(), out));

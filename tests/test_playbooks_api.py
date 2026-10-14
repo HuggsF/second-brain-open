@@ -165,23 +165,44 @@ class TestPlaybooksApiRecordExecution(unittest.TestCase):
             self.assertEqual(payload['status'], 'recorded')
 
 
-class TestPlaybooksApiCacheInvalidation(unittest.TestCase):
-    """Cache de definitions deve ser invalidado no POST para refletir novos playbooks."""
+class TestPlaybooksApiFreshDefinitions(unittest.TestCase):
+    """Cada requisicao usa definicoes recarregadas: um playbook novo no vault vale sem reiniciar."""
 
-    def test_cache_is_none_after_record(self):
+    def test_playbook_added_after_start_validates_on_post(self):
+        import shutil
+        from core.evidence_store import EvidenceStore
         from dashboard.serve import PlaybooksApi
-        api = PlaybooksApi(settings.vault_dir)
-        # Prime the cache
-        api._load_defs()
-        self.assertIsNotNone(api._defs_cache)
-        # After a write attempt (even failed), cache should be invalidated
-        body = json.dumps({'playbook_id': 'PB-999', 'result': 'pass',
-                           'environment': 'hml', 'summary': 'x',
-                           'evidence_ref': 'x:1'}).encode()
-        api._record_execution(body)
-        # Cache is reloaded (not None) because _record_execution calls _load_defs() after invalidation
-        # The important invariant is that cache was refreshed (not stale pre-invalidation data)
-        self.assertIsNotNone(api._defs_cache)
+        with tempfile.TemporaryDirectory() as tmp:
+            vault = Path(tmp) / 'vault'
+            shutil.copytree(settings.vault_dir / 'playbooks', vault / 'playbooks')
+            shutil.copytree(settings.vault_dir / 'rules', vault / 'rules')
+            api = PlaybooksApi(vault)
+            api._store = lambda: EvidenceStore(path=Path(tmp) / 'evidence.db')
+            api._all_playbooks()  # prime anything that could be cached
+            source = (vault / 'playbooks' / 'PB-002-emissao-bloqueada-sem-nf-real.md').read_text(encoding='utf-8')
+            (vault / 'playbooks' / 'PB-777-novo.md').write_text(
+                source.replace('id: PB-002', 'id: PB-777').replace('# PB-002:', '# PB-777:'), encoding='utf-8')
+            self.assertIn('PB-777', {p['id'] for p in api._all_playbooks()})
+            body = json.dumps({'playbook_id': 'PB-777', 'result': 'pass', 'environment': 'hml',
+                               'summary': 'novo playbook', 'evidence_ref': 'vault/playbooks/PB-777-novo.md:1'}).encode()
+            status, payload = api._record_execution(body)
+            self.assertEqual(status, 201, payload)
+            self.assertEqual(api.handle('/api/playbooks/PB-777')[0], 200)
+
+
+class TestPlaybooksApiExactIds(unittest.TestCase):
+    def setUp(self):
+        from dashboard.serve import PlaybooksApi
+        self.api = PlaybooksApi(settings.vault_dir)
+
+    def test_id_prefixes_are_404(self):
+        for pb_id in ('P', 'PB-0', 'PB-00'):
+            with self.subTest(pb_id=pb_id):
+                self.assertEqual(self.api.handle('/api/playbooks/' + pb_id)[0], 404)
+                self.assertEqual(self.api.handle('/api/playbooks/' + pb_id + '/render', 'POST', b'{}')[0], 404)
+
+    def test_exact_match_is_case_insensitive(self):
+        self.assertEqual(self.api.handle('/api/playbooks/pb-001')[0], 200)
 
 
 class TestPlaybooksApiLiquidRendering(unittest.TestCase):

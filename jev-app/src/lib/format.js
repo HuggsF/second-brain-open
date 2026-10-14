@@ -44,7 +44,7 @@ export function relativeTime(ts, now = Date.now()) {
   if (days < 30) return `há ${days} d`;
   const months = Math.floor(days / 30);
   if (months < 12) return `há ${months} ${months === 1 ? 'mês' : 'meses'}`;
-  const years = Math.floor(days / 365);
+  const years = Math.max(1, Math.floor(days / 365)); // 360-364 dias: o mês já arredondaria para 12
   return `há ${years} ${years === 1 ? 'ano' : 'anos'}`;
 }
 

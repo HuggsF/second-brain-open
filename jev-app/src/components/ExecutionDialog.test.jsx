@@ -149,6 +149,16 @@ describe('ExecutionDialog', () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it('clique no fundo não fecha nem descarta o que foi digitado', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await openIt(user);
+    await user.type(screen.getByLabelText(/resumo/i), 'texto importante');
+    await user.click(dlg());
+    expect(dlg().open).toBe(true);
+    expect(screen.getByLabelText(/resumo/i).value).toBe('texto importante');
+  });
+
   it('Cancelar fecha e devolve o foco', async () => {
     const user = userEvent.setup();
     render(<Harness />);

@@ -22,13 +22,10 @@ class PlaybooksApi:
     def __init__(self, vault_dir: Path):
         self.vault_dir = vault_dir
         self.root = vault_dir.parent  # project root (parent of vault/)
-        self._defs_cache: object = None  # lazily loaded definitions
 
     def _load_defs(self):
-        """Load or return cached playbook definitions from core.evidence."""
-        if self._defs_cache is None:
-            self._defs_cache = evidence.load_definitions(self.vault_dir)
-        return self._defs_cache
+        """Load playbook definitions from core.evidence, fresh on every call (cheap; no stale vault view)."""
+        return evidence.load_definitions(self.vault_dir)
 
     def _store(self) -> EvidenceStore:
         """Open the EvidenceStore (creates DB if needed)."""
@@ -116,7 +113,7 @@ class PlaybooksApi:
         for field in ('trace_id', 'task_label', 'source', 'recorded_by'):
             if payload.get(field) is not None and not isinstance(payload[field], str):
                 return 400, {'error': 'VALIDATION_FAILED', 'detail': f'{field} must be text'}
-        # Load definitions (fresh load to pick up any new playbooks added since startup)
+        # Definitions are loaded per request, so playbooks added since startup validate
         defs = self._load_defs()
         # Delegate validation to domain layer
         clean, error = evidence.validate_execution(
@@ -152,7 +149,6 @@ class PlaybooksApi:
         if row_id is None:
             return 409, {'error': 'DUPLICATE_IMPORT_KEY'}
         # Invalidate definitions cache so next GET picks up any schema changes
-        self._defs_cache = None
         from core import tracing
         return 201, {'id': row_id, 'ts': tracing.now_iso(), 'status': 'recorded'}
 
@@ -192,12 +188,6 @@ class PlaybooksApi:
             defs = self._load_defs()
             pb = defs.playbooks.get(pb_id)
             if pb is None:
-                # Fallback: try prefix match
-                for k, v in defs.playbooks.items():
-                    if k.upper().startswith(pb_id):
-                        pb = v
-                        break
-            if pb is None:
                 return 404, {'error': 'NOT_FOUND', 'id': pb_id}
             # Read raw content for markdown rendering
             pb_path = self.vault_dir / pb.path
@@ -228,11 +218,6 @@ class PlaybooksApi:
             pb_id = unquote(m_render.group(1)).upper()
             defs = self._load_defs()
             pb = defs.playbooks.get(pb_id)
-            if pb is None:
-                for k, v in defs.playbooks.items():
-                    if k.upper().startswith(pb_id):
-                        pb = v
-                        break
             if pb is None:
                 return 404, {'error': 'NOT_FOUND', 'id': pb_id}
             try:

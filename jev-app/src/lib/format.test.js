@@ -14,6 +14,15 @@ describe('relativeTime', () => {
     expect(relativeTime('2026-07-14T12:00:00Z', NOW)).toBe('há 3 meses');
     expect(relativeTime('2024-10-14T12:00:00Z', NOW)).toBe('há 2 anos');
   });
+  it('nunca imprime 0 anos e vira ano só em 365 dias', () => {
+    const ago = (days) => new Date(NOW - days * 86400000).toISOString();
+    expect(relativeTime(ago(359), NOW)).toBe('há 11 meses');
+    expect(relativeTime(ago(360), NOW)).toBe('há 1 ano');
+    expect(relativeTime(ago(364), NOW)).toBe('há 1 ano');
+    expect(relativeTime(ago(365), NOW)).toBe('há 1 ano');
+    expect(relativeTime(ago(400), NOW)).toBe('há 1 ano');
+    expect(relativeTime(ago(730), NOW)).toBe('há 2 anos');
+  });
   it('futuro e inválido', () => {
     expect(relativeTime('2026-10-14T13:00:00Z', NOW)).toBe('no futuro');
     expect(relativeTime('lixo', NOW)).toBe('data inválida');

@@ -270,9 +270,6 @@ export default function ExecutionDialog({ open, onClose, onSaved, playbooks = []
           onClose();
         }
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
       className="m-auto max-h-[calc(100dvh-2rem)] w-[min(36rem,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-border bg-panel p-0 text-text backdrop:bg-black/60"
     >
       {open ? (

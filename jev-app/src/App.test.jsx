@@ -28,6 +28,20 @@ describe('App', () => {
     expect(screen.getByText('Vermelha')).toBeTruthy();
   });
 
+  it('aria-controls só aponta para o painel que existe (aba ativa)', async () => {
+    mockFetch(baseRoutes());
+    render(<App />);
+    await screen.findByText('Regra verde');
+    const tabs = screen.getAllByRole('tab');
+    const active = tabs.filter((t) => t.getAttribute('aria-selected') === 'true');
+    expect(active).toHaveLength(1);
+    for (const t of tabs) {
+      const target = t.getAttribute('aria-controls');
+      if (t === active[0]) expect(document.getElementById(target)).not.toBeNull();
+      else expect(target).toBeNull();
+    }
+  });
+
   it('erro de rede em getRules mostra estado de erro e Tentar novamente recarrega', async () => {
     const user = userEvent.setup();
     let fail = true;

@@ -95,7 +95,7 @@ export default function App() {
                 type="button"
                 role="tab"
                 aria-selected={tab === t.id}
-                aria-controls={`panel-${t.id}`}
+                aria-controls={tab === t.id ? `panel-${t.id}` : undefined}
                 tabIndex={tab === t.id ? 0 : -1}
                 onClick={() => setTab(t.id)}
                 className={`-mb-px border-b-2 px-3 py-1.5 text-sm ${

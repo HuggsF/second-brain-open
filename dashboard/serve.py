@@ -58,7 +58,7 @@ def make_handler(api, playbooks_api=None, directory=None):
             path = unquote(urlparse(self.path).path)
             if path.startswith('/api/'):
                 # Try playbooks API first (handles executions routes too)
-                if playbooks_api and path.startswith('/api/playbooks'):
+                if playbooks_api and (path.startswith('/api/playbooks') or path == '/api/rules'):
                     result = playbooks_api.handle(path, method='GET', body=b'')
                     if result is not None:
                         status, payload = result

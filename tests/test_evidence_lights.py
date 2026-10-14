@@ -273,5 +273,44 @@ class TestRealVaultSeed(LightBase):
         self.assertEqual(rows["RULE-002"]["light"], "yellow")
 
 
+class TestRealVaultAcceptance(LightBase):
+    """Phase 6 acceptance against the real vault definitions, with a fixed clock."""
+    ACCEPT_NOW = datetime(2026, 10, 9, 12, 0, 0, tzinfo=timezone.utc)
+
+    def setUp(self):
+        super().setUp()
+        self.defs = evidence.load_definitions()
+        self.assertEqual(self.defs.errors, [])
+        evidence.import_seed(self.defs, self.store, Path(__file__).resolve().parent.parent / "evidence" / "seed-executions.json")
+
+    def run_pb(self, pid, result, environment):
+        ts = (self.ACCEPT_NOW - timedelta(minutes=5)).isoformat()
+        self.record(pid, result, environment, ts=ts)
+
+    def lights(self):
+        rows = {r["id"]: r for r in evidence.list_rules(self.defs, self.store, now=self.ACCEPT_NOW)}
+        return rows["RULE-001"]["light"], rows["RULE-002"]["light"]
+
+    def test_seed_only_rule_001_is_yellow(self):
+        self.assertEqual(self.lights(), ("yellow", "green"))
+
+    def test_pb_002_pass_in_hml_makes_rule_001_green(self):
+        self.run_pb("PB-002", "pass", "hml")
+        self.assertEqual(self.lights(), ("green", "green"))
+
+    def test_pb_002_fail_in_hml_makes_rule_001_red(self):
+        self.run_pb("PB-002", "fail", "hml")
+        self.assertEqual(self.lights()[0], "red")
+
+    def test_pb_001_fail_in_local_is_red_even_with_pb_002_pass(self):
+        self.run_pb("PB-002", "pass", "hml")
+        self.run_pb("PB-001", "fail", "local")
+        self.assertEqual(self.lights(), ("red", "red"))
+
+    def test_pb_002_pass_only_in_local_stays_yellow(self):
+        self.run_pb("PB-002", "pass", "local")
+        self.assertEqual(self.lights()[0], "yellow")
+
+
 if __name__ == "__main__":
     unittest.main()
