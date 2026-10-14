@@ -1,12 +1,16 @@
 """Política única de ferramentas: identidade, comandos de inspeção e decide()."""
+import importlib
 import unittest
+from unittest import mock
 
-from core.domain.nexus.entities import ALLOWED_TOOLS
+from core.domain.nexus.entities import ALLOWED_TOOLS, TOOL_REGISTRY
 from core.policy.classes import TOOL_CLASSES, ToolClass
 from core.policy.commands import blocked_phrase, check_read_only
 from core.policy.decide import decide
 from core.policy.identity import make_identity, parse_identity
 from core.policy.verdict import Decision, Reason
+
+decide_module = importlib.import_module("core.policy.decide")
 
 
 class TestIdentity(unittest.TestCase):
@@ -14,7 +18,7 @@ class TestIdentity(unittest.TestCase):
         self.assertEqual(make_identity("coder", "DEVOPS"), "agent:coder/DEVOPS")
         self.assertEqual(parse_identity("agent:coder/DEVOPS"), ("coder", "DEVOPS"))
         self.assertEqual(parse_identity("agent:coder"), ("coder", None))
-        for bad in ("agent:hacker", "coder", None, "agent:coder/ROOT", 42):
+        for bad in ("agent:hacker", "coder", None, "agent:coder/ROOT", "agent:coder/", 42):
             self.assertIsNone(parse_identity(bad), bad)
 
     def test_make_identity_rejects_invalid(self):
@@ -51,6 +55,12 @@ class TestDecide(unittest.TestCase):
              Decision.DENY, Reason.command_refused),
             ("agent:coder", "run_safe_command", {"command": "sqlite3 a.db"},
              Decision.DENY, Reason.command_refused),
+            ("agent:coder", "run_safe_command", {"command": "ls\nid"},
+             Decision.DENY, Reason.command_refused),
+            ("agent:coder", "run_safe_command", {"command": 'sqlite3 x.db "delete from t"'},
+             Decision.DENY, Reason.command_refused),
+            ("agent:coder", "run_safe_command", {"command": "ls\x00"},
+             Decision.DENY, Reason.command_refused),
             ("agent:coder", "run_safe_command", {}, Decision.DENY, Reason.malformed_args),
             ("agent:coder", "run_safe_command", "docker ps", Decision.DENY, Reason.malformed_args),
             ("agent:coder", "shell", {}, Decision.DENY, Reason.unknown_tool),
@@ -67,6 +77,22 @@ class TestDecide(unittest.TestCase):
         verdict = decide(object(), object(), object())
         self.assertEqual(verdict.decision, Decision.DENY)
         self.assertIn(verdict.reason, (Reason.policy_error, Reason.bad_identity))
+
+    def test_internal_failure_becomes_policy_error(self):
+        with mock.patch.object(decide_module, "_decide", side_effect=RuntimeError("boom")):
+            verdict = decide("agent:coder", "get_adr", {})
+        self.assertEqual((verdict.decision, verdict.reason), (Decision.DENY, Reason.policy_error))
+
+    def test_class_decides_for_permitted_role(self):
+        registry = {**TOOL_REGISTRY, "coder": [*TOOL_REGISTRY["coder"], "fake_write", "fake_mutate"]}
+        classes = {"fake_write": ToolClass.WRITE_LOCAL, "fake_mutate": ToolClass.PROD_MUTATING}
+        with mock.patch.dict(TOOL_CLASSES, classes):
+            with mock.patch.dict(TOOL_REGISTRY, registry):
+                write = decide("agent:coder", "fake_write", {})
+                mutate = decide("agent:coder", "fake_mutate", {})
+        self.assertEqual((write.decision, write.reason), (Decision.APPROVE, Reason.write_local_traced))
+        self.assertEqual((mutate.decision, mutate.reason),
+                         (Decision.DENY, Reason.prod_mutating_never_auto))
 
     def test_tool_classes_cover_every_domain_tool(self):
         self.assertLessEqual(ALLOWED_TOOLS, TOOL_CLASSES.keys())
