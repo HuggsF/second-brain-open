@@ -60,7 +60,7 @@ class TestStep(unittest.TestCase):
         self.assertFalse(s.requires_approval)
 
     def test_mutation_tool_requires_approval(self):
-        s = Step(agent="coder", tool="run_tests")
+        s = Step(agent="coder", tool="run_safe_command")
         self.assertTrue(s.requires_approval)
 
     def test_invalid_agent_raises(self):

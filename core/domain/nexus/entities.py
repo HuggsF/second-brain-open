@@ -99,18 +99,16 @@ TOOL_REGISTRY: Dict[str, List[str]] = {
         "search_knowledge_base",
         "read_vault_file",
         "get_system_architecture",
-        "run_tests",
+        "run_safe_command",
     ],
     "writer": [
         "search_knowledge_base",
         "read_vault_file",
-        "write_doc",
         "get_adr",
     ],
     "reviewer": [
         "search_knowledge_base",
         "get_adr",
-        "validate_plan",
         "get_rule_evidence",
     ],
 }
