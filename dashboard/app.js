@@ -4,7 +4,7 @@
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
-const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],wireframes_hub:['📐','Wireframes Hub'],nexus:['🏢','Nexus Office'],jev:['📊','JEV']};
+const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],nexus:['🏢','Nexus Office'],jev:['📊','JEV']};
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
 const categories = {all:'Todas as fontes',architecture:'Arquitetura · System Design',playbooks:'Playbooks',systems:'Sistemas',adrs:'Decisões · ADRs',product:'Produto',domain:'Domínio',daily:'Memória diária',general:'Geral'};
 let storageOK = true, noticeTimer;
@@ -249,12 +249,6 @@ function render(){
     ]));
     const frame=el('iframe',{src:'http://127.0.0.1:5173',style:'width:100%;height:calc(100vh - 180px);border:none;border-radius:8px;background:#0a0a0a;'});
     frame.onerror=()=>{frame.replaceWith(empty('Nexus não está rodando','Inicie o servidor: .venv\\Scripts\\python.exe -m backend.ws_server e cd nexus && npm run dev',button('Tentar novamente',()=>render())));};
-  if(route.page==='wireframes_hub'){
-    main.append(head('WIREFRAMES DO HUB LOGÍSTICO','Modelos Agnósticos para o Front-end do Hub','Modelos operacionais puros (HTML/CSS) desacoplados de frameworks, prontos para uso em produção no SRV-API.',[
-      button('Abrir Kit em Nova Aba ↗',()=>window.open('/hub-wireframes-kit.html','_blank'),'primary'),
-      button('Ver Especificação (.md)',()=>openDoc('architecture/wireframes-agnosticos-hub-logistico.md'),'subtle')
-    ]));
-    const frame=el('iframe',{src:'/hub-wireframes-kit.html',style:'width:100%;height:calc(100vh - 200px);border:1px solid var(--border);border-radius:8px;background:var(--panel);'});
     main.append(frame);
   }
   if(route.page==='jev'){if(window.BrainJEV)window.BrainJEV.render(main,api);else main.append(empty('Módulo JEV indisponível','Recarregue a página e verifique jev-ui.js.',button('Tentar novamente',()=>location.reload())));}
