@@ -1,0 +1,116 @@
+"""Corretor único: decide (core.policy), executa (core.tools) e grava um rastro com a identidade do agente."""
+import sys
+import time
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+from core import tracing
+from core.policy import Decision, Reason, Verdict, decide
+from core.tools import IMPLEMENTATIONS
+
+_SERVER = "broker"
+
+
+def _name(value: object) -> str:
+    return value if isinstance(value, str) else type(value).__name__
+
+
+def _write(record: Dict[str, Any], path: Optional[Path]) -> None:
+    try:
+        tracing.write_record(record, path or tracing.TRACE_LOG)
+    except Exception as exc:
+        print(f"trace: could not write broker record ({type(exc).__name__})", file=sys.stderr)
+
+
+def record_event(identity: str, event: str, status: str, args: Optional[dict] = None,
+                 task_id: Optional[str] = None, trace_path: Optional[Path] = None) -> None:
+    """Grava um evento solto no rastro (portões). Nunca lança."""
+    try:
+        trace_id, label = tracing.derive_trace_id(task_id)
+        _write({
+            "schema_version": 1,
+            "ts": tracing.now_iso(),
+            "trace_id": trace_id,
+            "span_id": tracing.new_span_id(),
+            "parent_span_id": None,
+            "task_label": label,
+            "server": _SERVER,
+            "tool": event if isinstance(event, str) else "unknown",
+            "event": event if isinstance(event, str) else "unknown",
+            "status": status if isinstance(status, str) else "unknown",
+            "caller": identity if isinstance(identity, str) else "unknown",
+            "args": tracing.redact_args(args if isinstance(args, dict) else None),
+            "error_type": None,
+        }, trace_path)
+    except Exception as exc:
+        print(f"trace: could not record event ({type(exc).__name__})", file=sys.stderr)
+
+
+async def _execute(tool: str, args: dict) -> Dict[str, Any]:
+    try:
+        result = await IMPLEMENTATIONS[tool](**args)
+    except Exception as exc:  # só o nome da classe: a mensagem pode conter segredos
+        return {"error": type(exc).__name__}
+    return result if isinstance(result, dict) else {"result": result}
+
+
+async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = None, *,
+               approved: bool = False, trace_path: Optional[Path] = None) -> dict:
+    started_at = tracing.now_iso()
+    started = time.perf_counter()
+    tool_name = _name(tool)
+    status = "error"
+    error_type: Optional[str] = "BrokerError"
+    result: Dict[str, Any] = {"tool": tool_name, "verdict": Decision.DENY.value,
+                              "reason": Reason.policy_error.value, "refused": True,
+                              "error": Reason.policy_error.value}
+    state = None
+    token = None
+    try:
+        trace_id, label = tracing.derive_trace_id(task_id)
+        state = tracing.CallState(
+            trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,
+            path=trace_path or tracing.TRACE_LOG,
+            caller=identity if isinstance(identity, str) else "unknown",
+            task_label=label, started_at=started_at,
+        )
+        verdict: Verdict = (decide(identity, tool, args) if isinstance(args, dict)
+                            else Verdict(Decision.DENY, Reason.malformed_args, "args deve ser dict"))
+        head = {"tool": tool_name, "verdict": verdict.decision.value, "reason": verdict.reason.value}
+        if verdict.decision is Decision.DENY:
+            result = {**head, "refused": True, "error": verdict.reason.value}
+            status, error_type = "refused", None
+        elif verdict.decision is Decision.ESCALATE and not approved:
+            result = {**head, "approval_required": True, "refused": True, "error": "exige aprovação humana"}
+            status, error_type = "escalated", None
+        else:
+            token = tracing.current_call.set(state)
+            outcome = await _execute(tool, args)
+            result = {**head, **outcome}
+            failed = "error" in outcome
+            status = "error" if failed else "ok"
+            error_type = outcome["error"] if failed else None
+    except Exception as exc:  # o corretor nunca levanta
+        result = {**result, "tool": tool_name, "error": type(exc).__name__}
+        status, error_type = "error", type(exc).__name__
+    finally:
+        if token is not None:
+            tracing.current_call.reset(token)
+        if state is not None:
+            _write({
+                "schema_version": 1,
+                "ts": state.started_at,
+                "trace_id": state.trace_id,
+                "span_id": state.span_id,
+                "parent_span_id": None,
+                "task_label": state.task_label,
+                "server": _SERVER,
+                "tool": tool_name,
+                "event": "call",
+                "status": status,
+                "duration_ms": int((time.perf_counter() - started) * 1000),
+                "caller": state.caller,
+                "args": tracing.redact_args(args if isinstance(args, dict) else None),
+                "error_type": error_type,
+            }, trace_path)
+    return result
