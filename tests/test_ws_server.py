@@ -10,6 +10,7 @@ from unittest import mock
 from core import tracing
 
 from backend.orchestrator import Orchestrator
+from backend import ws_server
 from backend.ws_server import _run_mission
 
 
@@ -81,6 +82,90 @@ class TestWsServerMissionRunner(unittest.IsolatedAsyncioTestCase):
         self.assertGreater(len(ws.sent), 0)
         for msg in ws.sent:
             self.assertEqual(msg.get("missionId"), 7)
+
+
+class FakeWebSocket(DummyWebSocket):
+    """Websocket de teste iterável: entrega as mensagens e encerra."""
+
+    remote_address = ("127.0.0.1", 0)
+
+    def __init__(self, messages):
+        super().__init__()
+        self._messages = [json.dumps(m) for m in messages]
+
+    def __aiter__(self):
+        return self._iterate()
+
+    async def _iterate(self):
+        for raw in self._messages:
+            yield raw
+        await asyncio.sleep(0)  # deixa a missão agendada começar
+
+
+class TestWsServerNewTaskValidation(unittest.IsolatedAsyncioTestCase):
+    async def _drive(self, message):
+        ws = FakeWebSocket([message])
+        started = []
+
+        async def fake_run_mission(websocket, orchestrator, task_text, mission_id=None):
+            started.append((task_text, mission_id))
+
+        with mock.patch.object(ws_server, "_run_mission", fake_run_mission):
+            await ws_server.handler(ws)
+        self.assertNotIn(ws, ws_server.CONNECTIONS)
+        return ws.sent, started
+
+    @staticmethod
+    def _new_task(task="status do brain", **extra):
+        return {
+            "commandId": "c1",
+            "action": {"type": "NEW_TASK", "payload": task},
+            **extra,
+        }
+
+    async def _assert_rejected(self, message, expected_mission_id):
+        sent, started = await self._drive(message)
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(sent[0]["type"], "REJECT")
+        self.assertEqual(sent[0]["commandId"], "c1")
+        self.assertEqual(sent[0]["missionId"], expected_mission_id)
+        self.assertEqual(sent[0]["revision"], 1)
+        self.assertTrue(sent[0]["reason"])
+        self.assertEqual(started, [])
+        return sent[0]
+
+    async def test_new_task_with_invalid_mission_id_is_rejected(self):
+        for bad in (True, 0, 2 ** 53, "abc", -3, 1.5, [1]):
+            with self.subTest(mission_id=bad):
+                expected = bad if isinstance(bad, (int, str)) and bad is not True else None
+                reject = await self._assert_rejected(self._new_task(missionId=bad), expected)
+                self.assertIn("mission.id", reject["reason"])
+
+    async def test_new_task_over_4000_chars_is_rejected(self):
+        reject = await self._assert_rejected(
+            self._new_task("x" * 4001, missionId=1), 1
+        )
+        self.assertIn("4000", reject["reason"])
+
+    async def test_new_task_empty_or_non_string_is_rejected(self):
+        for bad in ("", "   ", None, 5):
+            with self.subTest(task=bad):
+                reject = await self._assert_rejected(self._new_task(bad, missionId=1), 1)
+                self.assertEqual(reject["reason"], "mission.task must be a non-empty string")
+
+    async def test_new_task_valid_still_acks(self):
+        sent, started = await self._drive(self._new_task(missionId=7))
+        self.assertEqual(
+            sent,
+            [{"type": "ACK", "commandId": "c1", "missionId": 7, "revision": 1}],
+        )
+        self.assertEqual(started, [("status do brain", 7)])
+
+    async def test_new_task_without_mission_id_defaults_to_one(self):
+        sent, started = await self._drive(self._new_task())
+        self.assertEqual(sent[0]["type"], "ACK")
+        self.assertEqual(sent[0]["missionId"], 1)
+        self.assertEqual(started, [("status do brain", 1)])
 
 
 class TestOrchestratorBroker(unittest.IsolatedAsyncioTestCase):

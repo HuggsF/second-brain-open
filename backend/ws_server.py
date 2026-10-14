@@ -26,6 +26,7 @@ except ImportError:
     sys.exit(1)
 
 from backend.orchestrator import Orchestrator
+from core.domain.workflow.entities import validate_mission_envelope
 
 logging.basicConfig(
     level=logging.INFO,
@@ -71,13 +72,22 @@ async def handler(websocket):
 
                 mission_id = message.get("missionId", 1)
                 task_text = action.get("payload", "")
-                if not task_text or not isinstance(task_text, str):
+                error = validate_mission_envelope(
+                    {"mission": {"id": mission_id, "task": task_text}}
+                )
+                if error:
+                    # Só ecoa missionId se for escalar JSON-seguro (bool é int em Python)
+                    echo_id = (
+                        mission_id
+                        if isinstance(mission_id, (int, str)) and not isinstance(mission_id, bool)
+                        else None
+                    )
                     await websocket.send(json.dumps({
                         "type": "REJECT",
                         "commandId": message.get("commandId", ""),
-                        "missionId": mission_id,
+                        "missionId": echo_id,
                         "revision": 1,
-                        "reason": "Empty task",
+                        "reason": error,
                     }))
                     continue
 
