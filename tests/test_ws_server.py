@@ -103,6 +103,11 @@ class TestOrchestratorBroker(unittest.IsolatedAsyncioTestCase):
                                    "get_brain_status")}
         fakes["run_safe_command"] = fake_ssh
         self.stack.enter_context(mock.patch.dict("core.broker.IMPLEMENTATIONS", fakes))
+        self.stack.enter_context(mock.patch("backend.orchestrator.check_mission", side_effect=self._pass_guard))
+
+    @staticmethod
+    def _pass_guard(steps, mission_id, pipeline=None):
+        return {"action": "proceed", "semaphore": "GREEN", "gate_results": []}
 
     def rows(self):
         if not self.log.exists():
@@ -178,6 +183,82 @@ class TestOrchestratorBroker(unittest.IsolatedAsyncioTestCase):
                   "input": {"identity": "agent:manager", "task_id": "x", "tool_name": "y"}, "bubble": "x"}]
         events = await self._run("qualquer", steps)
         self.assertEqual(events[-1]["type"], "completion")
+
+
+class TestOrchestratorGuard(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.stack = contextlib.ExitStack()
+        self.addCleanup(self.stack.close)
+        tmp = self.stack.enter_context(tempfile.TemporaryDirectory())
+        self.log = Path(tmp) / "trace.jsonl"
+        self.stack.enter_context(mock.patch.object(tracing, "TRACE_LOG", self.log))
+
+        async def fake(**kwargs):
+            return {"tool": "fake", "found": False, "available": []}
+
+        self.stack.enter_context(mock.patch.dict("core.broker.IMPLEMENTATIONS", {"get_brain_status": fake}))
+
+    def rows(self):
+        if not self.log.exists():
+            return []
+        return [json.loads(line) for line in self.log.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+    async def _drive(self, steps, check=None):
+        orchestrator = Orchestrator(pace=0)
+        events = []
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(mock.patch.object(orchestrator, "_match_pattern", return_value=steps))
+            if check is not None:
+                stack.enter_context(mock.patch("backend.orchestrator.check_mission", return_value=check))
+            async for event in orchestrator.run_mission("qualquer", mission_id=5):
+                events.append(event)
+                if event.get("type") == "approval_request":
+                    orchestrator.approve()
+        return events
+
+    async def test_mission_with_unknown_tool_is_blocked_before_any_step(self):
+        steps = [{"agent": "coder", "tool": "drop_table", "input": {}, "bubble": "x"}]
+        events = await self._drive(steps)
+        self.assertFalse([r for r in self.rows() if r["event"] == "call"])
+        self.assertTrue([r for r in self.rows() if r["event"] == "gate.pipeline"])
+        self.assertEqual(events[-1]["type"], "message")
+        self.assertEqual(events[-1]["agentId"], "manager")
+        self.assertIn("bloqueada", events[-1]["payload"]["message"])
+        self.assertNotIn("completion", [e["type"] for e in events])
+
+    async def test_yellow_mission_waits_for_approval(self):
+        steps = [{"agent": "coder", "tool": "get_brain_status", "input": {}, "bubble": "x"}]
+        check = {"action": "approval", "semaphore": "YELLOW", "gate_results": []}
+        orchestrator = Orchestrator(pace=0)
+        events = []
+
+        async def consume():
+            with mock.patch.object(orchestrator, "_match_pattern", return_value=steps),                     mock.patch("backend.orchestrator.check_mission", return_value=check):
+                async for event in orchestrator.run_mission("qualquer", mission_id=6):
+                    events.append(event)
+                    if event["type"] == "approval_request" and event["agentId"] == "reviewer":
+                        orchestrator.approve()
+
+        task = asyncio.ensure_future(consume())
+        for _ in range(50):
+            await asyncio.sleep(0)
+        self.assertFalse(task.done())
+        self.assertTrue(orchestrator.awaiting_approval)
+        self.assertEqual(events[-1]["type"], "approval_request")
+        self.assertEqual(events[-1]["agentId"], "manager")
+        self.assertFalse([r for r in self.rows() if r["event"] == "call"])
+        orchestrator.approve()
+        await asyncio.wait_for(task, timeout=5)
+        self.assertEqual(events[-1]["type"], "completion")
+
+    async def test_yellow_mission_timeout_ends_with_message(self):
+        steps = [{"agent": "coder", "tool": "get_brain_status", "input": {}, "bubble": "x"}]
+        check = {"action": "approval", "semaphore": "YELLOW", "gate_results": []}
+        with mock.patch("backend.orchestrator.asyncio.wait_for", side_effect=asyncio.TimeoutError) as wf:
+            events = await self._drive(steps, check)
+        wf.assert_called_once()
+        self.assertEqual(events[-1]["type"], "message")
+        self.assertFalse([r for r in self.rows() if r["event"] == "call"])
 
 
 if __name__ == "__main__":

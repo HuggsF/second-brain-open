@@ -12,6 +12,7 @@ import re
 from typing import AsyncGenerator
 
 from backend.tool_executor import run_tool
+from core.mission_guard import check_mission
 from core.policy import Decision, make_identity
 
 
@@ -147,6 +148,16 @@ class Orchestrator:
         """Chamado quando o usuário aprova a entrega."""
         self._approval_event.set()
 
+    async def _wait_approval(self) -> bool:
+        """Espera approve() por até 300 s; False no timeout. Sempre baixa awaiting_approval."""
+        try:
+            await asyncio.wait_for(self._approval_event.wait(), timeout=300)
+            return True
+        except asyncio.TimeoutError:
+            return False
+        finally:
+            self.awaiting_approval = False
+
     async def run_mission(self, task: str, mission_id: int = None) -> AsyncGenerator[dict, None]:
         """Executa uma missão completa, emitindo eventos para o frontend.
 
@@ -164,6 +175,22 @@ class Orchestrator:
 
         # ─── Decompor missão ───
         steps = self._match_pattern(task)
+
+        # ─── Portões: RED bloqueia antes de qualquer passo; YELLOW pede aprovação ───
+        guard = check_mission(steps, self.mission_id)
+        if guard["action"] == "block":
+            yield self._event("manager", "message",
+                              message=f"Missão bloqueada pelos portões: {guard['semaphore']}")
+            return
+        if guard["action"] == "approval":
+            self.awaiting_approval = True
+            yield self._event("manager", "approval_request",
+                              bubble="Os portões pedem aprovação para esta missão. Aprovar?")
+            if not await self._wait_approval():
+                yield self._event("manager", "message", message="Timeout de aprovação atingido.")
+                return
+            self._approval_event.clear()
+
         agents_involved = list({s["agent"] for s in steps})
 
         yield self._event("manager", "status_change", status="working",
@@ -237,14 +264,10 @@ class Orchestrator:
                           bubble="Resultado pronto. Aprovar?")
 
         # ─── Aguardar aprovação (ou timeout) ───
-        try:
-            await asyncio.wait_for(self._approval_event.wait(), timeout=300)
-        except asyncio.TimeoutError:
+        if not await self._wait_approval():
             yield self._event("reviewer", "message",
                               message="Timeout de aprovação atingido.")
             return
-        finally:
-            self.awaiting_approval = False
 
         yield self._event("reviewer", "collaboration",
                           subtype="approval_granted",

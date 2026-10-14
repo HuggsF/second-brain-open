@@ -38,7 +38,7 @@ def record_event(identity: str, event: str, status: str, args: Optional[dict] = 
             "tool": event if isinstance(event, str) else "unknown",
             "event": event if isinstance(event, str) else "unknown",
             "status": status if isinstance(status, str) else "unknown",
-            "caller": identity if isinstance(identity, str) else "unknown",
+            "caller": identity if parse_identity(identity) else "unknown",
             "args": tracing.redact_args(args if isinstance(args, dict) else None),
             "error_type": None,
         }, trace_path)

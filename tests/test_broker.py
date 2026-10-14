@@ -221,6 +221,11 @@ class TestBroker(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(rec["caller"], "agent:coder")
         broker.record_event(None, None, None, "bad", trace_path=Path(self.dir.name))
 
+    def test_record_event_malformed_identity_is_unknown(self):
+        broker.record_event("agent:x 123.456.789-09", "gate.pipeline", "ok", trace_path=self.trace)
+        self.assertNotIn("123.456.789-09", self.trace.read_text(encoding="utf-8"))
+        self.assertEqual(self.records()[0]["caller"], "unknown")
+
 
 if __name__ == "__main__":
     unittest.main()
