@@ -46,3 +46,38 @@ describe('validateExecution', () => {
     expect(validateExecution({ ...base, runId: 'a'.repeat(81) }).errors.runId).toBeTruthy();
   });
 });
+
+describe('contagem por pontos de código', () => {
+  it('summary de 500 emojis (1000 unidades UTF-16) é aceito; 501 não', () => {
+    expect(validateExecution({ ...base, summary: '😀'.repeat(500) }).ok).toBe(true);
+    expect(validateExecution({ ...base, summary: '😀'.repeat(501) }).errors.summary).toBeTruthy();
+  });
+
+  it('evidenceRef de 300 pontos de código com caracteres astrais é aceito; 301 não', () => {
+    const at = (n) => 'a/' + '𝒜'.repeat(n - 4) + ':1'; // 2 + (n-4) + 2 = n pontos de código
+    expect([...at(300)].length).toBe(300);
+    expect(validateExecution({ ...base, evidenceRef: at(300) }).errors.evidenceRef).toBeUndefined();
+    expect(validateExecution({ ...base, evidenceRef: at(301) }).errors.evidenceRef).toBeTruthy();
+  });
+});
+
+describe('limpeza de caracteres de controle', () => {
+  it('remove NUL, BEL, DEL e C1 do summary e do evidenceRef', () => {
+    const r = validateExecution({ ...base, summary: 'ok\u0000\u0007\u007f\u0085', evidenceRef: 'vault/x.md:3\u0000' });
+    expect(r.ok).toBe(true);
+  });
+
+  it('summary só com controles fica vazio e é recusado', () => {
+    expect(validateExecution({ ...base, summary: '\u0000\u0007\u001b' }).errors.summary).toBeTruthy();
+  });
+
+  it('quebras e tabs viram espaço', () => {
+    expect(validateExecution({ ...base, summary: 'a\tb\nc\r\nd' }).ok).toBe(true);
+    expect(validateExecution({ ...base, evidenceRef: 'vault/x.md:3\tfim' }).errors.evidenceRef).toBeTruthy();
+  });
+
+  it('controles no meio são removidos antes do formato', () => {
+    expect(validateExecution({ ...base, commitSha: 'abc\u00001234' }).ok).toBe(true);
+    expect(validateExecution({ ...base, runId: 'run\u0007-1' }).ok).toBe(true);
+  });
+});

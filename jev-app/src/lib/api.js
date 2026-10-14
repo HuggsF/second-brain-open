@@ -31,3 +31,23 @@ export const postExecution = (payload) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
+
+export const getPlaybookDetail = (id) => fetchJson(`/api/playbooks/${encodeURIComponent(id)}`);
+export const renderPlaybook = (id, params = {}) =>
+  fetchJson(`/api/playbooks/${encodeURIComponent(id)}/render`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ params }),
+  });
+
+// Extrai uma lista do corpo `{ [key]: [...] }` quando a resposta e ok; erros passam intactos.
+export const pick = (result, key) =>
+  result.ok ? { ...result, data: (result.data && result.data[key]) ?? [] } : result;
+
+// Mensagem em portugues para uma resposta que nao foi ok.
+export function describeFailure(status) {
+  if (status === 0) return 'Sem conexão com o servidor.';
+  if (status === 401) return 'Sessão local expirada. Gere um novo link de conexão.';
+  if (status === 503) return 'Banco de evidências indisponível.';
+  return `Falha ao carregar (HTTP ${status}).`;
+}

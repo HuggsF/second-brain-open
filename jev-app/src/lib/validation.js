@@ -7,6 +7,9 @@ const REF_SHAPE = /^(https?:\/\/\S+|[\p{L}\p{N}_./-]+:\d+(?:-\d+)?|[A-Z][A-Z0-9]
 const COMMIT_SHA = /^[0-9a-f]{7,40}$/;
 const RUN_ID = /^[A-Za-z0-9._:/#-]{1,80}$/;
 
+// Comprimento em pontos de codigo (como o len() do Python), nao em unidades UTF-16.
+const size = (s) => [...s].length;
+
 // Mesma limpeza do backend: tabs e quebras viram espaco, demais controles saem.
 function clean(value) {
   if (typeof value !== 'string') return '';
@@ -21,12 +24,12 @@ export function validateExecution(form) {
   const commitSha = clean(f.commitSha);
   const runId = clean(f.runId);
 
-  if (summary.length < 1 || summary.length > SUMMARY_MAX) {
+  if (size(summary) < 1 || size(summary) > SUMMARY_MAX) {
     errors.summary = `O resumo deve ter de 1 a ${SUMMARY_MAX} caracteres.`;
   }
-  if (evidenceRef.length < 1) {
+  if (size(evidenceRef) < 1) {
     errors.evidenceRef = 'A referência de evidência é obrigatória.';
-  } else if (evidenceRef.length > EVIDENCE_REF_MAX || !REF_SHAPE.test(evidenceRef)) {
+  } else if (size(evidenceRef) > EVIDENCE_REF_MAX || !REF_SHAPE.test(evidenceRef)) {
     errors.evidenceRef = `Use caminho:linha, uma URL http(s) ou um id de ticket, com até ${EVIDENCE_REF_MAX} caracteres.`;
   }
   if (commitSha && !COMMIT_SHA.test(commitSha)) {

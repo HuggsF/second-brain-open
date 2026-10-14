@@ -18,9 +18,17 @@ export default defineConfig({
     sourcemap: false,
     modulePreload: { polyfill: false },
     assetsInlineLimit: 0,
+    // lucide-react traz a diretiva "use client" (RSC), sem sentido num SPA: ignorada de proposito.
+    rolldownOptions: {
+      onwarn(warning, defaultHandler) {
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+        defaultHandler(warning);
+      },
+    },
   },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.js'],
+    include: ['src/**/*.test.{js,jsx}'],
+    setupFiles: ['./src/test-setup.js'],
   },
 });
