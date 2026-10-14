@@ -12,5 +12,8 @@ paramiko>=3.0,<5
 pyyaml>=6.0
 jsonschema>=4.0
 
+# Tests (tests/test_liquid_engine.py uses pytest; the rest uses unittest)
+pytest>=8.0
+
 # WebSocket server — Nexus Agent Office integration
 websockets>=12.0
