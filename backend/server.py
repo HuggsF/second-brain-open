@@ -70,7 +70,7 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
         def log_message(self,*args):
             pass  # Includes bootstrap secrets in URL: deliberately never access-log them.
 
-        def send(self,status,body,kind='application/json',extra=None):
+        def send(self,status,body,kind='application/json',extra=None,frame_self=False):
             content = json.dumps(body,ensure_ascii=False).encode() if kind=='application/json' else body
             self.send_response(status)
             self.send_header('Content-Type',kind)
@@ -78,7 +78,7 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
             self.send_header('Cache-Control','no-store')
             self.send_header('X-Content-Type-Options','nosniff')
             self.send_header('Referrer-Policy','no-referrer')
-            self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'")
+            self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors "+("'self'" if frame_self else "'none'"))
             for key,value in (extra or {}).items(): self.send_header(key,value)
             self.end_headers()
             self.wfile.write(content)
@@ -148,7 +148,8 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
             file = (dashboard / relative).resolve()
             if not file.is_relative_to(dashboard.resolve()) or file.suffix.lower() not in {'.html','.js','.css','.json','.svg','.png','.jpg','.webp','.md'} or not file.is_file():
                 return self.error(404,'NOT_FOUND')
-            return self.send(200,file.read_bytes(),mimetypes.guess_type(file)[0] or 'application/octet-stream')
+            # Only the embedded React JEV (dashboard/jev/) may be framed, and only by the dashboard itself.
+            return self.send(200,file.read_bytes(),mimetypes.guess_type(file)[0] or 'application/octet-stream',frame_self=file.is_relative_to((dashboard/'jev').resolve()))
 
         def do_POST(self):
             # Read the (bounded) body before any refusal: closing a socket with unread data makes

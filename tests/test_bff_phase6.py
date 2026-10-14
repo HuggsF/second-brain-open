@@ -372,6 +372,26 @@ class EmbeddedJevTest(Phase6Base):
                 self.assertEqual(status, 404)
                 self.assertNotIn(b'handler_for', body)
 
+    def test_only_the_jev_folder_may_be_framed_by_the_dashboard(self):
+        for path in ['/dashboard/jev/index.html'] + ['/dashboard/jev/' + a for a in self.assets()]:
+            with self.subTest(path=path):
+                csp = self.raw(path)[1]['Content-Security-Policy']
+                self.assertIn("frame-ancestors 'self'", csp)
+                self.assertNotIn("frame-ancestors 'none'", csp)
+                self.assertIn("script-src 'self';", csp)
+                self.assertIn("style-src 'self';", csp)
+        for path in ('/dashboard/index.html', '/dashboard/app.js', '/healthz', '/api/rules', '/api/nothing',
+                     '/dashboard/jev/x.map', '/dashboard/jevx/index.html', '/dashboard/jev/../index.html',
+                     '/dashboard/jev/%2e%2e/index.html'):
+            with self.subTest(path=path):
+                csp = self.raw(path)[1]['Content-Security-Policy']
+                self.assertIn("frame-ancestors 'none'", csp)
+                self.assertNotIn("frame-ancestors 'self'", csp)
+
+    def test_embedded_page_carries_the_application_marker(self):
+        html = (self.DASHBOARD / 'jev' / 'index.html').read_text(encoding='utf-8')
+        self.assertRegex(html, r'<meta name="application-name" content="jev-app" */?>')
+
     def test_old_vanilla_jev_script_is_gone(self):
         self.assertEqual(self.raw('/dashboard/jev-ui.js')[0], 404)
         self.assertNotIn('jev-ui.js', (self.DASHBOARD / 'index.html').read_text(encoding='utf-8'))

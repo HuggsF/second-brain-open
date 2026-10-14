@@ -261,7 +261,7 @@ function render(){
       // Same-origin: a 401/404 body from the BFF loads fine in the frame, so inspect what actually loaded.
       try{
         const doc=frame.contentDocument;
-        if(!doc||!doc.getElementById('root')||doc.title!=='JEV')unavailable();
+        if(!doc||!doc.getElementById('root')||doc.querySelector('meta[name=application-name]')?.content!=='jev-app')unavailable();
       }catch(_){unavailable();}
     });
     frame.onerror=unavailable;

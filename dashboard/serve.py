@@ -23,19 +23,22 @@ from backend.playbooks_api import PlaybooksApi  # noqa: E402,F401
 STATIC_SUFFIXES = {'.html', '.css', '.js', '.json', '.svg', '.jpg', '.png', '.webp', '.md'}
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
        "connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'")
+CSP_FRAMEABLE = CSP.replace("frame-ancestors 'none'", "frame-ancestors 'self'")
 
 
 def make_handler(api, playbooks_api=None, directory=None):
     static_root = Path(directory) if directory else api.root / 'dashboard'
 
     class DashboardHandler(SimpleHTTPRequestHandler):
+        frameable = False  # only files under dashboard/jev/ may be framed (by the dashboard itself)
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=str(static_root), **kwargs)
 
         def end_headers(self):
             self.send_header('Cache-Control', 'no-store')
             self.send_header('X-Content-Type-Options', 'nosniff')
-            self.send_header('Content-Security-Policy', CSP)
+            self.send_header('Content-Security-Policy', CSP_FRAMEABLE if self.frameable else CSP)
             super().end_headers()
 
         def send_json(self, status, payload, headers=None):
@@ -102,6 +105,7 @@ def make_handler(api, playbooks_api=None, directory=None):
             if not target.is_relative_to(static_root.resolve()) or not target.is_file() or target.suffix.lower() not in STATIC_SUFFIXES:
                 self.send_error(404)
                 return None
+            self.frameable = target.is_relative_to((static_root / 'jev').resolve())
             self.path = path
             return super().send_head()
 

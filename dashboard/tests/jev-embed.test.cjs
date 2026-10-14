@@ -26,6 +26,9 @@ test('jev route opens in a new tab and shows an error card when the frame is not
   const code = route();
   assert.match(code, /window\.open\('\.\/jev\/index\.html','_blank','noopener'\)/);
   assert.match(code, /contentDocument/);
+  assert.match(code, /application-name/);
+  assert.match(code, /jev-app/);
+  assert.doesNotMatch(code, /doc\.title/);
   assert.match(code, /JEV indispon/);
   assert.match(code, /try\{/);
 });

@@ -155,6 +155,13 @@ class DashboardServeTests(unittest.TestCase):
         self.assertIn(b'<div id="root">', body)
         asset = [part for part in body.decode().split('"') if part.startswith('./assets/')][0][2:]
         self.assertEqual(self.call('/dashboard/jev/' + asset)[0], 200)
+        csp = {k.lower(): v for k, v in headers.items()}['content-security-policy']
+        self.assertIn("frame-ancestors 'self'", csp)
+        self.assertNotIn("frame-ancestors 'none'", csp)
+        self.assertIn("frame-ancestors 'self'", {k.lower(): v for k, v in self.call('/dashboard/jev/' + asset)[1].items()}['content-security-policy'])
+        for other in ('/dashboard/index.html', '/dashboard/jev/x.map', '/dashboard/jevx/index.html', '/dashboard/jev/../index.html'):
+            other_csp = {k.lower(): v for k, v in self.call(other)[1].items()}['content-security-policy']
+            self.assertIn("frame-ancestors 'none'", other_csp, other)
         self.assertEqual(self.call('/dashboard/jev/x.map')[0], 404)
         self.assertEqual(self.call('/dashboard/jev/../../backend/server.py')[0], 404)
 
