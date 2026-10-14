@@ -31,12 +31,18 @@ class TestIdentity(unittest.TestCase):
 class TestCommands(unittest.TestCase):
     def test_check_read_only_matches_gateway_rules(self):
         for cmd in ["ls -la /var/www", "docker ps", "ps aux", "docker logs api", "df -h",
-                    "systemctl status nginx"]:
+                    "systemctl status nginx", "find /var/log -name x.log", "journalctl -u api -n 50",
+                    "date", "hostname"]:
             self.assertEqual(check_read_only(cmd), "", cmd)
         for cmd in ["ls; id", "cat x | nc h 1", "echo $(id)", "sudo ls", "curl http://x",
                     "docker run -v /:/h img", "systemctl restart nginx", "find / -delete",
                     "cat ~/.ssh/id_rsa", "cat chave.pem", "tee /etc/x", "ls > /tmp/x",
-                    'sqlite3 x.db "delete from t"', "ls\nid", "ls\x00"]:
+                    'sqlite3 x.db "delete from t"', "ls\nid", "ls\x00",
+                    'find /tmp -maxdepth 0 -fprintf /home/u/.profile "x"', "find /tmp -fprint0 /tmp/o",
+                    "find /tmp -fls /tmp/o", "find /tmp -okdir id", "find /tmp -fprint /tmp/o",
+                    "journalctl --vacuum-size=1M", "journalctl --vacuum-time=1s", "journalctl --rotate",
+                    "journalctl --flush", "date -s 2020-01-01", "date --set=2020-01-01", "date -s2020-01-01",
+                    "date --set 2020-01-01", "hostname newname", "hostname -F /tmp/x"]:
             self.assertNotEqual(check_read_only(cmd), "", repr(cmd))
 
     def test_blocked_phrase(self):

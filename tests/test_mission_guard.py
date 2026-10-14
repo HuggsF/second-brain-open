@@ -99,10 +99,6 @@ class TestMissionGuard(unittest.TestCase):
             self.assertEqual(self.rows()[0]["status"], status)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestBuiltinStepsPassPolicy(unittest.TestCase):
     def test_every_builtin_step_is_approved_by_policy(self):
         from core.policy import Decision, decide, make_identity
@@ -114,3 +110,7 @@ class TestBuiltinStepsPassPolicy(unittest.TestCase):
                 if verdict.decision is not Decision.APPROVE:
                     denied.append((step["agent"], step["tool"], verdict.decision.value, verdict.reason.value))
         self.assertEqual(denied, [])
+
+
+if __name__ == "__main__":
+    unittest.main()

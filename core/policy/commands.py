@@ -12,6 +12,8 @@ READ_ONLY_COMMANDS = frozenset({
 })
 DOCKER_READ_ONLY = frozenset({"ps", "logs", "inspect", "stats", "images", "top", "version", "info"})
 SYSTEMCTL_READ_ONLY = frozenset({"status", "list-units", "is-active", "is-enabled", "show", "list-unit-files"})
+FIND_WRITE_ACTIONS = ("-exec", "-execdir", "-ok", "-okdir", "-delete", "-fprint", "-fls")  # -fprint também cobre -fprint0/-fprintf
+JOURNALCTL_MUTATING = ("--vacuum", "--rotate", "--flush")
 SHELL_META = re.compile(r"[;&|<>`$(){}\\\n\r]")
 SENSITIVE_FRAGMENTS = (".pem", ".env", "id_rsa", "id_ed25519", "/etc/shadow", "sudoers", ".ssh/", ".private.json")
 BLOCKED_PHRASES = ("rm -rf", "mkfs", "dd if=", ":(){ :|:& };:", "shutdown", "reboot", "init 0")
@@ -41,8 +43,15 @@ def check_read_only(command: str) -> str:
         return "só subcomandos docker de leitura (ps, logs, inspect, stats, images, top, version, info)"
     if prog == "systemctl" and (len(parts) < 2 or parts[1] not in SYSTEMCTL_READ_ONLY):
         return "só subcomandos systemctl de leitura (status, list-units, is-active, ...)"
-    if prog == "find" and any(a in parts for a in ("-exec", "-execdir", "-delete", "-ok", "-fprint")):
+    if prog == "find" and any(a.startswith(FIND_WRITE_ACTIONS) for a in parts[1:]):
         return "find com ação de escrita/execução"
+    if prog == "journalctl" and any(a.startswith(JOURNALCTL_MUTATING) for a in parts[1:]):
+        return "journalctl com ação que altera o journal"
+    if prog == "date" and any(a == "-s" or a.startswith("-s") and not a.startswith("--") or a.startswith("--set")
+                              for a in parts[1:]):
+        return "date que altera o relógio"
+    if prog == "hostname" and len(parts) > 1:
+        return "hostname só sem argumentos"
     lowered = command.lower()
     for frag in SENSITIVE_FRAGMENTS:
         if frag in lowered:

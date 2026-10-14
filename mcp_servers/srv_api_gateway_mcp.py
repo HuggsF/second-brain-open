@@ -150,7 +150,7 @@ def srv_api_run_safe_command(command: str, task_id: Optional[str] = None) -> Dic
     """
     Executa comandos de INSPEÇÃO (só leitura) no servidor remoto, sem encadeamento de shell.
     Aceita: ls, cat, head, tail, ps, df, du, free, uptime, hostname, uname, whoami, date, journalctl,
-    grep, wc, find (sem -exec/-delete), docker (ps, logs, inspect, stats, images, top, version, info)
+    grep, wc, find (sem ações de escrita ou execução), journalctl (sem --vacuum/--rotate/--flush), date (sem -s/--set), hostname (sem argumentos), docker (ps, logs, inspect, stats, images, top, version, info)
     e systemctl (status, list-units, is-active, ...). Tudo o resto é recusado e registado.
     Todas as chamadas ficam em .runtime/trace-log.jsonl.
     Args:

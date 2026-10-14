@@ -145,8 +145,9 @@ class Orchestrator:
         return steps
 
     def approve(self):
-        """Chamado quando o usuário aprova a entrega."""
-        self._approval_event.set()
+        """Chamado quando o usuário aprova; só vale com uma espera em curso (APPROVE antecipado ou repetido é ignorado)."""
+        if self.awaiting_approval:
+            self._approval_event.set()
 
     async def _wait_approval(self) -> bool:
         """Espera approve() por até 300 s; False no timeout. Sempre baixa awaiting_approval."""
@@ -219,17 +220,22 @@ class Orchestrator:
 
             # Executar via corretor: ele decide, executa e grava o rastro com a identidade do agente
             tool = step.get("tool")
+            invalid_agent = None
             try:
                 identity = make_identity(step.get("agent"))
             except ValueError as exc:
-                result = {"tool": str(tool), "refused": True, "error": f"agente inválido: {exc}"}
-            else:
-                result = await run_tool(tool, step.get("input"), identity=identity,
-                                        task_id=f"M{self.mission_id}")
-                if result.get("refused") and result.get("verdict") == Decision.DENY.value:
-                    result["error"] = f"{tool} negado pela política: {result.get('reason', '')}"
-                elif result.get("refused"):
-                    result["error"] = f"{tool} exige aprovação humana explícita; não executado pela missão."
+                # o corretor registra o DENY (bad_identity, caller "unknown"); a mensagem ao usuário segue a mesma
+                invalid_agent = f"agente inválido: {exc}"
+                raw = step.get("agent")
+                identity = f"agent:{raw}" if isinstance(raw, str) else "agent:?"
+            result = await run_tool(tool, step.get("input"), identity=identity,
+                                    task_id=f"M{self.mission_id}")
+            if invalid_agent:
+                result["error"] = invalid_agent
+            elif result.get("refused") and result.get("verdict") == Decision.DENY.value:
+                result["error"] = f"{tool} negado pela política: {result.get('reason', '')}"
+            elif result.get("refused"):
+                result["error"] = f"{tool} exige aprovação humana explícita; não executado pela missão."
 
             # Formatar resultado para o balão
             summary = self._summarize_result(result)
@@ -343,6 +349,8 @@ class Orchestrator:
         """Resumo curto para o balão do agente (max 60 chars)."""
         tool = result.get("tool", "")
         if result.get("refused"):
+            if result.get("verdict") == Decision.DENY.value:
+                return "⛔ Negado pela política"
             return "⛔ Exige aprovação humana"
         if tool == "search_knowledge_base":
             n = len(result.get("sources", []))

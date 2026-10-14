@@ -265,8 +265,9 @@ class TestOrchestratorBroker(unittest.IsolatedAsyncioTestCase):
         await self._run("diagnosticar erro no hub")
         broker = [r for r in self.rows() if r["server"] == "broker"]
         self.assertEqual(len(broker), 3)
+        self.assertEqual([r["caller"] for r in broker],
+                         ["agent:researcher", "agent:coder", "agent:reviewer"])
         for r in broker:
-            self.assertTrue(r["caller"].startswith("agent:"), r)
             self.assertEqual(r["task_label"], "M42")
 
     async def test_orchestrator_refuses_run_safe_command_step_without_executing(self):
@@ -280,6 +281,15 @@ class TestOrchestratorBroker(unittest.IsolatedAsyncioTestCase):
         events = await self._run("qualquer", steps)
         self.assertTrue(any("intruso" in m for m in self._messages(events)), self._messages(events))
         self.assertEqual(events[-1]["type"], "completion")
+        broker = [r for r in self.rows() if r["server"] == "broker"]
+        self.assertEqual([(r["status"], r["caller"], r["task_label"]) for r in broker],
+                         [("refused", "unknown", "M42")])
+        self.assertFalse(self.ssh_calls)
+
+    async def test_non_text_agent_is_traced_and_mission_continues(self):
+        events = await self._run("qualquer", [{"agent": None, "tool": "get_brain_status", "input": {}, "bubble": "x"}])
+        self.assertEqual(events[-1]["type"], "completion")
+        self.assertEqual([r["caller"] for r in self.rows() if r["server"] == "broker"], ["unknown"])
 
     async def test_non_mapping_step_input_is_denied_and_mission_continues(self):
         for bad in (None, ["x"], "x"):
@@ -385,11 +395,43 @@ class TestOrchestratorGuard(unittest.IsolatedAsyncioTestCase):
     async def test_yellow_mission_timeout_ends_with_message(self):
         steps = [{"agent": "coder", "tool": "get_brain_status", "input": {}, "bubble": "x"}]
         check = {"action": "approval", "semaphore": "YELLOW", "gate_results": []}
-        with mock.patch("backend.orchestrator.asyncio.wait_for", side_effect=asyncio.TimeoutError) as wf:
+        with mock.patch.object(Orchestrator, "_wait_approval", new=mock.AsyncMock(return_value=False)) as wa:
             events = await self._drive(steps, check)
-        wf.assert_called_once()
+        wa.assert_awaited_once()
         self.assertEqual(events[-1]["type"], "message")
         self.assertFalse([r for r in self.rows() if r["event"] == "call"])
+
+
+class TestApproveAndBubbles(unittest.IsolatedAsyncioTestCase):
+    async def test_approve_before_any_wait_is_a_noop(self):
+        orchestrator = Orchestrator(pace=0)
+        orchestrator.approve()
+        self.assertFalse(orchestrator._approval_event.is_set())
+        orchestrator.awaiting_approval = True
+        waiter = asyncio.ensure_future(orchestrator._wait_approval())
+        for _ in range(10):
+            await asyncio.sleep(0)
+        self.assertFalse(waiter.done())  # o APPROVE antecipado não adiantou a espera
+        orchestrator.approve()
+        self.assertTrue(await asyncio.wait_for(waiter, timeout=5))
+        self.assertFalse(orchestrator.awaiting_approval)
+
+    async def test_duplicate_approve_after_release_does_not_prime_next_wait(self):
+        orchestrator = Orchestrator(pace=0)
+        orchestrator.awaiting_approval = True
+        waiter = asyncio.ensure_future(orchestrator._wait_approval())
+        await asyncio.sleep(0)
+        orchestrator.approve()
+        await waiter
+        orchestrator._approval_event = asyncio.Event()  # o que run_mission faz ao começar
+        orchestrator.approve()  # repetido, fora de espera
+        self.assertFalse(orchestrator._approval_event.is_set())
+
+    def test_short_summary_follows_the_verdict(self):
+        orchestrator = Orchestrator(pace=0)
+        self.assertEqual(orchestrator._short_summary({"refused": True, "verdict": "DENY"}), "⛔ Negado pela política")
+        self.assertEqual(orchestrator._short_summary({"refused": True, "verdict": "ESCALATE", "approval_required": True}),
+                         "⛔ Exige aprovação humana")
 
 
 if __name__ == "__main__":

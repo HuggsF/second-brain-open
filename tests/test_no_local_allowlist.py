@@ -7,11 +7,12 @@ LITERAL = re.compile(r"""["'](journalctl|systemctl)["']""")
 
 
 def _sources():
-    for sub in ("backend", "core", "mcp_servers"):
+    for sub in ("backend", "core", "mcp_servers", "scripts"):
         for path in (ROOT / sub).rglob("*.py"):
             if path.is_relative_to(ROOT / "core" / "policy"):
                 continue
             yield path
+    yield ROOT / "cli.py"
 
 
 def test_no_command_allowlist_outside_policy():
