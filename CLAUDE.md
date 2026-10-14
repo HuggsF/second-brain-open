@@ -45,6 +45,8 @@ Follow every numbered item; do not paraphrase a subset.
 - Never edit `.memory-backups/` or `.frontend-backups/`: they hold preserved originals.
 - Never delete or overwrite a vault note without a backup; `sync` removes its index entries.
 - Never record a decision about this repository inside an existing ADR; open a new one (section 6).
+- Command allowlists live only in `core/policy/` (ADR-022); every agent tool call goes through
+  `core/broker.py`. Never add a local allowlist or call a tool implementation around the broker.
 
 ## 3. Proof commands and local gates
 
@@ -88,7 +90,7 @@ Follow every numbered item; do not paraphrase a subset.
 - Specs: `.superpowers/specs/` · Plans: `.superpowers/plans/` · Ledger:
   `.superpowers/ledger/ledger.md` · Handoffs: `.superpowers/handoffs/`.
 - Spec, plan and handoff files are named `yyyy-MM-dd-HH-mm-{name}`.
-- ADRs: `vault/adrs/ADR-NNN-*.md`, numbered in sequence (ADR-001 to ADR-021 at 2026-10-14). A decision
+- ADRs: `vault/adrs/ADR-NNN-*.md`, numbered in sequence (ADR-001 to ADR-022 at 2026-10-14). A decision
   about this repository itself takes the next number and declares `scope: second-brain` in its
   frontmatter (ADR-004, 005, 010, 014, 015, 016 do).
 - MCP call trace: `.runtime/trace-log.jsonl` (local, never committed); read it with `cli.py trace <trace_id>`.
