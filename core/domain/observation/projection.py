@@ -23,7 +23,7 @@ _NO_OBSERVATION = "Sem observação válida para este ambiente."
 _BAD_SAMPLE_DATE = "Data da amostra inválida; saúde atual não comprovada."
 _MAX_SAFE_INTEGER = 2 ** 53 - 1
 _SHA_RE = re.compile(r"[0-9a-f]{40}")
-_ISO_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?Z")
+_ISO_RE = re.compile(r"([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.([0-9]{1,3}))?Z", re.ASCII)
 _STALE_AFTER_SECONDS = 180
 
 
@@ -38,7 +38,8 @@ def _number(value: Any) -> bool:
 
 
 def _text(value: Any) -> bool:
-    return isinstance(value, str) and 0 < len(value) <= 160
+    # JS String.length counts UTF-16 code units (an emoji is 2), not code points.
+    return isinstance(value, str) and 0 < len(value.encode("utf-16-le", "surrogatepass")) // 2 <= 160
 
 
 def _boolean(value: Any) -> bool:
@@ -222,6 +223,8 @@ def _project(environment: str, latest: Any, now_seconds: Any) -> ObservationSnap
             return _unknown_snapshot(environment, _BAD_SAMPLE_DATE, _BAD_SAMPLE_DATE)
         observed_at = min(observed_at, at)
     age = now_seconds - observed_at
+    # `stale` is not in the JS model; it follows the rule project() uses internally, so it is
+    # False whenever the observation is not evaluated (every early return above).
     stale = age > _STALE_AFTER_SECONDS or latest.get("stale") is True
     unavailable = _collection_failed(latest, now_seconds)
     assessments: Dict[str, _Assessment] = {

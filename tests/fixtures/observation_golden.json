@@ -7589,6 +7589,3873 @@
           }
         ]
       }
+    },
+    {
+      "name": "process status 80 emoji (160 UTF-16 units, valid)",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "red",
+        "reason": "Verificação diretamente falhou na janela observada; consulte os aspectos.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "red",
+            "reason": "Processo PM2 observado fora de online."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "process status 81 emoji (162 UTF-16 units, invalid)",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "last_attempt error 80 emoji marks collection failed",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "yellow",
+        "reason": "Observação anterior preservada como histórico; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "yellow",
+            "reason": "Observação anterior preservada como histórico; coleta atual indisponível, sem comprovação de saúde atual. Última verificação: Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "yellow",
+            "reason": "Observação anterior preservada como histórico; coleta atual indisponível, sem comprovação de saúde atual. Última verificação: Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "yellow",
+            "reason": "Observação anterior preservada como histórico; coleta atual indisponível, sem comprovação de saúde atual. Última verificação: Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "yellow",
+            "reason": "Observação anterior preservada como histórico; coleta atual indisponível, sem comprovação de saúde atual. Última verificação: Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "last_attempt error 81 emoji is not an error text",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "green",
+        "reason": "Indicadores presentes e normais nas duas amostras da janela observada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "last_attempt error text without collection_failed flag",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": "SOURCE_UNAVAILABLE"
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "yellow",
+        "reason": "Observação anterior preservada como histórico; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "yellow",
+            "reason": "Observação anterior preservada como histórico; coleta atual indisponível, sem comprovação de saúde atual. Última verificação: Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "yellow",
+            "reason": "Observação anterior preservada como histórico; coleta atual indisponível, sem comprovação de saúde atual. Última verificação: Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "yellow",
+            "reason": "Observação anterior preservada como histórico; coleta atual indisponível, sem comprovação de saúde atual. Última verificação: Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "yellow",
+            "reason": "Observação anterior preservada como histórico; coleta atual indisponível, sem comprovação de saúde atual. Última verificação: Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at with Arabic-Indic digits (recent)",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "٢٠٢٦-١٠-٠٩T٠٩:٥٩:٥٥.٠٠٠Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Data da amostra inválida; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "external",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at ASCII control in the past",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:00.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "green",
+        "reason": "Indicadores presentes e normais nas duas amostras da janela observada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at ASCII control in the future",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T10:01:00.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Data da amostra inválida; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "external",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at numeric seconds",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": 1791539995,
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "green",
+        "reason": "Indicadores presentes e normais nas duas amostras da janela observada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at numeric seconds in the future",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": 1791540001,
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Data da amostra inválida; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "external",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at negative number",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": -1,
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Data da amostra inválida; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "external",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at object",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": {},
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Data da amostra inválida; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "external",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at fails the regex",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "yesterday",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Data da amostra inválida; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "external",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at ISO without fraction",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "green",
+        "reason": "Indicadores presentes e normais nas duas amostras da janela observada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at ISO with one fraction digit",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.5Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "green",
+        "reason": "Indicadores presentes e normais nas duas amostras da janela observada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "sample at year 0000 parses negative",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "0000-01-01T00:00:00Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Data da amostra inválida; saúde atual não comprovada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "external",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Data da amostra inválida; saúde atual não comprovada."
+          }
+        ]
+      }
+    },
+    {
+      "name": "internal sample not a record",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": "x",
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "database not a record",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": 5
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "every aspect missing and stale",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": true,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência anterior insuficiente; saúde atual não comprovada.",
+        "stale": true,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "external",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "httpStatus 99 out of range",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0",
+                  "httpStatus": 99
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "httpStatus 600 out of range",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0",
+                  "httpStatus": 600
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "httpStatus non integer",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0",
+                  "httpStatus": 200.5
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "httpStatus null",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0",
+                  "httpStatus": null
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "httpStatus 200 explicit",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0",
+                  "httpStatus": 200
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "green",
+        "reason": "Indicadores presentes e normais nas duas amostras da janela observada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "terminalErrorsSinceDeploy string",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": "1",
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "terminalErrorsSinceDeploy null hides legacy errors",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 5,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": null,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "unknown",
+        "reason": "Evidência insuficiente para comprovar todos os aspectos e a avaliação agregada.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "unknown",
+            "reason": "Evidência insuficiente: indicadores ausentes ou inválidos em uma das amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "failure_count positive with ok true",
+      "environment": "production",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "production",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "production",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 2,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "production",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": true,
+                  "workerEnabled": true,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "yellow",
+        "reason": "Avaliação agregada com alerta ou causa insuficiente para atribuir falha a um aspecto.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
+    },
+    {
+      "name": "warning_count positive with ok true in hml",
+      "environment": "hml",
+      "latest": {
+        "schema_version": 1,
+        "space_id": "kiosk",
+        "environment": "hml",
+        "age_seconds": 5,
+        "stale": false,
+        "collection_failed": false,
+        "last_attempt": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "error": null
+        },
+        "observation": {
+          "id": 7,
+          "collected_at": 1791539995,
+          "report": {
+            "environment": "hml",
+            "expected_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "ok": true,
+            "source": "hub/post-deploy-check",
+            "schema_version": 1,
+            "window_seconds": 300,
+            "snapshots": [
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 3,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "hml",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": false,
+                  "workerEnabled": false,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "hml",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": false,
+                  "workerEnabled": false,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              },
+              {
+                "at": "2026-10-09T09:59:55.000Z",
+                "ok": true,
+                "failure_count": 0,
+                "failure_reasons": [],
+                "warning_count": 0,
+                "process": {
+                  "status": "online",
+                  "restarts": 2,
+                  "uptime": 1000,
+                  "memoryBytes": 100000
+                },
+                "internal": {
+                  "status": "ok",
+                  "environment": "hml",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": false,
+                  "workerEnabled": false,
+                  "version": "1.0.0"
+                },
+                "external": {
+                  "status": "ok",
+                  "environment": "hml",
+                  "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "emissionEnabled": false,
+                  "workerEnabled": false,
+                  "version": "1.0.0"
+                },
+                "database": {
+                  "ok": true,
+                  "pending": 3,
+                  "processing": 0,
+                  "failed": 2,
+                  "errorsSinceDeploy": 0,
+                  "automaticShops": 0,
+                  "rateLimitsSinceDeploy": 0,
+                  "terminalErrorsSinceDeploy": 0,
+                  "logisticsReviewJobs": 0,
+                  "multipleVolumeReviewJobs": 0
+                }
+              }
+            ]
+          }
+        }
+      },
+      "now": 1791540000,
+      "expected": {
+        "status": "yellow",
+        "reason": "Avaliação agregada com alerta ou causa insuficiente para atribuir falha a um aspecto.",
+        "stale": false,
+        "nodes": [
+          {
+            "id": "process",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "internal",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "external",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          },
+          {
+            "id": "database",
+            "status": "green",
+            "reason": "Indicadores presentes e normais nas duas amostras."
+          }
+        ]
+      }
     }
   ]
 }

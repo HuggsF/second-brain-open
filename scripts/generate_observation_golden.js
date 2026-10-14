@@ -122,7 +122,43 @@ const INPUTS = [
   ['stale and collection failed with unknown node', 'production', mutated(l => {
     delete samples(l)[0].process; l.stale = true; l.collection_failed = true;
   }), NOW],
-  ['report ok false', 'production', mutated(l => {l.observation.report.ok = false;}), NOW]
+  ['report ok false', 'production', mutated(l => {l.observation.report.ok = false;}), NOW],
+  // fix round 1: UTF-16 length of text(), ASCII-only dates and previously unexercised JS branches
+  ['process status 80 emoji (160 UTF-16 units, valid)', 'production', mutated(l => {samples(l)[0].process.status = '\u{1F600}'.repeat(80);}), NOW],
+  ['process status 81 emoji (162 UTF-16 units, invalid)', 'production', mutated(l => {samples(l)[0].process.status = '\u{1F600}'.repeat(81);}), NOW],
+  ['last_attempt error 80 emoji marks collection failed', 'production', mutated(l => {l.last_attempt.error = '\u{1F600}'.repeat(80);}), NOW],
+  ['last_attempt error 81 emoji is not an error text', 'production', mutated(l => {l.last_attempt.error = '\u{1F600}'.repeat(81);}), NOW],
+  ['last_attempt error text without collection_failed flag', 'production', mutated(l => {l.last_attempt.error = 'SOURCE_UNAVAILABLE';}), NOW],
+  ['sample at with Arabic-Indic digits (recent)', 'production', mutated(l => {
+    samples(l)[0].at = iso(NOW - 5).replace(/[0-9]/g, d => String.fromCharCode(0x0660 + Number(d)));
+  }), NOW],
+  ['sample at ASCII control in the past', 'production', mutated(l => {samples(l)[0].at = iso(NOW - 60);}), NOW],
+  ['sample at ASCII control in the future', 'production', mutated(l => {samples(l)[0].at = iso(NOW + 60);}), NOW],
+  ['sample at numeric seconds', 'production', mutated(l => {samples(l)[0].at = NOW - 5;}), NOW],
+  ['sample at numeric seconds in the future', 'production', mutated(l => {samples(l)[0].at = NOW + 1;}), NOW],
+  ['sample at negative number', 'production', mutated(l => {samples(l)[0].at = -1;}), NOW],
+  ['sample at object', 'production', mutated(l => {samples(l)[0].at = {};}), NOW],
+  ['sample at fails the regex', 'production', mutated(l => {samples(l)[0].at = 'yesterday';}), NOW],
+  ['sample at ISO without fraction', 'production', mutated(l => {samples(l)[0].at = iso(NOW - 5).replace('.000Z', 'Z');}), NOW],
+  ['sample at ISO with one fraction digit', 'production', mutated(l => {samples(l)[1].at = iso(NOW - 5).replace('.000Z', '.5Z');}), NOW],
+  ['sample at year 0000 parses negative', 'production', mutated(l => {samples(l)[0].at = '0000-01-01T00:00:00Z';}), NOW],
+  ['internal sample not a record', 'production', mutated(l => {samples(l)[0].internal = 'x';}), NOW],
+  ['database not a record', 'production', mutated(l => {samples(l)[1].database = 5;}), NOW],
+  ['every aspect missing and stale', 'production', mutated(l => {
+    samples(l).forEach(item => {delete item.process; delete item.internal; delete item.external; delete item.database;});
+    l.stale = true;
+  }), NOW],
+  ['httpStatus 99 out of range', 'production', mutated(l => {samples(l)[0].internal.httpStatus = 99;}), NOW],
+  ['httpStatus 600 out of range', 'production', mutated(l => {samples(l)[0].internal.httpStatus = 600;}), NOW],
+  ['httpStatus non integer', 'production', mutated(l => {samples(l)[0].internal.httpStatus = 200.5;}), NOW],
+  ['httpStatus null', 'production', mutated(l => {samples(l)[0].internal.httpStatus = null;}), NOW],
+  ['httpStatus 200 explicit', 'production', mutated(l => {samples(l)[0].internal.httpStatus = 200;}), NOW],
+  ['terminalErrorsSinceDeploy string', 'production', mutated(l => {samples(l)[0].database.terminalErrorsSinceDeploy = '1';}), NOW],
+  ['terminalErrorsSinceDeploy null hides legacy errors', 'production', mutated(l => {
+    samples(l)[0].database.terminalErrorsSinceDeploy = null; samples(l)[0].database.errorsSinceDeploy = 5;
+  }), NOW],
+  ['failure_count positive with ok true', 'production', mutated(l => {samples(l)[1].failure_count = 2;}), NOW],
+  ['warning_count positive with ok true in hml', 'hml', mutated(l => {samples(l)[0].warning_count = 3;}, 'hml'), NOW]
 ];
 
 function expectedOf(environment, latest, now) {
