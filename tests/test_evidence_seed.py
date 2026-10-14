@@ -27,6 +27,12 @@ class TestRealSeed(unittest.TestCase):
         self.assertEqual(defs.playbooks["PB-001"].validates, ["RULE-001", "RULE-002"])
         self.assertEqual(defs.playbooks["PB-002"].environment, "hml")
 
+    def test_real_seed_marks_pb001_and_pb002_as_tests(self):
+        defs = evidence.load_definitions(settings.vault_dir)
+        for pb_id, playbook in defs.playbooks.items():
+            self.assertEqual(playbook.kind, "test" if pb_id in ("PB-001", "PB-002") else "runbook", pb_id)
+            self.assertEqual(playbook.ttl_hours, 168, pb_id)
+
     def test_every_rule_source_line_exists(self):
         defs = evidence.load_definitions(settings.vault_dir)
         for rule in defs.rules.values():

@@ -66,6 +66,8 @@ class PlaybooksApi:
                 'status': pb.status,
                 'validates': pb.validates,
                 'environment': pb.environment,
+                'kind': pb.kind,
+                'ttl_hours': pb.ttl_hours,
                 'targets': pb.targets,
                 'params': getattr(pb, 'params', []),
                 'filename': filename,
@@ -133,6 +135,8 @@ class PlaybooksApi:
             summary=payload['summary'],
             evidence_ref=payload.get('evidence_ref', ''),
             environment=payload['environment'],
+            commit_sha=payload.get('commit_sha'),
+            run_id=payload.get('run_id'),
         )
         if error:
             return 400, {'error': 'VALIDATION_FAILED', 'detail': error}
@@ -149,6 +153,8 @@ class PlaybooksApi:
                 task_label=payload.get('task_label') or None,
                 source=payload.get('source', 'dashboard'),
                 recorded_by=payload.get('recorded_by', 'user'),
+                commit_sha=clean['commit_sha'],
+                run_id=clean['run_id'],
             )
         except EvidenceStoreError as exc:
             return 503, {'error': 'DB_UNAVAILABLE', 'detail': str(exc)}
@@ -211,6 +217,8 @@ class PlaybooksApi:
                     'status': pb.status,
                     'validates': pb.validates,
                     'environment': pb.environment,
+                    'kind': pb.kind,
+                    'ttl_hours': pb.ttl_hours,
                     'targets': pb.targets,
                     'params': getattr(pb, 'params', []),
                 },

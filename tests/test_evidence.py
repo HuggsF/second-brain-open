@@ -43,6 +43,28 @@ class TestLoadDefinitions(unittest.TestCase):
         self.assertEqual(playbook.validates, ["RULE-001"])
         self.assertEqual((playbook.environment, playbook.targets, playbook.path), ("local", ["hub"], "playbooks/PB-001-x.md"))
 
+    def test_playbook_kind_defaults_to_runbook_and_ttl_168(self):
+        write_note(self.root, "playbooks", "PB-001-x.md", PLAYBOOK)
+        playbook = evidence.load_definitions(self.root).playbooks["PB-001"]
+        self.assertEqual((playbook.kind, playbook.ttl_hours), ("runbook", 168))
+
+    def test_playbook_kind_test_and_ttl_parsed(self):
+        write_note(self.root, "playbooks", "PB-001-x.md", {**PLAYBOOK, "kind": "test", "ttl_hours": 24})
+        defs = evidence.load_definitions(self.root)
+        self.assertEqual(defs.errors, [])
+        self.assertEqual((defs.playbooks["PB-001"].kind, defs.playbooks["PB-001"].ttl_hours), ("test", 24))
+
+    def test_invalid_kind_and_ttl_are_lint_errors_not_exceptions(self):
+        for over in ({"kind": "smoke"}, {"ttl_hours": 0}, {"ttl_hours": -1}, {"ttl_hours": True},
+                     {"ttl_hours": "x"}, {"ttl_hours": 9000}, {"ttl_hours": 1.5}):
+            with self.subTest(over=over):
+                write_note(self.root, "playbooks", "PB-001-x.md", {**PLAYBOOK, **over})
+                defs = evidence.load_definitions(self.root)
+                self.assertEqual(defs.playbooks, {})
+                self.assertEqual(len(defs.errors), 1)
+                self.assertIn("playbooks/PB-001-x.md", defs.errors[0])
+                self.assertRegex(defs.errors[0], "kind|ttl_hours")
+
     def test_note_without_front_matter_is_an_error_and_skipped(self):
         write_note(self.root, "rules", "RULE-001-x.md", None, raw="# So titulo\n\nSem cabecalho.\n")
         defs = evidence.load_definitions(self.root)
@@ -128,6 +150,21 @@ class TestValidate(unittest.TestCase):
         clean, error = self.check()
         self.assertIsNone(error)
         self.assertEqual((clean["summary"], clean["evidence_ref"]), ("26 scenarios approved", "vault/x.md:47"))
+
+    def test_validate_execution_commit_sha_and_run_id(self):
+        clean, error = self.check()
+        self.assertEqual((clean["commit_sha"], clean["run_id"]), (None, None))
+        for sha, run in (("abc1234", "run-123"), ("a" * 40, "gha:98765"), ("", "")):
+            clean, error = self.check(commit_sha=sha, run_id=run)
+            self.assertIsNone(error)
+            self.assertEqual((clean["commit_sha"], clean["run_id"]), (sha or None, run or None))
+        for over in ({"commit_sha": "xyz"}, {"commit_sha": "a" * 41}, {"commit_sha": "ABC1234"},
+                     {"run_id": "run id com espaço"}, {"run_id": "r" * 81},
+                     {"run_id": "123.456.789-09"}, {"commit_sha": "123.456.789-09"}):
+            clean, error = self.check(**over)
+            self.assertIsNone(clean, over)
+            self.assertTrue(error)
+            self.assertNotIn("123.456.789-09", error)
 
     def test_unknown_and_retired_playbook(self):
         self.assertIn("PB-404", self.check(playbook_id="PB-404")[1])

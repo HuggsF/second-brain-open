@@ -25,13 +25,15 @@ CREATE TABLE IF NOT EXISTS executions(
     task_label TEXT,
     source TEXT NOT NULL,
     recorded_by TEXT NOT NULL,
+    commit_sha TEXT,
+    run_id TEXT,
     import_key TEXT UNIQUE
 );
 CREATE INDEX IF NOT EXISTS executions_playbook_ts ON executions(playbook_id, ts);
 """
 
 _COLUMNS = ("playbook_id", "ts", "result", "environment", "evidence_ref", "summary",
-            "trace_id", "task_label", "source", "recorded_by", "import_key")
+            "trace_id", "task_label", "source", "recorded_by", "commit_sha", "run_id", "import_key")
 
 
 class EvidenceStoreError(Exception):
@@ -44,6 +46,11 @@ class EvidenceStore:
         conn = self._connect()
         try:
             conn.executescript(_SCHEMA)
+            existing = {r["name"] for r in conn.execute("PRAGMA table_info(executions)")}
+            for column in ("commit_sha", "run_id"):
+                if column not in existing:
+                    conn.execute(f"ALTER TABLE executions ADD COLUMN {column} TEXT")
+            conn.commit()
         except sqlite3.DatabaseError as exc:
             raise self._error(exc) from exc
         finally:
@@ -79,12 +86,14 @@ class EvidenceStore:
         task_label: Optional[str] = None,
         ts: Optional[str] = None,
         import_key: Optional[str] = None,
+        commit_sha: Optional[str] = None,
+        run_id: Optional[str] = None,
     ) -> Optional[int]:
         """Insert one execution. Returns its id, or None when `import_key` was already imported."""
         values = dict(playbook_id=playbook_id, ts=ts or tracing.now_iso(), result=result,
                       environment=environment, evidence_ref=evidence_ref, summary=summary,
                       trace_id=trace_id, task_label=task_label, source=source,
-                      recorded_by=recorded_by, import_key=import_key)
+                      recorded_by=recorded_by, import_key=import_key, commit_sha=commit_sha, run_id=run_id)
         conn = self._connect()
         try:
             with conn:

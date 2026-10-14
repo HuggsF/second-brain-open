@@ -93,18 +93,21 @@ def get_rule_evidence(rule_id: str, limit: int = 5, task_id: Optional[str] = Non
 
 @mcp.tool()
 def record_test_execution(
-    playbook_id: str, result: str, summary: str, evidence_ref: str, environment: str, task_id: Optional[str] = None
+    playbook_id: str, result: str, summary: str, evidence_ref: str, environment: str, task_id: Optional[str] = None,
+    commit_sha: Optional[str] = None, run_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Regista o resultado de um teste que alguém já executou (não executa nada). result: pass, fail, error ou skipped;
     environment: hml, production ou local; summary: até 500 caracteres; evidence_ref: caminho:linha, URL http(s) ou id de ticket.
     Nunca inclua dados de pedidos, CPF, chaves ou tokens: só referência e resumo. A execução fica ligada ao trace_id desta chamada.
     task_id: optional label that groups this call with others of the same task
+    commit_sha: optional, hash do commit testado (7 a 40 hex minúsculos); run_id: optional, id da execução (ex.: gha:98765)
     """
     call = tracing.current_call.get()
     trace_id = call.trace_id if call else None
     clean, error = evidence.validate_execution(
-        evidence.load_definitions(), playbook_id, result, summary, evidence_ref, environment)
+        evidence.load_definitions(), playbook_id, result, summary, evidence_ref, environment,
+        commit_sha=commit_sha, run_id=run_id)
     if error:
         tracing.emit_child("evidence.refused", "refused", {"reason": error})  # marks the call as refused in the trace
         return {"error": error, "trace_id": trace_id}
@@ -113,7 +116,8 @@ def record_test_execution(
             playbook_id=playbook_id, result=result, environment=environment,
             evidence_ref=clean["evidence_ref"], summary=clean["summary"], source="reported",
             recorded_by=call.caller if call else "cli", trace_id=trace_id,
-            task_label=call.task_label if call else None)
+            task_label=call.task_label if call else None,
+            commit_sha=clean["commit_sha"], run_id=clean["run_id"])
     except EvidenceStoreError as exc:
         return {"error": str(exc)}
     return {"recorded": new_id, "trace_id": trace_id}

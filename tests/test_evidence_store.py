@@ -1,5 +1,6 @@
 import contextlib
 import multiprocessing
+import re
 import sqlite3
 import tempfile
 import unittest
@@ -39,6 +40,28 @@ class TestEvidenceStore(unittest.TestCase):
             self.assertEqual(row[key], value)
         self.assertEqual((row["trace_id"], row["task_label"], row["ts"]), ("a" * 32, "DEM-12", "2026-10-09T12:00:00.000-03:00"))
         self.assertIsNone(row["import_key"])
+
+    def test_record_roundtrips_commit_sha_and_run_id(self):
+        store = EvidenceStore(self.path)
+        store.record(**FIELDS, commit_sha="abc1234", run_id="gha:1")
+        store.record(**FIELDS)
+        newest, oldest = store.latest("PB-001", 2)
+        self.assertEqual((oldest["commit_sha"], oldest["run_id"]), ("abc1234", "gha:1"))
+        self.assertEqual((newest["commit_sha"], newest["run_id"]), (None, None))
+
+    def test_executions_table_gets_new_columns_on_existing_db(self):
+        self.path.parent.mkdir(parents=True)
+        old_schema = re.sub(r"    (commit_sha|run_id) TEXT,\n", "", evidence_store._SCHEMA)
+        self.assertNotIn("commit_sha", old_schema)
+        with contextlib.closing(sqlite3.connect(self.path)) as db:
+            db.executescript(old_schema)
+            db.execute("INSERT INTO executions(playbook_id, ts, result, environment, evidence_ref, summary, source, recorded_by)"
+                       " VALUES('PB-001', '2026-10-09T12:00:00.000-03:00', 'pass', 'local', 'x.md:1', 'old row', 'reported', 'mcp')")
+            db.commit()
+        store = EvidenceStore(self.path)
+        EvidenceStore(self.path)  # reopening is idempotent
+        (row,) = store.latest("PB-001")
+        self.assertEqual((row["summary"], row["commit_sha"], row["run_id"]), ("old row", None, None))
 
     def test_ts_defaults_to_now_and_trace_is_optional(self):
         store = EvidenceStore(self.path)

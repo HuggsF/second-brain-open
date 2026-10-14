@@ -19,6 +19,9 @@ from core.evidence_store import EvidenceStore, EvidenceStoreError
 RESULTS = ("pass", "fail", "error", "skipped")
 ENVIRONMENTS = ("hml", "production", "local")
 STATUSES = ("draft", "active", "retired")
+KINDS = ("test", "runbook")
+DEFAULT_TTL_HOURS = 168
+MAX_TTL_HOURS = 8760
 
 _RULE_ID = re.compile(r"^RULE-\d{3}$")
 _PLAYBOOK_ID = re.compile(r"^PB-\d{3}$")
@@ -45,6 +48,8 @@ class Playbook:
     targets: List[str]
     path: str
     params: List[Dict[str, Any]] = field(default_factory=list)
+    kind: str = "runbook"
+    ttl_hours: int = DEFAULT_TTL_HOURS
 
 
 @dataclass
@@ -95,6 +100,14 @@ def _check_enum(value: str, allowed: Tuple[str, ...], name: str, problems: List[
         problems.append(f"invalid {name} '{value}' (allowed: {', '.join(allowed)})")
 
 
+def _ttl_hours(data: Dict[str, Any], problems: List[str]) -> int:
+    value = data.get("ttl_hours", DEFAULT_TTL_HOURS)
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= MAX_TTL_HOURS:
+        problems.append(f"invalid ttl_hours (expected an integer from 1 to {MAX_TTL_HOURS})")
+        return DEFAULT_TTL_HOURS
+    return value
+
+
 def _parse_rule(data: Dict[str, Any], rel: str) -> Tuple[Optional[Rule], List[str]]:
     problems: List[str] = []
     rule = Rule(
@@ -128,8 +141,14 @@ def _parse_playbook(data: Dict[str, Any], rel: str) -> Tuple[Optional[Playbook],
         validates=_text_list(data, "validates", problems, non_empty=True),
         environment=_text_field(data, "environment", problems),
         targets=_text_list(data, "targets", problems, non_empty=False), path=rel,
-        params=params_list,
+        params=params_list, ttl_hours=_ttl_hours(data, problems),
     )
+    kind = data.get("kind", "runbook")
+    if isinstance(kind, str):
+        playbook.kind = kind.strip()
+        _check_enum(playbook.kind, KINDS, "kind", problems)
+    else:
+        problems.append(f"invalid kind (allowed: {', '.join(KINDS)})")
     if playbook.id and not _PLAYBOOK_ID.match(playbook.id):
         problems.append(f"invalid id '{playbook.id}' (expected PB-NNN)")
     _check_enum(playbook.status, STATUSES, "status", problems)
@@ -169,6 +188,8 @@ def load_definitions(vault_dir: Optional[Path] = None) -> Definitions:
 
 _REF_SHAPE = re.compile(r"^(https?://\S+|[\w./-]+:\d+(?:-\d+)?|[A-Z][A-Z0-9]*-\d+)$")
 _NO_EVIDENCE = "sem evidência ainda"
+_COMMIT_SHA = re.compile(r"^[0-9a-f]{7,40}$")
+_RUN_ID = re.compile(r"^[A-Za-z0-9._:/#-]{1,80}$")
 SUMMARY_MAX = 500
 EVIDENCE_REF_MAX = 300
 LIMIT_MAX = 20
@@ -186,8 +207,9 @@ def _sensitive(text: str, field_name: str) -> Optional[str]:
 
 
 def validate_execution(
-    defs: Definitions, playbook_id: str, result: str, summary: str, evidence_ref: str, environment: str
-) -> Tuple[Optional[Dict[str, str]], Optional[str]]:
+    defs: Definitions, playbook_id: str, result: str, summary: str, evidence_ref: str, environment: str,
+    commit_sha: Optional[str] = None, run_id: Optional[str] = None,
+) -> Tuple[Optional[Dict[str, Optional[str]]], Optional[str]]:
     """Return (clean fields, None) or (None, error message). Never raises."""
     if not isinstance(playbook_id, str) or not _PLAYBOOK_ID.match(playbook_id):
         return None, "invalid playbook id (expected PB-NNN)"
@@ -206,8 +228,14 @@ def validate_execution(
         return None, "summary must be text"
     if not isinstance(evidence_ref, str):
         return None, "evidence_ref must be text"
+    commit_sha, run_id = commit_sha or "", run_id or ""
+    if not isinstance(commit_sha, str):
+        return None, "commit_sha must be text"
+    if not isinstance(run_id, str):
+        return None, "run_id must be text"
     summary, evidence_ref = _clean_text(summary), _clean_text(evidence_ref)
-    for text, name in ((summary, "summary"), (evidence_ref, "evidence_ref")):
+    commit_sha, run_id = _clean_text(commit_sha), _clean_text(run_id)
+    for text, name in ((summary, "summary"), (evidence_ref, "evidence_ref"), (commit_sha, "commit_sha"), (run_id, "run_id")):
         problem = _sensitive(text, name)
         if problem:
             return None, problem
@@ -215,7 +243,12 @@ def validate_execution(
         return None, f"summary must have 1 to {SUMMARY_MAX} characters"
     if not 1 <= len(evidence_ref) <= EVIDENCE_REF_MAX or not _REF_SHAPE.match(evidence_ref):
         return None, f"evidence_ref must be path:line, an http(s) URL or a ticket id, up to {EVIDENCE_REF_MAX} characters"
-    return {"summary": summary, "evidence_ref": evidence_ref}, None
+    if commit_sha and not _COMMIT_SHA.match(commit_sha):
+        return None, "commit_sha must be 7 to 40 lowercase hex characters"
+    if run_id and not _RUN_ID.match(run_id):
+        return None, "run_id must have 1 to 80 characters from A-Z a-z 0-9 . _ : / # -"
+    return {"summary": summary, "evidence_ref": evidence_ref,
+            "commit_sha": commit_sha or None, "run_id": run_id or None}, None
 
 
 # --- queries --------------------------------------------------------------------------------------
@@ -231,7 +264,8 @@ def rule_evidence(defs: Definitions, store: EvidenceStore, rule_id: str, limit: 
             continue
         executions = store.latest(playbook.id, limit)
         entry: Dict[str, Any] = {"id": playbook.id, "title": playbook.title, "status": playbook.status,
-                                 "environment": playbook.environment, "executions": executions}
+                                 "environment": playbook.environment, "kind": playbook.kind,
+                                 "ttl_hours": playbook.ttl_hours, "executions": executions}
         if not executions:
             entry["note"] = _NO_EVIDENCE
         playbooks.append(entry)

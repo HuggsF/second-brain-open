@@ -50,6 +50,14 @@ class TestEvidenceTools(unittest.TestCase):
         self.assertEqual((row["id"], row["trace_id"]), (out["recorded"], out["trace_id"]))
         self.assertEqual((row["recorded_by"], row["source"]), ("mcp", "reported"))
 
+    def test_record_test_execution_stores_commit_sha_and_run_id(self):
+        out = self.call("record_test_execution", {**GOOD, "commit_sha": "abc1234", "run_id": "gha:98765"})
+        self.assertNotIn("error", out)
+        (row,) = EvidenceStore().latest("PB-001")
+        self.assertEqual((row["commit_sha"], row["run_id"]), ("abc1234", "gha:98765"))
+        out = self.call("record_test_execution", {**GOOD, "commit_sha": "xyz"})
+        self.assertIn("commit_sha", out["error"])
+
     def test_task_id_groups_two_recordings_in_one_trace(self):
         self.call("record_test_execution", {**GOOD, "task_id": "DEM-12"})
         self.call("record_test_execution", {**GOOD, "summary": "second run", "task_id": "DEM-12"})
