@@ -15,6 +15,10 @@ Follow every numbered item; do not paraphrase a subset.
 - Is not: the Hub Logístico or the SRV-API server. Those are other repositories and machines
   (`C:/KIOSK/hub-logistico`, production host); read-only from here. Is not the place for 360
   analysis results: they live in `C:/KIOSK/analise-360`.
+- Scope (ADR-021): knowledge, evidence and trace, observability (dashboard and reports about observed
+  systems) and the multi-agent platform. Hub product features (connectors, sales analytics, UI
+  wireframes, product documentation) are out of scope; knowledge about the Hub (system notes, rules,
+  playbooks, evidence) stays. `crm_hggs` is a reference for patterns only; never copy its content here.
 - The vault is the source; Qdrant and `dashboard/graph-data.js` are derived and rebuildable.
 
 ## 2. Never
@@ -24,9 +28,10 @@ Follow every numbered item; do not paraphrase a subset.
   Provider API keys (`OPENROUTER_API_KEY` and any `api_key_env` in profiles) follow the same rule:
   never log, print, copy or embed the value; only the environment variable name appears in code
   and profiles.
-- Task content sent to a cloud provider goes only to providers configured in the profile with a
-  no-data-retention guarantee (`extra.provider.data_collection: deny`). The core never sends
-  content to a provider outside the profile chain.
+- Task content goes only to cloud providers declared in the profile chain, and every one of them
+  carries both guarantees in `extra.provider`: `zdr: true` (zero data retention: only endpoints
+  that keep nothing) and `data_collection: deny` (no endpoint that collects or trains on the
+  content). Never add a cloud provider without both, and never call one outside the chain.
 - Never commit `.env`, `.runtime/`, `.brain_hashes.json` or backups of them (`.gitignore` covers
   them; do not weaken it).
 - Never commit the raw text of courses or books (`extracted_drive/`, `extracted_pm3/`, `downloads_*`):
@@ -48,10 +53,13 @@ Follow every numbered item; do not paraphrase a subset.
   and `.\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py`.
 - `integration.test.cjs` compares citation hashes with the current vault bytes: after any vault
   edit, run `.\.venv\Scripts\python.exe dashboard\build_graph.py` first or that test fails.
-- Local-task quality (needs Ollama already running; not part of the gate above):
-  `.\.venv\Scripts\python.exe cli.py task-eval` exits 1 when overall accuracy over
-  `tests/golden_dataset_local_tasks.json` is below `--min-accuracy` (default 0.6). It makes real
-  model calls and takes minutes (about 20 s per call on this machine).
+- Task quality (not part of the gate above): `.\.venv\Scripts\python.exe cli.py task-eval
+  [--profile NAME]` runs `tests/golden_dataset_local_tasks.json` through the profile's provider
+  chain (cloud first, Ollama as reserve) and exits 1 when overall accuracy is below
+  `--min-accuracy` (default 0.6); it prints accuracy, average latency and the tier that answered,
+  per task. It makes real, paid cloud calls when the key is set (about US$ 0.0003 per call with
+  the kiosk model) and needs Ollama already running for the reserve. From a worktree, pass the
+  key file by path only: `BRAIN_ENV_FILE=C:/KIOSK/second-brain/.env`.
 - Typecheck / lint / format: none configured. Coverage or quality gates: none.
 - CI: none. The suite above is the only gate and is run by hand.
 
@@ -80,7 +88,7 @@ Follow every numbered item; do not paraphrase a subset.
 - Specs: `.superpowers/specs/` · Plans: `.superpowers/plans/` · Ledger:
   `.superpowers/ledger/ledger.md` · Handoffs: `.superpowers/handoffs/`.
 - Spec, plan and handoff files are named `yyyy-MM-dd-HH-mm-{name}`.
-- ADRs: `vault/adrs/ADR-NNN-*.md`, numbered in sequence (ADR-001 to ADR-016 at 2026-10-13). A decision
+- ADRs: `vault/adrs/ADR-NNN-*.md`, numbered in sequence (ADR-001 to ADR-021 at 2026-10-14). A decision
   about this repository itself takes the next number and declares `scope: second-brain` in its
   frontmatter (ADR-004, 005, 010, 014, 015, 016 do).
 - MCP call trace: `.runtime/trace-log.jsonl` (local, never committed); read it with `cli.py trace <trace_id>`.

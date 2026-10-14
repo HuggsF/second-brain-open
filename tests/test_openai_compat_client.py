@@ -150,6 +150,33 @@ class OpenAICompatClientTests(unittest.TestCase):
         self.assertEqual(out.tokens_in, 0)
         self.assertEqual(out.tokens_out, 0)
 
+    def test_malformed_usage_counts_zero_without_raising(self):
+        for usage in ("abc", [1, 2], 7,
+                      {"prompt_tokens": "x", "completion_tokens": None},
+                      {"prompt_tokens": [1], "completion_tokens": {"a": 1}},
+                      {"prompt_tokens": True, "completion_tokens": float("nan")},
+                      {"prompt_tokens": -3, "completion_tokens": float("inf")}):
+            raw = json.dumps({"choices": [{"message": {"content": "{}"}}], "usage": usage})
+            out = self._client(lambda r, raw=raw: httpx.Response(200, content=raw)).chat("m", "s", "u", {})
+            self.assertEqual((out.tokens_in, out.tokens_out), (0, 0), usage)
+        body = {"choices": [{"message": {"content": "{}"}}],
+                "usage": {"prompt_tokens": 12.0, "completion_tokens": 3}}
+        out = self._client(_handler_200(body)).chat("m", "s", "u", {})
+        self.assertEqual((out.tokens_in, out.tokens_out), (12, 3))
+
+    def test_available_uses_the_given_timeout(self):
+        from core.local_tasks.openai_compat_client import OpenAICompatClient
+        seen = {}
+
+        def handler(request):
+            seen["timeout"] = request.extensions.get("timeout")
+            return httpx.Response(200, json={"data": []})
+
+        c = OpenAICompatClient(base_url="https://api.test/v1", timeout=3,
+                               transport=httpx.MockTransport(handler))
+        self.assertTrue(c.available())
+        self.assertEqual(seen["timeout"], {"connect": 3, "read": 3, "write": 3, "pool": 3})
+
     def test_key_never_in_error_text(self):
         with mock.patch.dict(os.environ, {"TEST_KEY": "sk-SENTINELA-123"}):
             c = self._client(lambda r: httpx.Response(401), api_key_env="TEST_KEY")

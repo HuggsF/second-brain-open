@@ -18,7 +18,7 @@ try:
     if settings.env_file.exists():
         load_dotenv(settings.env_file, override=False)
 except ImportError:
-    pass  # python-dotenv optional; CI pode não ter
+    pass  # python-dotenv ausente: segue só com o ambiente do processo
 
 import click
 from rich.console import Console
@@ -26,7 +26,6 @@ from rich.panel import Panel
 from rich.table import Table
 import httpx
 
-from config import settings
 from core import tracing
 from core import evidence as evidence_core
 from core.evidence_store import EvidenceStore, EvidenceStoreError
@@ -370,22 +369,35 @@ def _case_passed(case: dict, envelope: dict) -> bool:
     return True
 
 
+def _no_provider_message(info: dict) -> str:
+    """Mensagem de saída do task-eval quando nenhum provedor do perfil pode responder."""
+    providers = info.get("providers") or []
+    if not providers:
+        return (f"Nenhum provedor disponível: Ollama indisponível ({info['local_model']}). "
+                "Inicie o Ollama e baixe o modelo antes de avaliar.")
+    parts = []
+    for p in providers:
+        state = "sem chave" if not p["configured"] else ("ok" if p["available"] else "indisponível")
+        parts.append(f"{p['name']} ({p['model']}): {state}")
+    return ("Nenhum provedor disponível no perfil " + str(info.get("profile")) + ": "
+            + "; ".join(parts) + ". Defina a chave no arquivo de ambiente ou inicie o Ollama antes de avaliar.")
+
+
 @cli.command("task-eval")
 @click.option("--min-accuracy", type=float, default=0.6, show_default=True, help="Acerto geral mínimo; abaixo disso sai com 1")
 @click.option("--profile", "profile_name", default=None, help="Nome do perfil (padrão: perfil ativo)")
 def task_eval(min_accuracy, profile_name):
     """Avalia as tarefas locais contra tests/golden_dataset_local_tasks.json."""
     from core.local_tasks import router
-    from core.local_tasks.providers import build_client
     try:
         profile = router.load_profile(profile_name)
-        client = build_client(profile)
+        client = router.build_client(profile)
         info = router.status(profile)  # sondagem curta
     except Exception as exc:
         click.echo(f"Erro ao preparar a avaliação: {exc}")
         raise SystemExit(1)
     if not info["model_available"]:
-        click.echo(f"Modelo local indisponível ({info['local_model']}): inicie o Ollama e baixe o modelo antes de avaliar.")
+        click.echo(_no_provider_message(info))
         raise SystemExit(1)
     cases = json.loads(_GOLDEN_LOCAL_TASKS.read_text(encoding="utf-8"))
     stats: dict = {}
@@ -418,4 +430,3 @@ def task_eval(min_accuracy, profile_name):
 
 if __name__ == "__main__":
     cli()
-

@@ -116,16 +116,26 @@ class ProviderSpecTests(unittest.TestCase):
     def test_env_file_honours_BRAIN_ENV_FILE(self):
         import importlib
         import config as config_mod
+        original_env = os.environ.get("BRAIN_ENV_FILE")
+        original_settings = config_mod.settings
+
+        def restore():
+            # tearDown: ambiente original, config recarregado e o mesmo objeto settings que os
+            # outros módulos já importaram.
+            if original_env is None:
+                os.environ.pop("BRAIN_ENV_FILE", None)
+            else:
+                os.environ["BRAIN_ENV_FILE"] = original_env
+            importlib.reload(config_mod)
+            config_mod.settings = original_settings
+
+        self.addCleanup(restore)
         with tempfile.TemporaryDirectory() as tmp:
             fake_env = Path(tmp) / ".env"
-            fake_env.write_text("DUMMY=1\n", encoding="utf-8")
+            fake_env.write_text("DUMMY=1", encoding="utf-8")
             with mock.patch.dict(os.environ, {"BRAIN_ENV_FILE": str(fake_env)}):
                 importlib.reload(config_mod)
                 self.assertEqual(config_mod.settings.env_file, fake_env)
-        # restore
-        with mock.patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("BRAIN_ENV_FILE", None)
-            importlib.reload(config_mod)
 
 
 class _FakeClient:
@@ -175,14 +185,69 @@ class FallbackTests(unittest.TestCase):
         from core.local_tasks.providers import FallbackClient, ProviderSpec
         spec1 = ProviderSpec(kind="openai_compatible", name="cloud", model="m1",
                              base_url="https://api.test/v1")
-        spec2 = ProviderSpec(kind="ollama", name="local", model="m2",
+        spec2 = ProviderSpec(kind="openai_compatible", name="cloud2", model="m2",
+                             base_url="https://api2.test/v1")
+        spec3 = ProviderSpec(kind="ollama", name="local", model="m3",
                              base_url="http://localhost:11434")
         c1 = _FakeClient(LocalModelError("local_unavailable"))
-        c2 = _FakeClient("{}")
-        fb = FallbackClient([(spec1, c1), (spec2, c2)])
+        c2 = _FakeClient(LocalModelError("timeout", "ReadTimeout"))
+        c3 = _FakeClient("{}")
+        fb = FallbackClient([(spec1, c1), (spec2, c2), (spec3, c3)])
+        out = fb.chat("ignored", "s", "u", {})
+        self.assertEqual((c1.calls, c2.calls, c3.calls), (1, 1, 1))
+        self.assertEqual(out.model, "m3")
+        self.assertEqual(fb.last_provider.name, "local")
+
+    def test_latency_includes_failed_attempts(self):
+        from core.local_tasks import providers
+        from core.local_tasks.providers import FallbackClient, ProviderSpec
+        spec1 = ProviderSpec(kind="openai_compatible", name="cloud", model="m1",
+                             base_url="https://api.test/v1")
+        spec2 = ProviderSpec(kind="ollama", name="local", model="m2",
+                             base_url="http://localhost:11434")
+        clock = [0.0]
+
+        class SlowFail:
+            calls = 0
+
+            def chat(self, model, system, user, schema):
+                clock[0] += 2.5  # a nuvem gastou 2,5 s antes de falhar
+                raise LocalModelError("timeout", "ReadTimeout")
+
+        c2 = _FakeClient("{}")  # responde com ms=7
+        fb = FallbackClient([(spec1, SlowFail()), (spec2, c2)])
+        with mock.patch.object(providers, "_clock", lambda: clock[0]):
+            out = fb.chat("ignored", "s", "u", {})
+        self.assertEqual(out.ms, 2500 + 7)
+
+    def test_all_fail_error_carries_elapsed_ms(self):
+        from core.local_tasks import providers
+        from core.local_tasks.providers import FallbackClient, ProviderSpec
+        spec = ProviderSpec(kind="ollama", name="local", model="m2", base_url="http://x")
+        clock = [0.0]
+
+        class SlowFail:
+            def chat(self, model, system, user, schema):
+                clock[0] += 1.2
+                raise LocalModelError("timeout", "ReadTimeout")
+
+        fb = FallbackClient([(spec, SlowFail())])
+        with mock.patch.object(providers, "_clock", lambda: clock[0]):
+            with self.assertRaises(LocalModelError) as cm:
+                fb.chat("ignored", "s", "u", {})
+        self.assertEqual(cm.exception.ms, 1200)
+
+    def test_last_provider_reset_when_every_provider_fails(self):
+        from core.local_tasks.providers import FallbackClient, ProviderSpec
+        spec = ProviderSpec(kind="openai_compatible", name="cloud", model="m1",
+                            base_url="https://api.test/v1")
+        c = _FakeClient("{}", LocalModelError("local_unavailable"))
+        fb = FallbackClient([(spec, c)])
         fb.chat("ignored", "s", "u", {})
-        self.assertEqual(c1.calls, 1)
-        self.assertEqual(c2.calls, 1)
+        self.assertEqual(fb.last_provider.name, "cloud")
+        with self.assertRaises(LocalModelError):
+            fb.chat("ignored", "s", "u", {})
+        self.assertIsNone(fb.last_provider)
 
     def test_all_fail_raises_last(self):
         from core.local_tasks.providers import FallbackClient, ProviderSpec
@@ -225,6 +290,8 @@ class FallbackTests(unittest.TestCase):
         p = load_profile("example")
         client = build_client(p)
         self.assertIsInstance(client, OllamaClient)
+        self.assertEqual(client.timeout, p.timeout_seconds)
+        self.assertEqual(client.keep_alive, p.keep_alive)
 
     def test_build_client_with_providers_order(self):
         from core.local_tasks.providers import FallbackClient, build_client
@@ -286,4 +353,3 @@ class FallbackTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

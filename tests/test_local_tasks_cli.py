@@ -178,6 +178,70 @@ class LocalTasksCliTests(unittest.TestCase):
         self.assertIn("indisponível", result.output)
         run_task.assert_not_called()
 
+    def test_task_eval_uses_the_router_client_chain(self):
+        fake = AlwaysClient({"nope": 1})
+        fake.available = lambda model: True
+        result = self._invoke_eval(["task-eval", "--min-accuracy", "0"], fake)
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertGreaterEqual(fake.calls, 12)  # todas as chamadas foram ao cliente do roteador
+
+    def test_task_eval_profile_option_selects_profile(self):
+        fake = AlwaysClient({"nope": 1})
+        fake.available = lambda model: True
+        with mock.patch.object(router, "load_profile", return_value=_profile()) as load:
+            result = self._invoke_eval(["task-eval", "--profile", "eval-9", "--min-accuracy", "0"], fake)
+        self.assertEqual(result.exit_code, 0, result.output)
+        load.assert_called_once_with("eval-9")
+
+    def test_task_eval_unavailable_message_names_every_provider(self):
+        info = {"profile": "t", "local_model": "m", "model_available": False,
+                "event_write_failures": 0, "templates": [],
+                "providers": [
+                    {"name": "nuvem", "kind": "openai_compatible", "model": "x/y",
+                     "configured": False, "available": True},
+                    {"name": "ollama", "kind": "ollama", "model": "m",
+                     "configured": True, "available": False},
+                ]}
+        with mock.patch.object(router, "status", return_value=info), \
+                mock.patch.object(router, "build_client", return_value=mock.Mock()), \
+                mock.patch.object(router, "run_task") as run_task:
+            result = self.runner.invoke(cli_module.cli, ["task-eval"])
+        self.assertEqual(result.exit_code, 1, result.output)
+        self.assertIn("Nenhum provedor disponível", result.output)
+        self.assertIn("nuvem", result.output)
+        self.assertIn("sem chave", result.output)
+        self.assertIn("ollama", result.output)
+        self.assertNotIn("Modelo local indisponível", result.output)
+        run_task.assert_not_called()
+
+
+class DotenvTests(unittest.TestCase):
+    def test_load_dotenv_uses_settings_env_file(self):
+        import contextlib
+        import importlib
+        import io
+        import os
+        from config import settings
+        name = "OPENAI_COMPAT_TEST_KEY"
+        sentinel = "sk-SENTINELA-123"
+        self.addCleanup(os.environ.pop, name, None)
+        with tempfile.TemporaryDirectory() as tmp:
+            env_file = Path(tmp) / "custom.env"
+            env_file.write_text(f"{name}={sentinel}\n", encoding="utf-8")
+            os.environ.pop(name, None)
+            out, err = io.StringIO(), io.StringIO()
+            with mock.patch.object(settings, "env_file", env_file), \
+                    contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                importlib.reload(cli_module)
+            self.assertEqual(os.environ.get(name), sentinel)
+            self.assertNotIn(sentinel, out.getvalue() + err.getvalue())
+            # Sem sobrescrever o ambiente (override=False).
+            os.environ[name] = "valor-do-ambiente"
+            with mock.patch.object(settings, "env_file", env_file):
+                importlib.reload(cli_module)
+            self.assertEqual(os.environ.get(name), "valor-do-ambiente")
+        importlib.reload(cli_module)
+
 
 class GoldenDatasetTests(unittest.TestCase):
     def test_dataset_has_three_cases_per_task(self):

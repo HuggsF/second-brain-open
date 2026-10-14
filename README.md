@@ -118,17 +118,19 @@ agnóstico; vocabulário, limites e preço de referência vêm do perfil em `pro
 - **CLI:** `cli.py task classify|extract|summarize|validate|status` (texto por argumento ou `--file`, em UTF-8).
   `validate` aceita também um objeto JSON (texto que começa com `{`), como o `payload` de `extract`.
 - **Envelope `brain.task/1`:** `status` é `ok`, `invalid`, `escalate` ou `error`. `escalate` devolve a tarefa ao
-  chamador (modelo local fora do ar, entrada acima do limite, saída fora do schema depois de 1 retry, tempo
-  esgotado): o núcleo nunca chama fornecedor pago, então o agente refaz a tarefa. Template ou tarefa
-  desconhecidos e perfil inexistente voltam como `invalid` (`unknown_template`, `unknown_task`,
-  `profile_not_found`). O motivo fica em `reason`. `validate` sem `source` é determinístico e não chama o
+  chamador, que a refaz com o próprio modelo; o motivo fica em `reason`: `local_unavailable` (nenhum provedor
+  da cadeia respondeu: sem chave, HTTP de erro, rede ou Ollama fora), `timeout` (timeout do provedor ou prazo
+  total da tarefa), `schema_invalid` (saída fora do schema depois de 1 retry), `no_valid_label` (`classify` sem
+  rótulo do vocabulário) e `input_too_large` (entrada acima de `max_input_tokens` ou de `max_blocks`). Template
+  ou tarefa desconhecidos e perfil inexistente voltam como `invalid` (`unknown_template`, `unknown_task`,
+  `profile_not_found`). `validate` sem `source` é determinístico e não chama o
   modelo; com `source`, chama o modelo uma vez para conferir o documento contra a fonte.
 - **Eventos:** cada chamada vira uma linha em `.runtime/events.jsonl` (rotação 5 MB × 3), com custo local e o custo
   pago equivalente. O texto da tarefa nunca é gravado, só `payload_bytes`, os rótulos `type` e `team` de
   `classify` e `valid` de `validate`. O `from` é `cli`, `task-eval` ou o nome do cliente MCP.
   `event_write_failures` (em `local_tasks_status` e `cli.py task status`) conta as falhas do processo que
   responde, desde que ele iniciou: o do servidor MCP não soma as do CLI, e vice-versa.
-- **Latência:** as chamadas MCP são síncronas e bloqueiam o agente por cerca de 20 s (modelo carregado) a 44–51 s
+- **Latência:** as chamadas MCP são síncronas; pelo Ollama bloqueiam o agente por cerca de 20 s (modelo carregado) a 44–51 s
   (primeira chamada, a frio). O perfil `kiosk` usa `timeout_seconds: 120`; o padrão do núcleo é 30.
 - **Limites:** cada `run_task` tem prazo total de `timeout_seconds` × (1 + `retries`) × 2, conferido antes de cada
   chamada ao modelo (estourado, `escalate: timeout` com o custo já gasto); `summarize` com mais de `max_blocks`
@@ -149,16 +151,35 @@ O perfil pode definir uma cadeia de provedores (`providers`) que são tentados e
 ([ADR-018](vault/adrs/ADR-018-provedores-nuvem-com-reserva-local.md)). Se o primeiro falhar (timeout,
 erro HTTP, chave ausente), o próximo é tentado. O último é normalmente o Ollama local.
 
+No perfil `kiosk` a cadeia é `deepseek/deepseek-v4-flash-0731` no OpenRouter e o Ollama `llama3.2:3b` de
+reserva. Toda requisição à nuvem leva `provider: {data_collection: deny, zdr: true}`: só endpoints sem retenção
+de dados e que não coletam nem treinam com o conteúdo. O envelope diz quem respondeu (`cost.tier` `cloud` ou
+`local`, `cost.provider`, `cost.model`) e quanto custou (`cost.actual_usd`, pelo `price` do perfil).
+`local_tasks_status` lista cada provedor com `configured` (a chave está no ambiente) e `available` (respondeu
+à sonda em até 5 s); `model_available` só é verdadeiro se algum provedor tiver os dois.
+
 **Configuração:**
 
-1. Adicione `OPENROUTER_API_KEY=sk-or-v1-...` ao arquivo `.env` (nunca versionado).
-2. Defina `BRAIN_ENV_FILE` para apontar para o `.env` se o CLI não rodar na raiz:
+1. Adicione `OPENROUTER_API_KEY` ao `.env` da raiz (nunca versionado; quem edita é o humano). Sem a chave, a
+   nuvem é pulada e tudo vai ao Ollama.
+2. Fora da raiz (um worktree, por exemplo), aponte para o arquivo com `BRAIN_ENV_FILE`:
    `BRAIN_ENV_FILE=C:/KIOSK/second-brain/.env`.
-3. Em https://openrouter.ai/settings/privacy, marque **data_collection: deny** e ative o ZDR
-   (zero data retention) para os modelos usados.
-4. O motivo `local_unavailable` no envelope indica que nenhum provedor (nuvem + local) estava
-   disponível; `escalate` com outro motivo indica que o modelo respondeu mas a saída não cumpriu
-   o schema.
+3. **Trave a privacidade também na conta**, em https://openrouter.ai/settings/privacy: desligue o uso de
+   dados para treino/coleta e ligue *Zero Data Retention*. O corpo da requisição já pede isso, mas a trava na
+   conta cobre qualquer chamada feita com a mesma chave fora deste núcleo.
+
+**Resultados (`cli.py task-eval`, 2026-10-13, detalhes em
+`.superpowers/specs/2026-10-13-12-43-avaliacao-provedores.md`):**
+
+| Modelo (nuvem, ZDR) | Acerto | Latência média | Tiers (9 chamadas) | Custo por chamada |
+|---|---|---|---|---|
+| `deepseek/deepseek-v4-flash-0731` (escolhido) | 100% | 6,2 s | cloud 9 | US$ 0,000195 |
+| `openai/gpt-oss-20b` | 100% | 7,8 s | cloud 9 | US$ 0,000029 |
+| `inclusionai/ling-3.0-flash-vl` | 92% | 12,7 s | cloud 5, local 4 (HTTP 429 nos endpoints ZDR) | US$ 0,000007 |
+
+`task-eval --profile kiosk` final: acerto 100%, 9 de 9 chamadas na nuvem, latência mediana 7,2 s mas média
+17,6 s por causa de uma resposta de 87,5 s (raciocínio longo; o `timeout_seconds` do provedor é timeout de
+leitura, não prazo total), US$ 0,000294 por chamada. Por isso o ADR-018 ainda está `Proposto`.
 
 ## Vault
 

@@ -204,11 +204,12 @@ class RouterTests(unittest.TestCase):
 
     def test_default_client_keeps_the_model_loaded_per_profile(self):
         from core.local_tasks import router
-        fake = FakeClient(GOOD)
-        with mock.patch.object(router, "build_client", return_value=fake) as bc:
+        from core.local_tasks import providers
+        with mock.patch.object(providers, "OllamaClient", return_value=FakeClient(GOOD)) as cls:
             env = self.run_task(profile=_profile())
         self.assertEqual(env["status"], "ok")
-        bc.assert_called_once_with(_profile())
+        self.assertEqual(cls.call_args.kwargs.get("keep_alive"), _profile().keep_alive)
+        self.assertEqual(cls.call_args.kwargs.get("timeout"), _profile().timeout_seconds)
 
     def test_classify_happy_path(self):
         env = self.run_task(client=FakeClient(GOOD))
@@ -659,8 +660,9 @@ class StatusTests(unittest.TestCase):
         client = mock.Mock()
         client.available.return_value = True
         out = router.status(profile=_profile(), client=client)
-        self.assertIn("profile", out)
-        self.assertIn("providers", out)
+        self.assertEqual(set(out), {"profile", "local_model", "model_available",
+                                    "event_write_failures", "templates", "providers"})
+        self.assertEqual(out["providers"], [])
         self.assertEqual(out["profile"], "t")
         self.assertEqual(out["local_model"], "m")
         self.assertTrue(out["model_available"])
@@ -783,28 +785,170 @@ class ProvidersRouterTests(unittest.TestCase):
         # max timeout = 120 (from ollama provider), (1 + 1) * 2 = 480
         self.assertEqual(router.deadline_seconds(profile), 120 * (1 + 1) * 2)
 
-    def test_status_lists_providers_without_blocking(self):
-        from core.local_tasks import router
-        from core.local_tasks.providers import ProviderSpec
-        profile = _profile_with_providers()
-        # Mock build_client to create a mock with probing methods
-        fake_cloud = mock.Mock()
-        fake_cloud.available.return_value = True
-        fake_local = mock.Mock()
-        fake_local.available.return_value = False
-        fake_local.available.side_effect = lambda m: False
+    def _fallback(self, *entries):
+        from core.local_tasks.providers import FallbackClient
+        return FallbackClient(list(entries))
 
-        with mock.patch.object(router, "OllamaClient") as ollama_cls, \
-                mock.patch("core.local_tasks.openai_compat_client.OpenAICompatClient") as oa_cls:
-            ollama_cls.return_value = fake_local
-            oa_cls.return_value = fake_cloud
+    def _specs(self):
+        p = _profile_with_providers()
+        return p.providers[0], p.providers[1]
+
+    def test_retry_after_cloud_invalid_json_sums_tokens_and_reports_last_provider(self):
+        cloud, local = self._specs()
+        # 1a tentativa: a nuvem responde texto que não é JSON; 2a: a nuvem cai e o local responde.
+        cloud_client = FakeClient("isto não é json", LocalModelError("local_unavailable"),
+                                  tokens_in=100, tokens_out=50)
+        local_client = FakeClient(GOOD, tokens_in=7, tokens_out=3)
+        fb = self._fallback((cloud, cloud_client), (local, local_client))
+        env = self.run_task(client=fb, profile=_profile_with_providers())
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(cloud_client.calls, 2)
+        self.assertEqual(local_client.calls, 1)
+        self.assertEqual(env["cost"]["tokens_in"], 107)
+        self.assertEqual(env["cost"]["tokens_out"], 53)
+        self.assertEqual(env["cost"]["tier"], "local")
+        self.assertEqual(env["cost"]["provider"], "local")
+        self.assertEqual(env["cost"]["model"], "m")
+
+    def test_actual_usd_sums_price_of_each_responder(self):
+        cloud, local = self._specs()  # nuvem: 0.5/1.0 por 1M; local: 0/0
+        cloud_client = FakeClient("isto não é json", LocalModelError("local_unavailable"),
+                                  tokens_in=100, tokens_out=50)
+        local_client = FakeClient(GOOD, tokens_in=7, tokens_out=3)
+        fb = self._fallback((cloud, cloud_client), (local, local_client))
+        env = self.run_task(client=fb, profile=_profile_with_providers())
+        self.assertAlmostEqual(env["cost"]["actual_usd"], (100 * 0.5 + 50 * 1.0) / 1e6)
+
+    def test_reused_fallback_client_does_not_leak_last_provider(self):
+        cloud, local = self._specs()
+        cloud_client = FakeClient(GOOD, LocalModelError("local_unavailable"))
+        local_client = FakeClient(LocalModelError("local_unavailable"))
+        fb = self._fallback((cloud, cloud_client), (local, local_client))
+        first = self.run_task(client=fb, profile=_profile_with_providers())
+        self.assertEqual(first["cost"]["tier"], "cloud")
+        second = self.run_task(client=fb, profile=_profile_with_providers())
+        self.assertEqual(second["status"], "escalate")
+        self.assertEqual(second["reason"], "local_unavailable")
+        self.assertNotEqual(second["cost"]["tier"], "cloud")
+        self.assertNotIn("provider", second["cost"])
+        self.assertNotIn("actual_usd", second["cost"])
+
+    def test_latency_counts_failed_attempts(self):
+        from core.local_tasks import providers
+        cloud, local = self._specs()
+        clock = [0.0]
+
+        class SlowFail:
+            def chat(self, model, system, user, schema):
+                clock[0] += 3.0
+                raise LocalModelError("timeout", "ReadTimeout")
+
+        fb = self._fallback((cloud, SlowFail()), (local, FakeClient(GOOD)))
+        with mock.patch.object(providers, "_clock", lambda: clock[0]):
+            env = self.run_task(client=fb, profile=_profile_with_providers())
+        self.assertEqual(env["cost"]["tier"], "local")
+        self.assertGreaterEqual(env["cost"]["ms"], 3000)
+
+    def test_latency_kept_when_every_provider_fails(self):
+        from core.local_tasks import providers
+        cloud, local = self._specs()
+        clock = [0.0]
+
+        class SlowFail:
+            def chat(self, model, system, user, schema):
+                clock[0] += 1.5
+                raise LocalModelError("timeout", "ReadTimeout")
+
+        fb = self._fallback((cloud, SlowFail()), (local, SlowFail()))
+        with mock.patch.object(providers, "_clock", lambda: clock[0]):
+            env = self.run_task(client=fb, profile=_profile_with_providers())
+        self.assertEqual(env["status"], "escalate")
+        self.assertEqual(env["cost"]["ms"], 3000)
+
+
+class ProvidersStatusTests(unittest.TestCase):
+    setUp = StatusTests.setUp
+
+    def _with_key(self, value):
+        from core.local_tasks.providers import ProviderSpec
+        p = _profile_with_providers()
+        cloud = ProviderSpec(kind="openai_compatible", name="cloud", model="cloud-m",
+                             base_url="https://api.test/v1", api_key_env="STATUS_TEST_KEY")
+        env = {"STATUS_TEST_KEY": value} if value is not None else {}
+        patcher = mock.patch.dict(os.environ, env)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        if value is None:
+            os.environ.pop("STATUS_TEST_KEY", None)
+        return Profile(name=p.name, labels=p.labels, local_model=p.local_model,
+                       timeout_seconds=p.timeout_seconds, max_input_tokens=p.max_input_tokens,
+                       retries=p.retries, paid_reference=p.paid_reference,
+                       providers=(cloud, p.providers[1]))
+
+    def _status(self, profile, cloud_up, local_up):
+        from core.local_tasks import providers, router
+        cloud = mock.Mock()
+        cloud.available.return_value = cloud_up
+        local = mock.Mock()
+        local.available.return_value = local_up
+        with mock.patch.object(providers, "OpenAICompatClient", return_value=cloud) as oa, \
+                mock.patch.object(providers, "OllamaClient", return_value=local) as ol:
             out = router.status(profile=profile)
-        self.assertIsInstance(out["providers"], list)
-        self.assertEqual(len(out["providers"]), 2)
-        self.assertEqual(out["providers"][0]["name"], "cloud")
-        self.assertEqual(out["providers"][1]["name"], "local")
+        return out, oa, ol
+
+    def test_model_available_needs_configured_and_available(self):
+        out, _, _ = self._status(self._with_key(None), cloud_up=True, local_up=False)
+        self.assertEqual(out["providers"][0]["configured"], False)
+        self.assertEqual(out["providers"][0]["available"], True)
+        self.assertFalse(out["model_available"])
+
+    def test_model_available_with_key_and_cloud_up(self):
+        out, _, _ = self._status(self._with_key("sk-SENTINELA-123"), cloud_up=True, local_up=False)
+        self.assertTrue(out["model_available"])
+        self.assertNotIn("sk-SENTINELA-123", json.dumps(out))
+
+    def test_model_available_by_local_reserve(self):
+        out, _, _ = self._status(self._with_key(""), cloud_up=True, local_up=True)
+        self.assertFalse(out["providers"][0]["configured"])
+        self.assertTrue(out["model_available"])
+
+    def test_status_lists_providers_without_blocking(self):
+        import threading
+        import time
+        from core.local_tasks import providers, router
+        release = threading.Event()
+        self.addCleanup(release.set)
+
+        class Raises:
+            def available(self, *a):
+                raise RuntimeError("boom")
+
+        class Slow:
+            def available(self, *a):
+                release.wait(10)  # sonda que não volta dentro do prazo
+                return True
+
+        self.assertEqual(router.STATUS_TIMEOUT_SECONDS, 5)
+        profile = self._with_key("sk-SENTINELA-123")
+        with mock.patch.object(providers, "OpenAICompatClient", return_value=Raises()) as oa, \
+                mock.patch.object(providers, "OllamaClient", return_value=Slow()) as ol, \
+                mock.patch.object(router, "STATUS_TIMEOUT_SECONDS", 0.2):
+            started = time.monotonic()
+            out = router.status(profile=profile)
+            elapsed = time.monotonic() - started
+        self.assertLess(elapsed, 1.5)
+        self.assertEqual([p["name"] for p in out["providers"]], ["cloud", "local"])
+        self.assertEqual([p["available"] for p in out["providers"]], [False, False])
+        self.assertFalse(out["model_available"])
+        # Cada sonda usa o timeout curto do status, nunca o do perfil.
+        self.assertEqual(oa.call_args.kwargs["timeout"], 0.2)
+        self.assertEqual(ol.call_args.kwargs["timeout"], 0.2)
+
+    def test_status_probe_uses_five_second_timeout(self):
+        out, oa, ol = self._status(self._with_key("x"), cloud_up=True, local_up=True)
+        self.assertEqual(oa.call_args.kwargs["timeout"], 5)
+        self.assertEqual(ol.call_args.kwargs["timeout"], 5)
 
 
 if __name__ == "__main__":
     unittest.main()
-

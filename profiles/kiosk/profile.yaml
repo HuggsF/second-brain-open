@@ -13,7 +13,7 @@ paid_reference:                 # preço usado para estimar a economia (USD por 
 providers:
   - kind: openai_compatible
     name: openrouter
-    model: google/gemma-4-27b-it
+    model: deepseek/deepseek-v4-flash-0731   # vencedor do task-eval de 2026-10-13
     base_url: https://openrouter.ai/api/v1
     api_key_env: OPENROUTER_API_KEY
     timeout_seconds: 20
@@ -22,9 +22,9 @@ providers:
       provider:
         data_collection: deny
         zdr: true
-    price:
-      input: 0.10
-      output: 0.20
+    price:                            # lista pública do provedor, USD por 1M tokens
+      input: 0.016
+      output: 0.64
   - kind: ollama
     model: llama3.2:3b
     timeout_seconds: 120
