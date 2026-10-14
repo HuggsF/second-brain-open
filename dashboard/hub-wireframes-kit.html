@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub Logístico — Kit de Wireframes Agnósticos (KIOSK Brands)</title>
+  <style>
+    /* CSS Agnóstico Embutido para Portabilidade Completa */
+    :root {
+      --hub-bg: #0d1117;
+      --hub-surface: #161b22;
+      --hub-surface-raised: #21262d;
+      --hub-border: #30363d;
+      --hub-border-focus: #58a6ff;
+      --hub-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --hub-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --hub-text-primary: #f0f6fc;
+      --hub-text-secondary: #8b949e;
+      --hub-text-muted: #6e7681;
+      --hub-primary: #238636;
+      --hub-primary-hover: #2ea043;
+      --hub-primary-fg: #ffffff;
+      --hub-danger: #da3633;
+      --hub-danger-hover: #f85149;
+      --hub-danger-fg: #ffffff;
+      
+      --hub-status-success-bg: rgba(46, 160, 67, 0.15);
+      --hub-status-success-border: rgba(46, 160, 67, 0.4);
+      --hub-status-success-text: #3fb950;
+      --hub-status-pending-bg: rgba(187, 128, 9, 0.15);
+      --hub-status-pending-border: rgba(187, 128, 9, 0.4);
+      --hub-status-pending-text: #d29922;
+      --hub-status-processing-bg: rgba(56, 139, 253, 0.15);
+      --hub-status-processing-border: rgba(56, 139, 253, 0.4);
+      --hub-status-processing-text: #58a6ff;
+      --hub-status-failed-bg: rgba(248, 81, 73, 0.15);
+      --hub-status-failed-border: rgba(248, 81, 73, 0.4);
+      --hub-status-failed-text: #f85149;
+      
+      --hub-radius-sm: 4px;
+      --hub-radius-md: 6px;
+      --hub-radius-lg: 10px;
+      --hub-radius-full: 9999px;
+      --hub-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --hub-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+    [data-theme="light"] {
+      --hub-bg: #f6f8fa;
+      --hub-surface: #ffffff;
+      --hub-surface-raised: #f3f4f6;
+      --hub-border: #d0d7de;
+      --hub-border-focus: #0969da;
+      --hub-text-primary: #1f2328;
+      --hub-text-secondary: #57606a;
+      --hub-text-muted: #8c959f;
+      --hub-primary: #1a7f37;
+      --hub-primary-hover: #2da44e;
+      --hub-status-success-bg: #dafbe1;
+      --hub-status-success-border: #4ac26b;
+      --hub-status-success-text: #116329;
+      --hub-status-pending-bg: #fff8c5;
+      --hub-status-pending-border: #d4a72c;
+      --hub-status-pending-text: #7d4e00;
+      --hub-status-processing-bg: #ddf4ff;
+      --hub-status-processing-border: #54aeff;
+      --hub-status-processing-text: #0969da;
+      --hub-status-failed-bg: #ffebe9;
+      --hub-status-failed-border: #ff8182;
+      --hub-status-failed-text: #cf222e;
+      --hub-shadow: 0 2px 8px rgba(31, 35, 40, 0.08);
+      --hub-shadow-lg: 0 8px 24px rgba(31, 35, 40, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--hub-font); background: var(--hub-bg); color: var(--hub-text-primary); line-height: 1.5; }
+    
+    .hub-layout { display: flex; min-height: 100vh; }
+    .hub-sidebar { width: 250px; background: var(--hub-surface); border-right: 1px solid var(--hub-border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .hub-sidebar-header { padding: 18px 20px; border-bottom: 1px solid var(--hub-border); display: flex; align-items: center; justify-content: space-between; }
+    .hub-sidebar-brand { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .hub-nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .hub-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--hub-radius-md); color: var(--hub-text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; border: none; background: transparent; width: 100%; text-align: left; }
+    .hub-nav-item:hover { background: var(--hub-surface-raised); color: var(--hub-text-primary); }
+    .hub-nav-item.active { background: var(--hub-status-processing-bg); color: var(--hub-status-processing-text); font-weight: 600; }
+    
+    .hub-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .hub-topbar { height: 60px; background: var(--hub-surface); border-bottom: 1px solid var(--hub-border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+    .hub-content { padding: 24px; flex: 1; max-width: 1300px; }
+    
+    .hub-card { background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: var(--hub-radius-lg); padding: 20px; margin-bottom: 24px; box-shadow: var(--hub-shadow); }
+    .hub-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .hub-card-title { font-size: 16px; font-weight: 600; }
+    
+    .hub-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .hub-kpi-card { background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: var(--hub-radius-lg); padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+    .hub-kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--hub-text-secondary); }
+    .hub-kpi-value { font-size: 26px; font-weight: 700; color: var(--hub-text-primary); }
+    .hub-kpi-footer { font-size: 12px; color: var(--hub-text-muted); display: flex; align-items: center; gap: 8px; margin-top: auto; }
+    
+    .hub-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--hub-radius-full); font-size: 12px; font-weight: 600; border: 1px solid transparent; }
+    .hub-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .hub-badge.success { background: var(--hub-status-success-bg); border-color: var(--hub-status-success-border); color: var(--hub-status-success-text); }
+    .hub-badge.pending { background: var(--hub-status-pending-bg); border-color: var(--hub-status-pending-border); color: var(--hub-status-pending-text); }
+    .hub-badge.processing { background: var(--hub-status-processing-bg); border-color: var(--hub-status-processing-border); color: var(--hub-status-processing-text); }
+    .hub-badge.failed { background: var(--hub-status-failed-bg); border-color: var(--hub-status-failed-border); color: var(--hub-status-failed-text); }
+    
+    .hub-table-wrapper { overflow-x: auto; border: 1px solid var(--hub-border); border-radius: var(--hub-radius-md); background: var(--hub-surface); }
+    .hub-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    .hub-table th { background: var(--hub-surface-raised); padding: 12px 16px; font-weight: 600; color: var(--hub-text-secondary); border-bottom: 1px solid var(--hub-border); white-space: nowrap; }
+    .hub-table td { padding: 12px 16px; border-bottom: 1px solid var(--hub-border); color: var(--hub-text-primary); }
+    .hub-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .hub-code { font-family: var(--hub-font-mono); font-size: 12px; background: var(--hub-surface-raised); padding: 2px 6px; border-radius: var(--hub-radius-sm); border: 1px solid var(--hub-border); }
+    
+    .hub-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 8px 14px; font-size: 13px; font-weight: 600; border-radius: var(--hub-radius-md); border: 1px solid var(--hub-border); background: var(--hub-surface-raised); color: var(--hub-text-primary); cursor: pointer; text-decoration: none; transition: all 0.15s ease; }
+    .hub-btn:hover { background: var(--hub-border); }
+    .hub-btn-primary { background: var(--hub-primary); border-color: var(--hub-primary); color: #fff; }
+    .hub-btn-primary:hover { background: var(--hub-primary-hover); }
+    .hub-btn-danger { background: var(--hub-danger); border-color: var(--hub-danger); color: #fff; }
+    .hub-btn-danger:hover { background: var(--hub-danger-hover); }
+    .hub-btn-sm { min-height: 30px; padding: 4px 10px; font-size: 12px; }
+    
+    .hub-filter-bar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; align-items: center; }
+    .hub-input, .hub-select { min-height: 38px; padding: 8px 12px; background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: var(--hub-radius-md); color: var(--hub-text-primary); font-size: 13px; outline: none; }
+    .hub-input:focus, .hub-select:focus { border-color: var(--hub-border-focus); }
+    
+    .hub-alert { padding: 14px 18px; border-radius: var(--hub-radius-md); margin-bottom: 20px; display: flex; align-items: flex-start; gap: 12px; font-size: 13px; border: 1px solid transparent; }
+    .hub-alert.warning { background: var(--hub-status-pending-bg); border-color: var(--hub-status-pending-border); color: var(--hub-status-pending-text); }
+    
+    .hub-modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 999; }
+    .hub-modal { background: var(--hub-surface); border: 1px solid var(--hub-border); border-radius: var(--hub-radius-lg); padding: 24px; max-width: 480px; width: 90%; box-shadow: var(--hub-shadow-lg); }
+    .hub-modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .hub-modal-desc { font-size: 13px; color: var(--hub-text-secondary); margin-bottom: 20px; }
+    .hub-modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+
+    .hub-banner-top { background: linear-gradient(90deg, #1f6feb 0%, #238636 100%); color: #fff; padding: 8px 16px; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  </style>
+</head>
+<body>
+
+  <div class="hub-banner-top">
+    <span>📐 HUB LOGÍSTICO — Modelos de Wireframes Agnósticos (HTML/CSS Puro)</span>
+    <span>Pronto para uso amanhã no trabalho</span>
+  </div>
+
+  <div class="hub-layout">
+    <!-- Sidebar -->
+    <aside class="hub-sidebar">
+      <div class="hub-sidebar-header">
+        <span class="hub-sidebar-brand">📦 Hub Logístico</span>
+        <button class="hub-btn hub-btn-sm" id="btn-theme" title="Alternar tema">🌓</button>
+      </div>
+      <nav class="hub-nav">
+        <button class="hub-nav-item active" onclick="showTab('tab-cockpit')">📊 1. Cockpit & Saúde</button>
+        <button class="hub-nav-item" onclick="showTab('tab-fila')">📋 2. Fila de Pedidos</button>
+        <button class="hub-nav-item" onclick="showTab('tab-auditoria')">🛡️ 3. Auditoria J&T</button>
+        <button class="hub-nav-item" onclick="showTab('tab-componentes')">🧩 4. Guia de Snippets</button>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="hub-main">
+      <header class="hub-topbar">
+        <div style="font-size: 13px; color: var(--hub-text-secondary);">
+          Ambiente: <strong style="color: var(--hub-status-success-text);">SRV-API Produção</strong> (191.233.18.195)
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <span class="hub-badge processing">Fila Ativa: 17 pedidos</span>
+          <button class="hub-btn hub-btn-sm" onclick="abrirModal()">Testar Modal Destrutivo</button>
+        </div>
+      </header>
+
+      <div class="hub-content">
+
+        <!-- ABA 1: COCKPIT -->
+        <section id="tab-cockpit">
+          <div class="hub-card-header">
+            <div>
+              <h1 style="font-size: 20px; font-weight: 700;">Cockpit Operacional do Hub</h1>
+              <p style="font-size: 13px; color: var(--hub-text-secondary);">Visão holística de tokens, filas e processamento de etiquetas</p>
+            </div>
+            <button class="hub-btn hub-btn-primary">⚡ Forçar Ciclo da Fila</button>
+          </div>
+
+          <div class="hub-kpi-grid">
+            <!-- Semáforo Token OAuth -->
+            <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-success-text);">
+              <span class="hub-kpi-label">Token OAuth Bling v3</span>
+              <div class="hub-kpi-value" style="font-size: 22px; color: var(--hub-status-success-text);">4h 12m</div>
+              <div class="hub-kpi-footer">
+                <span class="hub-badge success">Válido</span>
+                <button class="hub-btn hub-btn-sm" style="margin-left: auto;">Renovar</button>
+              </div>
+            </div>
+
+            <!-- Fila Pendente -->
+            <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-pending-text);">
+              <span class="hub-kpi-label">Fila Pendente</span>
+              <div class="hub-kpi-value" style="color: var(--hub-status-pending-text);">14</div>
+              <div class="hub-kpi-footer">
+                <span class="hub-badge pending">Aguardando slot</span>
+              </div>
+            </div>
+
+            <!-- Falhas / Revisão -->
+            <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-failed-text);">
+              <span class="hub-kpi-label">Falhas (Retry)</span>
+              <div class="hub-kpi-value" style="color: var(--hub-status-failed-text);">3</div>
+              <div class="hub-kpi-footer">
+                <span class="hub-badge failed">Requer atenção</span>
+              </div>
+            </div>
+
+            <!-- Taxa de Sucesso -->
+            <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-processing-text);">
+              <span class="hub-kpi-label">Taxa de Sucesso (Hoje)</span>
+              <div class="hub-kpi-value" style="color: var(--hub-status-processing-text);">98.2%</div>
+              <div class="hub-kpi-footer">
+                <span>528 emitidas com sucesso</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hub-card">
+            <h3 class="hub-card-title" style="margin-bottom: 12px;">Conectores Ativos</h3>
+            <div class="hub-table-wrapper">
+              <table class="hub-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Nome</th>
+                    <th>Rótulo Operacional</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td><span class="hub-code">erp</span></td>
+                    <td>Bling ERP v3</td>
+                    <td>API Central de Pedidos</td>
+                    <td><span class="hub-badge success">Conectado</span></td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td><span class="hub-code">carrier</span></td>
+                    <td>J&T Express</td>
+                    <td>ESPIRITO SANTO - J&T (Galpão Viana)</td>
+                    <td><span class="hub-badge success">Ativo</span></td>
+                  </tr>
+                  <tr>
+                    <td>3</td>
+                    <td><span class="hub-code">carrier</span></td>
+                    <td>J&T Express</td>
+                    <td>RECIFE - J&T (Galpão Recife)</td>
+                    <td><span class="hub-badge success">Ativo</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA 2: FILA DE PEDIDOS -->
+        <section id="tab-fila" style="display: none;">
+          <div class="hub-card">
+            <div class="hub-card-header">
+              <div>
+                <h2 class="hub-card-title">Fila de Emissão de Etiquetas (orders_queue)</h2>
+                <p style="font-size: 13px; color: var(--hub-text-secondary);">Gerenciamento de admissão, processamento e sincronização com Bling</p>
+              </div>
+              <button class="hub-btn hub-btn-primary">⚡ Processar Agora</button>
+            </div>
+
+            <div class="hub-filter-bar">
+              <input type="text" class="hub-input" id="filtro-busca" placeholder="Buscar por ERP ID ou Rastreio..." style="min-width: 260px;" onkeyup="filtrarTabela()">
+              <select class="hub-select" id="filtro-status" onchange="filtrarTabela()">
+                <option value="">Todos os Status</option>
+                <option value="success">Success</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+              </select>
+              <select class="hub-select">
+                <option value="">Todas as Lojas</option>
+                <option value="recife">KIOSK RECIFE</option>
+                <option value="es">KIOSK ESPIRITO SANTO</option>
+              </select>
+              <button class="hub-btn hub-btn-sm" onclick="limparFiltros()">Limpar</button>
+            </div>
+
+            <div class="hub-table-wrapper">
+              <table class="hub-table" id="tabela-fila">
+                <thead>
+                  <tr>
+                    <th>Fila ID</th>
+                    <th>ERP ID (Bling)</th>
+                    <th>Loja</th>
+                    <th>Status</th>
+                    <th>Rastreio J&T</th>
+                    <th>Tentativas</th>
+                    <th>Timestamp</th>
+                    <th style="text-align: right;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="hub-code">#4128</td>
+                    <td><strong>27092088358</strong></td>
+                    <td>KIOSK RECIFE</td>
+                    <td><span class="hub-badge success"><span class="hub-badge-dot"></span>success</span></td>
+                    <td><span class="hub-code">899296264686</span></td>
+                    <td>1</td>
+                    <td style="color: var(--hub-text-secondary);">13/10 20:45</td>
+                    <td style="text-align: right;">
+                      <button class="hub-btn hub-btn-sm">Detalhes</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="hub-code">#4129</td>
+                    <td><strong>27092088359</strong></td>
+                    <td>KIOSK ESPIRITO SANTO</td>
+                    <td><span class="hub-badge failed"><span class="hub-badge-dot"></span>failed</span></td>
+                    <td><span style="color: var(--hub-text-muted);">—</span></td>
+                    <td><strong style="color: var(--hub-status-failed-text);">3</strong></td>
+                    <td style="color: var(--hub-text-secondary);">13/10 20:42</td>
+                    <td style="text-align: right;">
+                      <button class="hub-btn hub-btn-sm hub-btn-primary">Retentar</button>
+                      <button class="hub-btn hub-btn-sm hub-btn-danger" onclick="abrirModal()">Cancelar</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="hub-code">#4130</td>
+                    <td><strong>27092088360</strong></td>
+                    <td>KIOSK RECIFE</td>
+                    <td><span class="hub-badge pending"><span class="hub-badge-dot"></span>pending</span></td>
+                    <td><span style="color: var(--hub-text-muted);">Aguardando</span></td>
+                    <td>0</td>
+                    <td style="color: var(--hub-text-secondary);">13/10 20:50</td>
+                    <td style="text-align: right;">
+                      <button class="hub-btn hub-btn-sm">Ver</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA 3: AUDITORIA -->
+        <section id="tab-auditoria" style="display: none;">
+          <div class="hub-card">
+            <h2 class="hub-card-title" style="margin-bottom: 12px;">Auditoria Anti-Duplicidade (J&T Express)</h2>
+            <div class="hub-alert warning">
+              <span>🛡️</span>
+              <div>
+                <strong>Mecanismo de Proteção Ativo:</strong> Todo pedido emitido é registrado em <code>jt_emissions</code> antes da chamada externa. Caso o webhook do Bling seja disparado novamente, o Hub bloqueia a emissão duplicada de etiqueta e reutiliza o rastreio existente.
+              </div>
+            </div>
+
+            <div class="hub-table-wrapper">
+              <table class="hub-table">
+                <thead>
+                  <tr>
+                    <th>ERP ID</th>
+                    <th>txlogisticId (ID Único Hub)</th>
+                    <th>Estado</th>
+                    <th>billCode (J&T)</th>
+                    <th>Data Emissão</th>
+                    <th>Proteção</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>27069630582</strong></td>
+                    <td class="hub-code">HUB-27069630582-1791581195035</td>
+                    <td><span class="hub-badge success">confirmed</span></td>
+                    <td class="hub-code">899296264686</td>
+                    <td>13/10 18:22:10</td>
+                    <td><span class="hub-badge success">Sem Duplicidade</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA 4: COMPONENTES & SNIPPETS -->
+        <section id="tab-componentes" style="display: none;">
+          <div class="hub-card">
+            <h2 class="hub-card-title">Biblioteca de Snippets para Copiar no Trabalho</h2>
+            <p style="font-size: 13px; color: var(--hub-text-secondary); margin-bottom: 20px;">Copie e cole diretamente no seu arquivo Blade, PHP ou HTML do Hub:</p>
+
+            <h4 style="font-size: 14px; margin-bottom: 8px;">1. Badge de Status</h4>
+            <pre style="background: var(--hub-surface-raised); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; border: 1px solid var(--hub-border); margin-bottom: 20px;"><code>&lt;span class="hub-badge success"&gt;&lt;span class="hub-badge-dot"&gt;&lt;/span&gt;success&lt;/span&gt;
+&lt;span class="hub-badge pending"&gt;&lt;span class="hub-badge-dot"&gt;&lt;/span&gt;pending&lt;/span&gt;
+&lt;span class="hub-badge failed"&gt;&lt;span class="hub-badge-dot"&gt;&lt;/span&gt;failed&lt;/span&gt;</code></pre>
+
+            <h4 style="font-size: 14px; margin-bottom: 8px;">2. Cartão de KPI</h4>
+            <pre style="background: var(--hub-surface-raised); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; border: 1px solid var(--hub-border); margin-bottom: 20px;"><code>&lt;div class="hub-kpi-card"&gt;
+  &lt;span class="hub-kpi-label"&gt;Fila Pendente&lt;/span&gt;
+  &lt;div class="hub-kpi-value"&gt;14&lt;/div&gt;
+  &lt;div class="hub-kpi-footer"&gt;
+    &lt;span class="hub-badge pending"&gt;Aguardando slot&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+            <h4 style="font-size: 14px; margin-bottom: 8px;">3. Botão com Ação Segura</h4>
+            <pre style="background: var(--hub-surface-raised); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; border: 1px solid var(--hub-border);"><code>&lt;button class="hub-btn hub-btn-sm hub-btn-primary"&gt;Retentar&lt;/button&gt;
+&lt;button class="hub-btn hub-btn-sm hub-btn-danger"&gt;Cancelar&lt;/button&gt;</code></pre>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Destrutivo Seguro (UX Engine Gate) -->
+  <div class="hub-modal-backdrop" id="modal-cancelar">
+    <div class="hub-modal">
+      <h3 class="hub-modal-title">Cancelar Processamento do Pedido?</h3>
+      <p class="hub-modal-desc">
+        O pedido Bling <strong id="modal-pedido-id">#27092088359</strong> será marcado como <code>cancelado</code> na fila. Nenhuma etiqueta J&T será emitida e o rastreio não será sincronizado.
+      </p>
+      <div class="hub-modal-actions">
+        <!-- Foco padrão sempre no botão seguro -->
+        <button class="hub-btn" id="btn-cancelar-modal" onclick="fecharModal()">Manter na Fila</button>
+        <button class="hub-btn hub-btn-danger" onclick="confirmarCancelamento()">Sim, Cancelar Pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.hub-content > section').forEach(sec => sec.style.display = 'none');
+      document.querySelectorAll('.hub-nav-item').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      event.currentTarget.classList.add('active');
+    }
+
+    function abrirModal() {
+      document.getElementById('modal-cancelar').style.display = 'flex';
+      document.getElementById('btn-cancelar-modal').focus();
+    }
+
+    function fecharModal() {
+      document.getElementById('modal-cancelar').style.display = 'none';
+    }
+
+    function confirmarCancelamento() {
+      alert('Ação confirmada de forma segura.');
+      fecharModal();
+    }
+
+    function filtrarTabela() {
+      const busca = document.getElementById('filtro-busca').value.toLowerCase();
+      const status = document.getElementById('filtro-status').value.toLowerCase();
+      const linhas = document.querySelectorAll('#tabela-fila tbody tr');
+
+      linhas.forEach(linha => {
+        const texto = linha.textContent.toLowerCase();
+        const matchBusca = texto.includes(busca);
+        const matchStatus = !status || texto.includes(status);
+        linha.style.display = (matchBusca && matchStatus) ? '' : 'none';
+      });
+    }
+
+    function limparFiltros() {
+      document.getElementById('filtro-busca').value = '';
+      document.getElementById('filtro-status').value = '';
+      filtrarTabela();
+    }
+
+    // Alternar tema Dark/Light
+    document.getElementById('btn-theme').addEventListener('click', () => {
+      const atual = document.documentElement.getAttribute('data-theme');
+      document.documentElement.setAttribute('data-theme', atual === 'light' ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>
