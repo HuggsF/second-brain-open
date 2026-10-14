@@ -305,6 +305,81 @@ Implementa a regra de ouro do `ux-engine-kiosk`: **o foco inicial NUNCA é na a�
 
 ---
 
+### 📈 Wireframe 6: Cockpit de Analytics de Vendas & Fulfillment (Bling v3 + Hub)
+Transforma a página genérica de analytics em um dashboard integrado de GMV, pedidos faturados no Bling e conversão logística.
+
+```html
+<section class="hub-card">
+  <div class="hub-card-header">
+    <div>
+      <h2 class="hub-card-title">Analytics de Vendas & Fulfillment (Bling v3)</h2>
+      <p style="font-size: 13px; color: var(--hub-text-secondary);">Métricas de GMV, ticket médio e conversão da fila logística do Hub</p>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+      <select class="hub-select" id="filtro-periodo">
+        <option value="30d">Últimos 30 Dias</option>
+        <option value="7d">Últimos 7 Dias</option>
+        <option value="hoje">Hoje</option>
+      </select>
+      <select class="hub-select" id="filtro-loja">
+        <option value="ALL">Todas as Lojas (Holding)</option>
+        <option value="206085936">KIOSK ESPIRITO SANTO</option>
+        <option value="206084387">KIOSK RECIFE</option>
+      </select>
+      <button class="hub-btn hub-btn-primary">🔄 Sincronizar Bling</button>
+    </div>
+  </div>
+
+  <!-- KPI Cards de Vendas & Operação -->
+  <div class="hub-kpi-grid">
+    <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-success-text);">
+      <span class="hub-kpi-label">Faturamento Total (GMV)</span>
+      <div class="hub-kpi-value" style="font-size: 24px; color: var(--hub-status-success-text);">R$ 248.950,80</div>
+      <div class="hub-kpi-footer"><span class="hub-badge success">+18.4%</span> vs mês anterior</div>
+    </div>
+    <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-processing-text);">
+      <span class="hub-kpi-label">Pedidos Faturados</span>
+      <div class="hub-kpi-value" style="color: var(--hub-status-processing-text);">1.284</div>
+      <div class="hub-kpi-footer"><span>Situação: <strong>Atendido (sit 9)</strong></span></div>
+    </div>
+    <div class="hub-kpi-card" style="border-left: 4px solid #8b5cf6;">
+      <span class="hub-kpi-label">Ticket Médio</span>
+      <div class="hub-kpi-value" style="color: #8b5cf6;">R$ 193,89</div>
+      <div class="hub-kpi-footer"><span>Média por pedido</span></div>
+    </div>
+    <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-pending-text);">
+      <span class="hub-kpi-label">SLA Fulfillment Hub</span>
+      <div class="hub-kpi-value" style="color: var(--hub-status-pending-text);">97.8%</div>
+      <div class="hub-kpi-footer"><span>1.256 emitidas / 28 na fila</span></div>
+    </div>
+  </div>
+
+  <!-- Gráfico Diário e Funil -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-top: 16px;">
+    <div class="hub-card" style="margin-bottom: 0;">
+      <h3 class="hub-card-title" style="margin-bottom: 12px;">Curva de Vendas Diárias (R$)</h3>
+      <!-- Gráfico SVG nativo leve sem bibliotecas pesadas -->
+      <svg viewBox="0 0 500 140" style="width: 100%; height: 140px;">
+        <rect x="50" y="50" width="24" height="80" rx="4" fill="var(--hub-primary)"></rect>
+        <rect x="100" y="40" width="24" height="90" rx="4" fill="var(--hub-primary)"></rect>
+        <rect x="150" y="30" width="24" height="100" rx="4" fill="var(--hub-status-success-border)"></rect>
+      </svg>
+    </div>
+
+    <div class="hub-card" style="margin-bottom: 0;">
+      <h3 class="hub-card-title" style="margin-bottom: 12px;">Funil de Fulfillment Operacional</h3>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div>Bling (1.284 Atendidos) <div style="height: 6px; background: #3b82f6; border-radius: 3px; width: 100%;"></div></div>
+        <div>Fila Hub (1.284 Enfileirados) <div style="height: 6px; background: #6366f1; border-radius: 3px; width: 100%;"></div></div>
+        <div>J&T (1.256 Etiquetas Emitidas - 97.8%) <div style="height: 6px; background: var(--hub-status-success-border); border-radius: 3px; width: 97.8%;"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+---
+
 ## 4. Os 5 Estados Obrigatórios (State Completeness)
 
 Em conformidade com o princípio de maturidade de UX, qualquer tela do Hub deve renderizar:

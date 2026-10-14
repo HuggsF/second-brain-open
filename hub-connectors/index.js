@@ -8,6 +8,7 @@ const { BlingV3Connector } = require('./BlingV3Connector');
 const { JTExpressConnector } = require('./JTExpressConnector');
 const { CorpemWMSConnector } = require('./CorpemWMSConnector');
 const { ConnectorRegistry } = require('./ConnectorRegistry');
+const { BlingSalesAnalyticsService } = require('./BlingSalesAnalytics');
 const types = require('./types');
 
 module.exports = {
@@ -17,5 +18,6 @@ module.exports = {
   JTExpressConnector,
   CorpemWMSConnector,
   ConnectorRegistry,
+  BlingSalesAnalyticsService,
   ...types
 };

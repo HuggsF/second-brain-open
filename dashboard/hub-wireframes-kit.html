@@ -153,7 +153,8 @@
         <button class="hub-nav-item active" onclick="showTab('tab-cockpit')">📊 1. Cockpit & Saúde</button>
         <button class="hub-nav-item" onclick="showTab('tab-fila')">📋 2. Fila de Pedidos</button>
         <button class="hub-nav-item" onclick="showTab('tab-auditoria')">🛡️ 3. Auditoria J&T</button>
-        <button class="hub-nav-item" onclick="showTab('tab-componentes')">🧩 4. Guia de Snippets</button>
+        <button class="hub-nav-item" onclick="showTab('tab-analytics')">📈 4. Analytics de Vendas (Bling)</button>
+        <button class="hub-nav-item" onclick="showTab('tab-componentes')">🧩 5. Guia de Snippets</button>
       </nav>
     </aside>
 
@@ -384,7 +385,263 @@
           </div>
         </section>
 
-        <!-- ABA 4: COMPONENTES & SNIPPETS -->
+        <!-- ABA 4: ANALYTICS DE VENDAS (BLING v3) -->
+        <section id="tab-analytics" style="display: none;">
+          <div class="hub-card-header" style="margin-bottom: 20px;">
+            <div>
+              <h1 style="font-size: 20px; font-weight: 700;">Analytics de Vendas & Fulfillment (Bling v3)</h1>
+              <p style="font-size: 13px; color: var(--hub-text-secondary);">Métricas de GMV, pedidos faturados e conversão da fila logística do Hub</p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <select class="hub-select" id="analytics-periodo" onchange="alterarPeriodoAnalytics(this.value)">
+                <option value="30d">Últimos 30 Dias</option>
+                <option value="7d">Últimos 7 Dias</option>
+                <option value="hoje">Hoje</option>
+                <option value="mes">Mês Atual (Outubro)</option>
+              </select>
+              <select class="hub-select" id="analytics-loja" onchange="alterarLojaAnalytics(this.value)">
+                <option value="ALL">Todas as Lojas (Holding)</option>
+                <option value="206085936">Touti - Galpão Viana ES</option>
+                <option value="206084387">Touti - Galpão Recife PE</option>
+                <option value="206133846">Shopify E-Commerce</option>
+                <option value="206288765">Yes! Cosmetics</option>
+              </select>
+              <button class="hub-btn hub-btn-primary" onclick="simularSincronizacaoBling(this)">🔄 Sincronizar Bling</button>
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="hub-kpi-grid">
+            <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-success-text);">
+              <span class="hub-kpi-label">Faturamento Total (GMV)</span>
+              <div class="hub-kpi-value" id="kpi-gmv" style="font-size: 24px; color: var(--hub-status-success-text);">R$ 248.950,80</div>
+              <div class="hub-kpi-footer">
+                <span class="hub-badge success">+18.4%</span>
+                <span style="margin-left: auto;">vs mês anterior</span>
+              </div>
+            </div>
+
+            <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-processing-text);">
+              <span class="hub-kpi-label">Pedidos Faturados (Bling)</span>
+              <div class="hub-kpi-value" id="kpi-pedidos" style="color: var(--hub-status-processing-text);">1.284</div>
+              <div class="hub-kpi-footer">
+                <span>Situação: <strong>Atendido (sit 9)</strong></span>
+              </div>
+            </div>
+
+            <div class="hub-kpi-card" style="border-left: 4px solid #8b5cf6;">
+              <span class="hub-kpi-label">Ticket Médio</span>
+              <div class="hub-kpi-value" id="kpi-ticket" style="color: #8b5cf6;">R$ 193,89</div>
+              <div class="hub-kpi-footer">
+                <span>Média por pedido de venda</span>
+              </div>
+            </div>
+
+            <div class="hub-kpi-card" style="border-left: 4px solid var(--hub-status-pending-text);">
+              <span class="hub-kpi-label">SLA Fulfillment Hub</span>
+              <div class="hub-kpi-value" id="kpi-sla" style="color: var(--hub-status-pending-text);">97.8%</div>
+              <div class="hub-kpi-footer">
+                <span>1.256 emitidas / 28 na fila</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gráficos e Funil -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <!-- Curva de Vendas Diárias -->
+            <div class="hub-card" style="margin-bottom: 0;">
+              <div class="hub-card-header">
+                <h3 class="hub-card-title">Curva de Faturamento Diário (R$)</h3>
+                <span style="font-size: 12px; color: var(--hub-text-secondary);">Bling API v3</span>
+              </div>
+              <div style="padding: 10px 0;">
+                <svg viewBox="0 0 500 160" style="width: 100%; height: 160px; overflow: visible;">
+                  <line x1="40" y1="20" x2="480" y2="20" stroke="var(--hub-border)" stroke-dasharray="3,3" />
+                  <line x1="40" y1="60" x2="480" y2="60" stroke="var(--hub-border)" stroke-dasharray="3,3" />
+                  <line x1="40" y1="100" x2="480" y2="100" stroke="var(--hub-border)" stroke-dasharray="3,3" />
+                  <line x1="40" y1="140" x2="480" y2="140" stroke="var(--hub-border)" />
+                  <rect x="55" y="65" width="22" height="75" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>01/10: R$ 18.500</title></rect>
+                  <rect x="95" y="55" width="22" height="85" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>02/10: R$ 21.000</title></rect>
+                  <rect x="135" y="45" width="22" height="95" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>03/10: R$ 24.200</title></rect>
+                  <rect x="175" y="70" width="22" height="70" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>04/10: R$ 16.800</title></rect>
+                  <rect x="215" y="80" width="22" height="60" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>05/10: R$ 14.500</title></rect>
+                  <rect x="255" y="50" width="22" height="90" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>06/10: R$ 22.900</title></rect>
+                  <rect x="295" y="35" width="22" height="105" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>07/10: R$ 27.400</title></rect>
+                  <rect x="335" y="40" width="22" height="100" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>08/10: R$ 25.100</title></rect>
+                  <rect x="375" y="48" width="22" height="92" rx="4" fill="var(--hub-primary)" opacity="0.85"><title>09/10: R$ 23.300</title></rect>
+                  <rect x="415" y="30" width="22" height="110" rx="4" fill="var(--hub-status-success-border)"><title>10/10: R$ 29.800 (Pico)</title></rect>
+                  <text x="55" y="155" font-size="10" fill="var(--hub-text-secondary)">01/10</text>
+                  <text x="175" y="155" font-size="10" fill="var(--hub-text-secondary)">04/10</text>
+                  <text x="295" y="155" font-size="10" fill="var(--hub-text-secondary)">07/10</text>
+                  <text x="415" y="155" font-size="10" fill="var(--hub-text-secondary)">10/10</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Funil de Conversão Logística -->
+            <div class="hub-card" style="margin-bottom: 0;">
+              <div class="hub-card-header">
+                <h3 class="hub-card-title">Funil de Fulfillment Operacional</h3>
+                <span class="hub-badge success">Saúde: Excelente</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 14px; padding: 6px 0;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>1. Pedidos Atendidos (Bling)</span>
+                    <strong>1.284 (100%)</strong>
+                  </div>
+                  <div style="height: 8px; background: var(--hub-surface-raised); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 100%; height: 100%; background: #3b82f6;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>2. Enfileirados no Hub (orders_queue)</span>
+                    <strong>1.284 (100%)</strong>
+                  </div>
+                  <div style="height: 8px; background: var(--hub-surface-raised); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 100%; height: 100%; background: #6366f1;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>3. Etiquetas J&T Emitidas (Sem Duplicidade)</span>
+                    <strong style="color: var(--hub-status-success-text);">1.256 (97.8%)</strong>
+                  </div>
+                  <div style="height: 8px; background: var(--hub-surface-raised); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 97.8%; height: 100%; background: var(--hub-status-success-border);"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>4. Pendentes em Processamento / Retry</span>
+                    <strong style="color: var(--hub-status-pending-text);">28 (2.2%)</strong>
+                  </div>
+                  <div style="height: 8px; background: var(--hub-surface-raised); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 2.2%; height: 100%; background: var(--hub-status-pending-border);"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Breakdown por Canal & Top SKUs -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-top: 24px;">
+            <!-- Canais / Lojas -->
+            <div class="hub-card" style="margin-bottom: 0;">
+              <h3 class="hub-card-title" style="margin-bottom: 14px;">Vendas por Canal / Loja Bling</h3>
+              <div class="hub-table-wrapper">
+                <table class="hub-table">
+                  <thead>
+                    <tr>
+                      <th>Canal / Holding</th>
+                      <th>Pedidos</th>
+                      <th>Faturamento</th>
+                      <th>Share</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>KIOSK ESPIRITO SANTO</strong><br><span style="font-size: 11px; color: var(--hub-text-secondary);">Touti Cosmetics Viana</span></td>
+                      <td>590</td>
+                      <td><strong>R$ 114.500</strong></td>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <div style="width: 60px; height: 6px; background: var(--hub-surface-raised); border-radius: 3px; overflow: hidden;">
+                            <div style="width: 46%; height: 100%; background: var(--hub-primary);"></div>
+                          </div>
+                          <span>46%</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>KIOSK RECIFE</strong><br><span style="font-size: 11px; color: var(--hub-text-secondary);">Touti Cosmetics PE</span></td>
+                      <td>380</td>
+                      <td><strong>R$ 72.150</strong></td>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <div style="width: 60px; height: 6px; background: var(--hub-surface-raised); border-radius: 3px; overflow: hidden;">
+                            <div style="width: 29%; height: 100%; background: var(--hub-primary);"></div>
+                          </div>
+                          <span>29%</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Shopify E-Commerce</strong><br><span style="font-size: 11px; color: var(--hub-text-secondary);">Loja Virtual Online</span></td>
+                      <td>194</td>
+                      <td><strong>R$ 39.800</strong></td>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <div style="width: 60px; height: 6px; background: var(--hub-surface-raised); border-radius: 3px; overflow: hidden;">
+                            <div style="width: 16%; height: 100%; background: var(--hub-primary);"></div>
+                          </div>
+                          <span>16%</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Yes! Cosmetics</strong><br><span style="font-size: 11px; color: var(--hub-text-secondary);">Canal Franqueados</span></td>
+                      <td>120</td>
+                      <td><strong>R$ 22.500</strong></td>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <div style="width: 60px; height: 6px; background: var(--hub-surface-raised); border-radius: 3px; overflow: hidden;">
+                            <div style="width: 9%; height: 100%; background: var(--hub-primary);"></div>
+                          </div>
+                          <span>9%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Top SKUs Mais Vendidos -->
+            <div class="hub-card" style="margin-bottom: 0;">
+              <h3 class="hub-card-title" style="margin-bottom: 14px;">Top SKUs Mais Vendidos (Bling)</h3>
+              <div class="hub-table-wrapper">
+                <table class="hub-table">
+                  <thead>
+                    <tr>
+                      <th>SKU & Produto</th>
+                      <th>Unidades</th>
+                      <th>Receita Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="hub-code">TOUTI-VIP-50</span><br><strong>Perfume Touti VIP 50ml</strong></td>
+                      <td>1.420 un</td>
+                      <td><strong>R$ 106.500</strong></td>
+                    </tr>
+                    <tr>
+                      <td><span class="hub-code">KIT-AMAVIA-REC</span><br><strong>Kit Reconstrutor Capilar Amavia</strong></td>
+                      <td>890 un</td>
+                      <td><strong>R$ 62.300</strong></td>
+                    </tr>
+                    <tr>
+                      <td><span class="hub-code">YES-MATTE-RED</span><br><strong>Batom Yes! Matte Red Velvet</strong></td>
+                      <td>620 un</td>
+                      <td><strong>R$ 21.700</strong></td>
+                    </tr>
+                    <tr>
+                      <td><span class="hub-code">SERUM-AMAVIA-OIL</span><br><strong>Sérum Capilar Argan Amavia</strong></td>
+                      <td>410 un</td>
+                      <td><strong>R$ 18.450</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA 5: COMPONENTES & SNIPPETS -->
         <section id="tab-componentes" style="display: none;">
           <div class="hub-card">
             <h2 class="hub-card-title">Biblioteca de Snippets para Copiar no Trabalho</h2>
@@ -468,6 +725,54 @@
       document.getElementById('filtro-busca').value = '';
       document.getElementById('filtro-status').value = '';
       filtrarTabela();
+    }
+
+    function alterarPeriodoAnalytics(periodo) {
+      const gmv = document.getElementById('kpi-gmv');
+      const pedidos = document.getElementById('kpi-pedidos');
+      const ticket = document.getElementById('kpi-ticket');
+      const sla = document.getElementById('kpi-sla');
+
+      if (periodo === 'hoje') {
+        gmv.textContent = 'R$ 14.820,00';
+        pedidos.textContent = '82';
+        ticket.textContent = 'R$ 180,73';
+        sla.textContent = '98.8%';
+      } else if (periodo === '7d') {
+        gmv.textContent = 'R$ 96.400,50';
+        pedidos.textContent = '498';
+        ticket.textContent = 'R$ 193,57';
+        sla.textContent = '97.2%';
+      } else {
+        gmv.textContent = 'R$ 248.950,80';
+        pedidos.textContent = '1.284';
+        ticket.textContent = 'R$ 193,89';
+        sla.textContent = '97.8%';
+      }
+    }
+
+    function alterarLojaAnalytics(lojaId) {
+      const gmv = document.getElementById('kpi-gmv');
+      if (lojaId === '206085936') {
+        gmv.textContent = 'R$ 114.500,00';
+      } else if (lojaId === '206084387') {
+        gmv.textContent = 'R$ 72.150,00';
+      } else {
+        alterarPeriodoAnalytics(document.getElementById('analytics-periodo').value);
+      }
+    }
+
+    function simularSincronizacaoBling(btn) {
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳ Conectando Bling v3...';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.innerHTML = '✅ Dados Sincronizados!';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }, 1500);
+      }, 700);
     }
 
     // Alternar tema Dark/Light
