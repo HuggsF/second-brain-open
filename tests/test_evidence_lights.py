@@ -158,6 +158,67 @@ class TestRuleLight(LightBase):
         self.assertNotIn("segredo", self.light(pb("PB-001"))["reason"])
 
 
+class TestOwnEnvironmentRules(LightBase):
+    def test_newer_local_pass_does_not_hide_hml_failure(self):
+        self.record("PB-002", "fail", "hml", hours_ago=5)
+        self.record("PB-002", "pass", "local", hours_ago=1)
+        result = self.light(pb("PB-002", "hml"))
+        self.assertEqual(result["light"], "red")
+        self.assertIn("PB-002", result["reason"])
+        self.assertIn("hml", result["reason"])
+        self.assertIn("2026-10-14", result["reason"])
+
+    def test_own_environment_error_is_red_with_environment_in_reason(self):
+        self.record("PB-002", "error", "hml", hours_ago=5)
+        self.record("PB-002", "pass", "local", hours_ago=1)
+        result = self.light(pb("PB-002", "hml"))
+        self.assertEqual(result["light"], "red")
+        self.assertIn("hml", result["reason"])
+
+    def test_many_newer_local_runs_do_not_hide_a_fresh_hml_pass(self):
+        self.record("PB-002", "pass", "hml", hours_ago=10)
+        for minutes in range(60):
+            self.record("PB-002", "pass", "local", ts=(NOW - timedelta(minutes=minutes)).isoformat())
+        self.assertEqual(self.light(pb("PB-002", "hml"))["light"], "green")
+
+    def test_many_newer_local_passes_do_not_hide_an_hml_failure(self):
+        self.record("PB-002", "fail", "hml", hours_ago=10)
+        for minutes in range(60):
+            self.record("PB-002", "pass", "local", ts=(NOW - timedelta(minutes=minutes)).isoformat())
+        result = self.light(pb("PB-002", "hml"))
+        self.assertEqual(result["light"], "red")
+        self.assertIn("hml", result["reason"])
+
+    def test_skipped_run_in_another_environment_does_not_decide(self):
+        self.record("PB-002", "pass", "hml", hours_ago=1)
+        self.record("PB-002", "skipped", "local", ts=(NOW - timedelta(minutes=10)).isoformat())
+        self.assertEqual(self.light(pb("PB-002", "hml"))["light"], "green")
+
+    def test_own_environment_skipped_after_older_own_pass_is_yellow(self):
+        self.record("PB-002", "pass", "hml", hours_ago=10)
+        self.record("PB-002", "skipped", "hml", hours_ago=1)
+        result = self.light(pb("PB-002", "hml"))
+        self.assertEqual(result["light"], "yellow")
+        self.assertIn("PB-002", result["reason"])
+
+    def test_invalid_ts_row_among_fetched_rows_keeps_playbook_yellow(self):
+        # Conservative choice: one unusable row makes the playbook yellow even with a fresh valid pass.
+        self.record("PB-001", "pass", hours_ago=1)
+        self.record("PB-001", "pass", ts="not-a-date")
+        result = self.light(pb("PB-001"))
+        self.assertEqual(result["light"], "yellow")
+        self.assertIn("PB-001", result["reason"])
+
+
+class TestStoreEnvironmentFilter(LightBase):
+    def test_latest_filters_by_environment_and_default_is_unchanged(self):
+        self.record("PB-001", "pass", "hml", hours_ago=3)
+        self.record("PB-001", "pass", "local", hours_ago=1)
+        self.assertEqual(len(self.store.latest("PB-001", 10)), 2)
+        rows = self.store.latest("PB-001", 10, environment="hml")
+        self.assertEqual([r["environment"] for r in rows], ["hml"])
+
+
 class TestListRulesLights(LightBase):
     def test_existing_state_field_unchanged_and_light_fields_added(self):
         defs = make_defs(pb("PB-001", "local"), pb("PB-002", "hml"))

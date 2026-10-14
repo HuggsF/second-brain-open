@@ -120,13 +120,15 @@ class EvidenceStore:
         finally:
             conn.close()
 
-    def latest(self, playbook_id: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def latest(self, playbook_id: str, limit: int = 5, environment: Optional[str] = None) -> List[Dict[str, Any]]:
         conn = self._connect()
         try:
-            rows = conn.execute(
-                "SELECT * FROM executions WHERE playbook_id = ? ORDER BY ts DESC, id DESC LIMIT ?",
-                (playbook_id, max(1, int(limit))),
-            ).fetchall()
+            sql = "SELECT * FROM executions WHERE playbook_id = ?"
+            params: List[Any] = [playbook_id]
+            if environment is not None:
+                sql += " AND environment = ?"
+                params.append(environment)
+            rows = conn.execute(sql + " ORDER BY ts DESC, id DESC LIMIT ?", (*params, max(1, int(limit)))).fetchall()
             return [dict(r) for r in rows]
         except sqlite3.DatabaseError as exc:
             raise self._error(exc) from exc

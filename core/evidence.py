@@ -280,7 +280,7 @@ def rule_evidence(defs: Definitions, store: EvidenceStore, rule_id: str, limit: 
     }
 
 
-_LIGHT_FETCH = 50
+_LIGHT_FETCH = 5  # rows per query: latest overall and latest in the playbook's own environment
 _FUTURE_TOLERANCE = timedelta(minutes=5)
 
 
@@ -299,33 +299,38 @@ def _parse_ts(value: Any) -> Optional[datetime]:
 
 
 def _playbook_light(playbook: Playbook, store: EvidenceStore, now: datetime) -> Tuple[str, str]:
-    """(light, reason) of one counted playbook; "none" means it has no execution at all."""
-    rows = store.latest(playbook.id, _LIGHT_FETCH)
-    if not rows:
+    """(light, reason) of one counted playbook; "none" means it has no execution at all.
+
+    Two small queries instead of one fixed window: the latest rows overall and the latest rows in the
+    playbook's own environment, so many newer runs elsewhere can neither hide nor fake own-environment evidence.
+    """
+    overall = store.latest(playbook.id, _LIGHT_FETCH)
+    if not overall:
         return "none", f"{playbook.id} sem execução em {playbook.environment}"
+    rows = {r["id"]: r for r in overall}
+    rows.update({r["id"]: r for r in store.latest(playbook.id, _LIGHT_FETCH, environment=playbook.environment)})
     usable = []
     invalid = False
-    for row in rows:
+    for row in rows.values():
         stamp = _parse_ts(row.get("ts"))
         if stamp is None or stamp > now + _FUTURE_TOLERANCE:
             invalid = True
         else:
             usable.append((stamp, row))
     usable.sort(key=lambda item: item[0], reverse=True)
-    if usable:
-        stamp, row = usable[0]
+    own = [(s, r) for s, r in usable if r["environment"] == playbook.environment]
+    # red: the latest run overall OR the latest run in the playbook's own environment failed/errored
+    for stamp, row in (usable[:1] + own[:1]):
         if row["result"] in ("fail", "error"):
             verb = "reprovou" if row["result"] == "fail" else "falhou com erro"
-            return "red", f"{playbook.id} {verb} em {stamp.date().isoformat()}"
-    if invalid:
+            return "red", f"{playbook.id} {verb} em {row['environment']} em {stamp.date().isoformat()}"
+    if invalid:  # conservative: one unusable row keeps the playbook from being green
         return "yellow", f"{playbook.id} com data de execução inválida"
-    stamp, row = usable[0]
-    if row["result"] == "skipped":
-        return "yellow", f"{playbook.id} ignorado na última execução"
-    own = next(((s, r) for s, r in usable if r["environment"] == playbook.environment), None)
-    if own is None:
+    if not own:
         return "yellow", f"{playbook.id} sem execução em {playbook.environment}"
-    own_stamp, own_row = own
+    own_stamp, own_row = own[0]
+    if own_row["result"] == "skipped":  # a skipped run elsewhere does not decide
+        return "yellow", f"{playbook.id} ignorado na última execução em {playbook.environment}"
     if own_row["result"] != "pass":
         return "yellow", f"{playbook.id} sem aprovação em {playbook.environment}"
     if now - own_stamp > timedelta(hours=playbook.ttl_hours):
