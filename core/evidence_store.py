@@ -46,15 +46,24 @@ class EvidenceStore:
         conn = self._connect()
         try:
             conn.executescript(_SCHEMA)
-            existing = {r["name"] for r in conn.execute("PRAGMA table_info(executions)")}
+            existing = self._existing_columns(conn)
             for column in ("commit_sha", "run_id"):
-                if column not in existing:
+                if column in existing:
+                    continue
+                try:
                     conn.execute(f"ALTER TABLE executions ADD COLUMN {column} TEXT")
+                except sqlite3.OperationalError as exc:
+                    if "duplicate column name" not in str(exc):  # another process migrated first
+                        raise
             conn.commit()
         except sqlite3.DatabaseError as exc:
             raise self._error(exc) from exc
         finally:
             conn.close()
+
+    @staticmethod
+    def _existing_columns(conn: sqlite3.Connection) -> Set[str]:
+        return {r["name"] for r in conn.execute("PRAGMA table_info(executions)")}
 
     def _error(self, exc: Exception) -> EvidenceStoreError:
         return EvidenceStoreError(f"evidence database unavailable ({self.path.name}): {exc}")

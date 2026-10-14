@@ -55,7 +55,7 @@ class TestLoadDefinitions(unittest.TestCase):
         self.assertEqual((defs.playbooks["PB-001"].kind, defs.playbooks["PB-001"].ttl_hours), ("test", 24))
 
     def test_invalid_kind_and_ttl_are_lint_errors_not_exceptions(self):
-        for over in ({"kind": "smoke"}, {"ttl_hours": 0}, {"ttl_hours": -1}, {"ttl_hours": True},
+        for over in ({"kind": "smoke"}, {"kind": ""}, {"kind": "  "}, {"ttl_hours": 0}, {"ttl_hours": -1}, {"ttl_hours": True},
                      {"ttl_hours": "x"}, {"ttl_hours": 9000}, {"ttl_hours": 1.5}):
             with self.subTest(over=over):
                 write_note(self.root, "playbooks", "PB-001-x.md", {**PLAYBOOK, **over})
@@ -154,6 +154,11 @@ class TestValidate(unittest.TestCase):
     def test_validate_execution_commit_sha_and_run_id(self):
         clean, error = self.check()
         self.assertEqual((clean["commit_sha"], clean["run_id"]), (None, None))
+        for over in ({"commit_sha": 0}, {"commit_sha": False}, {"commit_sha": []},
+                     {"run_id": 0}, {"run_id": False}, {"run_id": []}):
+            clean, error = self.check(**over)
+            self.assertIsNone(clean, over)
+            self.assertRegex(error, "must be text")
         for sha, run in (("abc1234", "run-123"), ("a" * 40, "gha:98765"), ("", "")):
             clean, error = self.check(commit_sha=sha, run_id=run)
             self.assertIsNone(error)

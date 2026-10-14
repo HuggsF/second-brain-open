@@ -144,11 +144,11 @@ def _parse_playbook(data: Dict[str, Any], rel: str) -> Tuple[Optional[Playbook],
         params=params_list, ttl_hours=_ttl_hours(data, problems),
     )
     kind = data.get("kind", "runbook")
-    if isinstance(kind, str):
+    if isinstance(kind, str) and kind.strip() in KINDS:
         playbook.kind = kind.strip()
-        _check_enum(playbook.kind, KINDS, "kind", problems)
     else:
-        problems.append(f"invalid kind (allowed: {', '.join(KINDS)})")
+        shown = f" '{kind}'" if isinstance(kind, str) else ""
+        problems.append(f"invalid kind{shown} (allowed: {', '.join(KINDS)})")
     if playbook.id and not _PLAYBOOK_ID.match(playbook.id):
         problems.append(f"invalid id '{playbook.id}' (expected PB-NNN)")
     _check_enum(playbook.status, STATUSES, "status", problems)
@@ -228,11 +228,11 @@ def validate_execution(
         return None, "summary must be text"
     if not isinstance(evidence_ref, str):
         return None, "evidence_ref must be text"
-    commit_sha, run_id = commit_sha or "", run_id or ""
-    if not isinstance(commit_sha, str):
+    if commit_sha is not None and not isinstance(commit_sha, str):
         return None, "commit_sha must be text"
-    if not isinstance(run_id, str):
+    if run_id is not None and not isinstance(run_id, str):
         return None, "run_id must be text"
+    commit_sha, run_id = commit_sha or "", run_id or ""
     summary, evidence_ref = _clean_text(summary), _clean_text(evidence_ref)
     commit_sha, run_id = _clean_text(commit_sha), _clean_text(run_id)
     for text, name in ((summary, "summary"), (evidence_ref, "evidence_ref"), (commit_sha, "commit_sha"), (run_id, "run_id")):

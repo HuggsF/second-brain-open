@@ -63,6 +63,32 @@ class TestEvidenceStore(unittest.TestCase):
         (row,) = store.latest("PB-001")
         self.assertEqual((row["summary"], row["commit_sha"], row["run_id"]), ("old row", None, None))
 
+    def test_concurrent_migration_duplicate_column_is_ignored(self):
+        EvidenceStore(self.path)  # the columns already exist, as if another process just added them
+        with mock.patch.object(EvidenceStore, "_existing_columns", return_value=set()):
+            EvidenceStore(self.path)  # must not raise "duplicate column name"
+
+    def test_other_migration_errors_are_still_reported(self):
+        EvidenceStore(self.path)
+        real_connect = EvidenceStore._connect
+
+        def failing_connect(store):
+            conn = real_connect(store)
+
+            class Wrapper:
+                def __getattr__(self, name):
+                    return getattr(conn, name)
+
+                def execute(self, sql, *args):
+                    if sql.startswith("ALTER"):
+                        raise sqlite3.OperationalError("disk I/O error")
+                    return conn.execute(sql, *args)
+            return Wrapper()
+
+        with mock.patch.object(EvidenceStore, "_existing_columns", return_value=set()),                 mock.patch.object(EvidenceStore, "_connect", failing_connect):
+            with self.assertRaises(EvidenceStoreError):
+                EvidenceStore(self.path)
+
     def test_ts_defaults_to_now_and_trace_is_optional(self):
         store = EvidenceStore(self.path)
         store.record(**FIELDS)
