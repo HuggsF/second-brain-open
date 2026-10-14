@@ -1,4 +1,4 @@
-﻿"""Testes unitários para a PlaybooksApi refatorada (dashboard/serve.py).
+"""Testes unitários para a PlaybooksApi refatorada (dashboard/serve.py).
 
 Verifica que a API usa core.evidence como fonte de verdade (sem SQL raw,
 sem _parse_frontmatter local) e que as respostas HTTP têm a forma correta.
@@ -182,6 +182,28 @@ class TestPlaybooksApiCacheInvalidation(unittest.TestCase):
         # Cache is reloaded (not None) because _record_execution calls _load_defs() after invalidation
         # The important invariant is that cache was refreshed (not stale pre-invalidation data)
         self.assertIsNotNone(api._defs_cache)
+
+
+class TestPlaybooksApiLiquidRendering(unittest.TestCase):
+    """Testes para o endpoint /api/playbooks/{id}/render e suporte a params."""
+
+    def test_playbooks_list_includes_params(self):
+        from dashboard.serve import PlaybooksApi
+        api = PlaybooksApi(settings.vault_dir)
+        status, payload = api.handle('/api/playbooks', 'GET')
+        self.assertEqual(status, 200)
+        self.assertIn('playbooks', payload)
+        for pb in payload['playbooks']:
+            self.assertIn('params', pb)
+
+    def test_render_playbook_with_liquid_params(self):
+        from dashboard.serve import PlaybooksApi
+        api = PlaybooksApi(settings.vault_dir)
+        body = json.dumps({'params': {'erp_id': '99887766'}}).encode()
+        status, payload = api.handle('/api/playbooks/PB-001/render', 'POST', body)
+        self.assertEqual(status, 200)
+        self.assertIn('rendered_content', payload)
+        self.assertEqual(payload['params_used'], {'erp_id': '99887766'})
 
 
 if __name__ == '__main__':

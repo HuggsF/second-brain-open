@@ -130,6 +130,12 @@
     return d.executions || [];
   }
 
+  async function fetchPlaybookDetail(pbId) {
+    const r = await fetch(`/api/playbooks/${encodeURIComponent(pbId)}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  }
+
   async function postExecution(payload) {
     const r = await fetch('/api/playbooks/executions', {
       method: 'POST',
@@ -322,7 +328,7 @@
 
   // ── Record execution modal ──────────────────────────────────────────────────
 
-  function openRecordModal(pb, onSaved) {
+  function openRecordModal(pb, onSaved, initialParams = null) {
     const overlay = el('div', { class: 'jev-modal-overlay' });
     const modal = el('div', { class: 'jev-modal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'jev-modal-title' });
 
@@ -334,9 +340,16 @@
     );
 
     const selEnv = el('select', { class: 'jev-input', id: 'jev-modal-env' }, ...envOptions);
-    selEnv.value = pb._enriched?.environment || pb.environment || 'local';
+    selEnv.value = (initialParams && initialParams.environment) || pb._enriched?.environment || pb.environment || 'local';
     const selRes = el('select', { class: 'jev-input', id: 'jev-modal-result' }, ...resOptions);
+    
+    let defaultSummary = '';
+    if (initialParams && Object.keys(initialParams).length > 0) {
+      defaultSummary = `Parâmetros Liquid: ${JSON.stringify(initialParams)}`;
+    }
     const inpSummary = el('textarea', { class: 'jev-input', id: 'jev-modal-summary', rows: '3', placeholder: 'Resumo da execução…' });
+    if (defaultSummary) inpSummary.value = defaultSummary;
+
     const inpRef = el('input', { class: 'jev-input', id: 'jev-modal-ref', type: 'text', placeholder: 'vault/sistemas/…:57 (opcional)' });
     const inpTrace = el('input', { class: 'jev-input', id: 'jev-modal-trace', type: 'text', placeholder: 'trace-id (opcional)' });
     const errMsg = el('p', { class: 'jev-modal-error' });
@@ -500,13 +513,131 @@
 
   // ── Column 2: Executions list ────────────────────────────────────────────────
 
-  function renderExecutionsCol(container, pb, obsColEl, onRefresh) {
+  // ── Column 2: Executions list & Liquid Procedure ─────────────────────────
+
+  function renderProcedureView(container, pb, onRefresh) {
     container.replaceChildren();
-    const header = el('div', { class: 'jev-col-header' },
-      el('h3', { class: 'jev-col-title' }, '🧪 Execuções'),
-      el('button', { class: 'jev-btn jev-btn-small', onclick: () => openRecordModal(pb, onRefresh) }, '+ Registrar')
-    );
-    container.append(header);
+    const loading = spinnerEl('Carregando conteúdo do playbook…');
+    container.append(loading);
+
+    fetchPlaybookDetail(pb.id).then(data => {
+      loading.remove();
+      const rawContent = data.content || '';
+      const meta = data.meta || pb;
+      const declaredParams = meta.params || pb.params || [];
+      
+      const extractedVars = window.LiquidEngine ? window.LiquidEngine.extractVariables(rawContent) : [];
+      const paramNames = new Set(declaredParams.map(p => p.name));
+      const allParams = [...declaredParams];
+      for (const v of extractedVars) {
+        if (!paramNames.has(v)) {
+          allParams.push({ name: v, label: v, default: '' });
+          paramNames.add(v);
+        }
+      }
+
+      const currentValues = {};
+      allParams.forEach(p => {
+        currentValues[p.name] = p.default !== undefined ? p.default : '';
+      });
+
+      const paramCard = el('div', { class: 'jev-liquid-card' });
+      const paramHead = el('div', { class: 'jev-liquid-head' },
+        el('span', { class: 'jev-liquid-title' }, '⚡ Parâmetros Liquid'),
+        el('span', { class: 'jev-liquid-badge' }, `${allParams.length} param(s)`)
+      );
+      paramCard.append(paramHead);
+
+      const previewContainer = el('div', { class: 'jev-markdown-preview' });
+
+      function updatePreview() {
+        if (window.LiquidEngine) {
+          const renderedMd = window.LiquidEngine.render(rawContent, currentValues);
+          if (window.BrainMarkdown && typeof window.BrainMarkdown.render === 'function') {
+            window.BrainMarkdown.render(renderedMd, previewContainer);
+          } else {
+            previewContainer.textContent = renderedMd;
+          }
+        } else {
+          previewContainer.textContent = rawContent;
+        }
+      }
+
+      if (allParams.length > 0) {
+        const grid = el('div', { class: 'jev-liquid-grid' });
+        allParams.forEach(p => {
+          const row = el('div', { class: 'jev-liquid-row' });
+          row.append(el('label', { class: 'jev-label' }, p.label || p.name, p.required ? ' *' : ''));
+
+          let inputEl;
+          if (p.type === 'select' && Array.isArray(p.options)) {
+            inputEl = el('select', { class: 'jev-input' },
+              ...p.options.map(opt => el('option', { value: opt }, String(opt)))
+            );
+            inputEl.value = currentValues[p.name] || p.options[0];
+            inputEl.onchange = (e) => {
+              currentValues[p.name] = e.target.value;
+              updatePreview();
+            };
+          } else if (p.type === 'boolean') {
+            inputEl = el('input', { type: 'checkbox', class: 'jev-checkbox' });
+            inputEl.checked = Boolean(currentValues[p.name]);
+            inputEl.onchange = (e) => {
+              currentValues[p.name] = e.target.checked;
+              updatePreview();
+            };
+          } else {
+            inputEl = el('input', {
+              type: 'text',
+              class: 'jev-input',
+              value: String(currentValues[p.name] || ''),
+              placeholder: p.description || p.name
+            });
+            inputEl.oninput = (e) => {
+              currentValues[p.name] = e.target.value;
+              updatePreview();
+            };
+          }
+          row.append(inputEl);
+          grid.append(row);
+        });
+        paramCard.append(grid);
+      } else {
+        paramCard.append(el('p', { class: 'jev-obs-note', style: 'padding: 0.5rem;' }, 'Nenhum parâmetro dinâmico Liquid detectado neste playbook.'));
+      }
+
+      const actions = el('div', { class: 'jev-liquid-actions' });
+      const btnCopy = el('button', { class: 'jev-btn jev-btn-small', onclick: () => {
+        const codeBlocks = previewContainer.querySelectorAll('pre');
+        const commands = Array.from(codeBlocks).map(c => c.textContent).join('\n\n');
+        if (commands) {
+          navigator.clipboard.writeText(commands);
+          btnCopy.textContent = '✅ Comandos Copiados!';
+          setTimeout(() => { btnCopy.textContent = '📋 Copiar Comandos'; }, 1500);
+        } else {
+          navigator.clipboard.writeText(previewContainer.textContent);
+          btnCopy.textContent = '✅ Conteúdo Copiado!';
+          setTimeout(() => { btnCopy.textContent = '📋 Copiar Comandos'; }, 1500);
+        }
+      }}, '📋 Copiar Comandos');
+
+      const btnExec = el('button', { class: 'jev-btn jev-btn-small jev-btn-primary', onclick: () => {
+        openRecordModal(pb, onRefresh, currentValues);
+      }}, '🧪 Registrar Execução com estes Parâmetros');
+
+      actions.append(btnCopy, btnExec);
+      paramCard.append(actions);
+
+      container.append(paramCard, previewContainer);
+      updatePreview();
+    }).catch(err => {
+      loading.remove();
+      container.append(el('p', { class: 'jev-empty' }, '⚠ Erro ao carregar procedimento: ', err.message));
+    });
+  }
+
+  function renderExecutionsList(container, pb, obsColEl, onRefresh) {
+    container.replaceChildren();
     const loading = spinnerEl();
     container.append(loading);
 
@@ -568,6 +699,47 @@
       loading.remove();
       container.append(el('p', { class: 'jev-empty' }, '⚠ Erro ao carregar execuções: ', err.message));
     });
+  }
+
+  function renderExecutionsCol(container, pb, obsColEl, onRefresh) {
+    container.replaceChildren();
+
+    const hasParams = (pb.params && pb.params.length > 0);
+
+    const tabBar = el('div', { class: 'jev-subtab-bar' });
+    const btnTabExecs = el('button', {
+      class: 'jev-subtab-btn jev-subtab-active',
+      onclick: () => switchTab('execs')
+    }, '🧪 Execuções');
+
+    const btnTabProc = el('button', {
+      class: 'jev-subtab-btn',
+      onclick: () => switchTab('procedure')
+    }, '⚡ Procedimento & Liquid', hasParams ? el('span', { class: 'jev-param-pill' }, String(pb.params.length)) : null);
+
+    const btnRegister = el('button', {
+      class: 'jev-btn jev-btn-small jev-btn-primary',
+      style: 'margin-left: auto;',
+      onclick: () => openRecordModal(pb, onRefresh)
+    }, '+ Registrar');
+
+    tabBar.append(btnTabExecs, btnTabProc, btnRegister);
+    container.append(tabBar);
+
+    const contentArea = el('div', { class: 'jev-subtab-content' });
+    container.append(contentArea);
+
+    function switchTab(tab) {
+      btnTabExecs.classList.toggle('jev-subtab-active', tab === 'execs');
+      btnTabProc.classList.toggle('jev-subtab-active', tab === 'procedure');
+      if (tab === 'execs') {
+        renderExecutionsList(contentArea, pb, obsColEl, onRefresh);
+      } else {
+        renderProcedureView(contentArea, pb, onRefresh);
+      }
+    }
+
+    renderExecutionsList(contentArea, pb, obsColEl, onRefresh);
   }
 
   // ── Column 1: Playbook list ─────────────────────────────────────────────────
@@ -781,6 +953,23 @@
 .jev-loading { color: var(--muted, #888); font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem; }
 .jev-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--muted, #555); border-top-color: var(--accent, #6ee7b7); border-radius: 50%; animation: jev-spin 0.7s linear infinite; }
 @keyframes jev-spin { to { transform: rotate(360deg); } }
+.jev-subtab-bar { display: flex; align-items: center; gap: 0.4rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border, #222); margin-bottom: 0.5rem; }
+.jev-subtab-btn { background: transparent; border: 1px solid transparent; color: var(--muted, #888); font-size: 0.78rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; }
+.jev-subtab-btn:hover { color: var(--text, #e0e0e0); background: var(--surface, #181818); }
+.jev-subtab-btn.jev-subtab-active { color: var(--accent, #6ee7b7); background: var(--surface2, #202020); border-color: var(--border, #333); }
+.jev-param-pill { background: #1e3a5f; color: #93c5fd; font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 999px; }
+.jev-subtab-content { display: flex; flex-direction: column; gap: 0.5rem; }
+.jev-liquid-card { background: var(--card, #141414); border: 1px solid var(--border, #282828); border-radius: 6px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.jev-liquid-head { display: flex; align-items: center; justify-content: space-between; }
+.jev-liquid-title { font-size: 0.82rem; font-weight: 700; color: #fcd34d; }
+.jev-liquid-badge { font-size: 0.68rem; color: var(--muted, #888); }
+.jev-liquid-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; }
+.jev-liquid-row { display: flex; flex-direction: column; gap: 0.2rem; }
+.jev-liquid-actions { display: flex; gap: 0.5rem; margin-top: 0.4rem; border-top: 1px solid var(--border, #222); padding-top: 0.5rem; }
+.jev-markdown-preview { background: var(--surface, #0f0f0f); border: 1px solid var(--border, #222); border-radius: 6px; padding: 1rem; font-size: 0.85rem; line-height: 1.6; color: var(--text, #e0e0e0); }
+.jev-markdown-preview h1, .jev-markdown-preview h2, .jev-markdown-preview h3 { margin-top: 1rem; margin-bottom: 0.5rem; color: #fff; }
+.jev-markdown-preview pre { background: #000; border: 1px solid #333; padding: 0.6rem 0.8rem; border-radius: 5px; overflow-x: auto; font-family: monospace; font-size: 0.8rem; margin: 0.5rem 0; color: #6ee7b7; }
+.jev-markdown-preview code { font-family: monospace; background: #222; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.8rem; }
 @media (max-width: 900px) {
   .jev-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
   .jev-col { border-right: none; border-bottom: 1px solid var(--border, #222); }

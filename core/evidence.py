@@ -44,6 +44,7 @@ class Playbook:
     environment: str
     targets: List[str]
     path: str
+    params: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -109,12 +110,25 @@ def _parse_rule(data: Dict[str, Any], rel: str) -> Tuple[Optional[Rule], List[st
 
 def _parse_playbook(data: Dict[str, Any], rel: str) -> Tuple[Optional[Playbook], List[str]]:
     problems: List[str] = []
+    raw_params = data.get("params")
+    params_list = []
+    if raw_params is not None:
+        if isinstance(raw_params, list):
+            for p in raw_params:
+                if isinstance(p, dict) and "name" in p:
+                    params_list.append(p)
+                else:
+                    problems.append("each item in 'params' must be a mapping with a 'name'")
+        else:
+            problems.append("field 'params' must be a list of parameter definitions")
+
     playbook = Playbook(
         id=_text_field(data, "id", problems), title=_text_field(data, "title", problems),
         status=_text_field(data, "status", problems),
         validates=_text_list(data, "validates", problems, non_empty=True),
         environment=_text_field(data, "environment", problems),
         targets=_text_list(data, "targets", problems, non_empty=False), path=rel,
+        params=params_list,
     )
     if playbook.id and not _PLAYBOOK_ID.match(playbook.id):
         problems.append(f"invalid id '{playbook.id}' (expected PB-NNN)")

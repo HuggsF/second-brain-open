@@ -1,4 +1,4 @@
-﻿"""Serve the dashboard and the Workflow Studio API on loopback, without a session.
+"""Serve the dashboard and the Workflow Studio API on loopback, without a session.
 
 For local development only. The BFF (python -m backend.server) serves the same dashboard and the
 same /api/workflow/* routes behind a session, plus /v1/* for observability.
@@ -67,6 +67,7 @@ class PlaybooksApi:
                 'validates': pb.validates,
                 'environment': pb.environment,
                 'targets': pb.targets,
+                'params': getattr(pb, 'params', []),
                 'filename': filename,
             })
         return results
@@ -211,7 +212,39 @@ class PlaybooksApi:
                     'validates': pb.validates,
                     'environment': pb.environment,
                     'targets': pb.targets,
+                    'params': getattr(pb, 'params', []),
                 },
+            }
+
+        # POST /api/playbooks/{id}/render — render playbook markdown with liquid params
+        m_render = re.match(r'^/api/playbooks/([A-Za-z0-9_\-\.]+)/render$', path)
+        if method == 'POST' and m_render:
+            pb_id = unquote(m_render.group(1)).upper()
+            defs = self._load_defs()
+            pb = defs.playbooks.get(pb_id)
+            if pb is None:
+                for k, v in defs.playbooks.items():
+                    if k.upper().startswith(pb_id):
+                        pb = v
+                        break
+            if pb is None:
+                return 404, {'error': 'NOT_FOUND', 'id': pb_id}
+            try:
+                payload = json.loads(body.decode('utf-8')) if body else {}
+            except Exception:
+                payload = {}
+            params = payload.get('params', {})
+            pb_path = self.vault_dir / pb.path
+            try:
+                raw_content = pb_path.read_text(encoding='utf-8', errors='replace')
+            except OSError:
+                raw_content = ''
+            from core import liquid
+            rendered = liquid.render_liquid(raw_content, params)
+            return 200, {
+                'id': pb.id,
+                'rendered_content': rendered,
+                'params_used': params,
             }
 
         return None
