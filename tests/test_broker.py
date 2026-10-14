@@ -107,8 +107,12 @@ class TestBroker(unittest.IsolatedAsyncioTestCase):
     async def test_malformed_input_never_raises(self):
         result = await broker.call("agent:coder", 42, "x", None, trace_path=self.trace)
         self.assertEqual(result["verdict"], "DENY")
+        self.assertEqual(result["reason"], "malformed_args")
         result = await broker.call(["x"], "get_adr", {}, trace_path=self.trace)
         self.assertEqual(result["verdict"], "DENY")
+        self.assertEqual(result["reason"], "bad_identity")
+        result = await broker.call("agent:researcher", 42, {}, trace_path=self.trace)
+        self.assertEqual(result["reason"], "unknown_tool")
         result = await broker.call("agent:researcher", "get_adr", "x", trace_path=self.trace)
         self.assertEqual(result["verdict"], "DENY")
         self.assertEqual(result["reason"], "malformed_args")
@@ -119,6 +123,14 @@ class TestBroker(unittest.IsolatedAsyncioTestCase):
                                        trace_path=Path(self.dir.name))
         self.assertEqual(result["verdict"], "APPROVE")
         self.assertEqual(result["adr"], "x")
+
+    async def test_unwritable_trace_deny_and_escalate(self):
+        bad = Path(self.dir.name)
+        denied = await broker.call("agent:researcher", "read_vault_file", {}, trace_path=bad)
+        self.assertEqual(denied["verdict"], "DENY")
+        esc = await broker.call("agent:coder", "run_safe_command", {"command": "docker ps"}, trace_path=bad)
+        self.assertEqual(esc["verdict"], "ESCALATE")
+        self.assertTrue(esc["approval_required"])
 
     async def test_default_trace_path_read_at_call_time(self):
         with mock.patch.object(tracing, "TRACE_LOG", self.trace), \
@@ -139,6 +151,68 @@ class TestBroker(unittest.IsolatedAsyncioTestCase):
         parent = next(r for r in self.records() if r["event"] == "call")
         self.assertEqual(child["parent_span_id"], parent["span_id"])
         self.assertEqual(child["trace_id"], parent["trace_id"])
+
+    async def test_child_events_cross_executor_thread(self):
+        import types
+        from core import tools
+
+        def fake_exec(command):
+            tracing.emit_child("ssh.exec", "ok", {"command": command, "exit_code": 0})
+            return {"success": True, "exit_code": 0, "stdout": "", "stderr": ""}
+
+        module = types.ModuleType("mcp_servers.srv_api_gateway_mcp")
+        module._exec_command = fake_exec
+        with mock.patch.dict("sys.modules", {"mcp_servers.srv_api_gateway_mcp": module}),                 mock.patch.dict(IMPLEMENTATIONS, {"run_safe_command": tools.run_safe_command}):
+            await broker.call("agent:coder", "run_safe_command", {"command": "docker ps"},
+                              approved=True, trace_path=self.trace)
+        parent = next(r for r in self.records() if r["event"] == "call")
+        child = next(r for r in self.records() if r["event"] == "ssh.exec")
+        self.assertEqual(child["parent_span_id"], parent["span_id"])
+
+    async def test_tool_returned_error_text_is_masked_and_trace_uses_fixed_token(self):
+        impl = _fake({"error": "falhou token=ghp_abcdefghij123456 CPF 123.456.789-09"})
+        with mock.patch.dict(IMPLEMENTATIONS, {"get_adr": impl}):
+            result = await broker.call("agent:researcher", "get_adr", {"identifier": "A"}, trace_path=self.trace)
+        self.assertNotIn("ghp_abcdefghij123456", json.dumps(result))
+        self.assertNotIn("123.456.789-09", json.dumps(result))
+        rec = self.records()[0]
+        self.assertEqual(rec["status"], "error")
+        self.assertEqual(rec["error_type"], "ToolError")
+        self.assertNotIn("falhou", self.trace.read_text(encoding="utf-8"))
+
+    async def test_approved_must_be_exactly_true(self):
+        for value in ("false", 1, "yes"):
+            calls = []
+            with mock.patch.dict(IMPLEMENTATIONS, {"run_safe_command": _fake(calls=calls)}):
+                result = await broker.call("agent:coder", "run_safe_command", {"command": "docker ps"},
+                                           approved=value, trace_path=self.trace)
+            self.assertEqual(calls, [])
+            self.assertTrue(result["approval_required"])
+
+    async def test_child_refusal_marks_call_refused(self):
+        async def refuses(**kwargs):
+            tracing.emit_child("ssh.refused", "refused", {"command": "x"})
+            return {"success": False}
+
+        with mock.patch.dict(IMPLEMENTATIONS, {"run_safe_command": refuses}):
+            await broker.call("agent:coder", "run_safe_command", {"command": "docker ps"},
+                              approved=True, trace_path=self.trace)
+        call = next(r for r in self.records() if r["event"] == "call")
+        self.assertEqual(call["status"], "refused")
+
+    async def test_tool_cannot_overwrite_verdict_fields(self):
+        impl = _fake({"verdict": "X", "reason": "Y", "refused": True})
+        with mock.patch.dict(IMPLEMENTATIONS, {"get_adr": impl}):
+            result = await broker.call("agent:researcher", "get_adr", {"identifier": "A"}, trace_path=self.trace)
+        self.assertEqual(result["verdict"], "APPROVE")
+        self.assertEqual(result["reason"], "read_auto")
+        self.assertNotIn("refused", result)
+
+    async def test_malformed_identity_never_in_trace(self):
+        await broker.call("agent:x 123.456.789-09", "get_adr", {"identifier": "A"}, trace_path=self.trace)
+        text = self.trace.read_text(encoding="utf-8")
+        self.assertNotIn("123.456.789-09", text)
+        self.assertEqual(self.records()[0]["caller"], "unknown")
 
     async def test_record_event_writes_and_never_raises(self):
         broker.record_event("agent:coder", "gate.refused", "refused", {"x": 1}, "M7", trace_path=self.trace)

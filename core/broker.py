@@ -2,10 +2,10 @@
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from core import tracing
-from core.policy import Decision, Reason, Verdict, decide
+from core.policy import Decision, Reason, Verdict, decide, parse_identity
 from core.tools import IMPLEMENTATIONS
 
 _SERVER = "broker"
@@ -46,12 +46,13 @@ def record_event(identity: str, event: str, status: str, args: Optional[dict] = 
         print(f"trace: could not record event ({type(exc).__name__})", file=sys.stderr)
 
 
-async def _execute(tool: str, args: dict) -> Dict[str, Any]:
+async def _execute(tool: str, args: dict) -> Tuple[Dict[str, Any], Optional[str]]:
+    """(resultado, nome da classe da exceção se a ferramenta levantou)."""
     try:
         result = await IMPLEMENTATIONS[tool](**args)
     except Exception as exc:  # só o nome da classe: a mensagem pode conter segredos
-        return {"error": type(exc).__name__}
-    return result if isinstance(result, dict) else {"result": result}
+        return {"error": type(exc).__name__}, type(exc).__name__
+    return (result if isinstance(result, dict) else {"result": result}), None
 
 
 async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = None, *,
@@ -71,7 +72,7 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
         state = tracing.CallState(
             trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,
             path=trace_path or tracing.TRACE_LOG,
-            caller=identity if isinstance(identity, str) else "unknown",
+            caller=identity if parse_identity(identity) else "unknown",
             task_label=label, started_at=started_at,
         )
         verdict: Verdict = (decide(identity, tool, args) if isinstance(args, dict)
@@ -80,16 +81,19 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
         if verdict.decision is Decision.DENY:
             result = {**head, "refused": True, "error": verdict.reason.value}
             status, error_type = "refused", None
-        elif verdict.decision is Decision.ESCALATE and not approved:
+        elif verdict.decision is Decision.ESCALATE and approved is not True:
             result = {**head, "approval_required": True, "refused": True, "error": "exige aprovação humana"}
             status, error_type = "escalated", None
         else:
             token = tracing.current_call.set(state)
-            outcome = await _execute(tool, args)
-            result = {**head, **outcome}
+            outcome, raised = await _execute(tool, args)
+            outcome = {k: v for k, v in outcome.items() if k not in ("refused", "approval_required")}
             failed = "error" in outcome
-            status = "error" if failed else "ok"
-            error_type = outcome["error"] if failed else None
+            if failed:
+                outcome["error"] = tracing.mask_sensitive(str(outcome["error"]))
+            result = {**outcome, **head}
+            status = "error" if failed else ("refused" if state.refused else "ok")
+            error_type = (raised or "ToolError") if failed else None
     except Exception as exc:  # o corretor nunca levanta
         result = {**result, "tool": tool_name, "error": type(exc).__name__}
         status, error_type = "error", type(exc).__name__

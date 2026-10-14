@@ -32,7 +32,8 @@ def test_run_safe_command_without_ssh_module(monkeypatch):
     result = asyncio.run(tools.run_safe_command("uptime"))
     assert result["tool"] == "run_safe_command"
     assert result["success"] is False
-    assert "paramiko ausente" in result["error"]
+    assert result["error"] == "SSH indisponível: ImportError"
+    assert "paramiko" not in result["error"]
 
 
 def test_run_safe_command_uses_exec_command(monkeypatch):
@@ -43,3 +44,11 @@ def test_run_safe_command_uses_exec_command(monkeypatch):
     result = asyncio.run(tools.run_safe_command("uptime"))
     assert result == {"tool": "run_safe_command", "command": "uptime", "success": True,
                       "exit_code": 0, "stdout": "up", "stderr": ""}
+
+
+def test_list_rules_error_keeps_only_class_name(monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("token=abc123")
+    monkeypatch.setattr(tools.evidence, "load_definitions", boom)
+    result = asyncio.run(tools.list_rules_with_evidence())
+    assert result["error"] == "RuntimeError"

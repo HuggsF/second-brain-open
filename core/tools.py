@@ -72,7 +72,7 @@ async def list_rules_with_evidence() -> dict:
             ],
         }
     except Exception as exc:
-        return {"tool": "list_rules", "error": str(exc)}
+        return {"tool": "list_rules", "error": type(exc).__name__}
 
 
 async def get_system_doc(system_name: str) -> dict:
@@ -131,9 +131,8 @@ async def run_safe_command(command: str) -> dict:
         from mcp_servers.srv_api_gateway_mcp import _exec_command
     except ImportError as exc:
         return {"tool": "run_safe_command", "command": command, "success": False,
-                "error": f"SSH indisponível: {exc}"}
-    loop = asyncio.get_running_loop()
-    res = await loop.run_in_executor(None, _exec_command, command)
+                "error": f"SSH indisponível: {type(exc).__name__}"}
+    res = await asyncio.to_thread(_exec_command, command)  # copia o contexto: o rastro filho se anexa
     return {
         "tool": "run_safe_command",
         "command": command,
