@@ -146,6 +146,18 @@ class DashboardServeTests(unittest.TestCase):
         self.assertEqual((status, json.loads(body)['server_port']), (200, self.port))
         self.assertEqual(self.call('/index.html')[0], 404)  # tmp root has no dashboard files; static stays confined
 
+    def test_dev_server_serves_the_embedded_jev_folder(self):
+        dashboard = Path(__file__).resolve().parent.parent / 'dashboard'
+        self.server.RequestHandlerClass = make_handler(self.api, directory=dashboard)
+        status, headers, body = self.call('/dashboard/jev/index.html')
+        self.assertEqual(status, 200)
+        self.assertIn('text/html', {k.lower(): v for k, v in headers.items()}['content-type'])
+        self.assertIn(b'<div id="root">', body)
+        asset = [part for part in body.decode().split('"') if part.startswith('./assets/')][0][2:]
+        self.assertEqual(self.call('/dashboard/jev/' + asset)[0], 200)
+        self.assertEqual(self.call('/dashboard/jev/x.map')[0], 404)
+        self.assertEqual(self.call('/dashboard/jev/../../backend/server.py')[0], 404)
+
     def test_refuses_cross_origin_writes(self):
         for headers in ({'Origin': 'https://evil.example', 'Content-Type': 'application/json'}, {'Content-Type': 'application/json'}):
             self.assertEqual(self.call('/api/workflow/reset-audit', 'POST', b'', headers)[0], 403)

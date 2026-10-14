@@ -1,5 +1,6 @@
 """BFF da fase 6: playbooks, regras e avaliação de observação numa origem só."""
 import json
+import re
 import shutil
 import tempfile
 import threading
@@ -313,6 +314,67 @@ class BuildAssessmentTest(unittest.TestCase):
         result = build_assessment('hml', {}, [], self.NOW)
         self.assertNotEqual(result['status'], 'green')
         self.assertEqual(len(result['nodes']), 4)
+
+
+class EmbeddedJevTest(Phase6Base):
+    """The dashboard embeds the built React JEV from dashboard/jev/ (same origin, same session)."""
+    DASHBOARD = Path(__file__).resolve().parent.parent / 'dashboard'
+
+    def raw(self, path, session=True):
+        headers = {'Cookie': self.cookie} if session else {}
+        request = Request(self.origin + path, headers=headers)
+        try:
+            with urlopen(request, timeout=3) as response:
+                return response.status, response.headers, response.read()
+        except HTTPError as error:
+            body = error.read()
+            error.close()
+            return error.code, error.headers, body
+
+    def setUp(self):
+        super().setUp()
+        # Serve the project's real dashboard folder (the base class passes a temp root).
+        self.server.RequestHandlerClass = handler_for(self.store, self.DASHBOARD, self.port, playbooks=self.playbooks)
+
+    def assets(self):
+        html = (self.DASHBOARD / 'jev' / 'index.html').read_text(encoding='utf-8')
+        return re.findall(r'(?:src|href)="\./(assets/[^"]+)"', html)
+
+    def test_index_is_html_with_csp(self):
+        status, headers, body = self.raw('/dashboard/jev/index.html')
+        self.assertEqual(status, 200)
+        self.assertTrue(headers['Content-Type'].startswith('text/html'))
+        self.assertIn("script-src 'self'", headers['Content-Security-Policy'])
+        self.assertIn(b'<div id="root">', body)
+
+    def test_built_assets_are_served_with_their_types(self):
+        assets = self.assets()
+        self.assertEqual(sorted(a.rsplit('.', 1)[1] for a in assets), ['css', 'js'])
+        for asset in assets:
+            with self.subTest(asset=asset):
+                status, headers, body = self.raw('/dashboard/jev/' + asset)
+                self.assertEqual(status, 200)
+                self.assertIn('text/css' if asset.endswith('.css') else 'javascript', headers['Content-Type'])
+                self.assertTrue(body)
+                self.assertEqual(headers['X-Content-Type-Options'], 'nosniff')
+
+    def test_requires_a_session(self):
+        for path in ['/dashboard/jev/index.html'] + ['/dashboard/jev/' + a for a in self.assets()]:
+            with self.subTest(path=path):
+                self.assertEqual(self.raw(path, session=False)[0], 401)
+
+    def test_source_maps_and_traversal_are_404(self):
+        for path in ('/dashboard/jev/anything.map', '/dashboard/jev/assets/index.js.map',
+                     '/dashboard/jev/../../backend/server.py', '/dashboard/jev/%2e%2e/%2e%2e/backend/server.py',
+                     '/dashboard/jev/..%2f..%2fbackend/server.py', '/dashboard/jev/'):
+            with self.subTest(path=path):
+                status, _, body = self.raw(path)
+                self.assertEqual(status, 404)
+                self.assertNotIn(b'handler_for', body)
+
+    def test_old_vanilla_jev_script_is_gone(self):
+        self.assertEqual(self.raw('/dashboard/jev-ui.js')[0], 404)
+        self.assertNotIn('jev-ui.js', (self.DASHBOARD / 'index.html').read_text(encoding='utf-8'))
 
 
 if __name__ == '__main__':
