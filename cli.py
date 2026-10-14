@@ -271,7 +271,7 @@ def evidence(rule_id, do_lint, do_import):
             for playbook_id in rule["playbooks"]:
                 latest = rule["playbook_latest"][playbook_id]
                 parts.append(f"{playbook_id}={latest['result']}({latest['environment']})" if latest else f"{playbook_id}={_NO_EVIDENCE}")
-            click.echo(f"{rule['id']}  {rule['status']}  {rule['title']}  [{rule['state']}]  " + "  ".join(parts))
+            click.echo(f"{rule['id']}  {rule['status']}  {rule['title']}  [{rule['state']}]  luz={rule['light']}  " + "  ".join(parts))
     except (EvidenceStoreError, ValueError) as exc:
         click.echo(f"Erro: {exc}")
         raise SystemExit(1)
