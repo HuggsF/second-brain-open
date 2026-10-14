@@ -11,8 +11,9 @@ import uuid
 import re
 from typing import AsyncGenerator
 
-from backend.tool_executor import execute as exec_tool
-from core.domain.nexus.entities import AUTO_TOOLS  # noqa: E402 — runtime import (backend layer)
+from backend.tool_executor import run_tool
+from core.mission_guard import check_mission
+from core.policy import Decision, make_identity
 
 
 # Mapeamento dos agentes do Nexus
@@ -67,9 +68,7 @@ DEFAULT_STEPS = [
     {"agent": "researcher", "tool": "search_knowledge_base", "input": {"query": ""}, "bubble": "Pesquisando no vault..."},
 ]
 
-# AUTO_TOOLS é a fonte de verdade de tools sem aprovação: importada de core/domain/nexus/entities.py
-# run_safe_command (SSH prod) fica fora por política CLAUDE.md §2.
-# Importado acima: from core.domain.nexus.entities import AUTO_TOOLS
+# Quem decide se uma ferramenta roda sem aprovação é o corretor (core.broker / core.policy).
 
 # Limites do event-protocol.js do Nexus; acima disso o frontend descarta o evento.
 # São contados em unidades UTF-16 (String.length do JS), não em code points.
@@ -146,8 +145,19 @@ class Orchestrator:
         return steps
 
     def approve(self):
-        """Chamado quando o usuário aprova a entrega."""
-        self._approval_event.set()
+        """Chamado quando o usuário aprova; só vale com uma espera em curso (APPROVE antecipado ou repetido é ignorado)."""
+        if self.awaiting_approval:
+            self._approval_event.set()
+
+    async def _wait_approval(self) -> bool:
+        """Espera approve() por até 300 s; False no timeout. Sempre baixa awaiting_approval."""
+        try:
+            await asyncio.wait_for(self._approval_event.wait(), timeout=300)
+            return True
+        except asyncio.TimeoutError:
+            return False
+        finally:
+            self.awaiting_approval = False
 
     async def run_mission(self, task: str, mission_id: int = None) -> AsyncGenerator[dict, None]:
         """Executa uma missão completa, emitindo eventos para o frontend.
@@ -166,6 +176,22 @@ class Orchestrator:
 
         # ─── Decompor missão ───
         steps = self._match_pattern(task)
+
+        # ─── Portões: RED bloqueia antes de qualquer passo; YELLOW pede aprovação ───
+        guard = check_mission(steps, self.mission_id)
+        if guard["action"] == "block":
+            yield self._event("manager", "message",
+                              message=f"Missão bloqueada pelos portões: {guard['semaphore']}")
+            return
+        if guard["action"] == "approval":
+            self.awaiting_approval = True
+            yield self._event("manager", "approval_request",
+                              bubble="Os portões pedem aprovação para esta missão. Aprovar?")
+            if not await self._wait_approval():
+                yield self._event("manager", "message", message="Timeout de aprovação atingido.")
+                return
+            self._approval_event.clear()
+
         agents_involved = list({s["agent"] for s in steps})
 
         yield self._event("manager", "status_change", status="working",
@@ -192,12 +218,24 @@ class Orchestrator:
                               bubble=step.get("bubble", "Trabalhando..."))
             await self._pause(0.5)
 
-            # Executar ferramenta real (só as de leitura local; o resto é recusado)
-            if step["tool"] in AUTO_TOOLS:
-                result = await exec_tool(step["tool"], **step["input"])
-            else:
-                result = {"tool": step["tool"], "refused": True,
-                          "error": f"{step['tool']} exige aprovação humana explícita; não executado pela missão."}
+            # Executar via corretor: ele decide, executa e grava o rastro com a identidade do agente
+            tool = step.get("tool")
+            invalid_agent = None
+            try:
+                identity = make_identity(step.get("agent"))
+            except ValueError as exc:
+                # o corretor registra o DENY (bad_identity, caller "unknown"); a mensagem ao usuário segue a mesma
+                invalid_agent = f"agente inválido: {exc}"
+                raw = step.get("agent")
+                identity = f"agent:{raw}" if isinstance(raw, str) else "agent:?"
+            result = await run_tool(tool, step.get("input"), identity=identity,
+                                    task_id=f"M{self.mission_id}")
+            if invalid_agent:
+                result["error"] = invalid_agent
+            elif result.get("refused") and result.get("verdict") == Decision.DENY.value:
+                result["error"] = f"{tool} negado pela política: {result.get('reason', '')}"
+            elif result.get("refused"):
+                result["error"] = f"{tool} exige aprovação humana explícita; não executado pela missão."
 
             # Formatar resultado para o balão
             summary = self._summarize_result(result)
@@ -232,14 +270,10 @@ class Orchestrator:
                           bubble="Resultado pronto. Aprovar?")
 
         # ─── Aguardar aprovação (ou timeout) ───
-        try:
-            await asyncio.wait_for(self._approval_event.wait(), timeout=300)
-        except asyncio.TimeoutError:
+        if not await self._wait_approval():
             yield self._event("reviewer", "message",
                               message="Timeout de aprovação atingido.")
             return
-        finally:
-            self.awaiting_approval = False
 
         yield self._event("reviewer", "collaboration",
                           subtype="approval_granted",
@@ -315,6 +349,8 @@ class Orchestrator:
         """Resumo curto para o balão do agente (max 60 chars)."""
         tool = result.get("tool", "")
         if result.get("refused"):
+            if result.get("verdict") == Decision.DENY.value:
+                return "⛔ Negado pela política"
             return "⛔ Exige aprovação humana"
         if tool == "search_knowledge_base":
             n = len(result.get("sources", []))

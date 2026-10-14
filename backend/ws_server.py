@@ -26,6 +26,7 @@ except ImportError:
     sys.exit(1)
 
 from backend.orchestrator import Orchestrator
+from core.domain.workflow.entities import MAX_MISSION_ID, validate_mission_envelope
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,6 +38,17 @@ log = logging.getLogger("nexus-ws")
 HOST = "127.0.0.1"
 PORT = 8848
 CONNECTIONS = set()
+
+
+def _echoable_mission_id(value):
+    """missionId seguro para ecoar no REJECT: str curta ou int JS-seguro; senão None."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, str) and len(value) <= 64:
+        return value
+    if isinstance(value, int) and abs(value) <= MAX_MISSION_ID:
+        return value
+    return None
 
 
 async def handler(websocket):
@@ -61,6 +73,22 @@ async def handler(websocket):
             log.info(f"📩 Comando: {action_type} (mission={message.get('missionId', '?')})")
 
             if action_type == "NEW_TASK":
+                mission_id = message.get("missionId", 1)
+                task_text = action.get("payload", "")
+                error = validate_mission_envelope(
+                    {"mission": {"id": mission_id, "task": task_text}}
+                )
+                if error:
+                    echo_id = _echoable_mission_id(mission_id)
+                    await websocket.send(json.dumps({
+                        "type": "REJECT",
+                        "commandId": message.get("commandId", ""),
+                        "missionId": echo_id,
+                        "revision": 1,
+                        "reason": error,
+                    }))
+                    continue
+
                 # Cancelar missão anterior se existir
                 if mission_task and not mission_task.done():
                     mission_task.cancel()
@@ -68,18 +96,6 @@ async def handler(websocket):
                         await mission_task
                     except asyncio.CancelledError:
                         pass
-
-                mission_id = message.get("missionId", 1)
-                task_text = action.get("payload", "")
-                if not task_text or not isinstance(task_text, str):
-                    await websocket.send(json.dumps({
-                        "type": "REJECT",
-                        "commandId": message.get("commandId", ""),
-                        "missionId": mission_id,
-                        "revision": 1,
-                        "reason": "Empty task",
-                    }))
-                    continue
 
                 # ACK do comando
                 await websocket.send(json.dumps({

@@ -177,18 +177,18 @@
       "search_knowledge_base",
       "read_vault_file",
       "get_system_architecture",
-      "run_tests"
+      "get_brain_status",
+      "run_safe_command"
     ],
     "writer": [
       "search_knowledge_base",
       "read_vault_file",
-      "write_doc",
       "get_adr"
     ],
     "reviewer": [
       "search_knowledge_base",
       "get_adr",
-      "validate_plan",
+      "list_rules",
       "get_rule_evidence"
     ]
   },
@@ -199,10 +199,8 @@
     "get_system_architecture",
     "list_rules",
     "read_vault_file",
-    "run_tests",
-    "search_knowledge_base",
-    "validate_plan",
-    "write_doc"
+    "run_safe_command",
+    "search_knowledge_base"
   ],
   "AUTO_TOOLS": [
     "get_adr",
