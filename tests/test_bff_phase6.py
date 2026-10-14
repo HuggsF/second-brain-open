@@ -213,6 +213,70 @@ class AssessmentRouteTest(Phase6Base):
         self.assertEqual(production['contradictions'], [])
 
 
+class HardeningTest(Phase6Base):
+    def raw_post(self, path, raw, headers=None):
+        merged = {'Cookie': self.cookie, 'Origin': self.origin, 'Content-Type': 'application/json'}
+        merged.update(headers or {})
+        request = Request(self.origin + path, data=raw, headers=merged, method='POST')
+        try:
+            with urlopen(request, timeout=3) as response:
+                return response.status, json.load(response)
+        except HTTPError as error:
+            payload = json.load(error)
+            error.close()
+            return error.code, payload
+
+    def test_non_object_or_invalid_json_bodies_are_400_and_server_survives(self):
+        for path in ('/api/playbooks/executions', '/api/playbooks/PB-001/render'):
+            for raw in (b'[]', b'null', b'"x"', b'12', b'{not json'):
+                with self.subTest(path=path, raw=raw):
+                    status, payload = self.raw_post(path, raw)
+                    self.assertEqual((status, payload['error']), (400, 'INVALID_JSON'))
+                    self.assertEqual(self.call('/api/rules')[0], 200)
+
+    def test_unexpected_exception_in_handle_is_a_clean_500(self):
+        def boom(path, method='GET', body=b''):
+            raise RuntimeError('secret detail /etc/passwd')
+        self.playbooks.handle = boom
+        status, payload = self.call('/api/rules')
+        self.assertEqual((status, payload['error']), (500, 'INTERNAL'))
+        self.assertNotIn('secret', json.dumps(payload))
+        status, payload = self.call('/api/playbooks/executions', 'POST', self.execution())
+        self.assertEqual((status, payload['error']), (500, 'INTERNAL'))
+
+    def test_non_string_metadata_is_a_validation_error(self):
+        for field in ('trace_id', 'source', 'recorded_by'):
+            for value in (5, ['a'], {'a': 1}, True):
+                with self.subTest(field=field, value=value):
+                    status, payload = self.call('/api/playbooks/executions', 'POST', self.execution(**{field: value}))
+                    self.assertEqual((status, payload['error']), (400, 'VALIDATION_FAILED'))
+
+    def test_db_unavailable_detail_is_fixed_and_leaks_no_path(self):
+        from core.evidence_store import EvidenceStoreError
+
+        def broken(*args, **kwargs):
+            raise EvidenceStoreError('cannot open C:\\secret\\evidence.db')
+        self.playbooks._store = broken
+        status, payload = self.call('/api/rules')
+        self.assertEqual((status, payload['error'], payload['detail']), (503, 'DB_UNAVAILABLE', 'evidence database unavailable'))
+        self.assertNotIn('secret', json.dumps(payload))
+        status, payload = self.call('/api/playbooks/executions', 'POST', self.execution())
+        self.assertEqual((status, payload['detail']), (503, 'evidence database unavailable'))
+
+    def test_traversal_and_odd_ids_never_return_file_content(self):
+        for path in ('/api/playbooks/..', '/api/playbooks/%2F', '/api/playbooks/%2e%2e', '/api/playbooks/..%2F..%2Fetc',
+                     '/api/playbooks/' + 'A' * 300, '/api/playbooks/PB-001%0A'):
+            with self.subTest(path=path):
+                status, payload = self.call(path)
+                self.assertIn(status, (400, 404))
+                self.assertNotIn('content', payload)
+
+    def test_cross_site_post_is_denied_even_with_matching_origin(self):
+        status, payload = self.call('/api/playbooks/executions', 'POST', self.execution(),
+                                    headers={'Sec-Fetch-Site': 'cross-site'})
+        self.assertEqual((status, payload['error']), (403, 'ORIGIN_DENIED'))
+
+
 class BuildAssessmentTest(unittest.TestCase):
     NOW = time.time() + 30  # sample timestamps are taken at test time and must not be in the future
 
@@ -228,7 +292,7 @@ class BuildAssessmentTest(unittest.TestCase):
         production = build_assessment('production', latest, rules, self.NOW)
         self.assertEqual([c['environment'] for c in production['contradictions']], ['production'])
         self.assertEqual(build_assessment('hml', latest, rules, self.NOW)['contradictions'][0]['environment'], 'hml')
-        self.assertNotIn('rules_available', production)
+        self.assertIs(production['rules_available'], True)
 
     def test_non_green_or_unobserved_rules_do_not_contradict(self):
         latest = self.latest(production=_report('production', database_ok=False))

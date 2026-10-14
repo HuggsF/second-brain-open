@@ -8,6 +8,9 @@ from core import evidence
 from core.evidence_store import EvidenceStore, EvidenceStoreError
 
 
+DB_UNAVAILABLE_DETAIL = 'evidence database unavailable'
+
+
 class PlaybooksApi:
     """Serves vault/playbooks/*.md as a simple REST API.
 
@@ -103,11 +106,16 @@ class PlaybooksApi:
             payload = json.loads(body_bytes.decode('utf-8'))
         except Exception:
             return 400, {'error': 'INVALID_JSON'}
+        if not isinstance(payload, dict):
+            return 400, {'error': 'INVALID_JSON'}
         # Required fields check
         required = ('playbook_id', 'result', 'environment', 'summary')
         for field in required:
             if not payload.get(field):
                 return 400, {'error': 'MISSING_FIELD', 'field': field}
+        for field in ('trace_id', 'task_label', 'source', 'recorded_by'):
+            if payload.get(field) is not None and not isinstance(payload[field], str):
+                return 400, {'error': 'VALIDATION_FAILED', 'detail': f'{field} must be text'}
         # Load definitions (fresh load to pick up any new playbooks added since startup)
         defs = self._load_defs()
         # Delegate validation to domain layer
@@ -134,13 +142,13 @@ class PlaybooksApi:
                 summary=clean['summary'],
                 trace_id=payload.get('trace_id') or None,
                 task_label=payload.get('task_label') or None,
-                source=payload.get('source', 'dashboard'),
-                recorded_by=payload.get('recorded_by', 'user'),
+                source=payload.get('source') or 'dashboard',
+                recorded_by=payload.get('recorded_by') or 'user',
                 commit_sha=clean['commit_sha'],
                 run_id=clean['run_id'],
             )
         except EvidenceStoreError as exc:
-            return 503, {'error': 'DB_UNAVAILABLE', 'detail': str(exc)}
+            return 503, {'error': 'DB_UNAVAILABLE', 'detail': DB_UNAVAILABLE_DETAIL}
         if row_id is None:
             return 409, {'error': 'DUPLICATE_IMPORT_KEY'}
         # Invalidate definitions cache so next GET picks up any schema changes
@@ -161,7 +169,7 @@ class PlaybooksApi:
             try:
                 return 200, {'rules': self.rules()}
             except EvidenceStoreError as exc:
-                return 503, {'error': 'DB_UNAVAILABLE', 'detail': str(exc)}
+                return 503, {'error': 'DB_UNAVAILABLE', 'detail': DB_UNAVAILABLE_DETAIL}
 
         # GET /api/playbooks/ — list all playbooks
         if path == '/api/playbooks/' or path == '/api/playbooks':
@@ -230,7 +238,9 @@ class PlaybooksApi:
             try:
                 payload = json.loads(body.decode('utf-8')) if body else {}
             except Exception:
-                payload = {}
+                return 400, {'error': 'INVALID_JSON'}
+            if not isinstance(payload, dict):
+                return 400, {'error': 'INVALID_JSON'}
             params = payload.get('params', {})
             pb_path = self.vault_dir / pb.path
             try:

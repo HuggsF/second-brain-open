@@ -4,6 +4,7 @@ import asyncio
 import json
 import mimetypes
 import re
+import sys
 import threading
 import time
 import uuid
@@ -85,6 +86,12 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
         def error(self,status,code):
             self.send(status,{'schema_version':1,'error':code,'request_id':str(uuid.uuid4())})
 
+        def playbooks_call(self,path,method,body=b''):
+            try: return playbooks.handle(path,method,body)
+            except Exception as exc:
+                print(f'playbooks api failed: {type(exc).__name__}',file=sys.stderr)
+                return 500,{'schema_version':1,'error':'INTERNAL','request_id':str(uuid.uuid4())}
+
         def has_session(self):
             cookie = SimpleCookie()
             try: cookie.load(self.headers.get('Cookie',''))
@@ -113,7 +120,7 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
                 result = workflow.handle('GET',path,b'')
                 return self.send(result[0],result[1],extra=result[2]) if result else self.error(404,'NOT_FOUND')
             if path in PLAYBOOK_GETS or re.fullmatch(PLAYBOOK_ID_ROUTES,path):
-                result = playbooks.handle(path,'GET')
+                result = self.playbooks_call(path,'GET')
                 return self.send(result[0],result[1]) if result else self.error(404,'NOT_FOUND')
             if path.startswith('/v1/'):
                 if query.get('space',['kiosk']) != ['kiosk']:
@@ -161,7 +168,7 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
             if path == '/api/playbooks/executions' or re.fullmatch(PLAYBOOK_RENDER_ROUTE,path):
                 if self.headers.get('Content-Type','').split(';')[0].strip() != 'application/json':
                     return self.error(415,'JSON_REQUIRED')
-                result = playbooks.handle(path,'POST',body)
+                result = self.playbooks_call(path,'POST',body)
                 return self.send(result[0],result[1]) if result else self.error(404,'NOT_FOUND')
             if not path.startswith('/api/workflow/'):
                 return self.error(405,'READ_ONLY_API')

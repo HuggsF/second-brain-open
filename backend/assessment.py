@@ -2,6 +2,7 @@
 
 Pure function of (latest by environment, rules, now); the HTTP handler only fetches the inputs.
 """
+import sys
 from dataclasses import asdict
 
 from core.domain.observation.projection import detect_contradictions, project
@@ -22,7 +23,8 @@ def build_assessment(environment, latest_by_env, rules, now_seconds):
     try:
         rows = rules() if callable(rules) else rules
         found = detect_contradictions(rows, snapshots)
-    except Exception:  # noqa: BLE001 - observation must answer without the evidence side
+    except Exception as exc:  # noqa: BLE001 - observation must answer without the evidence side
+        print(f'assessment: rules unavailable ({type(exc).__name__})', file=sys.stderr)
         rules_available, found = False, []
     snapshot = snapshots[environment]
     result = {
@@ -32,7 +34,6 @@ def build_assessment(environment, latest_by_env, rules, now_seconds):
         'stale': snapshot.stale,
         'nodes': [{'id': n.id, 'status': n.status, 'reason': n.reason} for n in snapshot.nodes],
         'contradictions': [asdict(c) for c in found if c.environment == environment],
+        'rules_available': rules_available,
     }
-    if not rules_available:
-        result['rules_available'] = False
     return result
