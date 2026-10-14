@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* Tokens de dashboard/DESIGN.md. Escuro por padrao; claro via prefers-color-scheme
+   ou :root[data-theme=light]; :root[data-theme=dark] forca o escuro. */
+@theme static {
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+
+  --color-bg: #101513;
+  --color-rail: #111813;
+  --color-panel: #18201b;
+  --color-panel2: #1d2720;
+  --color-border: #334038;
+  --color-field-border: #65736a;
+  --color-text: #edf3ed;
+  --color-muted: #aab9ae;
+  --color-accent: #b8f37b;
+  --color-accent-ink: #1d3019;
+  --color-good: #9bdeb3;
+  --color-warn: #f4c583;
+  --color-blue: #9bc8fa;
+  --color-violet: #cbb3ef;
+  --color-danger: #ffb3ac;
+
+  --color-light-green: #9bdeb3;
+  --color-light-yellow: #f4c583;
+  --color-light-red: #ffb3ac;
+  --color-light-grey: #aab9ae;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --color-bg: #f5f7f3;
+    --color-rail: #eef2e9;
+    --color-panel: #fff;
+    --color-panel2: #f1f5ee;
+    --color-border: #c6d2c4;
+    --color-field-border: #7e9080;
+    --color-text: #1b291e;
+    --color-muted: #4c6251;
+    --color-accent: #39671f;
+    --color-accent-ink: #fff;
+    --color-good: #246942;
+    --color-warn: #835210;
+    --color-blue: #2f6095;
+    --color-violet: #714d96;
+    --color-danger: #9f352d;
+    --color-light-green: #246942;
+    --color-light-yellow: #835210;
+    --color-light-red: #9f352d;
+    --color-light-grey: #4c6251;
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #f5f7f3;
+  --color-rail: #eef2e9;
+  --color-panel: #fff;
+  --color-panel2: #f1f5ee;
+  --color-border: #c6d2c4;
+  --color-field-border: #7e9080;
+  --color-text: #1b291e;
+  --color-muted: #4c6251;
+  --color-accent: #39671f;
+  --color-accent-ink: #fff;
+  --color-good: #246942;
+  --color-warn: #835210;
+  --color-blue: #2f6095;
+  --color-violet: #714d96;
+  --color-danger: #9f352d;
+  --color-light-green: #246942;
+  --color-light-yellow: #835210;
+  --color-light-red: #9f352d;
+  --color-light-grey: #4c6251;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: 15px/1.6 var(--font-sans);
+}

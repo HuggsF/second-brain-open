@@ -24,3 +24,7 @@ credenciais_recife.txt
 # Texto bruto de cursos e livros (arquivado em archive/material-cursos-bruto)
 extracted_drive/
 extracted_pm3/
+
+# JEV app (React)
+jev-app/node_modules/
+jev-app/.vite/
