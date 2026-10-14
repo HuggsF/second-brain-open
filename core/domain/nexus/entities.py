@@ -99,6 +99,7 @@ TOOL_REGISTRY: Dict[str, List[str]] = {
         "search_knowledge_base",
         "read_vault_file",
         "get_system_architecture",
+        "get_brain_status",
         "run_safe_command",
     ],
     "writer": [
@@ -109,6 +110,7 @@ TOOL_REGISTRY: Dict[str, List[str]] = {
     "reviewer": [
         "search_knowledge_base",
         "get_adr",
+        "list_rules",
         "get_rule_evidence",
     ],
 }

@@ -101,3 +101,16 @@ class TestMissionGuard(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestBuiltinStepsPassPolicy(unittest.TestCase):
+    def test_every_builtin_step_is_approved_by_policy(self):
+        from core.policy import Decision, decide, make_identity
+        groups = [p["steps"] for p in MISSION_PATTERNS] + [DEFAULT_STEPS]
+        denied = []
+        for steps in groups:
+            for step in steps:
+                verdict = decide(make_identity(step["agent"]), step["tool"], step["input"])
+                if verdict.decision is not Decision.APPROVE:
+                    denied.append((step["agent"], step["tool"], verdict.decision.value, verdict.reason.value))
+        self.assertEqual(denied, [])
