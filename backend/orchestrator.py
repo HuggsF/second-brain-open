@@ -11,8 +11,8 @@ import uuid
 import re
 from typing import AsyncGenerator
 
-from backend.tool_executor import execute as exec_tool
-from core.policy import make_identity
+from backend.tool_executor import run_tool
+from core.policy import Decision, make_identity
 
 
 # Mapeamento dos agentes do Nexus
@@ -191,18 +191,18 @@ class Orchestrator:
             await self._pause(0.5)
 
             # Executar via corretor: ele decide, executa e grava o rastro com a identidade do agente
+            tool = step.get("tool")
             try:
-                identity = make_identity(step["agent"])
+                identity = make_identity(step.get("agent"))
             except ValueError as exc:
-                result = {"tool": step["tool"], "refused": True, "error": f"agente inválido: {exc}"}
+                result = {"tool": str(tool), "refused": True, "error": f"agente inválido: {exc}"}
             else:
-                result = await exec_tool(step["tool"], identity=identity,
-                                         task_id=f"M{self.mission_id}", **step["input"])
-                if result.get("refused") and result.get("verdict") == "deny":
-                    result["error"] = f"{step['tool']} negado pela política: {result.get('reason', '')}"
+                result = await run_tool(tool, step.get("input"), identity=identity,
+                                        task_id=f"M{self.mission_id}")
+                if result.get("refused") and result.get("verdict") == Decision.DENY.value:
+                    result["error"] = f"{tool} negado pela política: {result.get('reason', '')}"
                 elif result.get("refused"):
-                    result["error"] = (f"{step['tool']} exige aprovação humana explícita; "
-                                       "não executado pela missão.")
+                    result["error"] = f"{tool} exige aprovação humana explícita; não executado pela missão."
 
             # Formatar resultado para o balão
             summary = self._summarize_result(result)

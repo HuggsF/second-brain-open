@@ -15,7 +15,13 @@ if str(PROJECT_ROOT) not in sys.path:
 from core import broker
 
 
+async def run_tool(tool: object, args: object, *, identity: str, task_id: Optional[str] = None,
+                   approved: bool = False) -> dict:
+    """Repassa ao corretor sem espalhar args: tipos inválidos viram DENY lá, não TypeError aqui."""
+    return await broker.call(identity, tool, args, task_id, approved=approved)
+
+
 async def execute(tool_name: str, *, identity: str = "agent:manager", task_id: Optional[str] = None,
                   approved: bool = False, **kwargs) -> dict:
-    """Executa uma ferramenta pelo nome, via corretor."""
-    return await broker.call(identity, tool_name, kwargs, task_id, approved=approved)
+    """Compatibilidade: executa uma ferramenta pelo nome, via corretor."""
+    return await run_tool(tool_name, kwargs, identity=identity, task_id=task_id, approved=approved)
