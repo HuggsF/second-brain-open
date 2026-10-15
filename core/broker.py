@@ -105,9 +105,21 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
                 )
                 return result
         except ImportError as exc:
-            # DD-03: NUNCA silenciar — ImportError desativa toda a pipeline de segurança
+            # H-06: ImportError desativa TODA a pipeline de segurança.
+            # BLOQUEAR execução (fail-closed) — NUNCA permitir tool sem gates.
             print(f"SECURITY DEGRADED: pre_call_pipeline unavailable ({exc}). "
-                  f"All security gates BYPASSED for {tool_name}.", file=sys.stderr)
+                  f"BLOCKING execution for {tool_name}.", file=sys.stderr)
+            result = {"tool": tool_name, "verdict": Decision.DENY.value,
+                       "reason": "security_pipeline_unavailable", "refused": True,
+                       "error": f"security gates unavailable: {exc}"}
+            status, error_type = "refused", None
+            state = tracing.CallState(
+                trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,
+                path=trace_path or tracing.TRACE_LOG,
+                caller=identity if parse_identity(identity) else "unknown",
+                task_label=label, started_at=started_at,
+            )
+            return result
 
         state = tracing.CallState(
             trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,

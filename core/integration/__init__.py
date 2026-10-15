@@ -339,7 +339,14 @@ def pre_call_pipeline(
         print(f"warn: RL check failed for {tool_name}, allowing", file=sys.stderr)
 
     # 3. Forbidden Topics — SEMPRE, fail-closed (INV-N05, INV-N08)
+    # H-08: Inspecionar task_text E args serializados (não só task_text)
     ft_text = task_text or ""
+    if args:
+        try:
+            args_text = json.dumps(args, ensure_ascii=False, default=str)
+            ft_text = f"{ft_text} {args_text}".strip()
+        except (TypeError, ValueError):
+            pass
     if ft_text.strip():
         try:
             ft_result = check_forbidden_topics(ft_text, persona_id=persona_id)
@@ -378,14 +385,21 @@ def pre_call_pipeline(
 
 
 def _redact_value(v: Any) -> Any:
-    """Aplica DLP recursivamente em qualquer valor, preservando tipo."""
+    """Aplica DLP recursivamente em qualquer valor, preservando tipo.
+
+    NEW-01: Estendido para escanear tuple, set, frozenset e qualquer iterável,
+    prevenindo bypass de DLP quando PII está em tipos iteráveis não-list.
+    """
     from core.security.dlp_guardrail import inspect_text
     if isinstance(v, str):
         r = inspect_text(v)
         return r.redacted_text if r.has_pii else v
     elif isinstance(v, dict):
         return _redact_dict_values(v)
-    elif isinstance(v, list):
+    elif isinstance(v, (list, tuple, set, frozenset)):
+        redacted_items = [_redact_value(item) for item in v]
+        return type(v)(redacted_items)
+    elif hasattr(v, '__iter__') and not isinstance(v, (str, bytes)):
         return [_redact_value(item) for item in v]
     return v
 
