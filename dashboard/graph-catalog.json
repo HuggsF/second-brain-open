@@ -3,7 +3,7 @@
   "views": [
     {
       "id": "flow",
-      "label": "Fluxo logístico"
+      "label": "Fluxo logÃ­stico"
     },
     {
       "id": "infra",
@@ -12,6 +12,26 @@
     {
       "id": "domain",
       "label": "Entidades e contratos"
+    },
+    {
+      "id": "knowledge",
+      "label": "Plataforma de conhecimento"
+    },
+    {
+      "id": "ecosystem",
+      "label": "Ecossistema completo"
+    },
+    {
+      "id": "agents",
+      "label": "Agentes e Governança IA"
+    },
+    {
+      "id": "services",
+      "label": "Serviços e Infraestrutura"
+    },
+    {
+      "id": "ontology",
+      "label": "Ontologia AI-OS (Completo)"
     }
   ],
   "nodes": [
@@ -26,6 +46,18 @@
         "flow": [
           30,
           60
+        ],
+        "ecosystem": [
+          30,
+          950
+        ],
+        "ontology": [
+          630,
+          500
+        ],
+        "services": [
+          30,
+          450
         ]
       },
       "valid_at": "2026-10-08"
@@ -44,13 +76,25 @@
         "flow": [
           240,
           60
+        ],
+        "ecosystem": [
+          280,
+          950
+        ],
+        "ontology": [
+          830,
+          500
+        ],
+        "services": [
+          230,
+          450
         ]
       },
       "valid_at": "2026-10-08"
     },
     {
       "id": "bling",
-      "label": "Bling",
+      "label": "Bling ERP v3",
       "type": "Sistema",
       "domain": "erp",
       "evidence": "implementado",
@@ -62,13 +106,25 @@
         "flow": [
           450,
           60
+        ],
+        "ecosystem": [
+          780,
+          800
+        ],
+        "ontology": [
+          30,
+          600
+        ],
+        "services": [
+          430,
+          450
         ]
       },
-      "valid_at": "2026-10-08"
+      "valid_at": "2026-10-14"
     },
     {
       "id": "hub",
-      "label": "Hub Logístico",
+      "label": "Hub LogÃ­stico v5",
       "type": "Sistema",
       "domain": "hub",
       "evidence": "implementado",
@@ -82,14 +138,30 @@
         "flow": [
           450,
           250
+        ],
+        "knowledge": [
+          30,
+          350
+        ],
+        "ecosystem": [
+          30,
+          800
+        ],
+        "ontology": [
+          30,
+          350
+        ],
+        "services": [
+          30,
+          50
         ]
       },
-      "valid_at": "2026-10-08",
+      "valid_at": "2026-10-14",
       "deployment": {
-        "label": "Implantado · auditoria fiscal com pendências",
-        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "label": "Deploy v5 Â· TS migration + deploy automatizado Â· PR #25",
+        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
-        "verified_at": "2026-10-08"
+        "verified_at": "2026-10-14"
       }
     },
     {
@@ -103,13 +175,25 @@
         "flow": [
           240,
           250
+        ],
+        "ecosystem": [
+          280,
+          800
+        ],
+        "ontology": [
+          230,
+          600
+        ],
+        "services": [
+          630,
+          450
         ]
       },
-      "valid_at": "2026-10-08"
+      "valid_at": "2026-10-14"
     },
     {
       "id": "corpem",
-      "label": "Corpem",
+      "label": "Corpem WMS",
       "type": "Sistema",
       "domain": "logistics",
       "evidence": "parcial",
@@ -121,14 +205,26 @@
         "flow": [
           30,
           250
+        ],
+        "ecosystem": [
+          530,
+          800
+        ],
+        "ontology": [
+          430,
+          600
+        ],
+        "services": [
+          830,
+          450
         ]
       },
       "valid_at": "2026-10-08"
     },
     {
       "id": "actions",
-      "label": "GitHub Actions",
-      "type": "Serviço",
+      "label": "GitHub Actions CI/CD",
+      "type": "ServiÃ§o",
       "domain": "infra",
       "evidence": "implementado",
       "document": "systems/proposta-pipeline-ci-cd-github-actions.md",
@@ -136,9 +232,21 @@
         "infra": [
           30,
           60
+        ],
+        "ecosystem": [
+          780,
+          350
+        ],
+        "ontology": [
+          430,
+          650
+        ],
+        "services": [
+          230,
+          650
         ]
       },
-      "valid_at": "2026-10-08"
+      "valid_at": "2026-10-14"
     },
     {
       "id": "srv",
@@ -151,34 +259,54 @@
         "infra": [
           240,
           60
+        ],
+        "ecosystem": [
+          780,
+          950
+        ],
+        "ontology": [
+          830,
+          550
+        ],
+        "services": [
+          830,
+          250
         ]
       },
       "valid_at": "2026-10-08"
     },
     {
       "id": "prod",
-      "label": "Produção",
+      "label": "ProduÃ§Ã£o",
       "type": "Ambiente",
       "domain": "infra",
-      "evidence": "documentado",
+      "evidence": "implementado",
       "document": "systems/hub-producao.md",
       "views": {
         "infra": [
           450,
           60
+        ],
+        "ontology": [
+          30,
+          650
+        ],
+        "services": [
+          30,
+          350
         ]
       },
-      "valid_at": "2026-10-08",
+      "valid_at": "2026-10-14",
       "deployment": {
-        "label": "Implantado · auditoria fiscal com pendências",
-        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "label": "Deploy automatizado Â· observaÃ§Ã£o 5min + rollback SSH",
+        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
-        "verified_at": "2026-10-08"
+        "verified_at": "2026-10-14"
       }
     },
     {
       "id": "hml",
-      "label": "Homologação",
+      "label": "HomologaÃ§Ã£o",
       "type": "Ambiente",
       "domain": "infra",
       "evidence": "implementado",
@@ -190,14 +318,22 @@
         "infra": [
           450,
           250
+        ],
+        "ontology": [
+          230,
+          650
+        ],
+        "services": [
+          230,
+          350
         ]
       },
-      "valid_at": "2026-10-08",
+      "valid_at": "2026-10-14",
       "deployment": {
-        "label": "Implantado · auditoria fiscal com pendências",
-        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "label": "Deploy CI Â· GitHub Actions + health check",
+        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
-        "verified_at": "2026-10-08"
+        "verified_at": "2026-10-14"
       }
     },
     {
@@ -211,6 +347,14 @@
         "infra": [
           240,
           250
+        ],
+        "ontology": [
+          830,
+          450
+        ],
+        "services": [
+          830,
+          150
         ]
       },
       "valid_at": "2026-10-08"
@@ -224,6 +368,14 @@
       "document": "systems/hub-homologacao.md",
       "views": {
         "infra": [
+          30,
+          250
+        ],
+        "ontology": [
+          30,
+          550
+        ],
+        "services": [
           30,
           250
         ]
@@ -241,6 +393,14 @@
         "domain": [
           30,
           35
+        ],
+        "ontology": [
+          30,
+          750
+        ],
+        "services": [
+          830,
+          650
         ]
       },
       "valid_at": "2026-10-08"
@@ -256,9 +416,17 @@
         "domain": [
           240,
           35
+        ],
+        "ontology": [
+          230,
+          750
+        ],
+        "services": [
+          30,
+          750
         ]
       },
-      "valid_at": "2026-10-08"
+      "valid_at": "2026-10-14"
     },
     {
       "id": "job",
@@ -271,19 +439,27 @@
         "domain": [
           450,
           35
+        ],
+        "ontology": [
+          430,
+          750
+        ],
+        "services": [
+          230,
+          750
         ]
       },
-      "valid_at": "2026-10-08",
+      "valid_at": "2026-10-14",
       "deployment": {
-        "label": "Implantado · auditoria fiscal com pendências",
-        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "label": "AdmissÃ£o restaurada Â· PR #16",
+        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
-        "verified_at": "2026-10-08"
+        "verified_at": "2026-10-14"
       }
     },
     {
       "id": "emissao",
-      "label": "Intenção de emissão",
+      "label": "IntenÃ§Ã£o de emissÃ£o",
       "type": "Entidade",
       "domain": "logistics",
       "evidence": "implementado",
@@ -292,14 +468,22 @@
         "domain": [
           450,
           185
+        ],
+        "ontology": [
+          630,
+          750
+        ],
+        "services": [
+          430,
+          750
         ]
       },
-      "valid_at": "2026-10-08",
+      "valid_at": "2026-10-14",
       "deployment": {
-        "label": "Implantado · auditoria fiscal com pendências",
-        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "label": "NF real obrigatÃ³ria Â· dedup webhook corrigido",
+        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
-        "verified_at": "2026-10-08"
+        "verified_at": "2026-10-14"
       }
     },
     {
@@ -316,13 +500,21 @@
         "domain": [
           240,
           185
+        ],
+        "ontology": [
+          830,
+          750
+        ],
+        "services": [
+          630,
+          750
         ]
       },
       "valid_at": "2026-10-08"
     },
     {
       "id": "separacao",
-      "label": "Ordem de separação",
+      "label": "Ordem de separaÃ§Ã£o",
       "type": "Contrato",
       "domain": "logistics",
       "evidence": "proposto",
@@ -334,6 +526,14 @@
         "domain": [
           30,
           185
+        ],
+        "ontology": [
+          30,
+          850
+        ],
+        "services": [
+          830,
+          750
         ]
       },
       "valid_at": "2026-10-08"
@@ -349,9 +549,1364 @@
         "domain": [
           30,
           335
+        ],
+        "ontology": [
+          230,
+          850
+        ],
+        "services": [
+          30,
+          850
         ]
       },
       "valid_at": "2026-10-08"
+    },
+    {
+      "id": "secondbrain",
+      "label": "Second Brain",
+      "type": "Plataforma",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "views": {
+        "knowledge": [
+          280,
+          50
+        ],
+        "ecosystem": [
+          780,
+          50
+        ],
+        "ontology": [
+          430,
+          450
+        ],
+        "services": [
+          430,
+          150
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "qdrant",
+      "label": "Qdrant Vector DB",
+      "type": "Banco Vetorial",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-010-drivesyncengine-pipeline-ingestao-conhecimento-google-drive.md",
+      "views": {
+        "knowledge": [
+          530,
+          50
+        ],
+        "ecosystem": [
+          780,
+          200
+        ],
+        "ontology": [
+          630,
+          450
+        ],
+        "services": [
+          630,
+          150
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "jev",
+      "label": "JEV (React 19)",
+      "type": "Frontend",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-023-luzes-de-teste-e-dominio-de-observacao.md",
+      "views": {
+        "knowledge": [
+          30,
+          50
+        ],
+        "ecosystem": [
+          530,
+          50
+        ],
+        "ontology": [
+          430,
+          500
+        ],
+        "services": [
+          830,
+          350
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "evidence_tree",
+      "label": "Ãrvore de EvidÃªncias",
+      "type": "DomÃ­nio",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-005-arvore-de-evidencias-regras-playbooks-execucoes.md",
+      "views": {
+        "knowledge": [
+          280,
+          350
+        ],
+        "ecosystem": [
+          280,
+          650
+        ],
+        "ontology": [
+          830,
+          650
+        ],
+        "services": [
+          630,
+          650
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "policy_broker",
+      "label": "PolÃ­tica & Corretor",
+      "type": "ServiÃ§o",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-022-politica-unica-e-corretor-de-ferramentas.md",
+      "views": {
+        "knowledge": [
+          530,
+          350
+        ],
+        "ecosystem": [
+          530,
+          650
+        ],
+        "ontology": [
+          630,
+          400
+        ],
+        "agents": [
+          430,
+          530
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "mcp_servers",
+      "label": "MCP Servers (15 tools)",
+      "type": "ServiÃ§o",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-004-trace-ids-e-log-unificado-nas-chamadas-mcp.md",
+      "views": {
+        "knowledge": [
+          280,
+          200
+        ],
+        "ecosystem": [
+          140,
+          350
+        ],
+        "ontology": [
+          430,
+          500
+        ],
+        "agents": [
+          230,
+          650
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "deploy_auto",
+      "label": "Deploy Automatizado",
+      "type": "Pipeline",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/post-deploy-observabilidade-hub.md",
+      "views": {
+        "infra": [
+          240,
+          150
+        ],
+        "knowledge": [
+          30,
+          200
+        ],
+        "ecosystem": [
+          780,
+          500
+        ],
+        "ontology": [
+          630,
+          650
+        ],
+        "services": [
+          430,
+          650
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "salesforce",
+      "label": "Salesforce CRM",
+      "type": "Sistema",
+      "domain": "crm",
+      "evidence": "proposto",
+      "document": "adrs/ADR-001-migracao-sults-holmes-para-salesforce.md",
+      "views": {
+        "flow": [
+          660,
+          60
+        ],
+        "ecosystem": [
+          780,
+          650
+        ],
+        "ontology": [
+          230,
+          700
+        ],
+        "services": [
+          630,
+          550
+        ]
+      },
+      "valid_at": "2026-10-07"
+    },
+    {
+      "id": "work_orders",
+      "label": "Work Orders (WO)",
+      "type": "Protocolo",
+      "domain": "platform",
+      "evidence": "documentado",
+      "document": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "views": {
+        "knowledge": [
+          530,
+          200
+        ],
+        "ecosystem": [
+          410,
+          200
+        ],
+        "ontology": [
+          430,
+          650
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "sb_dashboard",
+      "label": "Second Brain Dashboard",
+      "type": "Frontend SPA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/second-brain-frontend-waves.md",
+      "views": {
+        "ecosystem": [
+          30,
+          50
+        ],
+        "ontology": [
+          30,
+          500
+        ],
+        "services": [
+          430,
+          350
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "nexus",
+      "label": "Nexus Agent Office",
+      "type": "Frontend 3D",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-019-ddd-fase1-fonte-verdade-nexus-roles-playbook-schema.md",
+      "views": {
+        "ecosystem": [
+          280,
+          50
+        ],
+        "ontology": [
+          230,
+          500
+        ],
+        "services": [
+          630,
+          350
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "bff",
+      "label": "BFF Server",
+      "type": "Backend FastAPI",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/second-brain-observability-bff.md",
+      "views": {
+        "ecosystem": [
+          30,
+          200
+        ],
+        "ontology": [
+          430,
+          350
+        ],
+        "services": [
+          430,
+          50
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "ws_server",
+      "label": "WebSocket Server",
+      "type": "Backend AsyncIO",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-020-ddd-phase2-3-workflow-domain-e-bugs.md",
+      "views": {
+        "ecosystem": [
+          280,
+          200
+        ],
+        "ontology": [
+          430,
+          850
+        ],
+        "services": [
+          230,
+          850
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "orchestrator",
+      "label": "Multi-Agent Orchestrator",
+      "type": "Backend Python",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "views": {
+        "ecosystem": [
+          530,
+          200
+        ],
+        "ontology": [
+          630,
+          850
+        ],
+        "services": [
+          430,
+          850
+        ],
+        "agents": [
+          530,
+          200
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "mcp_brain",
+      "label": "kiosk-second-brain MCP",
+      "type": "FastMCP 7 tools",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-004-trace-ids-e-log-unificado-nas-chamadas-mcp.md",
+      "views": {
+        "ecosystem": [
+          30,
+          350
+        ],
+        "ontology": [
+          630,
+          200
+        ],
+        "agents": [
+          430,
+          290
+        ],
+        "services": [
+          30,
+          350
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "mcp_srv",
+      "label": "kiosk-srv-api-gateway MCP",
+      "type": "FastMCP 5 tools",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/srv-api.md",
+      "views": {
+        "ecosystem": [
+          280,
+          350
+        ],
+        "ontology": [
+          30,
+          300
+        ],
+        "agents": [
+          830,
+          290
+        ],
+        "services": [
+          280,
+          350
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "mcp_github",
+      "label": "kiosk-github-gateway MCP",
+      "type": "FastMCP 5 tools",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/inventario-github.md",
+      "views": {
+        "ecosystem": [
+          530,
+          350
+        ],
+        "ontology": [
+          830,
+          200
+        ],
+        "agents": [
+          630,
+          290
+        ],
+        "services": [
+          530,
+          350
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "maia",
+      "label": "Maia (Manager)",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "views": {
+        "ecosystem": [
+          30,
+          500
+        ],
+        "ontology": [
+          30,
+          50
+        ],
+        "agents": [
+          30,
+          50
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "noah",
+      "label": "Noah (Researcher)",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "views": {
+        "ecosystem": [
+          220,
+          500
+        ],
+        "ontology": [
+          230,
+          50
+        ],
+        "agents": [
+          230,
+          50
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "theo",
+      "label": "Theo (Coder)",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "views": {
+        "ecosystem": [
+          410,
+          500
+        ],
+        "ontology": [
+          430,
+          50
+        ],
+        "agents": [
+          430,
+          50
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "eva",
+      "label": "Eva (Reviewer)",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "views": {
+        "ecosystem": [
+          600,
+          500
+        ],
+        "ontology": [
+          830,
+          50
+        ],
+        "agents": [
+          830,
+          50
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "grounding_gate",
+      "label": "Grounding Gate",
+      "type": "Quality Gate",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-005-arvore-de-evidencias-regras-playbooks-execucoes.md",
+      "views": {
+        "ecosystem": [
+          30,
+          650
+        ],
+        "ontology": [
+          630,
+          300
+        ],
+        "agents": [
+          430,
+          410
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "dag_gate",
+      "label": "DAG Gate",
+      "type": "Quality Gate",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-005-arvore-de-evidencias-regras-playbooks-execucoes.md",
+      "views": {
+        "ecosystem": [
+          220,
+          650
+        ],
+        "ontology": [
+          830,
+          300
+        ],
+        "agents": [
+          630,
+          410
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "idempotency_gate",
+      "label": "Idempotency Gate",
+      "type": "Quality Gate",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-005-arvore-de-evidencias-regras-playbooks-execucoes.md",
+      "views": {
+        "ecosystem": [
+          410,
+          650
+        ],
+        "ontology": [
+          230,
+          400
+        ],
+        "agents": [
+          30,
+          530
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "rule_gate",
+      "label": "Rule Gate",
+      "type": "Quality Gate",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "adrs/ADR-005-arvore-de-evidencias-regras-playbooks-execucoes.md",
+      "views": {
+        "ecosystem": [
+          600,
+          650
+        ],
+        "ontology": [
+          30,
+          400
+        ],
+        "agents": [
+          830,
+          410
+        ]
+      },
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "lia",
+      "label": "Lia (Writer)",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-agentes-ia-multiagente.md",
+      "views": {
+        "ontology": [
+          630,
+          50
+        ],
+        "agents": [
+          630,
+          50
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "persona_dev",
+      "label": "Persona DEV",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-agentes-ia-multiagente.md",
+      "views": {
+        "ontology": [
+          30,
+          150
+        ],
+        "agents": [
+          30,
+          170
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "persona_devops",
+      "label": "Persona DevOps",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-agentes-ia-multiagente.md",
+      "views": {
+        "ontology": [
+          230,
+          150
+        ],
+        "agents": [
+          230,
+          170
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "persona_qa",
+      "label": "Persona QA",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-agentes-ia-multiagente.md",
+      "views": {
+        "ontology": [
+          430,
+          150
+        ],
+        "agents": [
+          430,
+          170
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "persona_arch",
+      "label": "Persona Architect",
+      "type": "Agente IA",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-agentes-ia-multiagente.md",
+      "views": {
+        "ontology": [
+          630,
+          150
+        ],
+        "agents": [
+          630,
+          170
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "skill_qa",
+      "label": "Skill: QA Planner",
+      "type": "Skill",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-skills-capacidades.md",
+      "views": {
+        "ontology": [
+          30,
+          200
+        ],
+        "agents": [
+          830,
+          170
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "skill_ux",
+      "label": "Skill: UX Engine",
+      "type": "Skill",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-skills-capacidades.md",
+      "views": {
+        "ontology": [
+          230,
+          200
+        ],
+        "agents": [
+          30,
+          290
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "skill_auto",
+      "label": "Skill: Automation",
+      "type": "Skill",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-skills-capacidades.md",
+      "views": {
+        "ontology": [
+          430,
+          200
+        ],
+        "agents": [
+          230,
+          290
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "mcp_hub_obs",
+      "label": "Hub Observability MCP",
+      "type": "FastMCP 3 tools",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-mcp-servers.md",
+      "views": {
+        "ontology": [
+          230,
+          300
+        ],
+        "agents": [
+          30,
+          410
+        ],
+        "services": [
+          230,
+          300
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "mcp_local",
+      "label": "Local Tasks MCP",
+      "type": "FastMCP 5 tools",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-mcp-servers.md",
+      "views": {
+        "ontology": [
+          430,
+          300
+        ],
+        "agents": [
+          230,
+          410
+        ],
+        "services": [
+          430,
+          300
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "gate_pipeline",
+      "label": "Gate Pipeline",
+      "type": "Quality Gate",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-quality-gates.md",
+      "views": {
+        "ontology": [
+          430,
+          400
+        ],
+        "agents": [
+          230,
+          530
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "policy_identity",
+      "label": "Identity Parser",
+      "type": "Policy",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-policy-engine.md",
+      "views": {
+        "ontology": [
+          830,
+          400
+        ],
+        "agents": [
+          630,
+          530
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "policy_commands",
+      "label": "Command Inspector",
+      "type": "Policy",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-policy-engine.md",
+      "views": {
+        "ontology": [
+          30,
+          500
+        ],
+        "agents": [
+          830,
+          530
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "policy_decide",
+      "label": "Decision Engine",
+      "type": "Policy",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-policy-engine.md",
+      "views": {
+        "ontology": [
+          230,
+          500
+        ],
+        "agents": [
+          30,
+          650
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "nexus_office",
+      "label": "Nexus Office WS",
+      "type": "Backend AsyncIO",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-backend-services.md",
+      "views": {
+        "ontology": [
+          230,
+          350
+        ],
+        "services": [
+          230,
+          50
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "rag_retriever",
+      "label": "RAG Retriever",
+      "type": "Backend Service",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-backend-services.md",
+      "views": {
+        "ontology": [
+          630,
+          350
+        ],
+        "services": [
+          630,
+          50
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "evidence_store",
+      "label": "Evidence Store",
+      "type": "Backend Service",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-backend-services.md",
+      "views": {
+        "ontology": [
+          830,
+          350
+        ],
+        "services": [
+          830,
+          50
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "session_memory",
+      "label": "Session Memory",
+      "type": "Backend Service",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-backend-services.md",
+      "views": {
+        "ontology": [
+          30,
+          450
+        ],
+        "services": [
+          30,
+          150
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "quarantine_store",
+      "label": "Quarantine Store",
+      "type": "Backend Service",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-backend-services.md",
+      "views": {
+        "ontology": [
+          230,
+          450
+        ],
+        "services": [
+          230,
+          150
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "sqlite_evidence",
+      "label": "evidence.db",
+      "type": "Banco SQLite",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/kiosk-infraestrutura.md",
+      "views": {
+        "ontology": [
+          230,
+          550
+        ],
+        "services": [
+          230,
+          250
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "ollama",
+      "label": "Ollama LLM Local",
+      "type": "Infraestrutura",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/kiosk-infraestrutura.md",
+      "views": {
+        "ontology": [
+          430,
+          550
+        ],
+        "services": [
+          430,
+          250
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "docker",
+      "label": "Docker Compose",
+      "type": "Infraestrutura",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/kiosk-infraestrutura.md",
+      "views": {
+        "ontology": [
+          630,
+          550
+        ],
+        "services": [
+          630,
+          250
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "google_drive",
+      "label": "Google Drive Sync",
+      "type": "Integração",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-integracoes-externas.md",
+      "views": {
+        "ontology": [
+          630,
+          600
+        ],
+        "services": [
+          30,
+          550
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "github_api",
+      "label": "GitHub API",
+      "type": "Integração",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/kiosk-integracoes-externas.md",
+      "views": {
+        "ontology": [
+          830,
+          600
+        ],
+        "services": [
+          230,
+          550
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "srv_remote",
+      "label": "SRV-API Remoto",
+      "type": "Integração",
+      "domain": "infra",
+      "evidence": "implementado",
+      "document": "systems/srv-api.md",
+      "views": {
+        "ontology": [
+          30,
+          700
+        ],
+        "services": [
+          430,
+          550
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "crm_hggs",
+      "label": "CRM HGGs",
+      "type": "Projeto",
+      "domain": "crm",
+      "evidence": "implementado",
+      "document": "systems/kiosk-projetos-satelite.md",
+      "views": {
+        "ontology": [
+          430,
+          700
+        ],
+        "services": [
+          830,
+          550
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "hub_monitor",
+      "label": "Hub Monitor",
+      "type": "Projeto",
+      "domain": "hub",
+      "evidence": "implementado",
+      "document": "systems/kiosk-projetos-satelite.md",
+      "views": {
+        "ontology": [
+          630,
+          700
+        ],
+        "services": [
+          30,
+          650
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "hub_e2e",
+      "label": "Hub E2E Lacunas",
+      "type": "Projeto",
+      "domain": "hub",
+      "evidence": "implementado",
+      "document": "systems/kiosk-projetos-satelite.md",
+      "views": {
+        "ontology": [
+          30,
+          650
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "analise_360",
+      "label": "Análise 360",
+      "type": "Projeto",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-projetos-satelite.md",
+      "views": {
+        "ontology": [
+          230,
+          650
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "proto_ws",
+      "label": "WebSocket Protocol",
+      "type": "Protocolo",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-protocolos-comunicacao.md",
+      "views": {
+        "ontology": [
+          630,
+          650
+        ],
+        "services": [
+          630,
+          650
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "proto_rest",
+      "label": "REST Protocol",
+      "type": "Protocolo",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-protocolos-comunicacao.md",
+      "views": {
+        "ontology": [
+          830,
+          650
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "proto_mcp",
+      "label": "MCP Protocol",
+      "type": "Protocolo",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-protocolos-comunicacao.md",
+      "views": {
+        "ontology": [
+          30,
+          750
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "proto_envelope",
+      "label": "Envelope brain.task/1",
+      "type": "Protocolo",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-protocolos-comunicacao.md",
+      "views": {
+        "ontology": [
+          230,
+          750
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "tpl_adr",
+      "label": "Template: ADR",
+      "type": "Template",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-templates-conhecimento.md",
+      "views": {
+        "ontology": [
+          430,
+          750
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "tpl_playbook",
+      "label": "Template: Playbook",
+      "type": "Template",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-templates-conhecimento.md",
+      "views": {
+        "ontology": [
+          630,
+          750
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "tpl_daily",
+      "label": "Template: Daily",
+      "type": "Template",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-templates-conhecimento.md",
+      "views": {
+        "ontology": [
+          830,
+          750
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "tpl_demand",
+      "label": "Template: Demand",
+      "type": "Template",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-templates-conhecimento.md",
+      "views": {
+        "ontology": [
+          30,
+          850
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "tpl_rule",
+      "label": "Template: Rule",
+      "type": "Template",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-templates-conhecimento.md",
+      "views": {
+        "ontology": [
+          230,
+          850
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "tpl_summary",
+      "label": "Template: Summary",
+      "type": "Template",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-templates-conhecimento.md",
+      "views": {
+        "ontology": [
+          430,
+          850
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "tpl_system",
+      "label": "Template: System",
+      "type": "Template",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-templates-conhecimento.md",
+      "views": {
+        "ontology": [
+          630,
+          850
+        ]
+      },
+      "valid_at": "2026-10-15"
     }
   ],
   "edges": [
@@ -383,7 +1938,7 @@
       "view": "flow",
       "evidence": "implementado",
       "source_file": "systems/protecoes-processamento-emissao-hub.md",
-      "valid_at": "2026-10-08"
+      "valid_at": "2026-10-14"
     },
     {
       "id": "relation-3",
@@ -393,12 +1948,12 @@
       "view": "flow",
       "evidence": "implementado",
       "source_file": "systems/protecoes-processamento-emissao-hub.md",
-      "valid_at": "2026-10-08",
+      "valid_at": "2026-10-14",
       "deployment": {
-        "label": "Implantado · auditoria fiscal com pendências",
-        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "label": "Dedup corrigido Â· NF real obrigatÃ³ria Â· PR #25",
+        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
-        "verified_at": "2026-10-08"
+        "verified_at": "2026-10-14"
       }
     },
     {
@@ -415,11 +1970,11 @@
       "id": "relation-5",
       "source": "actions",
       "target": "srv",
-      "relation": "deploy HML",
+      "relation": "deploy HML + PROD",
       "view": "infra",
       "evidence": "implementado",
       "source_file": "systems/proposta-pipeline-ci-cd-github-actions.md",
-      "valid_at": "2026-10-08"
+      "valid_at": "2026-10-14"
     },
     {
       "id": "relation-6",
@@ -469,7 +2024,7 @@
       "view": "domain",
       "evidence": "implementado",
       "source_file": "systems/protecoes-processamento-emissao-hub.md",
-      "valid_at": "2026-10-08"
+      "valid_at": "2026-10-14"
     },
     {
       "id": "relation-11",
@@ -479,12 +2034,12 @@
       "view": "domain",
       "evidence": "implementado",
       "source_file": "systems/protecoes-processamento-emissao-hub.md",
-      "valid_at": "2026-10-08",
+      "valid_at": "2026-10-14",
       "deployment": {
-        "label": "Implantado · auditoria fiscal com pendências",
-        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
+        "label": "NF real + dedup fix Â· PR #25",
+        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
-        "verified_at": "2026-10-08"
+        "verified_at": "2026-10-14"
       }
     },
     {
@@ -511,7 +2066,7 @@
       "id": "relation-14",
       "source": "volume",
       "target": "separacao",
-      "relation": "composição a definir",
+      "relation": "composiÃ§Ã£o a definir",
       "view": "domain",
       "evidence": "proposto",
       "source_file": "systems/backlog-analise-hub-logistico.md",
@@ -526,6 +2081,1156 @@
       "evidence": "proposto",
       "source_file": "systems/backlog-analise-hub-logistico.md",
       "valid_at": "2026-10-08"
+    },
+    {
+      "id": "relation-16",
+      "source": "secondbrain",
+      "target": "qdrant",
+      "relation": "indexa e busca semÃ¢ntica",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-010-drivesyncengine-pipeline-ingestao-conhecimento-google-drive.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-17",
+      "source": "jev",
+      "target": "secondbrain",
+      "relation": "visualiza regras e luzes",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-023-luzes-de-teste-e-dominio-de-observacao.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-18",
+      "source": "secondbrain",
+      "target": "evidence_tree",
+      "relation": "registra evidÃªncias",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-005-arvore-de-evidencias-regras-playbooks-execucoes.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-19",
+      "source": "secondbrain",
+      "target": "mcp_servers",
+      "relation": "expÃµe ferramentas",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-004-trace-ids-e-log-unificado-nas-chamadas-mcp.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-20",
+      "source": "mcp_servers",
+      "target": "policy_broker",
+      "relation": "governado por",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-022-politica-unica-e-corretor-de-ferramentas.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-21",
+      "source": "hub",
+      "target": "secondbrain",
+      "relation": "observabilidade e regras",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-22",
+      "source": "deploy_auto",
+      "target": "hub",
+      "relation": "automatiza deploy",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "systems/post-deploy-observabilidade-hub.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-23",
+      "source": "actions",
+      "target": "deploy_auto",
+      "relation": "dispara pipeline",
+      "view": "infra",
+      "evidence": "implementado",
+      "source_file": "systems/proposta-pipeline-ci-cd-github-actions.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-24",
+      "source": "deploy_auto",
+      "target": "prod",
+      "relation": "observa e promove",
+      "view": "infra",
+      "evidence": "implementado",
+      "source_file": "systems/post-deploy-observabilidade-hub.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-25",
+      "source": "deploy_auto",
+      "target": "hml",
+      "relation": "valida antes de prod",
+      "view": "infra",
+      "evidence": "implementado",
+      "source_file": "systems/hub-homologacao.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-26",
+      "source": "work_orders",
+      "target": "secondbrain",
+      "relation": "SB gera, AGY executa",
+      "view": "knowledge",
+      "evidence": "documentado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-27",
+      "source": "bling",
+      "target": "salesforce",
+      "relation": "sincroniza pedidos",
+      "view": "flow",
+      "evidence": "proposto",
+      "source_file": "adrs/ADR-001-migracao-sults-holmes-para-salesforce.md",
+      "valid_at": "2026-10-07"
+    },
+    {
+      "id": "relation-28",
+      "source": "evidence_tree",
+      "target": "jev",
+      "relation": "luzes de teste",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-023-luzes-de-teste-e-dominio-de-observacao.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-29",
+      "source": "mcp_servers",
+      "target": "qdrant",
+      "relation": "busca semÃ¢ntica",
+      "view": "knowledge",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-010-drivesyncengine-pipeline-ingestao-conhecimento-google-drive.md",
+      "valid_at": "2026-10-14"
+    },
+    {
+      "id": "relation-30",
+      "valid_at": "2026-10-14",
+      "source": "sb_dashboard",
+      "target": "bff",
+      "relation": "HTTP API",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "systems/second-brain-observability-bff.md"
+    },
+    {
+      "id": "relation-31",
+      "valid_at": "2026-10-14",
+      "source": "nexus",
+      "target": "ws_server",
+      "relation": "WebSocket",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-020-ddd-phase2-3-workflow-domain-e-bugs.md"
+    },
+    {
+      "id": "relation-32",
+      "valid_at": "2026-10-14",
+      "source": "bff",
+      "target": "qdrant",
+      "relation": "busca vetorial",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-010-drivesyncengine-pipeline-ingestao-conhecimento-google-drive.md"
+    },
+    {
+      "id": "relation-33",
+      "valid_at": "2026-10-14",
+      "source": "orchestrator",
+      "target": "maia",
+      "relation": "distribui missões",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md"
+    },
+    {
+      "id": "relation-34",
+      "valid_at": "2026-10-14",
+      "source": "maia",
+      "target": "noah",
+      "relation": "delega pesquisa",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md"
+    },
+    {
+      "id": "relation-35",
+      "valid_at": "2026-10-14",
+      "source": "maia",
+      "target": "theo",
+      "relation": "delega código",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md"
+    },
+    {
+      "id": "relation-36",
+      "valid_at": "2026-10-14",
+      "source": "maia",
+      "target": "eva",
+      "relation": "delega revisão",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md"
+    },
+    {
+      "id": "relation-37",
+      "valid_at": "2026-10-14",
+      "source": "noah",
+      "target": "mcp_brain",
+      "relation": "busca semântica",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-004-trace-ids-e-log-unificado-nas-chamadas-mcp.md"
+    },
+    {
+      "id": "relation-38",
+      "valid_at": "2026-10-14",
+      "source": "theo",
+      "target": "mcp_github",
+      "relation": "code & PRs",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "systems/inventario-github.md"
+    },
+    {
+      "id": "relation-39",
+      "valid_at": "2026-10-14",
+      "source": "mcp_srv",
+      "target": "srv",
+      "relation": "SSH commands",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "systems/srv-api.md"
+    },
+    {
+      "id": "relation-40",
+      "valid_at": "2026-10-14",
+      "source": "policy_broker",
+      "target": "mcp_brain",
+      "relation": "governa tools",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-022-politica-unica-e-corretor-de-ferramentas.md"
+    },
+    {
+      "id": "relation-41",
+      "valid_at": "2026-10-14",
+      "source": "grounding_gate",
+      "target": "qdrant",
+      "relation": "verifica fontes",
+      "view": "ecosystem",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-005-arvore-de-evidencias-regras-playbooks-execucoes.md"
+    },
+    {
+      "id": "relation-42",
+      "source": "orchestrator",
+      "target": "maia",
+      "relation": "distribui missões",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-43",
+      "source": "maia",
+      "target": "noah",
+      "relation": "delega pesquisa",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-44",
+      "source": "maia",
+      "target": "theo",
+      "relation": "delega código",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-45",
+      "source": "maia",
+      "target": "lia",
+      "relation": "delega escrita",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-agentes-ia-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-46",
+      "source": "maia",
+      "target": "eva",
+      "relation": "delega revisão",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-47",
+      "source": "orchestrator",
+      "target": "maia",
+      "relation": "distribui missões",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-48",
+      "source": "maia",
+      "target": "noah",
+      "relation": "delega pesquisa",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-49",
+      "source": "maia",
+      "target": "theo",
+      "relation": "delega código",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-50",
+      "source": "maia",
+      "target": "lia",
+      "relation": "delega escrita",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-agentes-ia-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-51",
+      "source": "maia",
+      "target": "eva",
+      "relation": "delega revisão",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-52",
+      "source": "persona_qa",
+      "target": "skill_qa",
+      "relation": "usa skill",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-skills-capacidades.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-53",
+      "source": "maia",
+      "target": "skill_auto",
+      "relation": "orquestra automação",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-skills-capacidades.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-54",
+      "source": "theo",
+      "target": "skill_ux",
+      "relation": "aplica design",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-skills-capacidades.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-55",
+      "source": "persona_qa",
+      "target": "skill_qa",
+      "relation": "usa skill",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-skills-capacidades.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-56",
+      "source": "maia",
+      "target": "skill_auto",
+      "relation": "orquestra automação",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-skills-capacidades.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-57",
+      "source": "theo",
+      "target": "skill_ux",
+      "relation": "aplica design",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-skills-capacidades.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-58",
+      "source": "noah",
+      "target": "mcp_brain",
+      "relation": "busca semântica",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-004-trace-ids-e-log-unificado-nas-chamadas-mcp.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-59",
+      "source": "theo",
+      "target": "mcp_github",
+      "relation": "code & PRs",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/inventario-github.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-60",
+      "source": "persona_devops",
+      "target": "mcp_srv",
+      "relation": "SSH commands",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/srv-api.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-61",
+      "source": "persona_devops",
+      "target": "mcp_hub_obs",
+      "relation": "monitora hub",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-mcp-servers.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-62",
+      "source": "noah",
+      "target": "mcp_local",
+      "relation": "inferência local",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-mcp-servers.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-63",
+      "source": "noah",
+      "target": "mcp_brain",
+      "relation": "busca semântica",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-004-trace-ids-e-log-unificado-nas-chamadas-mcp.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-64",
+      "source": "theo",
+      "target": "mcp_github",
+      "relation": "code & PRs",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/inventario-github.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-65",
+      "source": "persona_devops",
+      "target": "mcp_srv",
+      "relation": "SSH commands",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/srv-api.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-66",
+      "source": "persona_devops",
+      "target": "mcp_hub_obs",
+      "relation": "monitora hub",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-mcp-servers.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-67",
+      "source": "noah",
+      "target": "mcp_local",
+      "relation": "inferência local",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-mcp-servers.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-68",
+      "source": "policy_broker",
+      "target": "maia",
+      "relation": "governa agentes",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-022-politica-unica-e-corretor-de-ferramentas.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-69",
+      "source": "policy_broker",
+      "target": "policy_identity",
+      "relation": "identifica agente",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-policy-engine.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-70",
+      "source": "policy_broker",
+      "target": "policy_commands",
+      "relation": "inspeciona cmd",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-policy-engine.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-71",
+      "source": "policy_broker",
+      "target": "policy_decide",
+      "relation": "solicita veredito",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-policy-engine.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-72",
+      "source": "policy_broker",
+      "target": "maia",
+      "relation": "governa agentes",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-022-politica-unica-e-corretor-de-ferramentas.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-73",
+      "source": "policy_broker",
+      "target": "policy_identity",
+      "relation": "identifica agente",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-policy-engine.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-74",
+      "source": "policy_broker",
+      "target": "policy_commands",
+      "relation": "inspeciona cmd",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-policy-engine.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-75",
+      "source": "policy_broker",
+      "target": "policy_decide",
+      "relation": "solicita veredito",
+      "view": "agents",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-policy-engine.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-76",
+      "source": "gate_pipeline",
+      "target": "grounding_gate",
+      "relation": "executa gate",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-quality-gates.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-77",
+      "source": "gate_pipeline",
+      "target": "dag_gate",
+      "relation": "executa gate",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-quality-gates.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-78",
+      "source": "gate_pipeline",
+      "target": "rule_gate",
+      "relation": "executa gate",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-quality-gates.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-79",
+      "source": "gate_pipeline",
+      "target": "idempotency_gate",
+      "relation": "executa gate",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-quality-gates.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-80",
+      "source": "mcp_brain",
+      "target": "qdrant",
+      "relation": "busca vetorial",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-010-drivesyncengine-pipeline-ingestao-conhecimento-google-drive.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-81",
+      "source": "mcp_brain",
+      "target": "evidence_store",
+      "relation": "registra execução",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-82",
+      "source": "mcp_srv",
+      "target": "srv_remote",
+      "relation": "SSH commands",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/srv-api.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-83",
+      "source": "mcp_github",
+      "target": "github_api",
+      "relation": "REST API",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/inventario-github.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-84",
+      "source": "mcp_hub_obs",
+      "target": "srv_remote",
+      "relation": "SSH + PM2",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-mcp-servers.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-85",
+      "source": "mcp_local",
+      "target": "ollama",
+      "relation": "HTTP inference",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-mcp-servers.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-86",
+      "source": "mcp_brain",
+      "target": "qdrant",
+      "relation": "busca vetorial",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-010-drivesyncengine-pipeline-ingestao-conhecimento-google-drive.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-87",
+      "source": "mcp_brain",
+      "target": "evidence_store",
+      "relation": "registra execução",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-88",
+      "source": "mcp_srv",
+      "target": "srv_remote",
+      "relation": "SSH commands",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/srv-api.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-89",
+      "source": "mcp_github",
+      "target": "github_api",
+      "relation": "REST API",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/inventario-github.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-90",
+      "source": "mcp_hub_obs",
+      "target": "srv_remote",
+      "relation": "SSH + PM2",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-mcp-servers.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-91",
+      "source": "mcp_local",
+      "target": "ollama",
+      "relation": "HTTP inference",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-mcp-servers.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-92",
+      "source": "bff",
+      "target": "qdrant",
+      "relation": "busca vetorial",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-010-drivesyncengine-pipeline-ingestao-conhecimento-google-drive.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-93",
+      "source": "rag_retriever",
+      "target": "qdrant",
+      "relation": "query semântica",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-94",
+      "source": "rag_retriever",
+      "target": "ollama",
+      "relation": "embeddings",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-95",
+      "source": "evidence_store",
+      "target": "sqlite_evidence",
+      "relation": "persiste em",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-96",
+      "source": "hub",
+      "target": "dbprod",
+      "relation": "utiliza",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/hub-producao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-97",
+      "source": "bff",
+      "target": "qdrant",
+      "relation": "busca vetorial",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "adrs/ADR-010-drivesyncengine-pipeline-ingestao-conhecimento-google-drive.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-98",
+      "source": "rag_retriever",
+      "target": "qdrant",
+      "relation": "query semântica",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-99",
+      "source": "rag_retriever",
+      "target": "ollama",
+      "relation": "embeddings",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-100",
+      "source": "evidence_store",
+      "target": "sqlite_evidence",
+      "relation": "persiste em",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-101",
+      "source": "hub",
+      "target": "dbprod",
+      "relation": "utiliza",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/hub-producao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-102",
+      "source": "sb_dashboard",
+      "target": "bff",
+      "relation": "HTTP API",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/second-brain-observability-bff.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-103",
+      "source": "nexus",
+      "target": "nexus_office",
+      "relation": "WebSocket",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-104",
+      "source": "nexus_office",
+      "target": "proto_ws",
+      "relation": "implementa",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-protocolos-comunicacao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-105",
+      "source": "sb_dashboard",
+      "target": "bff",
+      "relation": "HTTP API",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/second-brain-observability-bff.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-106",
+      "source": "nexus",
+      "target": "nexus_office",
+      "relation": "WebSocket",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-backend-services.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-107",
+      "source": "nexus_office",
+      "target": "proto_ws",
+      "relation": "implementa",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-protocolos-comunicacao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-108",
+      "source": "bling",
+      "target": "hub",
+      "relation": "webhook / consulta",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/protecoes-processamento-emissao-hub.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-109",
+      "source": "hub",
+      "target": "jt",
+      "relation": "emite / reaproveita",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/protecoes-processamento-emissao-hub.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-110",
+      "source": "hub",
+      "target": "corpem",
+      "relation": "POST opcional",
+      "view": "ontology",
+      "evidence": "parcial",
+      "source_file": "systems/backlog-analise-hub-logistico.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-111",
+      "source": "shopify",
+      "target": "yampi",
+      "relation": "checkout",
+      "view": "ontology",
+      "evidence": "relatado",
+      "source_file": "systems/discovery-gaps-bling-yampi.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-112",
+      "source": "yampi",
+      "target": "bling",
+      "relation": "cria pedido",
+      "view": "ontology",
+      "evidence": "relatado",
+      "source_file": "systems/discovery-gaps-bling-yampi.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-113",
+      "source": "google_drive",
+      "target": "secondbrain",
+      "relation": "sync vault",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-integracoes-externas.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-114",
+      "source": "srv",
+      "target": "prod",
+      "relation": "hospeda",
+      "view": "ontology",
+      "evidence": "documentado",
+      "source_file": "systems/hub-producao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-115",
+      "source": "srv",
+      "target": "hml",
+      "relation": "hospeda",
+      "view": "ontology",
+      "evidence": "documentado",
+      "source_file": "systems/hub-homologacao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-116",
+      "source": "actions",
+      "target": "deploy_auto",
+      "relation": "dispara pipeline",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/proposta-pipeline-ci-cd-github-actions.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-117",
+      "source": "deploy_auto",
+      "target": "prod",
+      "relation": "observa e promove",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/post-deploy-observabilidade-hub.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-118",
+      "source": "docker",
+      "target": "qdrant",
+      "relation": "containeriza",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-infraestrutura.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-119",
+      "source": "srv",
+      "target": "prod",
+      "relation": "hospeda",
+      "view": "services",
+      "evidence": "documentado",
+      "source_file": "systems/hub-producao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-120",
+      "source": "srv",
+      "target": "hml",
+      "relation": "hospeda",
+      "view": "services",
+      "evidence": "documentado",
+      "source_file": "systems/hub-homologacao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-121",
+      "source": "actions",
+      "target": "deploy_auto",
+      "relation": "dispara pipeline",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/proposta-pipeline-ci-cd-github-actions.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-122",
+      "source": "deploy_auto",
+      "target": "prod",
+      "relation": "observa e promove",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/post-deploy-observabilidade-hub.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-123",
+      "source": "docker",
+      "target": "qdrant",
+      "relation": "containeriza",
+      "view": "services",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-infraestrutura.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-124",
+      "source": "lia",
+      "target": "tpl_adr",
+      "relation": "gera ADR",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-templates-conhecimento.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-125",
+      "source": "lia",
+      "target": "tpl_playbook",
+      "relation": "gera playbook",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-templates-conhecimento.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-126",
+      "source": "maia",
+      "target": "tpl_summary",
+      "relation": "gera resumo",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-templates-conhecimento.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-127",
+      "source": "maia",
+      "target": "proto_envelope",
+      "relation": "usa envelope",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-protocolos-comunicacao.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-128",
+      "source": "hub_monitor",
+      "target": "hub",
+      "relation": "observa",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-projetos-satelite.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-129",
+      "source": "hub_e2e",
+      "target": "hub",
+      "relation": "testa E2E",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-projetos-satelite.md",
+      "valid_at": "2026-10-15"
+    },
+    {
+      "id": "relation-130",
+      "source": "analise_360",
+      "target": "secondbrain",
+      "relation": "audita",
+      "view": "ontology",
+      "evidence": "implementado",
+      "source_file": "systems/kiosk-projetos-satelite.md",
+      "valid_at": "2026-10-15"
     }
   ]
 }

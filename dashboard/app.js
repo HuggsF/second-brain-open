@@ -8,6 +8,7 @@ const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
 const categories = {all:'Todas as fontes',architecture:'Arquitetura · System Design',playbooks:'Playbooks',systems:'Sistemas',adrs:'Decisões · ADRs',product:'Produto',domain:'Domínio',daily:'Memória diária',general:'Geral'};
 let storageOK = true, noticeTimer;
+let knowledgeProduct=null;
 const defaults = {version:1,theme:'dark',favorites:[],recent:[],history:[],graphMode:'map',plan:null};
 let saved = {...defaults};
 try {
@@ -67,8 +68,12 @@ function readRoute() {
  r.category=Object.hasOwn(categories,r.category)?r.category:'all';
  r.evidence=Object.hasOwn(evidence,r.evidence)?r.evidence:'all';
  if(!['map','list'].includes(r.mode))delete r.mode;
+ if(!['radial','layered'].includes(r.layout))delete r.layout;
+ if(!['horizontal','vertical'].includes(r.orientation))delete r.orientation;
+ if(!dataOK||!G.nodes.some(n=>n.domain===r.categoryFocus))delete r.categoryFocus;
  if(!dataOK||!G.nodes.some(n=>n.domain===r.domain))delete r.domain;
- if(!dataOK||!G.nodes.some(n=>n.id===r.node&&n.views[r.view]))delete r.node;
+  const isProduct=r.page==='graph'&&r.experience==='product'&&!!window.BrainKnowledgeView;
+  if(!dataOK||!(isProduct?G.nodes.some(n=>n.id===r.node):G.nodes.some(n=>n.id===r.node&&n.views[r.view])))delete r.node;
  if(!dataOK||!G.edges.some(e=>e.id===r.edge&&e.view===r.view))delete r.edge;
  if(!dataOK||!G.edges.some(e=>e.relation===r.relation&&e.view===r.view))delete r.relation;
  r.hops=r.hops==='2'?2:1;
@@ -227,8 +232,11 @@ function globalSearch(){
  }
 }
 function render(){
+ knowledgeProduct?.dispose();knowledgeProduct=null;
  window.BrainObservability?.dispose();
+ window.BrainGraphUI?.dispose();
  const main=$('main');main.replaceChildren();route=readRoute();$('page-name').textContent=pages[route.page][1];
+ document.body.classList.toggle('knowledge-product-mode',route.page==='graph'&&route.experience==='product'&&!!window.BrainKnowledgeView);
  $('navigation').replaceChildren(...Object.entries(pages).map(([id,[icon,name]])=>el('a',{class:'nav-item',href:'#page='+id,'aria-current':route.page===id?'page':null},el('span',{class:'nav-icon','aria-hidden':true},icon),name)));
  document.title=pages[route.page][1]+' · KIOSK Second Brain';
  if(!dataOK || !C || !M){main.append(empty('Não foi possível carregar o snapshot','Verifique graph-data.js e gere novamente o catálogo.',button('Tentar novamente',()=>location.reload(),'primary')));return;}
@@ -237,7 +245,11 @@ function render(){
  if(route.page==='observability')window.BrainObservability.render(main,api);
  if(route.page==='overview')overview(main);
  if(route.page==='knowledge')knowledge(main);
- if(route.page==='graph'){if(window.BrainGraphUI)window.BrainGraphUI.render(main,api);else main.append(empty('Módulo do grafo indisponível','Recarregue a página e verifique graph-ui.js.',button('Tentar novamente',()=>location.reload())));}
+ if(route.page==='graph'){
+  if(route.experience==='product'&&window.BrainKnowledgeView)knowledgeProduct=window.BrainKnowledgeView.mount(main,{graph:G,core:C,markdown:M,initialNode:route.node,initialQuery:route.q,onTechnical:()=>navigate({experience:null}),onStateChange:state=>update({node:state.nodeId,q:state.q})});
+  else if(window.BrainGraphUI){if(window.BrainKnowledgeView)main.append(button('Explorar como produto',()=>navigate({experience:'product'}),'subtle'));window.BrainGraphUI.render(main,api);}
+  else main.append(empty('Módulo do grafo indisponível','Recarregue a página e verifique graph-ui.js.',button('Tentar novamente',()=>location.reload())));
+ }
  if(route.page==='teams'){if(window.BrainTeams)window.BrainTeams.render(main,api);else main.append(empty('Módulo de times indisponível','Recarregue a página e verifique teams-ui.js.',button('Tentar novamente',()=>location.reload())));}
 
   if(route.page==='playbooks'){if(window.BrainPlaybooks)window.BrainPlaybooks.render(main,api);else main.append(empty('M�dulo de playbooks indispon�vel','Recarregue a p�gina e verifique playbooks-ui.js.',button('Tentar novamente',()=>location.reload())));}
@@ -266,6 +278,6 @@ $('global-query').addEventListener('input',globalSearch);
 $('help-open').addEventListener('click',()=>$('help-dialog').showModal());
 $('help-close').addEventListener('click',()=>$('help-dialog').close());
 $('theme').addEventListener('click',()=>{saved.theme=saved.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=saved.theme;persist();$('theme').setAttribute('aria-label',saved.theme==='dark'?'Ativar tema claro':'Ativar tema escuro');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){const open=document.querySelector('dialog[open]');if(open){e.preventDefault();open.close();}}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(!$('search-dialog').open)$('search-dialog').showModal();globalSearch();$('global-query').focus();}});
+document.addEventListener('keydown',e=>{if(knowledgeProduct)return;if(e.key==='Escape'){const open=document.querySelector('dialog[open]');if(open){e.preventDefault();open.close();}}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(!$('search-dialog').open)$('search-dialog').showModal();globalSearch();$('global-query').focus();}});
 render();
 })();
