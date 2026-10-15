@@ -1,15 +1,14 @@
 ---
-type: team
+type: capability
 status: active
 date: 2026-10-13
 ---
-# Time: Arquitetura & Tech Lead
+# Capacidade: Governança Arquitetural
 
 ## Escopo
 Definição de padrões de projeto, arquitetura de sistemas distribuídos de alta escala, governança de dados, elaboração e aprovação de ADRs (Architecture Decision Records) e alinhamento estratégico entre os dois desenvolvedores da equipe técnica.
 
-## Papel no Modelo Full-Cycle
-- Como a equipe de tecnologia é composta pelo desenvolvedor e seu superior, o time de Arquitetura funciona como o fórum de **decisão conjunta e governança técnica**.
+- Como a equipe de tecnologia é composta pelo desenvolvedor e seu superior, esta capacidade funciona como o fórum de **decisão conjunta e governança técnica**.
 - Evita decisões impulsivas ou dívida técnica descontrolada, garantindo que qualquer escolha estrutural (ex: migração de API, novo banco de dados, refatoração de filas, protocolo de sincronização) seja devidamente documentada via ADR antes da codificação.
 - Serve de ponte para traduzir estratégias de produto da holding em contratos técnicos sustentáveis baseados nos padrões de **System Design**.
 
@@ -28,8 +27,3 @@ Definição de padrões de projeto, arquitetura de sistemas distribuídos de alt
 5. **Crescimento Guiado pelo Scale Cube:** Expansão avaliada pelos eixos X (Clonagem Horizontal), Y (Decomposição Funcional de Microsserviços) e Z (Sharding por Tenant/Franquia) ([[04-resiliencia-confiabilidade-alta-escala]]).
 6. **Documentação Viva (Second Brain):** Toda decisão arquitetural relevante deve ser registrada no vault como ADR ([[ADR-012-padroes-arquiteturais-system-design-para-agentes-especialistas]]).
 7. **Simplicidade Pragmática:** A arquitetura deve ser sustentável pela equipe Full-Cycle de 2 pessoas. Sem complexidade acidental.
-
-## Canais de Comunicação
-- **Todos os Times (`adr`):** Emissão de ADRs de referência para guiar os desenvolvimentos.
-- **Desenvolvimento (`handoff`):** Especificação de arquitetura de novas funcionalidades, contratos de dados e máquinas de estado de Sagas ([[PB-006-transacoes-distribuidas-saga-outbox]]).
-- **Liderança de Negócio (`demand` / `adr`):** Alinhamento de viabilidade técnica, prazos e impactos sistêmicos de novas demandas de produto.

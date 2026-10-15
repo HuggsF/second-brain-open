@@ -1,14 +1,13 @@
 ---
-type: team
+type: capability
 status: active
 date: 2026-10-13
 ---
-# Time: QA & Testes (Garantia da Qualidade & Confiabilidade)
+# Capacidade: Garantia de Qualidade
 
 ## Escopo
 Garantia de qualidade, validação funcional e de integração, proteção contra efeitos colaterais críticos (como duplicidade de etiquetas de frete e emissões indevidas de NFs), testes de concorrência e execução da suíte de testes de carga e estresse de sistemas distribuídos.
 
-## Papel no Modelo Full-Cycle
 No modelo full-cycle da KIOSK Brands:
 - A disciplina de QA é praticada pela dupla de engenharia através de **testes automatizados de regressão**, **rotinas de auto-auditoria** e **testes de performance contínuos**.
 - O foco primário é proteger as regras mais críticas da empresa (onde um bug gera prejuízo financeiro direto ou atrito com clientes/franqueados).
@@ -34,8 +33,3 @@ No modelo full-cycle da KIOSK Brands:
 4. **Comparativo Homologação vs Produção:** Antes de subir alteração de payload, validar se o contrato é 100% retrocompatível ([[comparativo-prod-homolog-postman]]).
 5. **Auditoria Contínua:** Auditoria periódica comparando pedidos no ERP vs pedidos emitidos no Hub.
 6. **Isolamento de Homologação:** Homologação opera estritamente sem chamadas a serviços externos reais ([[RULE-002-homologacao-sem-chamadas-externas]]).
-
-## Canais de Comunicação
-- **Desenvolvimento (`demand`):** Registro de bugs, divergências de contrato, race conditions ou gargalos de latência identificados em testes.
-- **DevOps & Infra (`handoff`):** Aprovação técnica ("sinal verde") após validação de carga e concorrência em homologação, autorizando o deploy em produção.
-- **Logística / Operações (`adr` / `playbook`):** Orientações sobre casos de borda e playbooks de contingência operacional.

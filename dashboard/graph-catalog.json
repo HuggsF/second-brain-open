@@ -750,6 +750,10 @@
         "services": [
           430,
           650
+        ],
+        "agents": [
+          830,
+          290
         ]
       },
       "valid_at": "2026-10-14"
@@ -1208,9 +1212,9 @@
       "valid_at": "2026-10-15"
     },
     {
-      "id": "persona_dev",
-      "label": "Persona DEV",
-      "type": "Agente IA",
+      "id": "agent_reader",
+      "label": "Reader (Discovery 3D)",
+      "type": "Agente Workflow",
       "domain": "platform",
       "evidence": "implementado",
       "document": "systems/kiosk-agentes-ia-multiagente.md",
@@ -1227,9 +1231,9 @@
       "valid_at": "2026-10-15"
     },
     {
-      "id": "persona_devops",
-      "label": "Persona DevOps",
-      "type": "Agente IA",
+      "id": "agent_implementer",
+      "label": "Implementer (TDD)",
+      "type": "Agente Workflow",
       "domain": "platform",
       "evidence": "implementado",
       "document": "systems/kiosk-agentes-ia-multiagente.md",
@@ -1246,9 +1250,9 @@
       "valid_at": "2026-10-15"
     },
     {
-      "id": "persona_qa",
-      "label": "Persona QA",
-      "type": "Agente IA",
+      "id": "agent_reviewer",
+      "label": "Reviewer (Adversarial)",
+      "type": "Agente Workflow",
       "domain": "platform",
       "evidence": "implementado",
       "document": "systems/kiosk-agentes-ia-multiagente.md",
@@ -1265,9 +1269,9 @@
       "valid_at": "2026-10-15"
     },
     {
-      "id": "persona_arch",
-      "label": "Persona Architect",
-      "type": "Agente IA",
+      "id": "agent_architect",
+      "label": "Architect (Spec Gate)",
+      "type": "Agente Workflow",
       "domain": "platform",
       "evidence": "implementado",
       "document": "systems/kiosk-agentes-ia-multiagente.md",
@@ -2444,7 +2448,7 @@
     },
     {
       "id": "relation-52",
-      "source": "persona_qa",
+      "source": "agent_reviewer",
       "target": "skill_qa",
       "relation": "usa skill",
       "view": "ontology",
@@ -2474,7 +2478,7 @@
     },
     {
       "id": "relation-55",
-      "source": "persona_qa",
+      "source": "agent_reviewer",
       "target": "skill_qa",
       "relation": "usa skill",
       "view": "agents",
@@ -2524,7 +2528,7 @@
     },
     {
       "id": "relation-60",
-      "source": "persona_devops",
+      "source": "deploy_auto",
       "target": "mcp_srv",
       "relation": "SSH commands",
       "view": "ontology",
@@ -2534,7 +2538,7 @@
     },
     {
       "id": "relation-61",
-      "source": "persona_devops",
+      "source": "deploy_auto",
       "target": "mcp_hub_obs",
       "relation": "monitora hub",
       "view": "ontology",
@@ -2574,7 +2578,7 @@
     },
     {
       "id": "relation-65",
-      "source": "persona_devops",
+      "source": "deploy_auto",
       "target": "mcp_srv",
       "relation": "SSH commands",
       "view": "agents",
@@ -2584,7 +2588,7 @@
     },
     {
       "id": "relation-66",
-      "source": "persona_devops",
+      "source": "deploy_auto",
       "target": "mcp_hub_obs",
       "relation": "monitora hub",
       "view": "agents",

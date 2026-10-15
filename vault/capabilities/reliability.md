@@ -1,14 +1,13 @@
 ---
-type: team
+type: capability
 status: active
 date: 2026-10-13
 ---
-# Time: DevOps & Infraestrutura (SRE & Confiabilidade)
+# Capacidade: Confiabilidade & SRE
 
 ## Escopo
 Automação de pipelines de CI/CD, gestão de ambientes de homologação e produção, observabilidade contínua (Four Golden Signals, USE, RED), resiliência de infraestrutura (Bulkheads, Circuit Breakers), segurança de segredos e planos de Disaster Recovery da KIOSK Brands.
 
-## Papel no Modelo Full-Cycle
 Como a equipe de engenharia é formada pela dupla de desenvolvedores, as práticas de DevOps e SRE são incorporadas diretamente no dia a dia através de **infraestrutura como código**, **telemetria em tempo real** e **automação de ponta a ponta**:
 - Não há uma "parede" separando desenvolvimento de operações (*You build it, you run it*).
 - Ambientes previsíveis e reproduzíveis diminuem o esforço manual de deploy para zero.
@@ -37,8 +36,3 @@ Como a equipe de engenharia é formada pela dupla de desenvolvedores, as prátic
 5. **Auditoria de SPOFs e Disaster Recovery:** Garantir que o plano de contingência atenda às metas contratuais: **RTO $\le 15\text{ minutos}$** e **RPO $= 0\text{ minutos}$** para dados fiscais e de despacho ([[PB-007-disaster-recovery-spof-avaliacao-rto-rpo]]).
 6. **Segredos Isolados e Rotatividade:** Chaves de API de produção (Bling v3, J&T, SAP, SEFAZ) nunca trafegam em código ou repositórios públicos.
 7. **Homologação Estritamente Sanitizada:** Garantir que nenhuma chave ou webhook ativo em homologação aponte para serviços de produção externos ([[RULE-002-homologacao-sem-chamadas-externas]]).
-
-## Canais de Comunicação
-- **Desenvolvimento (`handoff`):** Fornece logs estruturados, feedback de builds do CI/CD e métricas de desempenho.
-- **QA & Testes (`demand`):** Garante a disponibilidade do ambiente de homologação, dados sanitizados e infraestrutura para testes de carga ([[PB-005-testes-de-carga-stress-breakpoint-qa]]).
-- **Holding / Negócio (`broadcast`):** Comunicação de janelas de manutenção, atualizações programadas e status de incidentes.

@@ -1,14 +1,13 @@
 ---
-type: team
+type: capability
 status: active
 date: 2026-10-13
 ---
-# Time: Desenvolvimento (Dev)
+# Capacidade: Engenharia de Software
 
 ## Escopo
-Codificação, evolução e sustentação de todas as aplicações e integrações da KIOSK Brands. Atuando no modelo **Full-Cycle Developer** (equipe enxuta composta pelo desenvolvedor e seu superior técnico), o time de desenvolvimento é responsável de ponta a ponta pela entrega de software de alta confiabilidade: do entendimento do requisito de negócio à implementação, testes preliminares e instrumentação para observabilidade.
+Codificação, evolução e sustentação de todas as aplicações e integrações da KIOSK Brands. Atuando no modelo **Full-Cycle Developer** (equipe enxuta composta pelo desenvolvedor e seu superior técnico), esta capacidade cobre de ponta a ponta a entrega de software de alta confiabilidade: do entendimento do requisito de negócio à implementação, testes preliminares e instrumentação para observabilidade.
 
-## Contexto Operacional: A Dupla Full-Cycle
 - **Equipe:** Composta por 2 desenvolvedores responsáveis por todo o ecossistema de código.
 - **Filosofia:** Propriedade total do ciclo de vida do código (*You build it, you run it*). O desenvolvedor não é apenas um implementador de tickets, mas um resolvedor de problemas técnicos e de negócios.
 - **Foco:** Máxima automação, código enxuto, tipagem estrita, contratos explícitos, concorrência segura e idempotência em todas as operações de escrita (evitando retrabalho e prejuízo financeiro operacional).
@@ -31,9 +30,3 @@ Codificação, evolução e sustentação de todas as aplicações e integraçõ
 5. **CQRS em Consultas de Alto Desempenho:** Segregar estritamente endpoints de comando (escrita transacional) de endpoints de consulta (modelos de leitura desnormalizados ou cacheados).
 6. **Cache-Aside Defensivo:** Consultas frequentes usam Cache-Aside com TTL estrito e travas de mutex no cache miss para impedir colapso do banco (*Cache Stampede*) ([[02-persistencia-storage-consistencia]]).
 7. **Separar Negócio de Tecnologia:** Demandas de negócio vindas de Logística, ERP ou CRM são traduzidas em tarefas técnicas com critérios de aceite claros antes de qualquer codificação.
-
-## Canais de Comunicação
-- **QA & Testes (`handoff`):** Envio de código e novos endpoints com documentação e coleções Postman para validação de carga e concorrência ([[PB-005-testes-de-carga-stress-breakpoint-qa]]).
-- **DevOps & Infra (`demand`):** Solicitação de novos secrets, variáveis de ambiente, pools de conexão isolados (*Bulkheads*) e recursos de infraestrutura ([[PB-004-resiliencia-circuit-breaker-retry-bulkhead]]).
-- **Arquitetura & Tech Lead (`adr`):** Alinhamento contínuo entre os dois desenvolvedores sobre padrões, escolhas de bibliotecas e contratos de API ([[ADR-012-padroes-arquiteturais-system-design-para-agentes-especialistas]]).
-- **Domínios de Negócio (`handoff` / `demo`):** Entrega das soluções prontas com playbooks operacionais de uso.
