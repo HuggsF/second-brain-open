@@ -13,7 +13,11 @@ import uuid
 from typing import AsyncGenerator, Optional
 
 from backend.tool_executor import run_tool
-from core.integration import get_persona_contract, run_post_mission_gates
+from core.integration import (
+    get_persona_contract,
+    run_post_mission_gates,
+    unbind_open_circuit_tools,
+)
 from core.mission_guard import check_mission
 from core.policy import Decision, make_identity
 from core.routing.moe_router import MoERouter
@@ -263,6 +267,15 @@ class Orchestrator:
                 step["_original_agent"] = step["agent"]
                 step["agent"] = routed_agent
 
+        # Sprint 9 (R10): Dynamic tool unbind — remove tools com CB aberto
+        steps, unbound = unbind_open_circuit_tools(steps, manager_persona_id)
+        if unbound:
+            yield self._event(
+                "manager", "message",
+                message=f"⚡ Dynamic unbind: {', '.join(unbound)} removida(s) (circuit breaker aberto).",
+                bubble=f"{len(unbound)} tool(s) desvinculada(s)",
+            )
+
         agents_involved = list({s["agent"] for s in steps})
 
         yield self._event("manager", "status_change", status="working",
@@ -301,6 +314,21 @@ class Orchestrator:
 
             # Executar via corretor: ele decide, executa e grava o rastro com a identidade do agente
             tool = step.get("tool")
+            if tool is None:
+                # Unbound tool — emit fallback message and skip execution
+                yield self._event(agent, "message",
+                                  message=step.get("bubble", "Tool indisponível"),
+                                  bubble=step.get("bubble", "Tool indisponível"))
+                yield self._event(agent, "status_change", status="done", progress=100)
+                mission_results.append({
+                    "tool": step.get("_original_tool", "unknown"),
+                    "unbound": True,
+                    "reason": step.get("_unbound_reason", "unknown"),
+                })
+                if i < total_steps - 1:
+                    await self._pause(0.5)
+                continue
+
             invalid_agent = None
             try:
                 identity = make_identity(step.get("agent"))

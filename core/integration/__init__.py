@@ -11,6 +11,7 @@ Componentes integrados:
   - Autonomy Evaluation (Sprint 5 — G11)
   - HITL Protocol (Sprint 6 — G2)
   - Handoff Protocol (Sprint 6 — G10)
+  - Explicit RBAC per Persona (Sprint 9 — R11)
 
 O pipeline é opt-in: callers existentes continuam usando broker.call() sem mudanças.
 O novo fluxo é ativado passando persona_id= ao call(), que habilita todo o pipeline.
@@ -19,12 +20,12 @@ O novo fluxo é ativado passando persona_id= ao call(), que habilita todo o pipe
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from core.resilience.circuit_breaker import CircuitBreakerRegistry
 from core.resilience.rate_limiter import RateLimiterRegistry
 from core.audit.worm_audit import WORMAuditLog
-from core.schema.persona_contract import PersonaContract, get_builtin_contract
+from core.schema.persona_contract import PersonaContract, get_builtin_contract, IOContractConfig
 from core.gates.forbidden_topics_gate import ForbiddenTopicsGate
 from core.policy.autonomy import evaluate_autonomy
 from core.governance.hitl_protocol import HITLPendingStore, HITLRequest, HITLReason
@@ -146,6 +147,44 @@ def check_rate_limit(tool_name: str) -> PreCallResult:
     return PreCallResult(True)
 
 
+def check_rbac(persona_id: Optional[str], tool_name: str) -> PreCallResult:
+    """Verifica se a persona tem permissão RBAC para esta tool.
+
+    Ordem de verificação:
+    1. Se tool está em denied_tools → bloqueia
+    2. Se allowed_tools está definido e tool não está nele → bloqueia
+    3. Caso contrário → permite (herda do TOOL_REGISTRY existente)
+    """
+    if not persona_id:
+        return PreCallResult(True, "no_rbac_contract")
+
+    contract = get_persona_contract(persona_id)
+    if not contract:
+        return PreCallResult(True, "no_contract")
+
+    rbac = getattr(contract, "rbac", None)
+    if not rbac:
+        return PreCallResult(True, "no_rbac_contract")
+
+    # 1. Deny list takes priority
+    if tool_name in rbac.denied_tools:
+        return PreCallResult(False, "rbac_denied", {
+            "tool": tool_name,
+            "rbac_role": rbac.rbac_role,
+            "reason": f"{tool_name} está na denied_tools de {rbac.rbac_role}",
+        })
+
+    # 2. If allowed_tools defined, tool must be in it
+    if rbac.allowed_tools and tool_name not in rbac.allowed_tools:
+        return PreCallResult(False, "rbac_not_allowed", {
+            "tool": tool_name,
+            "rbac_role": rbac.rbac_role,
+            "allowed": rbac.allowed_tools,
+        })
+
+    return PreCallResult(True, "rbac_ok")
+
+
 def check_forbidden_topics(text: str, persona_id: Optional[str] = None) -> PreCallResult:
     """Verifica se o texto contém tópicos proibidos."""
     gate = _get_forbidden_gate()
@@ -188,6 +227,27 @@ def check_autonomy(persona_id: str, tool_name: str, args: Dict[str, Any]) -> Pre
     return PreCallResult(True, verdict.reason.value)
 
 
+def validate_input_contract(persona_id: Optional[str], args: Dict[str, Any]) -> PreCallResult:
+    """Valida que os campos obrigatórios do input estão presentes."""
+    if not persona_id:
+        return PreCallResult(True, "no_contract")
+    contract = get_persona_contract(persona_id)
+    if not contract or not getattr(contract, "io_contract", None) or not contract.io_contract.required_input_fields:
+        return PreCallResult(True, "no_input_contract")
+
+    args_dict = args if isinstance(args, dict) else {}
+    missing = [
+        f for f in contract.io_contract.required_input_fields
+        if f not in args_dict
+    ]
+    if missing:
+        return PreCallResult(False, "input_contract_violation", {
+            "missing_fields": missing,
+            "required": contract.io_contract.required_input_fields,
+        })
+    return PreCallResult(True, "input_contract_valid")
+
+
 # ─── Post-call Actions ───────────────────────────────────────────────────────
 
 def record_tool_outcome(tool_name: str, success: bool) -> None:
@@ -221,6 +281,32 @@ def audit_call(
         print(f"audit: could not write WORM record ({type(exc).__name__})", file=sys.stderr)
 
 
+def validate_output_contract(persona_id: Optional[str], result: Dict[str, Any]) -> Dict[str, Any]:
+    """Valida que os campos obrigatórios do output estão presentes.
+
+    Returns:
+        Dict with validation result:
+        {"valid": bool, "missing_fields": [...], "strict": bool}
+    """
+    if not persona_id:
+        return {"valid": True, "missing_fields": [], "strict": False}
+    contract = get_persona_contract(persona_id)
+    if not contract or not getattr(contract, "io_contract", None):
+        return {"valid": True, "missing_fields": [], "strict": False}
+
+    io = contract.io_contract
+    if not io.required_output_fields:
+        return {"valid": True, "missing_fields": [], "strict": io.output_schema_strict}
+
+    result_dict = result if isinstance(result, dict) else {}
+    missing = [f for f in io.required_output_fields if f not in result_dict]
+    return {
+        "valid": len(missing) == 0,
+        "missing_fields": missing,
+        "strict": io.output_schema_strict,
+    }
+
+
 # ─── Pipeline Completo ────────────────────────────────────────────────────────
 
 def pre_call_pipeline(
@@ -234,8 +320,10 @@ def pre_call_pipeline(
     Ordem:
       1. Circuit Breaker (proteção contra cascata)
       2. Rate Limiter (proteção contra flood)
-      3. Forbidden Topics (segurança de conteúdo) — se task_text
-      4. Autonomy Evaluation (governança por persona) — se persona_id
+      3. RBAC (permissão de execução da ferramenta por persona) — se persona_id
+      4. Forbidden Topics (segurança de conteúdo) — se task_text
+      5. Autonomy Evaluation (governança por persona) — se persona_id
+      6. Input Contract (validação de schema de entrada) — se persona_id
 
     Retorna no primeiro bloqueio encontrado. Se todos passam, retorna allowed=True.
     """
@@ -249,17 +337,29 @@ def pre_call_pipeline(
     if not rl_result.allowed:
         return rl_result
 
-    # 3. Forbidden Topics (se há texto da task)
+    # 3. RBAC (se persona especificada)
+    if persona_id:
+        rbac_result = check_rbac(persona_id, tool_name)
+        if not rbac_result.allowed:
+            return rbac_result
+
+    # 4. Forbidden Topics (se há texto da task)
     if task_text:
         ft_result = check_forbidden_topics(task_text, persona_id=persona_id)
         if not ft_result.allowed:
             return ft_result
 
-    # 4. Autonomy (se persona especificada)
+    # 5. Autonomy (se persona especificada)
     if persona_id:
         auto_result = check_autonomy(persona_id, tool_name, args)
         if not auto_result.allowed:
             return auto_result
+
+    # 6. Input Contract (se persona especificada)
+    if persona_id:
+        io_result = validate_input_contract(persona_id, args)
+        if not io_result.allowed:
+            return io_result
 
     return PreCallResult(True, "all_checks_passed")
 
@@ -277,6 +377,7 @@ def post_call_pipeline(
 
     1. Atualiza Circuit Breaker com resultado
     2. Grava WORM audit trail (se persona tem audit habilitado)
+    3. Validação de Output Contract (soft enforcement se strict=True)
     """
     # 1. Circuit Breaker feedback
     record_tool_outcome(tool_name, success)
@@ -297,6 +398,13 @@ def post_call_pipeline(
             metadata={"persona_id": persona_id or "unknown"},
             audit_path=audit_path,
         )
+
+    # 3. Output Contract validation (se persona especificada)
+    if persona_id and success:
+        output_check = validate_output_contract(persona_id, result)
+        if not output_check["valid"] and output_check["strict"]:
+            # Log warning but don't block (soft enforcement)
+            print(f"output_contract: strict violation for {persona_id} — missing {output_check['missing_fields']}", file=sys.stderr)
 
 
 def run_post_mission_gates(
@@ -351,6 +459,57 @@ def run_post_mission_gates(
         "all_passed": gate_result["all_passed"],
         "gate_results": gate_result["gate_results"],
     }
+
+
+# ─── Dynamic Tool Unbind (Sprint 9 — R10) ────────────────────────────────────
+
+def get_unbound_tools() -> List[str]:
+    """Retorna lista de tools que devem ser desvinculadas (CB OPEN).
+    
+    Consulta o CircuitBreakerRegistry para identificar tools com
+    circuito aberto e retorna seus nomes para dynamic unbind.
+    """
+    return _get_cb_registry().get_open_tools()
+
+
+def unbind_open_circuit_tools(
+    steps: List[Dict[str, Any]],
+    persona_id: Optional[str] = None,
+) -> Tuple[List[Dict[str, Any]], List[str]]:
+    """Remove tools com CB aberto dos steps e injeta fallback.
+    
+    Para cada step cuja tool tem circuito aberto:
+    1. Substitui a tool por uma mensagem de fallback
+    2. Marca o step como "unbound" para auditoria
+    
+    Args:
+        steps: Lista de steps da missão.
+        persona_id: ID da persona para lookup de fallback.
+    
+    Returns:
+        Tupla (steps_filtrados, lista_de_tools_removidas)
+    """
+    unbound_tools = get_unbound_tools()
+    if not unbound_tools:
+        return steps, []
+    
+    removed = []
+    filtered_steps = []
+    for step in steps:
+        tool = step.get("tool", "")
+        if tool in unbound_tools:
+            removed.append(tool)
+            # Inject fallback step instead
+            fallback_step = dict(step)
+            fallback_step["_original_tool"] = tool
+            fallback_step["_unbound_reason"] = "circuit_breaker_open"
+            fallback_step["tool"] = None  # Skip execution
+            fallback_step["bubble"] = f"⚡ {tool} indisponível (circuit breaker aberto)"
+            filtered_steps.append(fallback_step)
+        else:
+            filtered_steps.append(step)
+    
+    return filtered_steps, removed
 
 
 # ─── Dashboard / Observabilidade ─────────────────────────────────────────────

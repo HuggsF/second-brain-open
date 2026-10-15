@@ -175,6 +175,39 @@ class AuditConfig:
 
 
 @dataclass
+class RBACConfig:
+    """Configuração RBAC explícita por persona.
+
+    Define o papel RBAC e a lista de ferramentas permitidas.
+    Se `allowed_tools` estiver vazio, herda do TOOL_REGISTRY.
+    """
+    rbac_role: str = ""
+    allowed_tools: List[str] = field(default_factory=list)
+    denied_tools: List[str] = field(default_factory=list)
+
+    def validate(self) -> List[str]:
+        errors = []
+        overlap = set(self.allowed_tools) & set(self.denied_tools)
+        if overlap:
+            errors.append(f"tools em allowed e denied simultaneamente: {', '.join(sorted(overlap))}")
+        return errors
+
+
+@dataclass
+class IOContractConfig:
+    """Contrato de input/output por persona.
+
+    Define campos obrigatórios no input e formato esperado no output.
+    """
+    required_input_fields: List[str] = field(default_factory=list)
+    output_schema_strict: bool = False
+    required_output_fields: List[str] = field(default_factory=list)
+
+    def validate(self) -> List[str]:
+        return []  # Validation-free — just declarative
+
+
+@dataclass
 class PersonaContract:
     """Contrato unificado kiosk.aios.io/v1.
 
@@ -196,6 +229,8 @@ class PersonaContract:
         resilience: Configuração de resiliência.
         audit: Configuração de auditoria WORM.
         forbidden_topics: Lista de tópicos proibidos por persona.
+        io_contract: Configuração de contratos de input/output por persona.
+        rbac: Configuração RBAC explícita por persona.
     """
     schema_version: str = "kiosk.aios.io/v1"
     persona_id: str = ""
@@ -207,6 +242,8 @@ class PersonaContract:
     resilience: ResilienceConfig = field(default_factory=ResilienceConfig)
     audit: AuditConfig = field(default_factory=AuditConfig)
     forbidden_topics: List[str] = field(default_factory=list)
+    io_contract: IOContractConfig = field(default_factory=IOContractConfig)
+    rbac: RBACConfig = field(default_factory=RBACConfig)
 
     def validate(self) -> List[str]:
         """Valida o contrato completo. Retorna lista de erros (vazia = válido)."""
@@ -224,6 +261,10 @@ class PersonaContract:
         errors.extend(self.moe_routing.validate())
         errors.extend(self.resilience.validate())
         errors.extend(self.audit.validate())
+        if self.rbac:
+            errors.extend(self.rbac.validate())
+        if self.io_contract:
+            errors.extend(self.io_contract.validate())
         return errors
 
     def to_dict(self) -> Dict[str, Any]:
@@ -260,6 +301,16 @@ class PersonaContract:
                 "evidence_hash_chain": self.audit.evidence_hash_chain,
             },
             "forbidden_topics": list(self.forbidden_topics),
+            "rbac": {
+                "rbac_role": self.rbac.rbac_role,
+                "allowed_tools": list(self.rbac.allowed_tools),
+                "denied_tools": list(self.rbac.denied_tools),
+            },
+            "io_contract": {
+                "required_input_fields": list(self.io_contract.required_input_fields),
+                "output_schema_strict": self.io_contract.output_schema_strict,
+                "required_output_fields": list(self.io_contract.required_output_fields),
+            },
         }
 
     @classmethod
@@ -270,6 +321,30 @@ class PersonaContract:
         moe_raw = data.get("moe_routing", {})
         res_raw = data.get("resilience", {})
         aud_raw = data.get("audit", {})
+        rbac_raw = data.get("rbac", {})
+        io_raw = data.get("io_contract", {})
+
+        if isinstance(rbac_raw, RBACConfig):
+            rbac_obj = rbac_raw
+        elif isinstance(rbac_raw, dict):
+            rbac_obj = RBACConfig(
+                rbac_role=rbac_raw.get("rbac_role", ""),
+                allowed_tools=list(rbac_raw.get("allowed_tools", [])),
+                denied_tools=list(rbac_raw.get("denied_tools", [])),
+            )
+        else:
+            rbac_obj = RBACConfig()
+
+        if isinstance(io_raw, IOContractConfig):
+            io_obj = io_raw
+        elif isinstance(io_raw, dict):
+            io_obj = IOContractConfig(
+                required_input_fields=list(io_raw.get("required_input_fields", [])),
+                output_schema_strict=bool(io_raw.get("output_schema_strict", False)),
+                required_output_fields=list(io_raw.get("required_output_fields", [])),
+            )
+        else:
+            io_obj = IOContractConfig()
 
         return cls(
             schema_version=data.get("schema_version", "kiosk.aios.io/v1"),
@@ -303,6 +378,8 @@ class PersonaContract:
                 evidence_hash_chain=aud_raw.get("evidence_hash_chain", True),
             ),
             forbidden_topics=list(data.get("forbidden_topics", [])),
+            io_contract=io_obj,
+            rbac=rbac_obj,
         )
 
 
@@ -339,6 +416,16 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "evidence_hash_chain": True,
         },
         "forbidden_topics": ["dados financeiros de clientes", "senhas de produção"],
+        "rbac": {
+            "rbac_role": "role:agent:orchestrator",
+            "allowed_tools": ["search_knowledge_base", "get_brain_status", "list_rules", "get_rule_evidence"],
+            "denied_tools": ["run_safe_command"],
+        },
+        "io_contract": {
+            "required_input_fields": ["query"],
+            "output_schema_strict": False,
+            "required_output_fields": [],
+        },
     },
     "eva-supervisor": {
         "schema_version": "kiosk.aios.io/v1",
@@ -371,6 +458,16 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "evidence_hash_chain": True,
         },
         "forbidden_topics": [],
+        "rbac": {
+            "rbac_role": "role:agent:supervisor",
+            "allowed_tools": ["search_knowledge_base", "get_adr", "list_rules", "get_rule_evidence"],
+            "denied_tools": [],
+        },
+        "io_contract": {
+            "required_input_fields": [],
+            "output_schema_strict": True,
+            "required_output_fields": ["verdict", "confidence"],
+        },
     },
     "persona-devops": {
         "schema_version": "kiosk.aios.io/v1",
@@ -404,6 +501,16 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "evidence_hash_chain": True,
         },
         "forbidden_topics": ["dados pessoais de clientes", "informações financeiras"],
+        "rbac": {
+            "rbac_role": "role:agent:devops_executor",
+            "allowed_tools": ["search_knowledge_base", "get_system_architecture", "get_brain_status", "run_safe_command"],
+            "denied_tools": [],
+        },
+        "io_contract": {
+            "required_input_fields": ["command"],
+            "output_schema_strict": False,
+            "required_output_fields": ["status"],
+        },
     },
     "persona-finops": {
         "schema_version": "kiosk.aios.io/v1",
@@ -437,6 +544,16 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "evidence_hash_chain": True,
         },
         "forbidden_topics": ["dados técnicos de infraestrutura", "credenciais de deploy"],
+        "rbac": {
+            "rbac_role": "role:agent:finops_specialist",
+            "allowed_tools": ["search_knowledge_base", "list_rules", "get_rule_evidence"],
+            "denied_tools": ["run_safe_command", "get_system_architecture"],
+        },
+        "io_contract": {
+            "required_input_fields": ["amount_brl"],
+            "output_schema_strict": True,
+            "required_output_fields": ["transaction_id", "status"],
+        },
     },
     "cx-triage": {
         "schema_version": "kiosk.aios.io/v1",
@@ -470,6 +587,16 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "evidence_hash_chain": True,
         },
         "forbidden_topics": ["estorno acima de R$500", "acesso a sistemas internos", "dados financeiros corporativos"],
+        "rbac": {
+            "rbac_role": "role:agent:cx_readonly",
+            "allowed_tools": ["search_knowledge_base", "get_brain_status"],
+            "denied_tools": ["run_safe_command", "get_system_architecture", "read_vault_file"],
+        },
+        "io_contract": {
+            "required_input_fields": ["customer_query"],
+            "output_schema_strict": False,
+            "required_output_fields": ["response", "sentiment"],
+        },
     },
 }
 
