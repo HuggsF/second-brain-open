@@ -308,11 +308,11 @@ class TestPreCallPipelineForbiddenTopicsSprint8:
         result = pre_call_pipeline(
             persona_id="cx-triage",
             tool_name="search_knowledge_base",
-            args={"query": "politica_trocas"},
+            args={"query": "politica_trocas", "customer_query": "troca de produto com defeito"},
             task_text="Como proceder com troca de produto com defeito?",
         )
         assert result.allowed is True
-        assert result.reason in ("all_checks_passed", "auto_execute_approved")
+        assert result.reason in ("all_checks_passed", "auto_execute_approved", "input_contract_valid")
 
     def test_pipeline_passes_eva_supervisor_even_with_sensitive_terms(self):
         """pre_call_pipeline avalia forbidden_topics para supervisor sem bloquear."""
