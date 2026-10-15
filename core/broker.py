@@ -1,4 +1,8 @@
-"""Corretor único: decide (core.policy), executa (core.tools) e grava um rastro com a identidade do agente."""
+"""Corretor único: decide (core.policy), executa (core.tools) e grava um rastro com a identidade do agente.
+
+Sprint 7 (Integração): O pipeline MoE/Zero-Trust é opcionalmente ativado passando
+persona_id= ao call(). Sem persona_id, o comportamento é idêntico ao anterior.
+"""
 import sys
 import time
 from pathlib import Path
@@ -56,7 +60,8 @@ async def _execute(tool: str, args: dict) -> Tuple[Dict[str, Any], Optional[str]
 
 
 async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = None, *,
-               approved: bool = False, trace_path: Optional[Path] = None) -> dict:
+               approved: bool = False, trace_path: Optional[Path] = None,
+               persona_id: Optional[str] = None, task_text: str = "") -> dict:
     started_at = tracing.now_iso()
     started = time.perf_counter()
     tool_name = _name(tool)
@@ -69,6 +74,27 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
     token = None
     try:
         trace_id, label = tracing.derive_trace_id(task_id)
+
+        # ─── Sprint 7: Pre-call pipeline (opt-in via persona_id) ───
+        if persona_id:
+            try:
+                from core.integration import pre_call_pipeline
+                pre_result = pre_call_pipeline(persona_id, tool_name, args if isinstance(args, dict) else {}, task_text)
+                if not pre_result.allowed:
+                    head = {"tool": tool_name, "verdict": Decision.DENY.value, "reason": pre_result.reason}
+                    result = {**head, "refused": True, "error": pre_result.reason, "details": pre_result.details}
+                    status, error_type = "refused", None
+                    # Ainda precisa do state para gravar trace
+                    state = tracing.CallState(
+                        trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,
+                        path=trace_path or tracing.TRACE_LOG,
+                        caller=identity if parse_identity(identity) else "unknown",
+                        task_label=label, started_at=started_at,
+                    )
+                    return result
+            except ImportError:
+                pass  # módulos de integração não disponíveis — prossegue sem eles
+
         state = tracing.CallState(
             trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,
             path=trace_path or tracing.TRACE_LOG,
@@ -117,4 +143,21 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
                 "args": tracing.redact_args(args if isinstance(args, dict) else None),
                 "error_type": error_type,
             }, trace_path)
+
+        # ─── Sprint 7: Post-call pipeline (opt-in via persona_id) ───
+        if persona_id and state is not None:
+            try:
+                from core.integration import post_call_pipeline
+                post_call_pipeline(
+                    tool_name=tool_name,
+                    success=(status == "ok"),
+                    identity=state.caller,
+                    trace_id=state.trace_id,
+                    result=result,
+                    persona_id=persona_id,
+                )
+            except ImportError:
+                pass  # módulos de integração não disponíveis
+            except Exception as exc:
+                print(f"integration: post_call error ({type(exc).__name__})", file=sys.stderr)
     return result

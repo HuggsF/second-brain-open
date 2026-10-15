@@ -1,4 +1,4 @@
-﻿"""
+"""
 Orchestrator — Motor de orquestração de missões multi-agente.
 
 Recebe uma missão (texto do usuário), decompõe em steps,
@@ -23,6 +23,14 @@ AGENT_IDS = {
     "coder": "coder",         # Theo — código/queries
     "writer": "writer",       # Lia — documentação
     "reviewer": "reviewer",   # Eva — revisão/QA
+}
+
+# Sprint 7: Mapeamento de agentes Nexus → PersonaContract IDs
+# Ativa o pipeline de integração MoE/Zero-Trust por persona
+AGENT_PERSONA_MAP = {
+    "manager": "maia-orchestrator",
+    "reviewer": "eva-supervisor",
+    # researcher, coder, writer: sem contrato builtin — pipeline não ativa
 }
 
 # Padrões de missão → steps (regras fixas, sem LLM)
@@ -229,7 +237,9 @@ class Orchestrator:
                 raw = step.get("agent")
                 identity = f"agent:{raw}" if isinstance(raw, str) else "agent:?"
             result = await run_tool(tool, step.get("input"), identity=identity,
-                                    task_id=f"M{self.mission_id}")
+                                    task_id=f"M{self.mission_id}",
+                                    persona_id=AGENT_PERSONA_MAP.get(agent),
+                                    task_text=task)
             if invalid_agent:
                 result["error"] = invalid_agent
             elif result.get("refused") and result.get("verdict") == Decision.DENY.value:
