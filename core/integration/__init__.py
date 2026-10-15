@@ -377,18 +377,28 @@ def pre_call_pipeline(
     return PreCallResult(True, "all_checks_passed")
 
 
-def _redact_dict_values(d: dict) -> dict:
-    """Aplica DLP em cada valor string do dict, preservando estrutura."""
+def _redact_value(v: Any) -> Any:
+    """Aplica DLP recursivamente em qualquer valor, preservando tipo."""
     from core.security.dlp_guardrail import inspect_text
+    if isinstance(v, str):
+        r = inspect_text(v)
+        return r.redacted_text if r.has_pii else v
+    elif isinstance(v, dict):
+        return _redact_dict_values(v)
+    elif isinstance(v, list):
+        return [_redact_value(item) for item in v]
+    return v
+
+
+def _redact_dict_values(d: dict) -> dict:
+    """Aplica DLP em cada valor do dict, preservando estrutura.
+
+    F-04: Agora processa listas recursivamente para prevenir vazamento
+    de PII em arrays de resultado (ex: {"items": ["123.456.789-00"]}).
+    """
     redacted = {}
     for k, v in d.items():
-        if isinstance(v, str):
-            r = inspect_text(v)
-            redacted[k] = r.redacted_text if r.has_pii else v
-        elif isinstance(v, dict):
-            redacted[k] = _redact_dict_values(v)
-        else:
-            redacted[k] = v
+        redacted[k] = _redact_value(v)
     return redacted
 
 

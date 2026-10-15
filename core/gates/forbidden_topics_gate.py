@@ -22,6 +22,9 @@ from core.gates.base import BaseGate, GateResult, Semaphore
 def _normalize(text: str) -> str:
     """Normaliza texto: lowercase, remove acentos, espaços extras."""
     text = text.lower().strip()
+    # F-03: Colapsar qualquer sequência de whitespace (espaço, tab, newline)
+    # para prevenir bypass de multi-word patterns via espaços extras
+    text = re.sub(r'\s+', ' ', text)
     # Remove acentos (NFD + strip combining marks)
     nfkd = unicodedata.normalize("NFKD", text)
     return "".join(c for c in nfkd if not unicodedata.combining(c))
