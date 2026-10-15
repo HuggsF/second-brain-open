@@ -104,8 +104,10 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
                     task_label=label, started_at=started_at,
                 )
                 return result
-        except ImportError:
-            pass  # módulos de integração não disponíveis — prossegue sem eles
+        except ImportError as exc:
+            # DD-03: NUNCA silenciar — ImportError desativa toda a pipeline de segurança
+            print(f"SECURITY DEGRADED: pre_call_pipeline unavailable ({exc}). "
+                  f"All security gates BYPASSED for {tool_name}.", file=sys.stderr)
 
         state = tracing.CallState(
             trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,
@@ -176,8 +178,10 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
                     persona_id=persona_id,
                     executed=executed,
                 )
-            except ImportError:
-                pass  # módulos de integração não disponíveis
+            except ImportError as exc:
+                # DD-03: NUNCA silenciar — ImportError desativa DLP, audit e CB feedback
+                print(f"SECURITY DEGRADED: post_call_pipeline unavailable ({exc}). "
+                      f"DLP/Audit/CB BYPASSED for {tool_name}.", file=sys.stderr)
             except Exception as exc:
                 print(f"integration: post_call error ({type(exc).__name__})", file=sys.stderr)
     return result

@@ -439,7 +439,16 @@ def post_call_pipeline(
                     if dlp_check.has_pii:
                         result = dlp_check.redacted_text
             except Exception as exc:
-                print(f"warn: DLP scan on result failed ({type(exc).__name__})", file=sys.stderr)
+                # DD-02/PD-OVR-004: DLP é fail-closed — se o scan falha, redacta o resultado
+                # inteiro para prevenir vazamento de PII (INV-N12)
+                print(f"error: DLP scan on result failed ({type(exc).__name__}), "
+                      f"redacting result for {tool_name}", file=sys.stderr)
+                if isinstance(result, dict):
+                    result.clear()
+                    result.update({"error": "dlp_scan_failed", "tool": tool_name})
+                else:
+                    # String ou outro tipo — substitui por mensagem segura
+                    result = {"error": "dlp_scan_failed", "tool": tool_name}
 
     # 2. WORM Audit (SEMPRE, mas com event_type correto)
     should_audit = True
