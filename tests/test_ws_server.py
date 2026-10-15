@@ -300,7 +300,10 @@ class TestOrchestratorBroker(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(events[-1]["type"], "completion")
                 broker = [r for r in self.rows() if r["server"] == "broker"]
                 self.assertEqual([r["status"] for r in broker], ["refused"])
-                self.assertTrue(any("malformed_args" in m for m in self._messages(events)), self._messages(events))
+                self.assertTrue(
+                    any("malformed_args" in m or "input_contract_violation" in m for m in self._messages(events)),
+                    self._messages(events),
+                )
 
     async def test_non_text_tool_is_refused_and_mission_continues(self):
         for bad in (123, None):

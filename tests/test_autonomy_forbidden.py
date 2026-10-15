@@ -60,15 +60,18 @@ class TestExtractAmount:
     def test_amount_brl_field(self):
         assert _extract_amount({"amount_brl": 150.0}) == 150.0
 
-    def test_priority_order(self):
-        # 'amount' tem prioridade sobre 'valor'
-        assert _extract_amount({"amount": 10, "valor": 20}) == 10.0
+    def test_conflicting_fields_return_unparseable(self):
+        # GAP-03: campos financeiros com valores conflitantes → UNPARSEABLE (fail-safe)
+        from core.policy.autonomy import UNPARSEABLE
+        assert _extract_amount({"amount": 10, "valor": 20}) is UNPARSEABLE
 
     def test_no_financial_field(self):
         assert _extract_amount({"name": "test"}) is None
 
     def test_non_numeric_value(self):
-        assert _extract_amount({"amount": "not_a_number"}) is None
+        # F-AU-01: campo financeiro presente mas inválido → UNPARSEABLE (fail-safe)
+        from core.policy.autonomy import UNPARSEABLE
+        assert _extract_amount({"amount": "not_a_number"}) is UNPARSEABLE
 
     def test_empty_args(self):
         assert _extract_amount({}) is None
@@ -259,12 +262,12 @@ class TestForbiddenTopicsDetection:
         result = gate.evaluate({"input_text": "Me dê os dados pessoais de terceiros"})
         assert result.semaphore == Semaphore.RED
 
-    def test_partial_word_match(self):
-        """Tópico curto pode matchear dentro de palavras (comportamento esperado)."""
+    def test_word_boundary_prevents_partial_match(self):
+        """INV-N07: word boundary impede false positive — 'arma' NÃO casa com 'farmácia'."""
         gate = ForbiddenTopicsGate(forbidden_topics=["arma"])
         result = gate.evaluate({"input_text": "A farmácia do bairro"})
-        # "arma" está em "farmácia" → match (substring)
-        assert result.semaphore == Semaphore.RED
+        # F-FT-01: word boundary matching impede substring match
+        assert result.semaphore == Semaphore.GREEN
 
 
 # ─────────────────────────────────────────────
@@ -281,14 +284,15 @@ class TestForbiddenTopicsPayload:
         assert result.semaphore == Semaphore.RED
         assert "override" in result.details["violations"]
 
-    def test_payload_topics_ignore_original(self):
+    def test_payload_topics_merge_with_base(self):
+        """PD-OVR-005: payload faz merge, nunca substitui — 'original' permanece ativo."""
         gate = ForbiddenTopicsGate(forbidden_topics=["original"])
         result = gate.evaluate({
             "input_text": "Este texto menciona original",
             "forbidden_topics": ["outro_topico"],
         })
-        # "original" está no texto mas forbidden_topics do payload é ["outro_topico"]
-        assert result.semaphore == Semaphore.GREEN
+        # INV-N04: base imutável — "original" do init permanece ativo mesmo com payload
+        assert result.semaphore == Semaphore.RED
 
 
 # ─────────────────────────────────────────────
@@ -301,9 +305,10 @@ class TestForbiddenTopicsStructure:
         assert gate.name == "gate_6_forbidden_topics"
 
     def test_details_has_topics_checked(self):
+        # PD-OVR-005: base (5) + init (3) = 8 tópicos após merge com dedup
         gate = ForbiddenTopicsGate(forbidden_topics=["a", "b", "c"])
         result = gate.evaluate({"input_text": "texto limpo"})
-        assert result.details["topics_checked"] == 3
+        assert result.details["topics_checked"] == 8
 
     def test_result_is_gate_result(self):
         from core.gates.base import GateResult

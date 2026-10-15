@@ -292,11 +292,12 @@ class TestOrchestratorPersonaMapping(unittest.TestCase):
         self.assertIn("reviewer", AGENT_PERSONA_MAP)
         self.assertEqual(AGENT_PERSONA_MAP["reviewer"], "eva-supervisor")
 
-    def test_unmapped_agents_return_none(self):
+    def test_all_agents_have_persona_mapping(self):
+        """GAP-10/PD-OVR-006: todos os agentes devem ter persona mapeada."""
         from backend.orchestrator import AGENT_PERSONA_MAP
-        self.assertIsNone(AGENT_PERSONA_MAP.get("researcher"))
-        self.assertIsNone(AGENT_PERSONA_MAP.get("coder"))
-        self.assertIsNone(AGENT_PERSONA_MAP.get("writer"))
+        self.assertEqual(AGENT_PERSONA_MAP.get("researcher"), "persona-researcher")
+        self.assertEqual(AGENT_PERSONA_MAP.get("coder"), "persona-devops")
+        self.assertEqual(AGENT_PERSONA_MAP.get("writer"), "persona-writer")
 
 
 class TestWSServerHITL(unittest.TestCase):

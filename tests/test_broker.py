@@ -22,6 +22,12 @@ class TestBroker(unittest.IsolatedAsyncioTestCase):
         self.dir = tempfile.TemporaryDirectory()
         self.addCleanup(self.dir.cleanup)
         self.trace = Path(self.dir.name) / "trace.jsonl"
+        # Reset CB/RL/FT singletons entre testes para evitar state leak
+        try:
+            from core.integration import reset_all_singletons
+            reset_all_singletons()
+        except ImportError:
+            pass
 
     def records(self):
         if not self.trace.exists():
