@@ -4,6 +4,7 @@ title: Emissão bloqueada sem NF real
 status: active
 validates: [RULE-001]
 environment: hml
+kind: test
 targets: [Hub Logístico, Bling (consulta de NF), J&T (adapter)]
 ---
 

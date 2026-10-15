@@ -263,7 +263,22 @@ function render(){
     frame.onerror=()=>{frame.replaceWith(empty('Nexus não está rodando','Inicie o servidor: .venv\\Scripts\\python.exe -m backend.ws_server e cd nexus && npm run dev',button('Tentar novamente',()=>render())));};
     main.append(frame);
   }
-  if(route.page==='jev'){if(window.BrainJEV)window.BrainJEV.render(main,api);else main.append(empty('Módulo JEV indisponível','Recarregue a página e verifique jev-ui.js.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='jev'){
+    main.append(head('JEV','Evidência, luzes de teste e saúde do ambiente.','Regras com luz de teste e saúde separadas, playbooks e execuções do ambiente.',[
+      button('Abrir em nova aba ↗',()=>window.open('./jev/index.html','_blank','noopener'),'subtle')
+    ]));
+    const frame=el('iframe',{src:'jev/index.html',title:'JEV',class:'jev-frame'});
+    const unavailable=()=>frame.replaceWith(empty('JEV indisponível','Inicie o BFF com um link de sessão (python -m backend.server --issue-link) ou rode npm run build em jev-app.',button('Tentar novamente',()=>render())));
+    frame.addEventListener('load',()=>{
+      // Same-origin: a 401/404 body from the BFF loads fine in the frame, so inspect what actually loaded.
+      try{
+        const doc=frame.contentDocument;
+        if(!doc||!doc.getElementById('root')||doc.querySelector('meta[name=application-name]')?.content!=='jev-app')unavailable();
+      }catch(_){unavailable();}
+    });
+    frame.onerror=unavailable;
+    main.append(frame);
+  }
  if(route.page==='knowledge'&&route.doc&&!route.section&&matchMedia('(max-width:650px)').matches)requestAnimationFrame(()=>{const reader=main.querySelector('.reader');reader?.focus({preventScroll:true});reader?.scrollIntoView({block:'start'});});
  $('snapshot-label').textContent='Snapshot '+G.snapshot_id.slice(0,8)+' · '+formatDate(G.built_at);
  if(!storageOK)notify('Persistência indisponível. Alterações permanecem apenas nesta sessão.');

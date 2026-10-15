@@ -1,4 +1,4 @@
-/* Projeção local dos indicadores agregados existentes; nenhuma coleta ou IO. */
+/* Projeção local dos indicadores agregados existentes; nenhuma coleta ou IO. Ao mudar project(), regere tests/fixtures/observation_golden.json (node scripts/generate_observation_golden.js) e ajuste core/domain/observation/projection.py. */
 (function (root, factory) {
   'use strict';
   if (typeof module === 'object' && module.exports) module.exports = factory();

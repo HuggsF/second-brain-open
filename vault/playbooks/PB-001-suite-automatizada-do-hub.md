@@ -4,6 +4,7 @@ title: Suíte automatizada do Hub (npm test)
 status: active
 validates: [RULE-001, RULE-002]
 environment: local
+kind: test
 targets: [Hub Logístico]
 ---
 

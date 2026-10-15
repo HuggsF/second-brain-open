@@ -25,13 +25,15 @@ CREATE TABLE IF NOT EXISTS executions(
     task_label TEXT,
     source TEXT NOT NULL,
     recorded_by TEXT NOT NULL,
+    commit_sha TEXT,
+    run_id TEXT,
     import_key TEXT UNIQUE
 );
 CREATE INDEX IF NOT EXISTS executions_playbook_ts ON executions(playbook_id, ts);
 """
 
 _COLUMNS = ("playbook_id", "ts", "result", "environment", "evidence_ref", "summary",
-            "trace_id", "task_label", "source", "recorded_by", "import_key")
+            "trace_id", "task_label", "source", "recorded_by", "commit_sha", "run_id", "import_key")
 
 
 class EvidenceStoreError(Exception):
@@ -44,10 +46,24 @@ class EvidenceStore:
         conn = self._connect()
         try:
             conn.executescript(_SCHEMA)
+            existing = self._existing_columns(conn)
+            for column in ("commit_sha", "run_id"):
+                if column in existing:
+                    continue
+                try:
+                    conn.execute(f"ALTER TABLE executions ADD COLUMN {column} TEXT")
+                except sqlite3.OperationalError as exc:
+                    if "duplicate column name" not in str(exc):  # another process migrated first
+                        raise
+            conn.commit()
         except sqlite3.DatabaseError as exc:
             raise self._error(exc) from exc
         finally:
             conn.close()
+
+    @staticmethod
+    def _existing_columns(conn: sqlite3.Connection) -> Set[str]:
+        return {r["name"] for r in conn.execute("PRAGMA table_info(executions)")}
 
     def _error(self, exc: Exception) -> EvidenceStoreError:
         return EvidenceStoreError(f"evidence database unavailable ({self.path.name}): {exc}")
@@ -79,12 +95,14 @@ class EvidenceStore:
         task_label: Optional[str] = None,
         ts: Optional[str] = None,
         import_key: Optional[str] = None,
+        commit_sha: Optional[str] = None,
+        run_id: Optional[str] = None,
     ) -> Optional[int]:
         """Insert one execution. Returns its id, or None when `import_key` was already imported."""
         values = dict(playbook_id=playbook_id, ts=ts or tracing.now_iso(), result=result,
                       environment=environment, evidence_ref=evidence_ref, summary=summary,
                       trace_id=trace_id, task_label=task_label, source=source,
-                      recorded_by=recorded_by, import_key=import_key)
+                      recorded_by=recorded_by, import_key=import_key, commit_sha=commit_sha, run_id=run_id)
         conn = self._connect()
         try:
             with conn:
@@ -102,13 +120,15 @@ class EvidenceStore:
         finally:
             conn.close()
 
-    def latest(self, playbook_id: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def latest(self, playbook_id: str, limit: int = 5, environment: Optional[str] = None) -> List[Dict[str, Any]]:
         conn = self._connect()
         try:
-            rows = conn.execute(
-                "SELECT * FROM executions WHERE playbook_id = ? ORDER BY ts DESC, id DESC LIMIT ?",
-                (playbook_id, max(1, int(limit))),
-            ).fetchall()
+            sql = "SELECT * FROM executions WHERE playbook_id = ?"
+            params: List[Any] = [playbook_id]
+            if environment is not None:
+                sql += " AND environment = ?"
+                params.append(environment)
+            rows = conn.execute(sql + " ORDER BY ts DESC, id DESC LIMIT ?", (*params, max(1, int(limit)))).fetchall()
             return [dict(r) for r in rows]
         except sqlite3.DatabaseError as exc:
             raise self._error(exc) from exc

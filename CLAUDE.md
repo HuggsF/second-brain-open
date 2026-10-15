@@ -53,6 +53,11 @@ Follow every numbered item; do not paraphrase a subset.
 
 - Python (targeted): `.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api tests.test_drive_sync tests.test_protocol tests.test_agnostic_core tests.test_events tests.test_local_tasks tests.test_local_tasks_mcp tests.test_local_tasks_cli tests.test_providers tests.test_openai_compat_client`
   Also run the whole suite with `.\.venv\Scripts\python.exe -m pytest` (three of the new suites are pytest-style); new modules: `tests.test_policy tests.test_policy_registry tests.test_broker tests.test_tools tests.test_mission_guard tests.test_no_local_allowlist tests.test_ws_server`.
+  New modules (Phase 6): `tests.test_evidence_lights tests.test_domain_observation tests.test_bff_phase6`.
+- Full gate: `.\.venv\Scripts\python.exe -m pytest -q`; `node --test --test-isolation=none dashboard/tests/*.test.cjs`; `cd jev-app && npm test`.
+- JEV front-end (React 19 + Tailwind 4) lives in `jev-app/`; its build is committed to `dashboard/jev/` (no CI), so after any change in `jev-app/src` run `cd jev-app && npm test && npm run build` and commit the output.
+- Lights (ADR-023): the test light (evidence) and the health light (observation) are separate signals; a rule's light comes from `evidence.list_rules`, health, for the JEV, from `core/domain/observation` (the Observability page still computes health in JS with `dashboard/hub-topology.js`).
+- `dashboard/hub-topology.js` `project()` is the source of truth for the Python port: when you change it, regenerate the golden with `node scripts/generate_observation_golden.js` and make `core/domain/observation/projection.py` match (`--check` runs in the Node suite).
 - Dashboard JS: `node --test --test-isolation=none dashboard/tests/*.test.cjs` (Node 24)
   and `.\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py`.
 - `integration.test.cjs` compares citation hashes with the current vault bytes: after any vault
@@ -92,7 +97,7 @@ Follow every numbered item; do not paraphrase a subset.
 - Specs: `.superpowers/specs/` · Plans: `.superpowers/plans/` · Ledger:
   `.superpowers/ledger/ledger.md` · Handoffs: `.superpowers/handoffs/`.
 - Spec, plan and handoff files are named `yyyy-MM-dd-HH-mm-{name}`.
-- ADRs: `vault/adrs/ADR-NNN-*.md`, numbered in sequence (ADR-001 to ADR-022 at 2026-10-14). A decision
+- ADRs: `vault/adrs/ADR-NNN-*.md`, numbered in sequence (ADR-001 to ADR-023 at 2026-10-14). A decision
   about this repository itself takes the next number and declares `scope: second-brain` in its
   frontmatter (ADR-004, 005, 010, 014, 015, 016 do).
 - MCP call trace: `.runtime/trace-log.jsonl` (local, never committed); read it with `cli.py trace <trace_id>`.

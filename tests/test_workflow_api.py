@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 from backend.store import Store
 from backend.server import handler_for
 from backend.workflow_api import MAX_BODY_BYTES, WorkflowApi
-from dashboard.serve import make_handler
+from dashboard.serve import PlaybooksApi, make_handler
 
 
 def make_root(tmp):
@@ -145,6 +145,30 @@ class DashboardServeTests(unittest.TestCase):
         status, headers, body = self.call('/api/workflow/telemetry')
         self.assertEqual((status, json.loads(body)['server_port']), (200, self.port))
         self.assertEqual(self.call('/index.html')[0], 404)  # tmp root has no dashboard files; static stays confined
+
+    def test_dev_server_serves_the_embedded_jev_folder(self):
+        dashboard = Path(__file__).resolve().parent.parent / 'dashboard'
+        self.server.RequestHandlerClass = make_handler(self.api, directory=dashboard)
+        status, headers, body = self.call('/dashboard/jev/index.html')
+        self.assertEqual(status, 200)
+        self.assertIn('text/html', {k.lower(): v for k, v in headers.items()}['content-type'])
+        self.assertIn(b'<div id="root">', body)
+        asset = [part for part in body.decode().split('"') if part.startswith('./assets/')][0][2:]
+        self.assertEqual(self.call('/dashboard/jev/' + asset)[0], 200)
+        csp = {k.lower(): v for k, v in headers.items()}['content-security-policy']
+        self.assertIn("frame-ancestors 'self'", csp)
+        self.assertNotIn("frame-ancestors 'none'", csp)
+        self.assertIn("frame-ancestors 'self'", {k.lower(): v for k, v in self.call('/dashboard/jev/' + asset)[1].items()}['content-security-policy'])
+        for other in ('/dashboard/index.html', '/dashboard/jev/x.map', '/dashboard/jevx/index.html', '/dashboard/jev/../index.html'):
+            other_csp = {k.lower(): v for k, v in self.call(other)[1].items()}['content-security-policy']
+            self.assertIn("frame-ancestors 'none'", other_csp, other)
+        self.assertEqual(self.call('/dashboard/jev/x.map')[0], 404)
+        self.assertEqual(self.call('/dashboard/jev/../../backend/server.py')[0], 404)
+        # The JEV's default Regras tab also works on the dev server (health needs /v1, absent here).
+        self.server.RequestHandlerClass = make_handler(self.api, PlaybooksApi(dashboard.parent / 'vault'), directory=dashboard)
+        status, _, body = self.call('/api/rules')
+        self.assertEqual(status, 200)
+        self.assertIsInstance(json.loads(body)['rules'], list)
 
     def test_refuses_cross_origin_writes(self):
         for headers in ({'Origin': 'https://evil.example', 'Content-Type': 'application/json'}, {'Content-Type': 'application/json'}):
