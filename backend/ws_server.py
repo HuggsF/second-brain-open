@@ -39,6 +39,12 @@ HOST = "127.0.0.1"
 PORT = 8848
 CONNECTIONS = set()
 
+ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "http://127.0.0.1:8847",
+]
+
 
 def _echoable_mission_id(value):
     """missionId seguro para ecoar no REJECT: str curta ou int JS-seguro; senão None."""
@@ -139,6 +145,27 @@ async def handler(websocket):
                     "revision": 1,
                 }))
 
+            elif action_type == "HITL_DECISION":
+                # Sprint 7: Governança — decisão HITL do operador humano
+                try:
+                    from core.governance.hitl_protocol import HITLResponse
+                    from core.integration import _get_hitl_store
+                    hitl_payload = action.get("payload", {})
+                    response = HITLResponse.from_frame(hitl_payload)
+                    store = _get_hitl_store()
+                    store.resolve(response)
+                    log.info(f"🔐 HITL decision: {response.decision.value} for {response.request_id}")
+                    await websocket.send(json.dumps({
+                        "type": "ACK",
+                        "commandId": message.get("commandId", ""),
+                        "missionId": message.get("missionId", 0),
+                        "revision": orchestrator.sequence + 1,
+                    }))
+                except ImportError:
+                    log.warning("HITL modules not available")
+                except Exception as exc:
+                    log.error(f"HITL decision error: {exc}")
+
     except websockets.exceptions.ConnectionClosed:
         log.info(f"🔴 Conexão fechada: {remote}")
     except Exception as exc:
@@ -181,6 +208,14 @@ async def _run_mission(websocket, orchestrator, task_text, mission_id=None):
             pass
 
 
+async def serve(port=None, origins=None):
+    """Factory para criar servidor WS. Usada em testes com port=0 para port aleatório."""
+    _port = port if port is not None else PORT
+    _origins = origins if origins is not None else ALLOWED_ORIGINS
+    server = await websockets.serve(handler, HOST, _port, origins=_origins)
+    return server
+
+
 async def main():
     log.info(f"🟢 Nexus WebSocket Server iniciando em ws://{HOST}:{PORT}")
     log.info(f"   Ferramentas: search_knowledge_base, get_adr, list_rules, get_brain_status, get_system_architecture")
@@ -196,7 +231,7 @@ async def main():
             # Windows doesn't support add_signal_handler
             pass
 
-    async with websockets.serve(handler, HOST, PORT):
+    async with websockets.serve(handler, HOST, PORT, origins=ALLOWED_ORIGINS):
         log.info(f"✅ WebSocket Server rodando em ws://{HOST}:{PORT}")
         log.info(f"   Aguardando conexões do Nexus frontend...")
         try:

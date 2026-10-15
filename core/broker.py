@@ -1,5 +1,10 @@
-"""Corretor único: decide (core.policy), executa (core.tools) e grava um rastro com a identidade do agente."""
+"""Corretor único: decide (core.policy), executa (core.tools) e grava um rastro com a identidade do agente.
+
+Sprint 7 (Integração): O pipeline MoE/Zero-Trust é opcionalmente ativado passando
+persona_id= ao call(). Sem persona_id, o comportamento é idêntico ao anterior.
+"""
 import sys
+import asyncio
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
@@ -21,6 +26,14 @@ def _write(record: Dict[str, Any], path: Optional[Path]) -> None:
     except Exception as exc:
         print(f"trace: could not write broker record ({type(exc).__name__})", file=sys.stderr)
 
+
+def _validate_persona(persona_id: str):
+    """Valida que persona_id corresponde a um contrato builtin (INV-N14)."""
+    from core.schema.persona_contract import get_builtin_contract
+    contract = get_builtin_contract(persona_id)
+    if contract is None:
+        raise ValueError(f"Unknown persona: {persona_id}")
+    return contract
 
 def record_event(identity: str, event: str, status: str, args: Optional[dict] = None,
                  task_id: Optional[str] = None, trace_path: Optional[Path] = None) -> None:
@@ -56,7 +69,8 @@ async def _execute(tool: str, args: dict) -> Tuple[Dict[str, Any], Optional[str]
 
 
 async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = None, *,
-               approved: bool = False, trace_path: Optional[Path] = None) -> dict:
+               approved: bool = False, trace_path: Optional[Path] = None,
+               persona_id: Optional[str] = None, task_text: str = "") -> dict:
     started_at = tracing.now_iso()
     started = time.perf_counter()
     tool_name = _name(tool)
@@ -66,9 +80,33 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
                               "reason": Reason.policy_error.value, "refused": True,
                               "error": Reason.policy_error.value}
     state = None
+    executed = False
     token = None
     try:
         trace_id, label = tracing.derive_trace_id(task_id)
+
+        # ─── INV-N14: Reject unknown persona before any gate ───
+        if persona_id:
+            _validate_persona(persona_id)  # ValueError se desconhecida
+
+        # ─── Sprint 7: Pre-call pipeline (PD-OVR-006: roda SEMPRE) ───
+        try:
+            from core.integration import pre_call_pipeline
+            pre_result = pre_call_pipeline(persona_id, tool_name, args if isinstance(args, dict) else {}, task_text)
+            if not pre_result.allowed:
+                head = {"tool": tool_name, "verdict": Decision.DENY.value, "reason": pre_result.reason}
+                result = {**head, "refused": True, "error": pre_result.reason, "details": pre_result.details}
+                status, error_type = "refused", None
+                state = tracing.CallState(
+                    trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,
+                    path=trace_path or tracing.TRACE_LOG,
+                    caller=identity if parse_identity(identity) else "unknown",
+                    task_label=label, started_at=started_at,
+                )
+                return result
+        except ImportError:
+            pass  # módulos de integração não disponíveis — prossegue sem eles
+
         state = tracing.CallState(
             trace_id=trace_id, span_id=tracing.new_span_id(), server=_SERVER, tool=tool_name,
             path=trace_path or tracing.TRACE_LOG,
@@ -86,7 +124,14 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
             status, error_type = "escalated", None
         else:
             token = tracing.current_call.set(state)
-            outcome, raised = await _execute(tool, args)
+            try:
+                outcome, raised = await asyncio.wait_for(
+                    _execute(tool, args), timeout=15.0
+                )
+            except asyncio.TimeoutError:
+                outcome = {"error": "ToolTimeout", "timed_out": True}
+                raised = "ToolTimeout"
+            executed = True
             outcome = {k: v for k, v in outcome.items() if k not in ("refused", "approval_required")}
             failed = "error" in outcome
             if failed:
@@ -117,4 +162,22 @@ async def call(identity: str, tool: str, args: dict, task_id: Optional[str] = No
                 "args": tracing.redact_args(args if isinstance(args, dict) else None),
                 "error_type": error_type,
             }, trace_path)
+
+        # ─── Sprint 7: Post-call pipeline (PD-OVR-006: roda SEMPRE) ───
+        if state is not None:  # PD-OVR-006: post_call roda SEMPRE (não só com persona_id)
+            try:
+                from core.integration import post_call_pipeline
+                result = post_call_pipeline(
+                    tool_name=tool_name,
+                    success=(status == "ok"),
+                    identity=state.caller,
+                    trace_id=state.trace_id,
+                    result=result,
+                    persona_id=persona_id,
+                    executed=executed,
+                )
+            except ImportError:
+                pass  # módulos de integração não disponíveis
+            except Exception as exc:
+                print(f"integration: post_call error ({type(exc).__name__})", file=sys.stderr)
     return result

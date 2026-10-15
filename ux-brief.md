@@ -82,6 +82,9 @@ design_system: "dashboard/DESIGN.md"
 
 | Data | Decisão | Justificativa |
 |---|---|---|
+| 2026-10-15 | Showcase evolui para explorador de produto compartilhado com o dashboard: panorama com cinco coleções, busca, fonte, vizinhança e salvos locais | Benchmark de sete produtos e auditoria priorizam uma primeira utilidade concreta e leitura humana; ver dashboard/analysis/second-brain-market-benchmark.md |
+| 2026-10-15 | Contar 78 relações distintas após deduplicação de perspectivas; sinalizar fontes breves e implementação apenas declarada | O snapshot tem 84 entidades, 131 arestas em vistas, 151 documentos e 11 fontes breves; contagem visual não deve sugerir operação comprovada |
+| 2026-10-15 | Movimento em resposta à exploração, transições finitas e opção de reduzir movimento; sem event bus automático na experiência de produto | Animação serve à orientação; atividade simulada não pode parecer trabalho real. A experiência técnica permanece acessível separadamente |
 | 2026-10-13 | Criação do DESIGN.md | Tokens extraídos do style.css existente como primeira documentação formal |
 | 2026-10-13 | Criação do skill ux-engine-kiosk | 8 princípios de design para agentes, inspirado em UX Engine + XIAS + ux-pilot |
 | 2026-10-13 | ADR-016 aprovada | Adoção formal de padrões de UX e design system |
@@ -91,6 +94,11 @@ design_system: "dashboard/DESIGN.md"
 | 2026-10-13 | `--field-border` (3:1), fonte mínima 11px, reduced-motion cobre animações | Gates `non_text_contrast`, `font_min`, `reduced_motion` |
 | 2026-10-13 | Sobreposições são `<dialog>` modais; uma entrada por tela, Visão geral primeiro | Gates `modal_semantics` e `hierarchy` |
 | 2026-10-13 | Brief corrigido: busca textual, pior erro real, findings da análise 360 a reverificar | Fatos anteriores não batiam com o código |
+| 2026-10-15 | Grafo evolui com Órbitas, Camadas e Lista; foco de categoria preserva contexto e orientação transpõe coordenadas | Exploração da taxonomia visual sem transformar agrupamento em relação semântica; [contrato e matemática](dashboard/analysis/graph-architecture.md) |
+| 2026-10-15 | SVG e JavaScript locais, projeção separada do catálogo v1 e elementos persistentes por ID | Manter dashboard offline, fontes e inspector; evitar recriar o SVG durante a troca de layout e seleção |
+| 2026-10-15 | Transição interrompível de 650 ms, movimento reduzido, descarte ao navegar, lista e zoom no celular | Continuidade de foco/posição e alternativa de navegação legível; cobertura efetiva depende dos testes e inspeção registrados na entrega |
+| 2026-10-15 | Contrato ontológico v2 fica como proposta; ações são referências sem execução pelo browser | `tenantId`, classificação, políticas e agrupamento não concedem acesso; execução futura exige servidor e broker com negação por padrão |
+| 2026-10-15 | Foco de categoria aproxima apenas seu ramo; escala máxima de 12/11 prioriza labels legíveis e mantém contexto acessível por arraste | Controle de categoria oferece entrada em tamanho normal; panorama inicial e Enquadrar mostram todo o conjunto em qualquer viewport; mobile mantém Lista como padrão |
 
 ---
 
