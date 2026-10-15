@@ -1,4 +1,4 @@
-﻿"""
+"""
 Orchestrator — Motor de orquestração de missões multi-agente.
 
 Recebe uma missão (texto do usuário), decompõe em steps,
@@ -7,13 +7,24 @@ no formato event-protocol.js do Nexus.
 """
 import asyncio
 import copy
-import uuid
 import re
-from typing import AsyncGenerator
+import time
+import uuid
+from typing import AsyncGenerator, Optional
 
 from backend.tool_executor import run_tool
+from core.integration import (
+    get_persona_contract,
+    run_post_mission_gates,
+    unbind_open_circuit_tools,
+)
 from core.mission_guard import check_mission
 from core.policy import Decision, make_identity
+from core.routing.moe_router import MoERouter
+
+
+# Tempo máximo de execução de uma missão (segundos)
+MISSION_TTL_SECONDS = 30
 
 
 # Mapeamento dos agentes do Nexus
@@ -23,6 +34,14 @@ AGENT_IDS = {
     "coder": "coder",         # Theo — código/queries
     "writer": "writer",       # Lia — documentação
     "reviewer": "reviewer",   # Eva — revisão/QA
+}
+
+# Sprint 7: Mapeamento de agentes Nexus → PersonaContract IDs
+# Ativa o pipeline de integração MoE/Zero-Trust por persona
+AGENT_PERSONA_MAP = {
+    "manager": "maia-orchestrator",
+    "reviewer": "eva-supervisor",
+    # researcher, coder, writer: sem contrato builtin — pipeline não ativa
 }
 
 # Padrões de missão → steps (regras fixas, sem LLM)
@@ -84,6 +103,17 @@ def _truncate_utf16(text: str, limit: int) -> str:
     return units[:limit * 2].decode("utf-16-le", errors="ignore")
 
 
+# Sprint 8: MoE Router para dynamic agent selection
+_moe_router: Optional[MoERouter] = None
+
+
+def _get_moe_router() -> MoERouter:
+    global _moe_router
+    if _moe_router is None:
+        _moe_router = MoERouter()
+    return _moe_router
+
+
 class Orchestrator:
     """Orquestra uma missão multi-agente com ferramentas reais."""
 
@@ -106,7 +136,6 @@ class Orchestrator:
 
     def _event(self, agent_id: str, event_type: str, **payload) -> dict:
         """Cria um evento no formato event-protocol.js."""
-        import time
         if isinstance(payload.get("message"), str):
             payload["message"] = _truncate_utf16(payload["message"], MAX_MESSAGE_CHARS)
         if isinstance(payload.get("bubble"), str):
@@ -144,6 +173,30 @@ class Orchestrator:
 
         return steps
 
+    def _route_agent_for_step(self, step: dict, mission_text: str) -> str:
+        """Usa o MoE Router para sugerir o melhor agente para este step.
+
+        Se o MoE Router sugere uma persona diferente do step original E
+        o score é significativamente melhor, redireciona o step.
+        Caso contrário, mantém o agente original do pattern matching.
+
+        Retorna o agent role a ser usado.
+        """
+        router = _get_moe_router()
+        original_agent = step["agent"]
+
+        # Combina o texto da missão com o contexto do step
+        step_context = f"{mission_text} {step.get('bubble', '')}"
+        decision = router.route(step_context)
+
+        # Só redireciona se o MoE tem alta confiança e é diferente do original
+        if (decision.selected_persona != original_agent 
+            and decision.confidence_score >= 0.3
+            and not decision.is_fallback):
+            return decision.selected_persona
+
+        return original_agent
+
     def approve(self):
         """Chamado quando o usuário aprova; só vale com uma espera em curso (APPROVE antecipado ou repetido é ignorado)."""
         if self.awaiting_approval:
@@ -168,6 +221,7 @@ class Orchestrator:
         self.mission_id = self.mission_id + 1 if mission_id is None else mission_id
         self.sequence = 0
         self._approval_event = asyncio.Event()
+        mission_start = time.time()
 
         # ─── Maia recebe a missão ───
         yield self._event("manager", "status_change", status="thinking",
@@ -176,6 +230,20 @@ class Orchestrator:
 
         # ─── Decompor missão ───
         steps = self._match_pattern(task)
+
+        # ─── Enforce max_hops da persona do manager ───
+        manager_persona_id = AGENT_PERSONA_MAP.get("manager")
+        if manager_persona_id:
+            contract = get_persona_contract(manager_persona_id)
+            if contract and len(steps) > contract.quality_gates.max_hops:
+                original_count = len(steps)
+                steps = steps[:contract.quality_gates.max_hops]
+                yield self._event(
+                    "manager",
+                    "message",
+                    message=f"⚠️ Aviso: Missão truncada de {original_count} para {contract.quality_gates.max_hops} passos (limite de max_hops).",
+                    bubble=f"Passos limitados a {contract.quality_gates.max_hops}",
+                )
 
         # ─── Portões: RED bloqueia antes de qualquer passo; YELLOW pede aprovação ───
         guard = check_mission(steps, self.mission_id)
@@ -192,6 +260,22 @@ class Orchestrator:
                 return
             self._approval_event.clear()
 
+        # Sprint 8 (R6): MoE dynamic routing — enrich agent assignment
+        for step in steps:
+            routed_agent = self._route_agent_for_step(step, task)
+            if routed_agent != step["agent"]:
+                step["_original_agent"] = step["agent"]
+                step["agent"] = routed_agent
+
+        # Sprint 9 (R10): Dynamic tool unbind — remove tools com CB aberto
+        steps, unbound = unbind_open_circuit_tools(steps, manager_persona_id)
+        if unbound:
+            yield self._event(
+                "manager", "message",
+                message=f"⚡ Dynamic unbind: {', '.join(unbound)} removida(s) (circuit breaker aberto).",
+                bubble=f"{len(unbound)} tool(s) desvinculada(s)",
+            )
+
         agents_involved = list({s["agent"] for s in steps})
 
         yield self._event("manager", "status_change", status="working",
@@ -207,8 +291,18 @@ class Orchestrator:
         await self._pause(0.8)
 
         # ─── Executar cada step ───
+        mission_results = []
         total_steps = len(steps)
         for i, step in enumerate(steps):
+            if time.time() - mission_start > MISSION_TTL_SECONDS:
+                yield self._event(
+                    "manager",
+                    "message",
+                    message=f"Timeout da missão atingido (TTL de {MISSION_TTL_SECONDS}s excedido).",
+                    bubble="Timeout da missão excedido",
+                )
+                break
+
             agent = step["agent"]
             progress = int(((i + 1) / total_steps) * 80) + 10
 
@@ -220,6 +314,21 @@ class Orchestrator:
 
             # Executar via corretor: ele decide, executa e grava o rastro com a identidade do agente
             tool = step.get("tool")
+            if tool is None:
+                # Unbound tool — emit fallback message and skip execution
+                yield self._event(agent, "message",
+                                  message=step.get("bubble", "Tool indisponível"),
+                                  bubble=step.get("bubble", "Tool indisponível"))
+                yield self._event(agent, "status_change", status="done", progress=100)
+                mission_results.append({
+                    "tool": step.get("_original_tool", "unknown"),
+                    "unbound": True,
+                    "reason": step.get("_unbound_reason", "unknown"),
+                })
+                if i < total_steps - 1:
+                    await self._pause(0.5)
+                continue
+
             invalid_agent = None
             try:
                 identity = make_identity(step.get("agent"))
@@ -229,13 +338,17 @@ class Orchestrator:
                 raw = step.get("agent")
                 identity = f"agent:{raw}" if isinstance(raw, str) else "agent:?"
             result = await run_tool(tool, step.get("input"), identity=identity,
-                                    task_id=f"M{self.mission_id}")
+                                    task_id=f"M{self.mission_id}",
+                                    persona_id=AGENT_PERSONA_MAP.get(agent),
+                                    task_text=task)
             if invalid_agent:
                 result["error"] = invalid_agent
             elif result.get("refused") and result.get("verdict") == Decision.DENY.value:
                 result["error"] = f"{tool} negado pela política: {result.get('reason', '')}"
             elif result.get("refused"):
                 result["error"] = f"{tool} exige aprovação humana explícita; não executado pela missão."
+
+            mission_results.append(result)
 
             # Formatar resultado para o balão
             summary = self._summarize_result(result)
@@ -252,6 +365,24 @@ class Orchestrator:
             # Transferência para Eva (se não for o último)
             if i < total_steps - 1:
                 await self._pause(0.5)
+
+        # ─── Post-mission Quality Gates ───
+        manager_persona = AGENT_PERSONA_MAP.get("manager")
+        post_gates = run_post_mission_gates(manager_persona, mission_results)
+        self.last_post_mission_result = post_gates
+        if not post_gates.get("all_passed", True):
+            failed_gates = [
+                g.get("gate_name", "unknown")
+                for g in post_gates.get("gate_results", [])
+                if not g.get("passed", True)
+            ]
+            failed_str = ", ".join(failed_gates) if failed_gates else "post_mission"
+            yield self._event(
+                "manager",
+                "message",
+                message=f"⚠️ Aviso de governança: Post-mission gates não passaram ({failed_str}).",
+                bubble=f"Aviso: gates ({failed_str}) reprovados",
+            )
 
         # ─── Maia atualiza progresso ───
         yield self._event("manager", "status_change",
@@ -303,7 +434,9 @@ class Orchestrator:
                 return "Nenhum resultado encontrado no vault."
             lines = [f"**{len(sources)} fontes encontradas:**"]
             for s in sources[:3]:
-                lines.append(f"- `{s['document']}` — {s['section']} (score: {s['score']})")
+                sec = f" — {s['section']}" if s.get("section") else ""
+                sc = f" (score: {s['score']})" if s.get("score") is not None else ""
+                lines.append(f"- `{s.get('document', '')}`{sec}{sc}")
                 if s.get("excerpt"):
                     lines.append(f"  _{s['excerpt'][:100]}..._")
             return "\n".join(lines)

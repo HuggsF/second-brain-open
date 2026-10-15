@@ -139,6 +139,27 @@ async def handler(websocket):
                     "revision": 1,
                 }))
 
+            elif action_type == "HITL_DECISION":
+                # Sprint 7: Governança — decisão HITL do operador humano
+                try:
+                    from core.governance.hitl_protocol import HITLResponse
+                    from core.integration import _get_hitl_store
+                    hitl_payload = action.get("payload", {})
+                    response = HITLResponse.from_frame(hitl_payload)
+                    store = _get_hitl_store()
+                    store.resolve(response)
+                    log.info(f"🔐 HITL decision: {response.decision.value} for {response.request_id}")
+                    await websocket.send(json.dumps({
+                        "type": "ACK",
+                        "commandId": message.get("commandId", ""),
+                        "missionId": message.get("missionId", 0),
+                        "revision": orchestrator.sequence + 1,
+                    }))
+                except ImportError:
+                    log.warning("HITL modules not available")
+                except Exception as exc:
+                    log.error(f"HITL decision error: {exc}")
+
     except websockets.exceptions.ConnectionClosed:
         log.info(f"🔴 Conexão fechada: {remote}")
     except Exception as exc:

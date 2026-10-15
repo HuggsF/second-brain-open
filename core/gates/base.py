@@ -26,6 +26,11 @@ class GateResult:
         default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat()
     )
 
+    @property
+    def message(self) -> str:
+        """Alias para summary (compatibilidade com callers que esperam .message)."""
+        return self.summary
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "gate_name": self.gate_name,
