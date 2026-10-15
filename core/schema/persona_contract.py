@@ -195,6 +195,7 @@ class PersonaContract:
         moe_routing: Configuração de roteamento MoE.
         resilience: Configuração de resiliência.
         audit: Configuração de auditoria WORM.
+        forbidden_topics: Lista de tópicos proibidos por persona.
     """
     schema_version: str = "kiosk.aios.io/v1"
     persona_id: str = ""
@@ -205,6 +206,7 @@ class PersonaContract:
     moe_routing: MoERoutingConfig = field(default_factory=lambda: MoERoutingConfig(embedding_tags=["geral"]))
     resilience: ResilienceConfig = field(default_factory=ResilienceConfig)
     audit: AuditConfig = field(default_factory=AuditConfig)
+    forbidden_topics: List[str] = field(default_factory=list)
 
     def validate(self) -> List[str]:
         """Valida o contrato completo. Retorna lista de erros (vazia = válido)."""
@@ -257,6 +259,7 @@ class PersonaContract:
                 "worm_enabled": self.audit.worm_enabled,
                 "evidence_hash_chain": self.audit.evidence_hash_chain,
             },
+            "forbidden_topics": list(self.forbidden_topics),
         }
 
     @classmethod
@@ -299,6 +302,7 @@ class PersonaContract:
                 worm_enabled=aud_raw.get("worm_enabled", True),
                 evidence_hash_chain=aud_raw.get("evidence_hash_chain", True),
             ),
+            forbidden_topics=list(data.get("forbidden_topics", [])),
         )
 
 
@@ -334,6 +338,7 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "worm_enabled": True,
             "evidence_hash_chain": True,
         },
+        "forbidden_topics": ["dados financeiros de clientes", "senhas de produção"],
     },
     "eva-supervisor": {
         "schema_version": "kiosk.aios.io/v1",
@@ -365,6 +370,7 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "worm_enabled": True,
             "evidence_hash_chain": True,
         },
+        "forbidden_topics": [],
     },
     "persona-devops": {
         "schema_version": "kiosk.aios.io/v1",
@@ -397,6 +403,7 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "worm_enabled": True,
             "evidence_hash_chain": True,
         },
+        "forbidden_topics": ["dados pessoais de clientes", "informações financeiras"],
     },
     "persona-finops": {
         "schema_version": "kiosk.aios.io/v1",
@@ -429,6 +436,40 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "worm_enabled": True,
             "evidence_hash_chain": True,
         },
+        "forbidden_topics": ["dados técnicos de infraestrutura", "credenciais de deploy"],
+    },
+    "cx-triage": {
+        "schema_version": "kiosk.aios.io/v1",
+        "persona_id": "cx-triage",
+        "display_name": "CX Triage — Atendimento ao Cliente",
+        "role": "specialist",
+        "kiosk_quality_gates": {
+            "pre_mission": ["dlp_input", "rule_compliance"],
+            "post_mission": ["grounding_sha256"],
+            "idempotency_required": False,
+            "max_hops": 2,
+        },
+        "security_policies": {
+            "pii_handling": "mask_reversible",
+            "scope_policy": "CUSTOMER_FACING_ONLY",
+            "autonomy_level": "auto_execute",
+            "auto_approve_up_to_brl": None,
+        },
+        "moe_routing": {
+            "embedding_tags": ["atendimento", "cliente", "suporte", "reclamação", "cx", "triage", "sac"],
+            "confidence_threshold": 0.12,
+            "fallback_persona": "maia-orchestrator",
+        },
+        "resilience": {
+            "circuit_breaker_threshold": 3,
+            "rate_limit_tokens": 20,
+            "rate_limit_refill": 0.5,
+        },
+        "audit": {
+            "worm_enabled": True,
+            "evidence_hash_chain": True,
+        },
+        "forbidden_topics": ["estorno acima de R$500", "acesso a sistemas internos", "dados financeiros corporativos"],
     },
 }
 

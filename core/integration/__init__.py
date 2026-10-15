@@ -19,7 +19,7 @@ O novo fluxo é ativado passando persona_id= ao call(), que habilita todo o pipe
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from core.resilience.circuit_breaker import CircuitBreakerRegistry
 from core.resilience.rate_limiter import RateLimiterRegistry
@@ -146,10 +146,16 @@ def check_rate_limit(tool_name: str) -> PreCallResult:
     return PreCallResult(True)
 
 
-def check_forbidden_topics(text: str) -> PreCallResult:
+def check_forbidden_topics(text: str, persona_id: Optional[str] = None) -> PreCallResult:
     """Verifica se o texto contém tópicos proibidos."""
     gate = _get_forbidden_gate()
-    result = gate.evaluate({"input_text": text})
+    payload = {"input_text": text}
+    # If persona has specific forbidden topics, pass them to the gate
+    if persona_id:
+        contract = get_persona_contract(persona_id)
+        if contract and contract.forbidden_topics:
+            payload["forbidden_topics"] = contract.forbidden_topics
+    result = gate.evaluate(payload)
     if not result.passed:
         return PreCallResult(False, "forbidden_topic", {
             "message": result.message,
@@ -245,7 +251,7 @@ def pre_call_pipeline(
 
     # 3. Forbidden Topics (se há texto da task)
     if task_text:
-        ft_result = check_forbidden_topics(task_text)
+        ft_result = check_forbidden_topics(task_text, persona_id=persona_id)
         if not ft_result.allowed:
             return ft_result
 
@@ -291,6 +297,60 @@ def post_call_pipeline(
             metadata={"persona_id": persona_id or "unknown"},
             audit_path=audit_path,
         )
+
+
+def run_post_mission_gates(
+    persona_id: Optional[str],
+    mission_results: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Executa os post-mission gates declarados no contrato da persona.
+
+    Args:
+        persona_id: ID da persona para lookup do contrato.
+        mission_results: Lista de resultados das tools executadas na missão.
+
+    Returns:
+        Dict com resultado dos gates. Formato:
+        {
+            "gates_run": ["grounding_sha256", ...],
+            "all_passed": True/False,
+            "gate_results": [...],
+        }
+    """
+    if not persona_id:
+        return {"gates_run": [], "all_passed": True, "gate_results": []}
+
+    contract = get_persona_contract(persona_id)
+    if not contract or not contract.quality_gates.post_mission:
+        return {"gates_run": [], "all_passed": True, "gate_results": []}
+
+    from core.gates import CompoundGatePipeline
+    pipeline = CompoundGatePipeline()
+
+    # Build payload from mission results for gate evaluation
+    payload = {}
+    for result in mission_results:
+        # Merge citations for grounding gate
+        if "sources" in result:
+            existing = payload.get("citations", [])
+            for src in result["sources"]:
+                doc_name = src.get("document") or src.get("source", "")
+                existing.append({
+                    "source": doc_name,
+                    "document": doc_name,
+                    "hash": src.get("score", ""),
+                    "sha256": src.get("sha256"),
+                })
+            payload["citations"] = existing
+
+    gate_result = pipeline.run_all(payload)
+    declared_gates = contract.quality_gates.post_mission
+
+    return {
+        "gates_run": declared_gates,
+        "all_passed": gate_result["all_passed"],
+        "gate_results": gate_result["gate_results"],
+    }
 
 
 # ─── Dashboard / Observabilidade ─────────────────────────────────────────────

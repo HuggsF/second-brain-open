@@ -44,7 +44,7 @@ class GroundingGate(BaseGate):
         invalid = []
 
         for cit in citations:
-            doc_ref = cit.get("document", "").strip()
+            doc_ref = (cit.get("document") or cit.get("source") or "").strip()
             claimed_hash = cit.get("sha256")
 
             # Proteção contra path traversal
