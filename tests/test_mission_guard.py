@@ -25,6 +25,17 @@ class _FakePipeline:
         return {"all_passed": self.semaphore == "GREEN", "global_semaphore": self.semaphore, "gate_results": []}
 
 
+class _SpyPipeline:
+    """Registra o payload recebido para inspeção nos testes."""
+
+    def __init__(self):
+        self.last_payload = None
+
+    def run_all(self, payload):
+        self.last_payload = payload
+        return {"all_passed": True, "global_semaphore": "GREEN", "gate_results": []}
+
+
 class TestMissionGuard(unittest.TestCase):
     def setUp(self):
         stack = contextlib.ExitStack()
@@ -114,3 +125,135 @@ class TestBuiltinStepsPassPolicy(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestReconnectedQualityGates(unittest.TestCase):
+    """Sprint 0 — reconexão dos 4 Quality Gates (ADR-022).
+
+    Verifica que check_mission() propaga corretamente os payloads opcionais
+    (grounding_payload, rule_payload, idempotency_payload) para o pipeline,
+    ativando os Gates 1, 3 e 4 além do DAG Gate (Gate 2).
+    """
+
+    def setUp(self):
+        stack = contextlib.ExitStack()
+        self.addCleanup(stack.close)
+        tmp = stack.enter_context(tempfile.TemporaryDirectory())
+        self.log = Path(tmp) / "trace.jsonl"
+        stack.enter_context(mock.patch.object(tracing, "TRACE_LOG", self.log))
+
+    # ── Testes de propagação de payload ──
+
+    def test_grounding_payload_is_merged_into_pipeline(self):
+        """Gate 1: chaves 'citations' e 'claims' devem chegar ao pipeline."""
+        spy = _SpyPipeline()
+        grounding = {"citations": [{"document": "test.md", "sha256": "abc"}], "claims": "teste"}
+        check_mission([_step()], 1, pipeline=spy, grounding_payload=grounding)
+        self.assertIn("citations", spy.last_payload)
+        self.assertIn("claims", spy.last_payload)
+        self.assertEqual(spy.last_payload["citations"], grounding["citations"])
+
+    def test_rule_payload_is_merged_into_pipeline(self):
+        """Gate 3: chaves 'action', 'parameters', 'rules_checked' devem chegar ao pipeline."""
+        spy = _SpyPipeline()
+        rule = {"action": "shipment_emission", "parameters": {"nfe_key": "1234"}, "rules_checked": ["RULE-001"]}
+        check_mission([_step()], 1, pipeline=spy, rule_payload=rule)
+        self.assertIn("rules_checked", spy.last_payload)
+        self.assertIn("parameters", spy.last_payload)
+        self.assertEqual(spy.last_payload["action"], "shipment_emission")
+
+    def test_idempotency_payload_is_merged_into_pipeline(self):
+        """Gate 4: chaves 'is_mutation', 'idempotency_key', etc. devem chegar ao pipeline."""
+        spy = _SpyPipeline()
+        idem = {
+            "is_mutation": True,
+            "idempotency_key": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+            "batch_trace_id": "e74f9d2a1b8c0e5a4f7e2d1c9a8b7e6d",
+            "lock_ttl_seconds": 15,
+        }
+        check_mission([_step()], 1, pipeline=spy, idempotency_payload=idem)
+        self.assertIn("is_mutation", spy.last_payload)
+        self.assertIn("idempotency_key", spy.last_payload)
+
+    # ── Testes de retrocompatibilidade ──
+
+    def test_backward_compat_no_extra_payloads(self):
+        """Sem payloads extras, apenas a chave 'plan' deve estar no payload (DAG Gate)."""
+        spy = _SpyPipeline()
+        check_mission([_step()], 1, pipeline=spy)
+        self.assertIn("plan", spy.last_payload)
+        self.assertNotIn("citations", spy.last_payload)
+        self.assertNotIn("rules_checked", spy.last_payload)
+        self.assertNotIn("is_mutation", spy.last_payload)
+
+    # ── Testes de composição parcial ──
+
+    def test_all_four_payloads_merged_together(self):
+        """Todos os 4 gates alimentados simultaneamente."""
+        spy = _SpyPipeline()
+        check_mission(
+            [_step()], 1, pipeline=spy,
+            grounding_payload={"citations": [{"document": "x.md"}]},
+            rule_payload={"rules_checked": ["RULE-001"], "parameters": {}},
+            idempotency_payload={"is_mutation": True, "idempotency_key": "test-key-1234567890ab"},
+        )
+        payload = spy.last_payload
+        # Todas as chaves dos 4 gates presentes
+        self.assertIn("plan", payload)        # Gate 2 (DAG)
+        self.assertIn("citations", payload)   # Gate 1 (Grounding)
+        self.assertIn("rules_checked", payload)  # Gate 3 (Rule)
+        self.assertIn("is_mutation", payload)    # Gate 4 (Idempotency)
+
+    def test_none_payloads_are_ignored(self):
+        """Payloads None devem ser ignorados sem erro."""
+        spy = _SpyPipeline()
+        check_mission(
+            [_step()], 1, pipeline=spy,
+            grounding_payload=None,
+            rule_payload=None,
+            idempotency_payload=None,
+        )
+        self.assertIn("plan", spy.last_payload)
+        self.assertNotIn("citations", spy.last_payload)
+
+
+class TestReconnectedGatesIntegration(unittest.TestCase):
+    """Testes de integração: executa os gates reais (não mocks)."""
+
+    def setUp(self):
+        stack = contextlib.ExitStack()
+        self.addCleanup(stack.close)
+        tmp = stack.enter_context(tempfile.TemporaryDirectory())
+        self.log = Path(tmp) / "trace.jsonl"
+        stack.enter_context(mock.patch.object(tracing, "TRACE_LOG", self.log))
+
+    def test_idempotency_gate_blocks_mission_without_key(self):
+        """Gate 4: mutação sem chave de idempotência deve bloquear a missão (RED)."""
+        result = check_mission(
+            [_step()], 1,
+            idempotency_payload={"is_mutation": True, "operation": "POST /test"},
+        )
+        self.assertEqual(result["action"], "block")
+        self.assertEqual(result["semaphore"], "RED")
+        # Verifica que o gate de idempotência aparece nos resultados
+        gate_names = [g["gate_name"] for g in result["gate_results"]]
+        self.assertIn("gate_4_idempotency_concurrency", gate_names)
+
+    def test_idempotency_gate_read_only_passes(self):
+        """Gate 4: operação somente leitura passa automaticamente (GREEN)."""
+        result = check_mission(
+            [_step()], 1,
+            idempotency_payload={"is_mutation": False},
+        )
+        self.assertEqual(result["action"], "proceed")
+        self.assertEqual(result["semaphore"], "GREEN")
+
+    def test_grounding_gate_no_citations_is_yellow(self):
+        """Gate 1: sem citações, GroundingGate retorna YELLOW → approval."""
+        result = check_mission(
+            [_step()], 1,
+            grounding_payload={"citations": []},
+        )
+        self.assertEqual(result["action"], "approval")
+        self.assertEqual(result["semaphore"], "YELLOW")
+
