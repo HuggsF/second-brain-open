@@ -73,6 +73,7 @@ class ToolCircuitBreaker:
         self._stats = CircuitStats(tool_name=tool_name)
         self._consecutive_failures = 0
         self._consecutive_successes_half_open = 0
+        self._half_open_permitted = False
 
     @property
     def state(self) -> CircuitState:
@@ -94,6 +95,7 @@ class ToolCircuitBreaker:
             if elapsed >= self.recovery_timeout:
                 self._stats.state = CircuitState.HALF_OPEN
                 self._consecutive_successes_half_open = 0
+                self._half_open_permitted = False  # RESET: novo HALF_OPEN permite 1 probe
         return self._stats.state
 
     def allow_request(self) -> bool:
@@ -103,7 +105,10 @@ class ToolCircuitBreaker:
             if state == CircuitState.CLOSED:
                 return True
             if state == CircuitState.HALF_OPEN:
-                return True  # permite 1 chamada de teste
+                if not self._half_open_permitted:
+                    self._half_open_permitted = True
+                    return True  # apenas 1 probe
+                return False  # demais requisições bloqueadas
             # OPEN
             self._stats.total_rejected += 1
             return False
@@ -123,6 +128,7 @@ class ToolCircuitBreaker:
                     self._stats.state = CircuitState.CLOSED
                     self._stats.opened_at = None
                     self._consecutive_successes_half_open = 0
+                    self._half_open_permitted = False
 
     def record_failure(self) -> None:
         """Registra uma falha. Pode transicionar para OPEN."""
@@ -138,6 +144,7 @@ class ToolCircuitBreaker:
                 self._stats.state = CircuitState.OPEN
                 self._stats.opened_at = now
                 self._consecutive_successes_half_open = 0
+                self._half_open_permitted = False
             elif state == CircuitState.CLOSED:
                 if self._consecutive_failures >= self.failure_threshold:
                     self._stats.state = CircuitState.OPEN

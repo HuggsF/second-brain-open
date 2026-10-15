@@ -22,6 +22,7 @@ Thread-safe via threading.Lock para writes (reads são idempotentes).
 """
 
 import hashlib
+import os
 import json
 import threading
 import time
@@ -187,6 +188,8 @@ class WORMAuditLog:
             line = json.dumps(record.to_dict(), ensure_ascii=False) + "\n"
             with open(self.path, "a", encoding="utf-8") as f:
                 f.write(line)
+                f.flush()
+                os.fsync(f.fileno())
 
             self._last_hash = record.record_hash
             self._sequence += 1

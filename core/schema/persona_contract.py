@@ -598,6 +598,92 @@ BUILTIN_CONTRACTS: Dict[str, Dict[str, Any]] = {
             "required_output_fields": ["response", "sentiment"],
         },
     },
+    "persona-researcher": {
+        "schema_version": "kiosk.aios.io/v1",
+        "persona_id": "persona-researcher",
+        "display_name": "Researcher — Persona de Pesquisa",
+        "role": "specialist",
+        "kiosk_quality_gates": {
+            "pre_mission": ["dlp_input", "rule_compliance"],
+            "post_mission": [],
+            "idempotency_required": False,
+            "max_hops": 3,
+        },
+        "security_policies": {
+            "pii_handling": "mask_permanent",
+            "scope_policy": "SCOPED_SUMMARY",
+            "autonomy_level": "auto_execute",
+            "auto_approve_up_to_brl": 0,
+        },
+        "moe_routing": {
+            "embedding_tags": ["pesquisa", "busca", "análise", "dados"],
+            "confidence_threshold": 0.15,
+            "fallback_persona": "maia-orchestrator",
+        },
+        "resilience": {
+            "circuit_breaker_threshold": 3,
+            "rate_limit_tokens": 20,
+            "rate_limit_refill": 0.5,
+        },
+        "audit": {
+            "worm_enabled": True,
+            "evidence_hash_chain": True,
+        },
+        "forbidden_topics": [],
+        "rbac": {
+            "rbac_role": "role:agent:researcher_readonly",
+            "allowed_tools": ["search_knowledge_base", "query_database", "read_document", "get_context", "list_sources"],
+            "denied_tools": ["run_safe_command", "write_file", "delete_file", "deploy"],
+        },
+        "io_contract": {
+            "required_input_fields": [],
+            "output_schema_strict": False,
+            "required_output_fields": ["summary"],
+        },
+    },
+    "persona-writer": {
+        "schema_version": "kiosk.aios.io/v1",
+        "persona_id": "persona-writer",
+        "display_name": "Writer — Persona de Redação",
+        "role": "specialist",
+        "kiosk_quality_gates": {
+            "pre_mission": ["dlp_input", "rule_compliance"],
+            "post_mission": ["grounding_sha256"],
+            "idempotency_required": False,
+            "max_hops": 3,
+        },
+        "security_policies": {
+            "pii_handling": "mask_permanent",
+            "scope_policy": "SCOPED_SUMMARY",
+            "autonomy_level": "auto_execute",
+            "auto_approve_up_to_brl": 0,
+        },
+        "moe_routing": {
+            "embedding_tags": ["redação", "conteúdo", "escrita", "texto"],
+            "confidence_threshold": 0.15,
+            "fallback_persona": "maia-orchestrator",
+        },
+        "resilience": {
+            "circuit_breaker_threshold": 3,
+            "rate_limit_tokens": 20,
+            "rate_limit_refill": 0.5,
+        },
+        "audit": {
+            "worm_enabled": True,
+            "evidence_hash_chain": True,
+        },
+        "forbidden_topics": [],
+        "rbac": {
+            "rbac_role": "role:agent:writer",
+            "allowed_tools": ["write_content", "draft_response", "compose_email", "edit_text", "format_document"],
+            "denied_tools": ["run_safe_command", "delete_file", "deploy", "query_database"],
+        },
+        "io_contract": {
+            "required_input_fields": [],
+            "output_schema_strict": False,
+            "required_output_fields": ["content"],
+        },
+    },
 }
 
 

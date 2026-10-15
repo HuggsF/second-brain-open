@@ -8,7 +8,7 @@ de contexto por persona MoE. Cada agente recebe apenas os campos da sessão
 autorizados pela sua scope_policy, eliminando context bleed.
 """
 from enum import Enum
-from typing import Any, Dict, FrozenSet, List, Optional
+from typing import Any, Dict, FrozenSet, List, Optional, Set
 import datetime
 
 
@@ -53,6 +53,12 @@ PERSONA_SCOPE_POLICIES: Dict[str, ScopePolicy] = {
     "writer":     ScopePolicy.SCOPED_SUMMARY,
     "reviewer":   ScopePolicy.SECURITY_AUDIT_VIEW,
 }
+
+_CROSS_PERSONA_SAFE_FIELDS: FrozenSet[str] = frozenset({
+    "agent", "role", "event", "status", "summary", "bubble",
+    "recorded_at", "type", "step_index",
+    # Exclui: tool_args, tool_result, raw_input, raw_output (podem conter PII)
+})
 
 
 class SessionMemoryStore:
@@ -100,9 +106,19 @@ class SessionMemoryStore:
         policy = scope_policy or PERSONA_SCOPE_POLICIES.get(persona_id, ScopePolicy.SCOPED_SUMMARY)
         allowed_fields = _SCOPE_ALLOWED_FIELDS.get(policy)
 
-        # FULL_ACCESS: retorna tudo sem filtro
+        # FULL_ACCESS com verificação cross-persona (INV-N13)
         if allowed_fields is None:
-            return list(history)
+            own_records = all(
+                r.get("persona_id") == persona_id or r.get("agent") == persona_id
+                for r in history if r.get("persona_id") or r.get("agent")
+            )
+            if own_records or persona_id in ("maia-orchestrator", "manager"):
+                return list(history)  # própria sessão ou supervisor: acesso total
+            # Cross-persona: filtrar campos sensíveis
+            return [
+                {k: v for k, v in record.items() if k in _CROSS_PERSONA_SAFE_FIELDS}
+                for record in history
+            ]
 
         # Filtra campos para o escopo permitido
         scoped = []

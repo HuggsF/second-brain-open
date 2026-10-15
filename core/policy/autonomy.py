@@ -17,9 +17,12 @@ Não altera o fluxo existente — é chamada adicionalmente.
 
 from dataclasses import dataclass
 from enum import Enum
+import math
 from typing import Any, Dict, Optional
 
 from core.policy.verdict import Decision, Reason, Verdict
+
+UNPARSEABLE = object()
 
 
 class AutonomyLevel(str, Enum):
@@ -109,6 +112,15 @@ def evaluate_autonomy(
     # Busca valor financeiro nos args (suporta vários nomes de campo)
     amount = _extract_amount(args)
 
+    if amount is UNPARSEABLE:
+        return AutonomyVerdict(
+            decision=Decision.ESCALATE,
+            level=level,
+            reason=AutonomyReason.hitl_above_threshold,
+            detail="campo financeiro inválido — requer aprovação humana",
+            requires_hitl=True,
+        )
+
     if amount is None:
         # Sem valor financeiro → aprova se tem limite definido e > 0,
         # senão escalona
@@ -144,18 +156,44 @@ def evaluate_autonomy(
     )
 
 
-def _extract_amount(args: Dict[str, Any]) -> Optional[float]:
+def _parse_brl(val):
+    """Parseia formato BR: 'R$ 50.000,00' → 50000.00. Retorna None se inválido."""
+    if isinstance(val, bool):  # bool herda de int no Python
+        return None
+    if isinstance(val, (int, float)):
+        return float(val)
+    if isinstance(val, str):
+        cleaned = val.replace("R$", "").replace(" ", "").strip()
+        if "," in cleaned:
+            cleaned = cleaned.replace(".", "").replace(",", ".")
+        try:
+            result = float(cleaned)
+            return result if math.isfinite(result) else None
+        except (ValueError, TypeError):
+            return None
+    return None
+
+
+def _extract_amount(args: Dict[str, Any]):
     """Extrai valor financeiro dos argumentos.
 
-    Busca em ordem: 'amount', 'valor', 'value', 'total', 'amount_brl'.
-    Retorna None se nenhum campo financeiro for encontrado.
+    Retorna:
+        float — valor válido parseado.
+        None — nenhum campo financeiro presente.
+        UNPARSEABLE — campo presente mas inválido (formato, negativo, NaN, shadowing).
     """
     amount_fields = ("amount", "valor", "value", "total", "amount_brl")
+    found_values = []
     for field_name in amount_fields:
         val = args.get(field_name)
         if val is not None:
-            try:
-                return float(val)
-            except (ValueError, TypeError):
-                continue
-    return None
+            parsed = _parse_brl(val)
+            if parsed is None or parsed < 0 or not math.isfinite(parsed):
+                return UNPARSEABLE
+            found_values.append(parsed)
+    if not found_values:
+        return None
+    # GAP-03: shadowing — valores conflitantes → UNPARSEABLE
+    if len(set(found_values)) > 1:
+        return UNPARSEABLE
+    return found_values[0]

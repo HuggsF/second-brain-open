@@ -17,6 +17,7 @@ O pipeline é opt-in: callers existentes continuam usando broker.call() sem muda
 O novo fluxo é ativado passando persona_id= ao call(), que habilita todo o pipeline.
 """
 
+import json
 import sys
 import time
 from pathlib import Path
@@ -317,51 +318,78 @@ def pre_call_pipeline(
 ) -> PreCallResult:
     """Executa todos os checks de pré-chamada em sequência.
 
-    Ordem:
-      1. Circuit Breaker (proteção contra cascata)
-      2. Rate Limiter (proteção contra flood)
-      3. RBAC (permissão de execução da ferramenta por persona) — se persona_id
-      4. Forbidden Topics (segurança de conteúdo) — se task_text
-      5. Autonomy Evaluation (governança por persona) — se persona_id
-      6. Input Contract (validação de schema de entrada) — se persona_id
-
-    Retorna no primeiro bloqueio encontrado. Se todos passam, retorna allowed=True.
+    PD-OVR-004: CB/RL fail-open; RBAC/FT/Autonomy/Input fail-closed.
+    PD-OVR-006: Gates globais (CB, RL, FT) rodam SEMPRE, independente de persona_id.
+    INV-N08: Exceção em gate de segurança → fail-closed.
     """
-    # 1. Circuit Breaker
-    cb_result = check_circuit_breaker(tool_name)
-    if not cb_result.allowed:
-        return cb_result
+    # 1. Circuit Breaker — fail-open (PD-OVR-004)
+    try:
+        cb_result = check_circuit_breaker(tool_name)
+        if not cb_result.allowed:
+            return cb_result
+    except Exception:
+        print(f"warn: CB check failed for {tool_name}, allowing", file=sys.stderr)
 
-    # 2. Rate Limiter
-    rl_result = check_rate_limit(tool_name)
-    if not rl_result.allowed:
-        return rl_result
+    # 2. Rate Limiter — fail-open (PD-OVR-004)
+    try:
+        rl_result = check_rate_limit(tool_name)
+        if not rl_result.allowed:
+            return rl_result
+    except Exception:
+        print(f"warn: RL check failed for {tool_name}, allowing", file=sys.stderr)
 
-    # 3. RBAC (se persona especificada)
+    # 3. Forbidden Topics — SEMPRE, fail-closed (INV-N05, INV-N08)
+    ft_text = task_text or ""
+    if ft_text.strip():
+        try:
+            ft_result = check_forbidden_topics(ft_text, persona_id=persona_id)
+            if not ft_result.allowed:
+                return ft_result
+        except Exception:
+            return PreCallResult(False, "forbidden_topics_internal_error")
+
+    # 4-6. Security gates — só com persona_id, fail-closed
     if persona_id:
-        rbac_result = check_rbac(persona_id, tool_name)
-        if not rbac_result.allowed:
-            return rbac_result
+        # 4. RBAC
+        try:
+            rbac_result = check_rbac(persona_id, tool_name)
+            if not rbac_result.allowed:
+                return rbac_result
+        except Exception:
+            return PreCallResult(False, "rbac_internal_error")
 
-    # 4. Forbidden Topics (se há texto da task)
-    if task_text:
-        ft_result = check_forbidden_topics(task_text, persona_id=persona_id)
-        if not ft_result.allowed:
-            return ft_result
+        # 5. Autonomy
+        try:
+            auto_result = check_autonomy(persona_id, tool_name, args)
+            if not auto_result.allowed:
+                return auto_result
+        except Exception:
+            return PreCallResult(False, "autonomy_internal_error")
 
-    # 5. Autonomy (se persona especificada)
-    if persona_id:
-        auto_result = check_autonomy(persona_id, tool_name, args)
-        if not auto_result.allowed:
-            return auto_result
-
-    # 6. Input Contract (se persona especificada)
-    if persona_id:
-        io_result = validate_input_contract(persona_id, args)
-        if not io_result.allowed:
-            return io_result
+        # 6. Input Contract
+        try:
+            io_result = validate_input_contract(persona_id, args)
+            if not io_result.allowed:
+                return io_result
+        except Exception:
+            return PreCallResult(False, "input_contract_internal_error")
 
     return PreCallResult(True, "all_checks_passed")
+
+
+def _redact_dict_values(d: dict) -> dict:
+    """Aplica DLP em cada valor string do dict, preservando estrutura."""
+    from core.security.dlp_guardrail import inspect_text
+    redacted = {}
+    for k, v in d.items():
+        if isinstance(v, str):
+            r = inspect_text(v)
+            redacted[k] = r.redacted_text if r.has_pii else v
+        elif isinstance(v, dict):
+            redacted[k] = _redact_dict_values(v)
+        else:
+            redacted[k] = v
+    return redacted
 
 
 def post_call_pipeline(
@@ -372,26 +400,48 @@ def post_call_pipeline(
     result: Dict[str, Any],
     persona_id: Optional[str] = None,
     audit_path: Optional[Path] = None,
-) -> None:
+    executed: bool = True,
+) -> Any:
     """Executa ações pós-chamada.
 
     1. Atualiza Circuit Breaker com resultado
     2. Grava WORM audit trail (se persona tem audit habilitado)
     3. Validação de Output Contract (soft enforcement se strict=True)
     """
-    # 1. Circuit Breaker feedback
-    record_tool_outcome(tool_name, success)
+    # 1. Circuit Breaker feedback — só se a tool foi de facto executada (INV-N02)
+    if executed:
+        record_tool_outcome(tool_name, success)
 
-    # 2. WORM Audit (verifica se persona habilita)
+        # DLP scan no resultado (INV-N12)
+        if success and result:
+            try:
+                from core.security.dlp_guardrail import inspect_text
+                if isinstance(result, dict):
+                    # Verificar se algum valor contém PII
+                    text_to_scan = json.dumps(result, ensure_ascii=False, default=str)
+                    dlp_check = inspect_text(text_to_scan)
+                    if dlp_check.has_pii:
+                        redacted = _redact_dict_values(result)
+                        result.clear()
+                        result.update(redacted)
+                elif isinstance(result, str):
+                    dlp_check = inspect_text(result)
+                    if dlp_check.has_pii:
+                        result = dlp_check.redacted_text
+            except Exception as exc:
+                print(f"warn: DLP scan on result failed ({type(exc).__name__})", file=sys.stderr)
+
+    # 2. WORM Audit (SEMPRE, mas com event_type correto)
     should_audit = True
     if persona_id:
         contract = get_persona_contract(persona_id)
         if contract and not contract.audit.worm_enabled:
             should_audit = False
 
+    event_type = f"broker.call.{tool_name}" if executed else f"broker.blocked.{tool_name}"
     if should_audit:
         audit_call(
-            event_type=f"broker.call.{tool_name}",
+            event_type=event_type,
             actor=identity,
             trace_id=trace_id,
             payload={"status": "ok" if success else "error", "tool": tool_name},
@@ -399,12 +449,14 @@ def post_call_pipeline(
             audit_path=audit_path,
         )
 
-    # 3. Output Contract validation (se persona especificada)
-    if persona_id and success:
+    # 3. Output Contract validation — só se executada
+    if executed and persona_id and success:
         output_check = validate_output_contract(persona_id, result)
         if not output_check["valid"] and output_check["strict"]:
             # Log warning but don't block (soft enforcement)
             print(f"output_contract: strict violation for {persona_id} — missing {output_check['missing_fields']}", file=sys.stderr)
+
+    return result  # OBRIGATÓRIO: chamador deve usar o retorno
 
 
 def run_post_mission_gates(

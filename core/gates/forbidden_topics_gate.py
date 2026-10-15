@@ -27,6 +27,15 @@ def _normalize(text: str) -> str:
     return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
+SYSTEM_BASE_FORBIDDEN_TOPICS = [
+    "senhas de produção",
+    "chaves de api",
+    "credenciais de deploy",
+    "tokens de acesso",
+    "injection de prompt",
+]
+
+
 class ForbiddenTopicsGate(BaseGate):
     """Gate que verifica tópicos proibidos por persona.
 
@@ -37,13 +46,10 @@ class ForbiddenTopicsGate(BaseGate):
     name: str = "gate_6_forbidden_topics"
 
     def __init__(self, forbidden_topics: Optional[List[str]] = None):
-        self.forbidden_topics = forbidden_topics or []
-        # Pré-compila padrões normalizados para matching eficiente
-        self._patterns = [
-            _normalize(topic)
-            for topic in self.forbidden_topics
-            if topic.strip()
-        ]
+        base = list(SYSTEM_BASE_FORBIDDEN_TOPICS)
+        extra = forbidden_topics or []
+        self.forbidden_topics = list(set(base + extra))
+        self._patterns = [_normalize(t) for t in self.forbidden_topics if isinstance(t, str) and t.strip()]
 
     def evaluate(self, payload: Dict[str, Any]) -> GateResult:
         """Avalia se o input contém tópicos proibidos.
@@ -64,10 +70,11 @@ class ForbiddenTopicsGate(BaseGate):
                 details={"topics_checked": 0},
             )
 
-        # Permite sobrescrever tópicos via payload (para testes ou dinâmico)
-        topics_raw = payload.get("forbidden_topics", None)
-        if topics_raw is not None and isinstance(topics_raw, list):
-            patterns = [_normalize(t) for t in topics_raw if isinstance(t, str) and t.strip()]
+        # PD-OVR-005: payload adiciona, nunca substitui a base
+        supplemental = payload.get("forbidden_topics", None)
+        if supplemental and isinstance(supplemental, list):
+            extra_patterns = [_normalize(t) for t in supplemental if isinstance(t, str) and t.strip()]
+            patterns = list(set(self._patterns + extra_patterns))
         else:
             patterns = self._patterns
 
@@ -84,11 +91,11 @@ class ForbiddenTopicsGate(BaseGate):
         violations: List[str] = []
 
         for pattern in patterns:
-            if pattern in normalized_input:
+            if re.search(r'\b' + re.escape(pattern) + r'\b', normalized_input, re.UNICODE):
                 # Encontra o tópico original para o report
+                all_topics = self.forbidden_topics + (supplemental if supplemental else [])
                 original = next(
-                    (t for t in (topics_raw or self.forbidden_topics)
-                     if _normalize(t) == pattern),
+                    (t for t in all_topics if _normalize(t) == pattern),
                     pattern,
                 )
                 violations.append(original)

@@ -126,14 +126,16 @@ class TestPersonaContractIOContract(unittest.TestCase):
 class TestBuiltinIOContracts(unittest.TestCase):
     """Testa a presença e configuração correta de io_contract em todos os 5 BUILTIN_CONTRACTS."""
 
-    def test_all_five_builtin_contracts_have_io_contract(self):
-        """Todos os 5 contratos built-in devem conter io_contract no dicionário e validar."""
+    def test_all_seven_builtin_contracts_have_io_contract(self):
+        """Todos os 7 contratos built-in devem conter io_contract no dicionário e validar."""
         expected_personas = [
             "maia-orchestrator",
             "eva-supervisor",
             "persona-devops",
             "persona-finops",
             "cx-triage",
+            "persona-researcher",
+            "persona-writer",
         ]
         self.assertEqual(set(BUILTIN_CONTRACTS.keys()), set(expected_personas))
 

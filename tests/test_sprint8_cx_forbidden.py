@@ -54,11 +54,13 @@ class TestBuiltinContractsSprint8:
             "persona-devops",
             "persona-finops",
             "cx-triage",
+            "persona-researcher",
+            "persona-writer",
         }
         assert set(BUILTIN_CONTRACTS.keys()) == expected
 
-    def test_list_builtin_personas_includes_all_five(self):
-        """list_builtin_personas deve listar ordenadamente as 5 personas."""
+    def test_list_builtin_personas_includes_all_seven(self):
+        """list_builtin_personas deve listar ordenadamente as 7 personas."""
         personas = list_builtin_personas()
         assert personas == [
             "cx-triage",
@@ -66,6 +68,8 @@ class TestBuiltinContractsSprint8:
             "maia-orchestrator",
             "persona-devops",
             "persona-finops",
+            "persona-researcher",
+            "persona-writer",
         ]
 
     def test_all_builtin_contracts_validate_successfully(self):
@@ -237,12 +241,12 @@ class TestForbiddenTopicsPerPersona:
         )
         assert r1.allowed is True
 
-        # Tópico proibido na Maia passa na auditora
+        # Tópico proibido na Maia — agora é SYSTEM_BASE, bloqueia para todos (INV-N04)
         r2 = check_forbidden_topics(
             "Revisando logs com senhas de produção e dados financeiros de clientes",
             persona_id="eva-supervisor",
         )
-        assert r2.allowed is True
+        assert r2.allowed is False  # INV-N04: base topics always active
 
     def test_cross_persona_topic_isolation(self):
         """Tópico proibido em uma persona NÃO deve bloquear outra persona não configurada."""
@@ -250,9 +254,9 @@ class TestForbiddenTopicsPerPersona:
         text_devops_only = "Ajustar credenciais de deploy no cluster"
         text_finops_only = "Verificar dados técnicos de infraestrutura"
 
-        # No cx-triage: bloqueia estorno, mas não credenciais de deploy
+        # No cx-triage: bloqueia estorno, e credenciais de deploy (SYSTEM_BASE — INV-N04)
         assert check_forbidden_topics(text_cx_only, persona_id="cx-triage").allowed is False
-        assert check_forbidden_topics(text_devops_only, persona_id="cx-triage").allowed is True
+        assert check_forbidden_topics(text_devops_only, persona_id="cx-triage").allowed is False  # INV-N04
 
         # No DevOps: bloqueia dados pessoais, mas não estorno
         assert check_forbidden_topics(text_cx_only, persona_id="persona-devops").allowed is True
@@ -265,13 +269,14 @@ class TestForbiddenTopicsPerPersona:
         assert check_forbidden_topics(text_cx_only, persona_id="persona-finops").allowed is True
 
     def test_backward_compatibility_without_persona_id(self):
-        """Chamadas sem persona_id não acionam filtros específicos de persona."""
-        # Quando persona_id=None, não há tópicos específicos injetados no gate
+        """Chamadas sem persona_id: base topics still block (INV-N04/N05)."""
+        # Tópicos que NÃO são base → passam
         r1 = check_forbidden_topics("estorno acima de R$500")
         assert r1.allowed is True
 
+        # Tópicos que SÃO SYSTEM_BASE → bloqueiam mesmo sem persona_id
         r2 = check_forbidden_topics("senhas de produção")
-        assert r2.allowed is True
+        assert r2.allowed is False  # INV-N04/N05: base topics always active
 
         r3 = check_forbidden_topics("dados técnicos de infraestrutura")
         assert r3.allowed is True

@@ -41,7 +41,9 @@ AGENT_IDS = {
 AGENT_PERSONA_MAP = {
     "manager": "maia-orchestrator",
     "reviewer": "eva-supervisor",
-    # researcher, coder, writer: sem contrato builtin — pipeline não ativa
+    "researcher": "persona-researcher",   # GAP-10: novo builtin (task-14)
+    "coder": "persona-devops",            # reuse de persona existente
+    "writer": "persona-writer",           # GAP-10: novo builtin (task-14)
 }
 
 # Padrões de missão → steps (regras fixas, sem LLM)
@@ -258,6 +260,7 @@ class Orchestrator:
             if not await self._wait_approval():
                 yield self._event("manager", "message", message="Timeout de aprovação atingido.")
                 return
+            mission_start = time.time()  # PD-OVR-003: TTL reset após HITL
             self._approval_event.clear()
 
         # Sprint 8 (R6): MoE dynamic routing — enrich agent assignment
@@ -405,6 +408,7 @@ class Orchestrator:
             yield self._event("reviewer", "message",
                               message="Timeout de aprovação atingido.")
             return
+        mission_start = time.time()  # PD-OVR-003: TTL reset após HITL
 
         yield self._event("reviewer", "collaboration",
                           subtype="approval_granted",

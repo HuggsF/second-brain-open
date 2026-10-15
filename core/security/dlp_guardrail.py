@@ -10,6 +10,7 @@ Atua ANTES do LLM, interceptando o texto de entrada para:
 Não requer dependências externas — usa apenas regex da stdlib.
 """
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -81,6 +82,27 @@ _INJECTION_PATTERNS: List[Tuple[re.Pattern, float]] = [
     (re.compile(r"(?i)esquec[aê]\s+(tudo|todas?\s+as\s+regras)"), 0.90),
     (re.compile(r"(?i)(mostre|revele|imprima)\s+(o\s+)?(seu\s+)?(prompt\s+de\s+sistema|system\s+prompt)"), 0.85),
 ]
+
+_ZERO_WIDTH_RE = re.compile(r'[\u200b-\u200d\u200e\u200f\uFEFF\u00AD]')
+
+def _strip_zero_width(text: str) -> str:
+    """Remove zero-width characters que podem ser usados para evasão."""
+    return _ZERO_WIDTH_RE.sub('', text)
+
+# Common Cyrillic/Greek/etc confusable homoglyphs used in injection evasion
+_CONFUSABLES = str.maketrans({
+    '\u0430': 'a', '\u0435': 'e', '\u043e': 'o', '\u0440': 'p',  # Cyrillic
+    '\u0441': 'c', '\u0443': 'y', '\u0456': 'i', '\u0455': 's',
+    '\u04bb': 'h', '\u0501': 'd', '\u051b': 'q',
+    '\u0410': 'A', '\u0415': 'E', '\u041e': 'O', '\u0420': 'P',
+    '\u0421': 'C', '\u0423': 'Y', '\u0406': 'I', '\u0405': 'S',
+    '\u0397': 'H', '\u0392': 'B', '\u039a': 'K', '\u039c': 'M',  # Greek
+    '\u039d': 'N', '\u03a1': 'P', '\u03a4': 'T', '\u03a7': 'X',
+})
+
+def _deconfuse(text: str) -> str:
+    """Replace common confusable homoglyphs with their ASCII equivalents."""
+    return text.translate(_CONFUSABLES)
 
 
 @dataclass
@@ -176,12 +198,21 @@ class DLPGuardrailEngine:
         )
 
     def _detect_injection(self, text: str) -> Tuple[float, List[str]]:
-        """Calcula score de prompt injection (0.0–1.0) usando heurísticas regex."""
+        """Calcula score de prompt injection (0.0–1.0) usando heurísticas regex.
+
+        PD-OVR-002: Normaliza com NFKC e strip zero-width antes do scan.
+        PII scan roda no texto original (não normalizado).
+        """
+        # Normalizar para detecção de evasão
+        normalized = unicodedata.normalize("NFKC", text)
+        normalized = _strip_zero_width(normalized)
+        normalized = _deconfuse(normalized)
+
         max_score = 0.0
         matched = []
 
         for pattern, score in _INJECTION_PATTERNS:
-            if pattern.search(text):
+            if pattern.search(normalized):
                 matched.append(pattern.pattern[:60])
                 max_score = max(max_score, score)
 
