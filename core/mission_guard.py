@@ -1,4 +1,11 @@
-"""Portões no início da missão: monta o plano dos passos e decide proceed/approval/block."""
+"""Portões no início da missão: monta o plano dos passos e decide proceed/approval/block.
+
+Sprint 0 (ADR-022): Todos os 5 Quality Gates reconectados no pipeline pré-missão.
+Sprint 1 (Gap G1): DLP Gate adicionado como primeiro guardrail de entrada.
+
+Payloads opcionais permitem alimentar DLP, Grounding, Rule e Idempotency Gates
+em conjunto com o DAG Gate, que já era o único conectado anteriormente.
+"""
 from typing import Any, Dict, List, Optional
 
 from core import broker
@@ -24,12 +31,42 @@ def build_plan(steps: List[dict]) -> dict:
     return {"version": 1, "steps": plan_steps}
 
 
-def check_mission(steps: List[dict], mission_id: int,
-                  pipeline: Optional[CompoundGatePipeline] = None) -> Dict[str, Any]:
-    """Roda os portões sobre o plano. RED ou qualquer falha bloqueia; YELLOW pede aprovação."""
+def check_mission(
+    steps: List[dict],
+    mission_id: int,
+    pipeline: Optional[CompoundGatePipeline] = None,
+    *,
+    dlp_payload: Optional[Dict[str, Any]] = None,
+    grounding_payload: Optional[Dict[str, Any]] = None,
+    rule_payload: Optional[Dict[str, Any]] = None,
+    idempotency_payload: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Roda os portões sobre o plano. RED ou qualquer falha bloqueia; YELLOW pede aprovação.
+
+    Keyword-only opcionais (Sprint 0 + Sprint 1 — 5 Quality Gates):
+        dlp_payload        – dict com ``input_text`` para Gate 5 (DLP/Anti-Injection)
+        grounding_payload  – dict com ``citations`` e ``claims`` para Gate 1
+        rule_payload       – dict com ``action``, ``parameters``, ``rules_checked`` para Gate 3
+        idempotency_payload – dict com ``is_mutation``, ``idempotency_key``, etc. para Gate 4
+
+    Sem esses argumentos o comportamento é idêntico ao anterior (apenas DAG Gate executa).
+    """
     semaphore, gate_results = "RED", []
     try:
-        report = (pipeline or CompoundGatePipeline()).run_all({"plan": build_plan(steps)})
+        # Payload base: plano DAG (Gate 2)
+        payload: Dict[str, Any] = {"plan": build_plan(steps)}
+
+        # Mescla payloads opcionais dos demais gates
+        if dlp_payload:
+            payload.update(dlp_payload)
+        if grounding_payload:
+            payload.update(grounding_payload)
+        if rule_payload:
+            payload.update(rule_payload)
+        if idempotency_payload:
+            payload.update(idempotency_payload)
+
+        report = (pipeline or CompoundGatePipeline()).run_all(payload)
         semaphore = str(report["global_semaphore"])
         gate_results = list(report.get("gate_results", []))
     except Exception:
