@@ -1,8 +1,10 @@
 """Portões no início da missão: monta o plano dos passos e decide proceed/approval/block.
 
-Sprint 0 (ADR-022): Todos os 4 Quality Gates estão reconectados no pipeline pré-missão.
-Payloads opcionais permitem alimentar Grounding, Rule e Idempotency Gates em conjunto
-com o DAG Gate, que já era o único conectado anteriormente.
+Sprint 0 (ADR-022): Todos os 5 Quality Gates reconectados no pipeline pré-missão.
+Sprint 1 (Gap G1): DLP Gate adicionado como primeiro guardrail de entrada.
+
+Payloads opcionais permitem alimentar DLP, Grounding, Rule e Idempotency Gates
+em conjunto com o DAG Gate, que já era o único conectado anteriormente.
 """
 from typing import Any, Dict, List, Optional
 
@@ -34,13 +36,15 @@ def check_mission(
     mission_id: int,
     pipeline: Optional[CompoundGatePipeline] = None,
     *,
+    dlp_payload: Optional[Dict[str, Any]] = None,
     grounding_payload: Optional[Dict[str, Any]] = None,
     rule_payload: Optional[Dict[str, Any]] = None,
     idempotency_payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Roda os portões sobre o plano. RED ou qualquer falha bloqueia; YELLOW pede aprovação.
 
-    Keyword-only opcionais (Sprint 0 — reconexão dos 4 Quality Gates):
+    Keyword-only opcionais (Sprint 0 + Sprint 1 — 5 Quality Gates):
+        dlp_payload        – dict com ``input_text`` para Gate 5 (DLP/Anti-Injection)
         grounding_payload  – dict com ``citations`` e ``claims`` para Gate 1
         rule_payload       – dict com ``action``, ``parameters``, ``rules_checked`` para Gate 3
         idempotency_payload – dict com ``is_mutation``, ``idempotency_key``, etc. para Gate 4
@@ -53,6 +57,8 @@ def check_mission(
         payload: Dict[str, Any] = {"plan": build_plan(steps)}
 
         # Mescla payloads opcionais dos demais gates
+        if dlp_payload:
+            payload.update(dlp_payload)
         if grounding_payload:
             payload.update(grounding_payload)
         if rule_payload:

@@ -6,12 +6,14 @@ from core.gates.grounding_gate import GroundingGate
 from core.gates.dag_gate import DagGate
 from core.gates.rule_gate import RuleComplianceGate
 from core.gates.idempotency_gate import IdempotencyGate
+from core.gates.dlp_gate import DLPInputGate
 
 
 class CompoundGatePipeline:
     """Executa a bateria de gates em sequência ou sob demanda."""
 
     def __init__(self):
+        self.dlp = DLPInputGate()
         self.grounding = GroundingGate()
         self.dag = DagGate()
         self.rules = RuleComplianceGate()
@@ -20,6 +22,9 @@ class CompoundGatePipeline:
     def run_all(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         results: List[GateResult] = []
 
+        # Gate 5 (DLP): primeiro guardrail — roda se input_text presente
+        if "input_text" in payload:
+            results.append(self.dlp.evaluate(payload))
         if "citations" in payload:
             results.append(self.grounding.evaluate(payload))
         if "plan" in payload or "steps" in payload:
@@ -50,5 +55,6 @@ __all__ = [
     "DagGate",
     "RuleComplianceGate",
     "IdempotencyGate",
+    "DLPInputGate",
     "CompoundGatePipeline",
 ]
