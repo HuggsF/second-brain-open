@@ -1,0 +1,240 @@
+✔ el applies style through CSSOM so a strict CSP does not drop it (13.8724ms)
+✔ normalização remove acentos, preserva dados e normaliza espaços (0.85ms)
+✔ busca global inclui documentos sem entidade e respeita categoria/kind (7.7323ms)
+✔ ranking prioriza correspondência completa em vez de documento de um termo (19.6319ms)
+✔ citações reproduzem exatamente linhas1-based e hash da fonte (6.9726ms)
+✔ headers de código não criam seção; XSS permanece somente texto recuperado (4.933ms)
+✔ consulta desconhecida e consulta de stopwords não recuperam todas as fontes (1.2207ms)
+✔ busca e recuperação não mutam catálogo nem plano (2.2151ms)
+✔ vizinhança se limita a saltos existentes e limita expansão (4.8961ms)
+✔ caminhos respeitam direção, vista e desconexão (1.1939ms)
+✔ recuperação usa apenas relações do catálogo e sinaliza fonte sem entidade (1.8499ms)
+✔ DAG válido aceita ferramentas locais; ações externas são rejeitadas (0.3076ms)
+✔ validação rejeita ciclo, autorreferência, dependência desconhecida e IDs repetidos (0.1928ms)
+✔ validação rejeita schema, orçamento e formatos inválidos sem lançar exceção (0.197ms)
+✔ UMD funciona no browser sem rede/eval e strings não confiáveis permanecem dados (4.1771ms)
+✔ stripFrontmatter removes only a leading YAML block, so snippets start at the note body (0.7416ms)
+✔ projection adds visual core/categories and preserves each real entity ID (1.1903ms)
+✔ projection preserves cycles, parallel edge payloads and isolated nodes without mutation (1.3104ms)
+✔ projection and both layouts are deterministic under binary ID order and input permutations (1.6943ms)
+✔ empty projections and explicitly empty scenes stay finite (0.7436ms)
+✔ radial layout centers the core, places categories on one circle, and groups entity rings (1.1952ms)
+✔ radial rings expand for dense domains and prevent compact card overlaps (3.6631ms)
+✔ layered layout uses presentation depths despite knowledge cycles and keeps focused domain first (0.5457ms)
+✔ vertical orientation is the exact transpose of horizontal coordinates (0.2399ms)
+✔ layered dense domains pack rows and columns with room for compact cards (4.7636ms)
+✔ actual catalog and each existing view produce finite, separated layouts (12.0006ms)
+✔ UMD browser export exposes the same pure projection and layouts without CommonJS (6.1941ms)
+✔ scene keeps the same focused node while interpolating nodes and directed edges (10.2103ms)
+✔ rapid layout change starts from the visible frame and dispose cancels animation (5.8116ms)
+✔ reduced motion jumps to target; categories and semantic edges are keyboard selectable (6.8113ms)
+✔ filter updates remove old nodes and disconnected surfaces do not keep animating (4.247ms)
+✔ category click transitions the full graph to layers while keeping semantic edges separate (14.5741ms)
+✔ entity selection still opens the inspector and zero-result filters clear the scene (6.5141ms)
+✔ category focus frames its hierarchy and a full-frame control restores the surrounding graph (5.1784ms)
+✔ dense category focus keeps text legible while preserving offscreen context for pan and full frame (7.8938ms)
+✔ choosing an orbit view persists map preference after the equivalent list was active (5.3515ms)
+✔ path finding releases category camera focus so a cross-domain path can be framed (8.7916ms)
+✔ explicit full framing includes the whole graph on a narrow viewport (6.8208ms)
+✔ resize observer preserves readable category focus and ignores its initial delivery (7.1516ms)
+✔ map and equivalent list expose four aspects with text statuses (22.8605ms)
+✔ native keyboard selection reveals checks and directed dependencies (3.1187ms)
+✔ selection stays local to its environment and returns the selected aspect (6.0024ms)
+✔ server-like text and relationship sources stay inert (1.7578ms)
+✔ missing observations retain topology with unknown health and directed dependencies (1.9247ms)
+✔ production requires two normal samples and preserves metadata without mutating input (7.6849ms)
+✔ hml requires two normal samples and preserves metadata without mutating input (0.7081ms)
+✔ browser export runs the same projection without CommonJS (7.5091ms)
+✔ an explicit failed PM2 state in either sample affects only process (3.1024ms)
+✔ restart change is a process failure even when both states are online (1.8122ms)
+✔ missing PM2 information is unknown rather than an inferred outage (0.845ms)
+✔ HTTP error in the first endpoint sample is a direct failure on that endpoint (0.621ms)
+✔ HTTP unavailable in the first endpoint sample is a direct failure on that endpoint (0.4454ms)
+✔ incompatible HTTP response in the first endpoint sample is a direct failure on that endpoint (0.6091ms)
+✔ HTTP status failure in the first endpoint sample is a direct failure on that endpoint (0.6954ms)
+✔ wrong environment in the first endpoint sample is a direct failure on that endpoint (0.7519ms)
+✔ wrong revision in the first endpoint sample is a direct failure on that endpoint (1.255ms)
+✔ wrong worker policy in the first endpoint sample is a direct failure on that endpoint (0.5139ms)
+✔ wrong emission policy in the first endpoint sample is a direct failure on that endpoint (0.512ms)
+✔ both hml endpoints must prove worker and emission disabled (0.3989ms)
+✔ unknown endpoint fields never inherit report.ok as healthy (0.7378ms)
+✔ expected SHA remains the validated report expectation rather than the received revision (0.6517ms)
+✔ unreadable database is attributed to the database without poisoning unrelated aspects (0.5147ms)
+✔ terminal errors is attributed to the database without poisoning unrelated aspects (0.5089ms)
+✔ missing logistics objects is attributed to the database without poisoning unrelated aspects (0.8555ms)
+✔ multiple volume reviews is attributed to the database without poisoning unrelated aspects (0.4029ms)
+✔ growing failed queue is red while a stable failed queue is normal (0.3622ms)
+✔ legacy aggregate errors are used only when terminal classification is absent (0.3922ms)
+✔ rate limiting is yellow even when aggregate assessment is successful (2.1283ms)
+✔ hml processing and automatic shops are alerts rather than a false healthy policy (0.8436ms)
+✔ missing or invalid numeric database signals are insufficient evidence (1.6365ms)
+✔ aggregate failure without attributable signals makes summary yellow while aspects stay green (1.4514ms)
+✔ unattributed warning count prevents aggregate green without inventing failed aspects (1.6407ms)
+✔ cache ages at the strict 180 second boundary independently of BFF age hints (1.9046ms)
+✔ old source samples remain historical after a recent successful collection (0.5059ms)
+✔ optional absent sample timestamps use the valid collection timestamp (0.3562ms)
+✔ invalid or future times cannot prove healthy current observations (0.7982ms)
+✔ divergent envelope or report environment never leaks health into another environment (1.1729ms)
+✔ one or malformed source samples cannot satisfy the two sample contract (0.4698ms)
+✔ failed collection keeps a fresh direct failure only as yellow historical evidence (0.773ms)
+✔ expired direct failure is yellow rather than a current outage (2.4221ms)
+✔ failed collection without any observation stays unknown (0.5567ms)
+✔ raw payloads and arbitrary assessment text are excluded from node checks (1.4423ms)
+✔ invalid collection flags and attempt timestamps cannot certify a successful current collection (0.9445ms)
+✖ generated snapshot validates and environments have distinct sources (10.7969ms)
+✔ J&T acronym remains searchable without enabling empty/stopword matches (18.8586ms)
+✔ actual citations match original line ranges and byte hashes (790.4348ms)
+✔ malformed snapshots fail without throwing, including nullable/prototype references (80.0848ms)
+✔ runaway budgets, cycles and external tools cannot be exported as valid plans (0.8181ms)
+✔ bounded markdown exposes truncated code, rather than pretending to show complete source (2.59ms)
+✔ disconnected environments and unmatched query do not invent graph context (160.5539ms)
+✔ live state never treats missing, stale or failed collection as healthy (0.2455ms)
+✔ links admit only explicit http(s), without controls or credentials (0.3286ms)
+✔ injections remain text and do not produce script or image nodes (3.4244ms)
+✔ external links carry noreferrer and noopener, labels remain plain text (0.3356ms)
+✔ tables have headers, scoped cells, aligned columns and escaped pipes (0.4986ms)
+✔ wiki references preserve document and heading as inert callback values (0.2495ms)
+✔ headings get deterministic unique IDs, without executing content (0.4067ms)
+✔ ordered/unordered lists, fenced code, strong and inline code are semantic (0.3417ms)
+✔ citation callbacks are optional and document/code lengths are bounded (0.8698ms)
+✔ leading YAML frontmatter becomes a metadata block instead of a rule and loose text (0.4232ms)
+✔ an unterminated or non-leading --- block stays ordinary markdown (0.2164ms)
+✔ offline render keeps both environment maps visible without a prior collection (11.5176ms)
+✔ one unavailable environment leaves the other metrics and history visible (7.8141ms)
+✔ HTTP or session loss preserves last observed failure as yellow history (16.0283ms)
+✔ uncompleted poll still ages cached observations past 180 seconds (17.9267ms)
+✔ history failure cannot discard a new valid observation (12.4715ms)
+✔ dispose ignores pending responses and prevents restarting timers (9.7959ms)
+✔ rendering a second view cannot be overwritten by the first request (20.8168ms)
+✔ poll preserves keyboard focus and expanded lists for the selected aspect (22.405ms)
+✔ pending hml requests do not block new production observations (12.884ms)
+✔ pending history does not block later current observations (9.9509ms)
+✔ future sample timestamp cannot replace the last valid observation with unvalidated metrics (18.0519ms)
+✔ invalid sample timestamp cannot replace the last valid observation with unvalidated metrics (18.0039ms)
+✔ future collection timestamp cannot replace the last valid observation with unvalidated metrics (14.2412ms)
+✔ invalid collection timestamp cannot replace the last valid observation with unvalidated metrics (17.8448ms)
+✔ negative collection timestamp cannot replace the last valid observation with unvalidated metrics (20.7587ms)
+✔ incomplete snapshots cannot replace the last valid observation with unvalidated metrics (26.3514ms)
+✔ invalid snapshot cannot replace the last valid observation with unvalidated metrics (17.4601ms)
+✔ invalid aggregate assessment cannot replace the last valid observation with unvalidated metrics (31.5444ms)
+✔ divergent envelope environment cannot replace the last valid observation with unvalidated metrics (23.7284ms)
+✔ divergent report environment cannot replace the last valid observation with unvalidated metrics (27.2437ms)
+✔ legitimate insufficient indicators replace the cache with unknown evidence (20.2564ms)
+✔ historical warnings require attention even when aggregate report ok is true (14.8912ms)
+✔ history distinguishes normal collected evidence from insufficient reports without aging it today (9.4783ms)
+✔ missing observation with future attempt preserves validated history and checks (22.7706ms)
+✔ missing observation with invalid attempt timestamp preserves validated history and checks (15.146ms)
+✔ missing observation with negative attempt timestamp preserves validated history and checks (19.659ms)
+✔ missing observation with invalid attempt shape preserves validated history and checks (17.5848ms)
+✔ missing observation with invalid collection flag preserves validated history and checks (19.1025ms)
+✔ missing observation with invalid stale flag preserves validated history and checks (17.3684ms)
+✔ missing observation with valid attempt keeps valid previous evidence as history (15.1588ms)
+✔ missing observation with no attempt keeps valid previous evidence as history (14.9447ms)
+✔ syntax: every dashboard script compiles (a broken app.js blanks the whole page) (45.3316ms)
+✔ destructive_confirm: destructive buttons go through confirmAction (5.0559ms)
+✖ modal_semantics: overlays are <dialog> elements (focus trap, Esc, top layer) (4.6438ms)
+✔ hierarchy: one navigation entry per screen, the default page first (1.6523ms)
+✔ reduced_motion: the global reduced-motion rule also stops animations (0.7547ms)
+✔ contrast: text tokens reach 4.5:1 on every surface in both themes (1.6478ms)
+✔ non_text_contrast: field borders reach 3:1 against the field and its panel (0.5561ms)
+✖ font_min: no font-size below 11px in CSS or inline styles (6.7027ms)
+✔ doc_drift: every CSS custom property named in DESIGN.md exists in the stylesheets (0.8411ms)
+✖ hardcoded_values: inline styles and colours outside :root only go down (6.4177ms)
+ℹ tests 142
+ℹ suites 0
+ℹ pass 138
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2119.4368
+
+✖ failing tests:
+
+test at dashboard\tests\integration.test.cjs:6:1
+✖ generated snapshot validates and environments have distinct sources (10.7969ms)
+  AssertionError [ERR_ASSERTION]: Deployment source must substantiate the declared SHA
+      at TestContext.<anonymous> (C:\KIOSK\second-brain\dashboard\tests\integration.test.cjs:12:10)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at dashboard\tests\ux-gates.test.cjs:45:1
+✖ modal_semantics: overlays are <dialog> elements (focus trap, Esc, top layer) (4.6438ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   "jev-ui.js: el('div', { class: 'jev-modal-overlay'",
+  +   "jev-ui.js: el('div', { class: 'jev-modal'",
+  +   "jev-ui.js: el('div', { class: 'jev-modal-actions'"
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (C:\KIOSK\second-brain\dashboard\tests\ux-gates.test.cjs:50:12)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at dashboard\tests\ux-gates.test.cjs:86:1
+✖ font_min: no font-size below 11px in CSS or inline styles (6.7027ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'graph-ui.js: font-size:10px'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (C:\KIOSK\second-brain\dashboard\tests\ux-gates.test.cjs:90:12)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at dashboard\tests\ux-gates.test.cjs:99:1
+✖ hardcoded_values: inline styles and colours outside :root only go down (6.4177ms)
+  AssertionError [ERR_ASSERTION]: 265 inline styles (max 253)
+      at TestContext.<anonymous> (C:\KIOSK\second-brain\dashboard\tests\ux-gates.test.cjs:102:12)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

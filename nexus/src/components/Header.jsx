@@ -1,5 +1,5 @@
 import React from 'react';
-import { Network, Plus, Zap, EyeOff, Eye } from 'lucide-react';
+import { Network, Plus, Zap, EyeOff, Eye, Palette } from 'lucide-react';
 export default function Header({ workspace, reducedMotion, speed, actions }) {
  return (<header className="app-header">
         <a className="brand" href="#office" aria-label="Nexus — Escritório de agentes">
@@ -13,6 +13,15 @@ export default function Header({ workspace, reducedMotion, speed, actions }) {
             {reducedMotion ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
           <span id="motion-preference" className="sr-only">{reducedMotion ? 'Movimento reduzido ativo' : 'Animações ativas'}</span>
+          <button className="btn btn-icon theme-toggle" type="button"
+            onClick={() => {
+              const next = document.documentElement.dataset.theme === 'organic' ? '' : 'organic';
+              if (next) document.documentElement.dataset.theme = next;
+              else delete document.documentElement.dataset.theme;
+              try { localStorage.setItem('nexus-theme', next || 'cyberpunk'); } catch (_) {}
+            }}
+            aria-label="Alternar tema"
+            title="Alternar entre tema cyberpunk e orgânico"><Palette size={17} /></button>
           {workspace.connection?.mode === 'ws' ? (
             <span className={`simulation-badge ${workspace.connection?.status === 'connected' ? 'ws-badge' : 'ws-connecting'}`}
               title="Conectado ao WebSocket backend Python em ws://127.0.0.1:8848">
