@@ -17,9 +17,16 @@ def redact(env: Dict[str, Any]) -> Dict[str, Any]:
     """Return a copy of env without its payload; keeps only its size and safe fields."""
     out = {k: v for k, v in env.items() if k != "payload"}
     payload = env.get("payload")
-    out["payload_bytes"] = (
-        0 if payload is None else len(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
-    )
+    if isinstance(payload, dict) and "payload_bytes" in payload and isinstance(payload["payload_bytes"], int):
+        out["payload_bytes"] = payload["payload_bytes"]
+    else:
+        try:
+            out["payload_bytes"] = (
+                0 if payload is None else len(json.dumps(payload, ensure_ascii=False, default=str).encode("utf-8"))
+            )
+        except Exception:
+            out["payload_bytes"] = 0
+
     if isinstance(payload, dict):
         labels = payload.get("labels")
         if env.get("task") == "classify" and isinstance(labels, dict):
@@ -27,6 +34,12 @@ def redact(env: Dict[str, Any]) -> Dict[str, Any]:
             out["labels"] = {k: labels[k] for k in ("type", "team") if k in labels}
         if env.get("task") == "validate" and "valid" in payload:
             out["valid"] = payload["valid"]
+        # Tool call event safe fields extraction (MON-01)
+        event_type = str(env.get("type") or "")
+        if event_type.startswith("tool.") or env.get("channel") == "tool":
+            for safe_key in ("tool_name", "status", "duration_ms", "reason"):
+                if safe_key in payload and safe_key not in out:
+                    out[safe_key] = payload[safe_key]
     return out
 
 

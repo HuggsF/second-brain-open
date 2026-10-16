@@ -13,6 +13,9 @@ from unittest import mock
 from backend.server import handler_for
 from backend.store import Store
 from core import events
+import asyncio
+from core import broker
+from core.tools import IMPLEMENTATIONS
 
 
 def read_sse_message(res, max_lines=10):
@@ -225,6 +228,139 @@ class TestSSEEvents(unittest.TestCase):
             self.assertTrue(q.full())
             events.publish({"id": "overflow"})
             self.assertNotIn(q, events.SSE_SUBSCRIBERS)
+        finally:
+            events.unsubscribe(q)
+
+    def test_broker_tool_start_published_to_sse(self):
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
+        try:
+            conn.request('GET', '/v1/events', headers={'Cookie': f'brain_session={self.token}'})
+            res = conn.getresponse()
+            self.assertEqual(res.status, 200)
+
+            async def fake_adr(**kwargs):
+                return {"adr": "ADR-001 content"}
+
+            with mock.patch.dict(IMPLEMENTATIONS, {"get_adr": fake_adr}):
+                asyncio.run(broker.call("agent:researcher", "get_adr", {"identifier": "ADR-001"}))
+
+            evt = read_next_event(res)
+            self.assertIsNotNone(evt)
+            data = evt['data']
+            self.assertEqual(data.get('type'), 'tool.start')
+            self.assertEqual(data.get('channel'), 'tool')
+            self.assertEqual(data.get('tool_name'), 'get_adr')
+            self.assertEqual(data.get('status'), 'start')
+            self.assertIn('payload_bytes', data)
+            self.assertNotIn('payload', data)
+        finally:
+            conn.close()
+
+    def test_broker_tool_end_published_to_sse(self):
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
+        try:
+            conn.request('GET', '/v1/events', headers={'Cookie': f'brain_session={self.token}'})
+            res = conn.getresponse()
+            self.assertEqual(res.status, 200)
+
+            async def fake_adr(**kwargs):
+                return {"adr": "ADR-001 content"}
+
+            with mock.patch.dict(IMPLEMENTATIONS, {"get_adr": fake_adr}):
+                asyncio.run(broker.call("agent:researcher", "get_adr", {"identifier": "ADR-001"}))
+
+            # First event is start
+            start_evt = read_next_event(res)
+            self.assertEqual(start_evt['data'].get('type'), 'tool.start')
+
+            # Second event is end
+            end_evt = read_next_event(res)
+            self.assertIsNotNone(end_evt)
+            data = end_evt['data']
+            self.assertEqual(data.get('type'), 'tool.end')
+            self.assertEqual(data.get('channel'), 'tool')
+            self.assertEqual(data.get('tool_name'), 'get_adr')
+            self.assertEqual(data.get('status'), 'end')
+            self.assertIn('duration_ms', data)
+            self.assertIsInstance(data['duration_ms'], int)
+            self.assertIn('payload_bytes', data)
+            self.assertNotIn('payload', data)
+        finally:
+            conn.close()
+
+    def test_broker_tool_denied_published_to_sse(self):
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
+        try:
+            conn.request('GET', '/v1/events', headers={'Cookie': f'brain_session={self.token}'})
+            res = conn.getresponse()
+            self.assertEqual(res.status, 200)
+
+            asyncio.run(broker.call("agent:researcher", "read_vault_file", {}))
+
+            evt = read_next_event(res)
+            self.assertIsNotNone(evt)
+            data = evt['data']
+            self.assertEqual(data.get('type'), 'tool.denied')
+            self.assertEqual(data.get('channel'), 'tool')
+            self.assertEqual(data.get('tool_name'), 'read_vault_file')
+            self.assertEqual(data.get('status'), 'denied')
+            self.assertIn('reason', data)
+            self.assertNotIn('payload', data)
+        finally:
+            conn.close()
+
+    def test_broker_tool_timeout_published_to_sse(self):
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
+        try:
+            conn.request('GET', '/v1/events', headers={'Cookie': f'brain_session={self.token}'})
+            res = conn.getresponse()
+            self.assertEqual(res.status, 200)
+
+            def fake_wait_for(fut, timeout=None):
+                fut.close()
+                raise asyncio.TimeoutError()
+
+            with mock.patch("asyncio.wait_for", side_effect=fake_wait_for):
+                asyncio.run(broker.call("agent:researcher", "get_adr", {"identifier": "A"}))
+
+            # First event is start
+            start_evt = read_next_event(res)
+            self.assertEqual(start_evt['data'].get('type'), 'tool.start')
+
+            # Second event is timeout
+            timeout_evt = read_next_event(res)
+            self.assertIsNotNone(timeout_evt)
+            data = timeout_evt['data']
+            self.assertEqual(data.get('type'), 'tool.timeout')
+            self.assertEqual(data.get('channel'), 'tool')
+            self.assertEqual(data.get('tool_name'), 'get_adr')
+            self.assertEqual(data.get('status'), 'timeout')
+            self.assertIn('duration_ms', data)
+            self.assertNotIn('payload', data)
+        finally:
+            conn.close()
+
+    def test_tool_events_are_redacted(self):
+        q = events.subscribe()
+        try:
+            secret_token = "ghp_supersecret123456789012345"
+            async def fake_tool(**kwargs):
+                return {"result": "ok", "leaked": secret_token}
+
+            with mock.patch.dict(IMPLEMENTATIONS, {"get_adr": fake_tool}):
+                asyncio.run(broker.call("agent:researcher", "get_adr", {"secret": secret_token}))
+
+            evts = []
+            while not q.empty():
+                evts.append(q.get_nowait())
+
+            self.assertGreaterEqual(len(evts), 2)
+            for evt in evts:
+                self.assertNotIn('payload', evt)
+                self.assertIn('payload_bytes', evt)
+                self.assertIsInstance(evt['payload_bytes'], int)
+                serialized = json.dumps(evt)
+                self.assertNotIn(secret_token, serialized)
         finally:
             events.unsubscribe(q)
 
