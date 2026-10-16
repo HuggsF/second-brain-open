@@ -5,13 +5,13 @@ if(typeof window!=='undefined'&&!window.BrainBridge&&typeof document!=='undefine
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
-const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],nexus:['🏢','Nexus Office'],jev:['📊','JEV']};
+const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],'tool-calls':['🔧','Tool Calls'],nexus:['🏢','Nexus Office'],jev:['📊','JEV']};
 const NAV_GROUPS = [
   { icon: '◈', label: 'Visão Geral', page: 'overview' },
   { icon: '🧠', label: 'Conhecimento', children: ['knowledge','graph','queries'] },
   { icon: '📋', label: 'Operação', children: ['playbooks','workflows'] },
   { icon: '🏗️', label: 'Arquitetura', children: ['architecture','product','teams'] },
-  { icon: '📡', label: 'Observabilidade', page: 'observability' },
+  { icon: '📡', label: 'Observabilidade', children: ['observability','tool-calls'] },
   { icon: '🤖', label: 'Agentes', children: ['nexus','jev'] },
 ];
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
@@ -244,6 +244,7 @@ function render(){
  knowledgeProduct?.dispose();knowledgeProduct=null;
  window.BrainObservability?.dispose();
  window.BrainGraphUI?.dispose();
+ window.BrainToolVisualizer?.dispose?.();
  const main=$('main');main.replaceChildren();route=readRoute();$('page-name').textContent=pages[route.page][1];
  document.body.classList.toggle('knowledge-product-mode',route.page==='graph'&&route.experience==='product'&&!!window.BrainKnowledgeView);
  $('navigation').replaceChildren(...NAV_GROUPS.map(group=>{
@@ -259,6 +260,7 @@ function render(){
  if(route.page==='product'){if(window.BrainProductUI)window.BrainProductUI.render(main,api);else main.append(empty('Módulo de produto indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='architecture'){if(window.BrainArchitecture)window.BrainArchitecture.render(main,api);else main.append(empty('Módulo de arquitetura indisponível','Recarregue a página e verifique architecture-ui.js.',button('Tentar novamente',()=>location.reload())));}
  if(route.page==='observability')window.BrainObservability.render(main,api);
+ if(route.page==='tool-calls'){if(window.BrainToolVisualizer)window.BrainToolVisualizer.render(main,api);}
  if(route.page==='overview')overview(main);
  if(route.page==='knowledge')knowledge(main);
  if(route.page==='graph'){
