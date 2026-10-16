@@ -1,8 +1,10 @@
 """Redacted event log: one JSON line per envelope, never the payload."""
 
 import json
+import queue
+import threading
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 
 from config import settings
 from core import tracing
@@ -46,3 +48,40 @@ def record(env: Dict[str, Any], path: Optional[Path] = None) -> bool:
 
 def failures() -> int:
     return FAILURES
+
+
+# ── BUS-01: SSE Subscriber Management ──
+SSE_SUBSCRIBERS: Set[queue.Queue] = set()
+_sub_lock = threading.Lock()
+
+
+def subscribe() -> queue.Queue:
+    """Register a new SSE subscriber. Returns queue for consumption."""
+    q = queue.Queue(maxsize=256)
+    with _sub_lock:
+        SSE_SUBSCRIBERS.add(q)
+    return q
+
+
+def unsubscribe(q: queue.Queue) -> None:
+    """Remove an SSE subscriber."""
+    with _sub_lock:
+        SSE_SUBSCRIBERS.discard(q)
+
+
+def publish(event: dict) -> None:
+    """Fan-out: send redacted event to all SSE subscribers.
+    Silently discards if queue is full (slow subscriber)."""
+    safe = redact(event)
+    dead: list[queue.Queue] = []
+    with _sub_lock:
+        for q in SSE_SUBSCRIBERS:
+            try:
+                q.put_nowait(safe)
+            except queue.Full:
+                dead.append(q)
+    if dead:
+        with _sub_lock:
+            for q in dead:
+                SSE_SUBSCRIBERS.discard(q)
+
