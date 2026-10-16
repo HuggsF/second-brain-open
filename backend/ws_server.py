@@ -25,8 +25,25 @@ except ImportError:
     print("❌ websockets não instalado. Execute: pip install websockets", file=sys.stderr)
     sys.exit(1)
 
+from http.cookies import SimpleCookie
+
 from backend.orchestrator import Orchestrator
+from backend.store import Store
 from core.domain.workflow.entities import MAX_MISSION_ID, validate_mission_envelope
+
+_store = None
+
+
+def get_store():
+    global _store
+    if _store is None:
+        _store = Store(PROJECT_ROOT / ".runtime" / "brain.db")
+    return _store
+
+
+def set_store(store):
+    global _store
+    _store = store
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,9 +78,34 @@ async def handler(websocket):
     """Gerencia uma conexão WebSocket do Nexus frontend."""
     remote = websocket.remote_address
     log.info(f"🟢 Conexão aberta: {remote}")
+
+    # ── SEC-WS: Validar sessão no handshake (INV-N01, PD-OVR-004) ──
+    request = getattr(websocket, "request", None)
+    if request is not None:
+        cookie_header = request.headers.get("Cookie", "")
+        cookie = SimpleCookie()
+        try:
+            cookie.load(cookie_header)
+        except Exception:
+            cookie = SimpleCookie()
+        token = cookie.get("brain_session")
+        token_value = token.value if token else None
+
+        if not token_value and "?" in getattr(request, "path", ""):
+            from urllib.parse import parse_qs, urlsplit
+            qs = parse_qs(urlsplit(request.path).query)
+            token_value = (qs.get("brain_session") or qs.get("session") or [None])[0]
+
+        store = get_store()
+        if not token_value or not store.authorize(token_value, "session"):
+            await websocket.close(4001, "AUTH_REQUIRED")
+            return
+
     CONNECTIONS.add(websocket)
     orchestrator = Orchestrator()
     mission_task = None
+    revision = 0
+    prepared_task = None
 
     try:
         async for raw in websocket:
@@ -79,21 +121,30 @@ async def handler(websocket):
             log.info(f"📩 Comando: {action_type} (mission={message.get('missionId', '?')})")
 
             if action_type == "NEW_TASK":
-                mission_id = message.get("missionId", 1)
-                task_text = action.get("payload", "")
-                error = validate_mission_envelope(
-                    {"mission": {"id": mission_id, "task": task_text}}
-                )
+                if "mission" in message and isinstance(message["mission"], dict):
+                    envelope = message
+                    task_text = message["mission"].get("task", "")
+                    target_mission_id = message["mission"].get("id")
+                else:
+                    base_m_id = message.get("missionId", 0)
+                    target_mission_id = (base_m_id + 1) if (isinstance(base_m_id, int) and base_m_id >= 0) else 1
+                    task_text = action.get("payload", "")
+                    envelope = {"mission": {"id": target_mission_id, "task": task_text}}
+
+                error = validate_mission_envelope(envelope)
                 if error:
-                    echo_id = _echoable_mission_id(mission_id)
+                    echo_id = _echoable_mission_id(message.get("missionId"))
+                    revision += 1
                     await websocket.send(json.dumps({
                         "type": "REJECT",
                         "commandId": message.get("commandId", ""),
                         "missionId": echo_id,
-                        "revision": 1,
+                        "revision": revision,
                         "reason": error,
                     }))
                     continue
+
+                prepared_task = task_text
 
                 # Cancelar missão anterior se existir
                 if mission_task and not mission_task.done():
@@ -104,45 +155,99 @@ async def handler(websocket):
                         pass
 
                 # ACK do comando
+                revision += 1
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
-                    "missionId": mission_id,
-                    "revision": 1,
+                    "missionId": message.get("missionId", 0),
+                    "revision": revision,
                 }))
 
-                # Iniciar missão em background com missionId alinhado ao frontend
-                orchestrator = Orchestrator()
-                mission_task = asyncio.create_task(
-                    _run_mission(websocket, orchestrator, task_text, mission_id)
-                )
-
             elif action_type == "APPROVE":
+                if not orchestrator.awaiting_approval:
+                    echo_id = _echoable_mission_id(message.get("missionId"))
+                    revision += 1
+                    await websocket.send(json.dumps({
+                        "type": "REJECT",
+                        "commandId": message.get("commandId", ""),
+                        "missionId": echo_id,
+                        "revision": revision,
+                        "reason": "no_mission_waiting_for_approval",
+                    }))
+                    continue
+
                 mission_id = message.get("missionId", orchestrator.mission_id)
                 orchestrator.approve()
+                revision += 1
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
                     "missionId": mission_id,
-                    "revision": orchestrator.sequence + 1,
+                    "revision": revision,
                 }))
 
             elif action_type == "START":
-                mission_id = message.get("missionId", 1)
+                if "mission" in message:
+                    error = validate_mission_envelope(message)
+                    if error:
+                        echo_id = _echoable_mission_id(message.get("missionId"))
+                        revision += 1
+                        await websocket.send(json.dumps({
+                            "type": "REJECT",
+                            "commandId": message.get("commandId", ""),
+                            "missionId": echo_id,
+                            "revision": revision,
+                            "reason": error,
+                        }))
+                        continue
+                    mission_obj = message.get("mission", {})
+                    start_mission_id = mission_obj.get("id")
+                    start_task = mission_obj.get("task")
+                else:
+                    if not prepared_task:
+                        echo_id = _echoable_mission_id(message.get("missionId"))
+                        revision += 1
+                        await websocket.send(json.dumps({
+                            "type": "REJECT",
+                            "commandId": message.get("commandId", ""),
+                            "missionId": echo_id,
+                            "revision": revision,
+                            "reason": "envelope.mission must be an object",
+                        }))
+                        continue
+                    start_mission_id = message.get("missionId", 0) + 2
+                    start_task = prepared_task
+                    prepared_task = None
+
+                mission_id = message.get("missionId", 0)
+                if start_mission_id is not None:
+                    if mission_task and not mission_task.done():
+                        mission_task.cancel()
+                        try:
+                            await mission_task
+                        except asyncio.CancelledError:
+                            pass
+                    orchestrator = Orchestrator()
+                    mission_task = asyncio.create_task(
+                        _run_mission(websocket, orchestrator, start_task, start_mission_id)
+                    )
+
+                revision += 1
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
                     "missionId": mission_id,
-                    "revision": 1,
+                    "revision": revision,
                 }))
 
             elif action_type in ("PAUSE", "RESUME", "RESET"):
                 mission_id = message.get("missionId", 0)
+                revision += 1
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
                     "missionId": mission_id,
-                    "revision": 1,
+                    "revision": revision,
                 }))
 
             elif action_type == "HITL_DECISION":
@@ -244,8 +349,10 @@ async def _run_mission(websocket, orchestrator, task_text, mission_id=None):
             pass
 
 
-async def serve(port=None, origins=None):
+async def serve(port=None, origins=None, store=None):
     """Factory para criar servidor WS. Usada em testes com port=0 para port aleatório."""
+    if store is not None:
+        set_store(store)
     _port = port if port is not None else PORT
     _origins = origins if origins is not None else ALLOWED_ORIGINS
     server = await websockets.serve(handler, HOST, _port, origins=_origins)

@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import json
 import mimetypes
+import queue as _queue
 import re
 import sys
 import threading
@@ -17,10 +18,12 @@ from backend.assessment import build_assessment
 from backend.playbooks_api import PlaybooksApi
 from backend.store import Store
 from backend.workflow_api import MAX_BODY_BYTES, WorkflowApi
+from core.events import subscribe, unsubscribe
 from mcp_servers.hub_observability_mcp import mcp
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = ('production','hml')
+SSE_KEEPALIVE_SECONDS = 30
 PLAYBOOK_GETS = ('/api/playbooks','/api/playbooks/','/api/playbooks/executions','/api/rules')
 PLAYBOOK_ID_ROUTES = r'/api/playbooks/[A-Za-z0-9_.\-]+(/executions)?'
 PLAYBOOK_RENDER_ROUTE = r'/api/playbooks/[A-Za-z0-9_.\-]+/render'
@@ -141,6 +144,31 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
                         latest = {target:store.latest(target) for target in TARGETS}
                         return self.send(200,{**envelope,**build_assessment(env[0],latest,playbooks.rules,time.time())})
                     return self.send(200,{**envelope,**store.latest(env[0])})
+                # ── BUS-01: SSE Event Stream ──
+                if path == '/v1/events':
+                    self.close_connection = True
+                    sub = subscribe()
+                    try:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'text/event-stream')
+                        self.send_header('Cache-Control', 'no-cache')
+                        self.send_header('Connection', 'keep-alive')
+                        self.send_header('X-Accel-Buffering', 'no')
+                        self.end_headers()
+                        while True:
+                            try:
+                                event = sub.get(timeout=SSE_KEEPALIVE_SECONDS)
+                                line = json.dumps(event, ensure_ascii=False)
+                                self.wfile.write(f"id:{event.get('id','')}\ndata:{line}\n\n".encode())
+                                self.wfile.flush()
+                            except _queue.Empty:
+                                self.wfile.write(b": keepalive\n\n")
+                                self.wfile.flush()
+                    except (BrokenPipeError, ConnectionResetError, OSError):
+                        pass
+                    finally:
+                        unsubscribe(sub)
+                    return
                 return self.error(404,'NOT_FOUND')
             if not path.startswith('/dashboard/'):
                 return self.error(404,'NOT_FOUND')

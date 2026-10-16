@@ -11,6 +11,20 @@
   <link rel="stylesheet" href="live.css">
   <link rel="stylesheet" href="agent-arena.css">
   <link rel="stylesheet" href="knowledge.css">
+  <style>
+    .tool-viz-container{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;min-width:0}
+    .tool-viz-timeline{display:flex;flex-direction:column;gap:10px}
+    .tool-viz-empty{padding:32px 16px;text-align:center;color:var(--muted);font-size:14px}
+    .tool-viz-entry{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);font-size:13px}
+    .tool-viz-entry.tool-viz-denied{border-color:var(--danger)}
+    .tool-viz-entry.tool-viz-timeout{border-color:var(--warn)}
+    .tool-viz-badge{font-size:14px}
+    .tool-viz-tool{font-weight:600;color:var(--text);font-family:monospace}
+    .tool-viz-duration{color:var(--muted);font-size:12px}
+    .tool-viz-reason{color:var(--danger);font-size:12px;font-style:italic;margin-left:auto}
+    .tool-viz-time{color:var(--muted);font-size:11px;margin-left:auto}
+    .tool-viz-entry .tool-viz-reason+.tool-viz-time{margin-left:12px}
+  </style>
   <script src="graph-data.js" defer></script>
   <script src="schema.js" defer></script>
   <script src="core.js" defer></script>
@@ -35,6 +49,7 @@
   <script src="architecture-ui.js" defer></script>
 
   <script src="liquid-engine.js" defer></script>
+  <script src="tool-visualizer.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>

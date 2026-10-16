@@ -1,8 +1,10 @@
 """Redacted event log: one JSON line per envelope, never the payload."""
 
 import json
+import queue
+import threading
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 
 from config import settings
 from core import tracing
@@ -15,9 +17,16 @@ def redact(env: Dict[str, Any]) -> Dict[str, Any]:
     """Return a copy of env without its payload; keeps only its size and safe fields."""
     out = {k: v for k, v in env.items() if k != "payload"}
     payload = env.get("payload")
-    out["payload_bytes"] = (
-        0 if payload is None else len(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
-    )
+    if isinstance(payload, dict) and "payload_bytes" in payload and isinstance(payload["payload_bytes"], int):
+        out["payload_bytes"] = payload["payload_bytes"]
+    else:
+        try:
+            out["payload_bytes"] = (
+                0 if payload is None else len(json.dumps(payload, ensure_ascii=False, default=str).encode("utf-8"))
+            )
+        except Exception:
+            out["payload_bytes"] = 0
+
     if isinstance(payload, dict):
         labels = payload.get("labels")
         if env.get("task") == "classify" and isinstance(labels, dict):
@@ -25,6 +34,12 @@ def redact(env: Dict[str, Any]) -> Dict[str, Any]:
             out["labels"] = {k: labels[k] for k in ("type", "team") if k in labels}
         if env.get("task") == "validate" and "valid" in payload:
             out["valid"] = payload["valid"]
+        # Tool call event safe fields extraction (MON-01)
+        event_type = str(env.get("type") or "")
+        if event_type.startswith("tool.") or env.get("channel") == "tool":
+            for safe_key in ("tool_name", "status", "duration_ms", "reason"):
+                if safe_key in payload and safe_key not in out:
+                    out[safe_key] = payload[safe_key]
     return out
 
 
@@ -46,3 +61,40 @@ def record(env: Dict[str, Any], path: Optional[Path] = None) -> bool:
 
 def failures() -> int:
     return FAILURES
+
+
+# ── BUS-01: SSE Subscriber Management ──
+SSE_SUBSCRIBERS: Set[queue.Queue] = set()
+_sub_lock = threading.Lock()
+
+
+def subscribe() -> queue.Queue:
+    """Register a new SSE subscriber. Returns queue for consumption."""
+    q = queue.Queue(maxsize=256)
+    with _sub_lock:
+        SSE_SUBSCRIBERS.add(q)
+    return q
+
+
+def unsubscribe(q: queue.Queue) -> None:
+    """Remove an SSE subscriber."""
+    with _sub_lock:
+        SSE_SUBSCRIBERS.discard(q)
+
+
+def publish(event: dict) -> None:
+    """Fan-out: send redacted event to all SSE subscribers.
+    Silently discards if queue is full (slow subscriber)."""
+    safe = redact(event)
+    dead: list[queue.Queue] = []
+    with _sub_lock:
+        for q in SSE_SUBSCRIBERS:
+            try:
+                q.put_nowait(safe)
+            except queue.Full:
+                dead.append(q)
+    if dead:
+        with _sub_lock:
+            for q in dead:
+                SSE_SUBSCRIBERS.discard(q)
+

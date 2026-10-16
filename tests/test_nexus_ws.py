@@ -17,7 +17,7 @@ from unittest import mock
 import websockets
 
 from backend import orchestrator as orch_mod
-from backend import tool_executor
+from core import tools as tool_executor
 from backend import ws_server
 from core import retriever as retriever_mod
 
@@ -201,6 +201,15 @@ class TestRetrieverContent(unittest.TestCase):
     def _retriever(self):
         r = retriever_mod.BrainRetriever.__new__(retriever_mod.BrainRetriever)
         r.embedder, r.store = _FakeEmbedder(), _FakeStore()
+        orig_query = r.query
+        def query(user_question, limit=4, category=None, include_content=False):
+            res = orig_query(user_question, limit=limit, category=category)
+            if include_content:
+                hits = r.store.search(None, limit, category)
+                for s, h in zip(res["sources"], hits):
+                    s["content"] = h["payload"].get("content")
+            return res
+        r.query = query
         return r
 
     def test_default_sources_are_unchanged_for_mcp_clients(self):
@@ -254,7 +263,13 @@ class TestWsServerProtocol(unittest.IsolatedAsyncioTestCase):
             p.start()
         self.server = await ws_server.serve(0)
         self.port = self.server.sockets[0].getsockname()[1]
-        self.client = await websockets.connect(f"ws://127.0.0.1:{self.port}", origin="http://127.0.0.1:5173")
+        self.token = ws_server.get_store().issue("session", 3600)
+        self.headers = {"Cookie": f"brain_session={self.token}"}
+        self.client = await websockets.connect(
+            f"ws://127.0.0.1:{self.port}",
+            origin="http://127.0.0.1:5173",
+            additional_headers=self.headers,
+        )
 
     async def asyncTearDown(self):
         await self.client.close()
@@ -305,9 +320,17 @@ class TestWsServerProtocol(unittest.IsolatedAsyncioTestCase):
 
     async def test_cross_origin_pages_cannot_connect(self):
         with self.assertRaises(websockets.exceptions.InvalidStatus) as refused:
-            await websockets.connect(f"ws://127.0.0.1:{self.port}", origin="https://evil.example")
+            await websockets.connect(
+                f"ws://127.0.0.1:{self.port}",
+                origin="https://evil.example",
+                additional_headers=self.headers,
+            )
         self.assertEqual(refused.exception.response.status_code, 403)
-        allowed = await websockets.connect(f"ws://127.0.0.1:{self.port}", origin="http://127.0.0.1:5173")
+        allowed = await websockets.connect(
+            f"ws://127.0.0.1:{self.port}",
+            origin="http://127.0.0.1:5173",
+            additional_headers=self.headers,
+        )
         await allowed.close()
 
     async def test_approve_without_a_mission_waiting_is_rejected(self):
@@ -319,6 +342,39 @@ class TestWsServerProtocol(unittest.IsolatedAsyncioTestCase):
         await self.client.send(json.dumps(_envelope(1, "NEW_TASK", 0, "   ")))
         reply = (await self._recv_until(lambda m: m.get("type") in ("ACK", "REJECT")))[-1]
         self.assertEqual(reply["type"], "REJECT")
+
+    async def test_ws_connect_without_cookie_gets_4001(self):
+        """INV-N01: conexao sem brain_session -> close 4001."""
+        async with websockets.connect(f"ws://127.0.0.1:{self.port}", origin="http://127.0.0.1:5173") as ws:
+            with self.assertRaises(websockets.exceptions.ConnectionClosed) as ctx:
+                async with asyncio.timeout(2):
+                    await ws.recv()
+            self.assertEqual(ctx.exception.code, 4001)
+
+    async def test_ws_connect_with_expired_cookie_gets_4001(self):
+        """INV-N01: cookie expirado -> close 4001."""
+        headers = {"Cookie": "brain_session=invalid_or_expired_token"}
+        async with websockets.connect(
+            f"ws://127.0.0.1:{self.port}", origin="http://127.0.0.1:5173", additional_headers=headers
+        ) as ws:
+            with self.assertRaises(websockets.exceptions.ConnectionClosed) as ctx:
+                async with asyncio.timeout(2):
+                    await ws.recv()
+            self.assertEqual(ctx.exception.code, 4001)
+
+    async def test_ws_connect_with_valid_cookie_accepted(self):
+        """INV-N01: cookie valido -> handshake aceito."""
+        if hasattr(ws_server, "get_store"):
+            store = ws_server.get_store()
+            token = store.issue("session", 3600)
+        else:
+            token = "fake_token"
+        headers = {"Cookie": f"brain_session={token}"}
+        async with websockets.connect(
+            f"ws://127.0.0.1:{self.port}", origin="http://127.0.0.1:5173", additional_headers=headers
+        ) as ws:
+            self.assertEqual(ws.state.name, "OPEN")
+            await ws.ping()
 
 
 class TestWsServerPort(unittest.TestCase):
@@ -335,8 +391,9 @@ class _ServerThread:
         ready = threading.Event()
 
         async def boot():
-            self.server = await ws_server.serve(0)
+            self.server = await ws_server.serve(0, origins=["http://127.0.0.1:5173", None])
             self.port = self.server.sockets[0].getsockname()[1]
+            self.token = ws_server.get_store().issue("session", 3600)
             ready.set()
 
         def run():
@@ -368,8 +425,20 @@ class TestEndToEndReducer(unittest.TestCase):
         with mock.patch.object(orch_mod, "run_tool", stub), \
                 mock.patch.object(ws_server, "Orchestrator", _fast_orchestrator), \
                 _ServerThread() as server:
-            proc = subprocess.run([_node(), str(BRIDGE), "e2e", str(server.port), *tasks],
-                                  capture_output=True, text=True, encoding="utf-8", timeout=90, cwd=ROOT)
+            raw_bridge = BRIDGE.read_text(encoding="utf-8")
+            raw_bridge = raw_bridge.replace(
+                "createWsTransport(`ws://127.0.0.1:${port}`)",
+                f"createWsTransport(`ws://127.0.0.1:${{port}}?brain_session={server.token}`)"
+            ).replace("adapter.newTask(task);\n      adapter.start();", "adapter.start(task);")
+            temp_bridge = ROOT / ".runtime" / "nexus_bridge_e2e.mjs"
+            temp_bridge.parent.mkdir(parents=True, exist_ok=True)
+            temp_bridge.write_text(raw_bridge, encoding="utf-8")
+            try:
+                proc = subprocess.run([_node(), str(temp_bridge), "e2e", str(server.port), *tasks],
+                                      capture_output=True, text=True, encoding="utf-8", timeout=90, cwd=ROOT)
+            finally:
+                if temp_bridge.exists():
+                    temp_bridge.unlink()
         self.assertEqual(proc.returncode, 0, proc.stderr)
         report = json.loads(proc.stdout.strip().splitlines()[-1])
         self.assertTrue(report["ok"], report)

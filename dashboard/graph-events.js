@@ -7,7 +7,7 @@
 const MAX_EVENTS = 200;
 const PULSE_DURATION_MS = 2400;
 const RECONNECT_DELAY_MS = 5000;
-const SSE_ENDPOINT = '/v1/graph-events';
+const SSE_ENDPOINT = '/v1/events';
 const WS_ENDPOINT = 'ws://127.0.0.1:8848';
 
 const eventLog = [];
@@ -78,6 +78,8 @@ function connectSSE() {
     source.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
+        // BUS-01-FE: filter graph channel only from unified event bus
+        if (data.channel && data.channel !== 'graph') return;
         emit(normalizeEvent(data));
       } catch (_) { /* bad JSON */ }
     };
@@ -241,6 +243,7 @@ root.BrainGraphEvents = Object.freeze({
   subscribe, getLog, getPulses, isConnected, getMode,
   connect, disconnect, injectEvent,
   agentColor, agentEmoji,
+  SSE_ENDPOINT, WS_ENDPOINT,
 });
 
 })(typeof window !== 'undefined' ? window : globalThis);

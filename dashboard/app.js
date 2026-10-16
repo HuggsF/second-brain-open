@@ -1,16 +1,17 @@
 /* Offline UI adapter. Source documents are data, never instructions or executable HTML. */
 (function () {
 'use strict';
+if(typeof window!=='undefined'&&!window.BrainBridge&&typeof document!=='undefined'&&document.head&&document.createElement){const s=document.createElement('script');s.src='post-message-bridge.js';s.defer=true;document.head.appendChild(s);}
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
-const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],nexus:['🏢','Nexus Office'],jev:['📊','JEV']};
+const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],'tool-calls':['🔧','Tool Calls'],nexus:['🏢','Nexus Office'],jev:['📊','JEV']};
 const NAV_GROUPS = [
   { icon: '◈', label: 'Visão Geral', page: 'overview' },
   { icon: '🧠', label: 'Conhecimento', children: ['knowledge','graph','queries'] },
   { icon: '📋', label: 'Operação', children: ['playbooks','workflows'] },
   { icon: '🏗️', label: 'Arquitetura', children: ['architecture','product','teams'] },
-  { icon: '📡', label: 'Observabilidade', page: 'observability' },
+  { icon: '📡', label: 'Observabilidade', children: ['observability','tool-calls'] },
   { icon: '🤖', label: 'Agentes', children: ['nexus','jev'] },
 ];
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
@@ -243,6 +244,7 @@ function render(){
  knowledgeProduct?.dispose();knowledgeProduct=null;
  window.BrainObservability?.dispose();
  window.BrainGraphUI?.dispose();
+ window.BrainToolVisualizer?.dispose?.();
  const main=$('main');main.replaceChildren();route=readRoute();$('page-name').textContent=pages[route.page][1];
  document.body.classList.toggle('knowledge-product-mode',route.page==='graph'&&route.experience==='product'&&!!window.BrainKnowledgeView);
  $('navigation').replaceChildren(...NAV_GROUPS.map(group=>{
@@ -258,6 +260,7 @@ function render(){
  if(route.page==='product'){if(window.BrainProductUI)window.BrainProductUI.render(main,api);else main.append(empty('Módulo de produto indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='architecture'){if(window.BrainArchitecture)window.BrainArchitecture.render(main,api);else main.append(empty('Módulo de arquitetura indisponível','Recarregue a página e verifique architecture-ui.js.',button('Tentar novamente',()=>location.reload())));}
  if(route.page==='observability')window.BrainObservability.render(main,api);
+ if(route.page==='tool-calls'){if(window.BrainToolVisualizer)window.BrainToolVisualizer.render(main,api);}
  if(route.page==='overview')overview(main);
  if(route.page==='knowledge')knowledge(main);
  if(route.page==='graph'){
@@ -273,7 +276,7 @@ function render(){
     ]));
     const frame=el('iframe',{src:'jev/index.html#tab=playbooks',title:'JEV — Playbooks',class:'jev-frame'});
     const unavailable=()=>frame.replaceWith(empty('JEV indisponível','O módulo de playbooks foi consolidado no JEV. Inicie o BFF ou rode npm run build em jev-app.',button('Tentar novamente',()=>render())));
-    frame.addEventListener('load',()=>{try{const doc=frame.contentDocument;if(!doc||!doc.getElementById('root')||doc.querySelector('meta[name=application-name]')?.content!=='jev-app')unavailable();}catch(_){unavailable();}});
+    frame.addEventListener('load',()=>{if(window.BrainBridge)window.BrainBridge.registerIframe('jev-playbooks',frame);try{const doc=frame.contentDocument;if(!doc||!doc.getElementById('root')||doc.querySelector('meta[name=application-name]')?.content!=='jev-app')unavailable();}catch(_){unavailable();}});
     frame.onerror=unavailable;
     main.append(frame);
   }
@@ -284,6 +287,7 @@ function render(){
       button('Abrir em nova aba ↗',()=>window.open('http://127.0.0.1:5173','_blank'),'subtle')
     ]));
     const frame=el('iframe',{src:'http://127.0.0.1:5173',style:'width:100%;height:calc(100vh - 180px);border:none;border-radius:8px;background:#0a0a0a;'});
+    frame.addEventListener('load',()=>{if(window.BrainBridge)window.BrainBridge.registerIframe('nexus',frame);});
     frame.onerror=()=>{frame.replaceWith(empty('Nexus não está rodando','Inicie o servidor: .venv\\Scripts\\python.exe -m backend.ws_server e cd nexus && npm run dev',button('Tentar novamente',()=>render())));};
     main.append(frame);
   }
@@ -294,6 +298,7 @@ function render(){
     const frame=el('iframe',{src:'jev/index.html',title:'JEV',class:'jev-frame'});
     const unavailable=()=>frame.replaceWith(empty('JEV indisponível','Inicie o BFF com um link de sessão (python -m backend.server --issue-link) ou rode npm run build em jev-app.',button('Tentar novamente',()=>render())));
     frame.addEventListener('load',()=>{
+      if(window.BrainBridge)window.BrainBridge.registerIframe('jev',frame);
       // Same-origin: a 401/404 body from the BFF loads fine in the frame, so inspect what actually loaded.
       try{
         const doc=frame.contentDocument;
@@ -316,7 +321,17 @@ $('search-close').addEventListener('click',()=>$('search-dialog').close());
 $('global-query').addEventListener('input',globalSearch);
 $('help-open').addEventListener('click',()=>$('help-dialog').showModal());
 $('help-close').addEventListener('click',()=>$('help-dialog').close());
-$('theme').addEventListener('click',()=>{saved.theme=saved.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=saved.theme;persist();$('theme').setAttribute('aria-label',saved.theme==='dark'?'Ativar tema claro':'Ativar tema escuro');});
+$('theme').addEventListener('click',()=>{
+  saved.theme=saved.theme==='dark'?'light':'dark';
+  document.documentElement.dataset.theme=saved.theme;
+  persist();
+  $('theme').setAttribute('aria-label',saved.theme==='dark'?'Ativar tema claro':'Ativar tema escuro');
+  if(window.BrainBridge){
+    window.BrainBridge.send('nexus','THEME_SYNC',{theme:saved.theme});
+    window.BrainBridge.send('jev','THEME_SYNC',{theme:saved.theme});
+    window.BrainBridge.send('jev-playbooks','THEME_SYNC',{theme:saved.theme});
+  }
+});
 document.addEventListener('keydown',e=>{if(knowledgeProduct)return;if(e.key==='Escape'){const open=document.querySelector('dialog[open]');if(open){e.preventDefault();open.close();}}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(!$('search-dialog').open)$('search-dialog').showModal();globalSearch();$('global-query').focus();}});
 render();
 })();
