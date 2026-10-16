@@ -32,8 +32,33 @@
   color-scheme: dark;
 }
 
+/* Tema organico / escuro explicito */
+:root[data-theme="dark"],
+:root[data-theme="organic"] {
+  color-scheme: dark;
+  --color-bg: #101513;
+  --color-rail: #111813;
+  --color-panel: #18201b;
+  --color-panel2: #1d2720;
+  --color-border: #334038;
+  --color-field-border: #65736a;
+  --color-text: #edf3ed;
+  --color-muted: #aab9ae;
+  --color-accent: #b8f37b;
+  --color-accent-ink: #1d3019;
+  --color-good: #9bdeb3;
+  --color-warn: #f4c583;
+  --color-blue: #9bc8fa;
+  --color-violet: #cbb3ef;
+  --color-danger: #ffb3ac;
+  --color-light-green: #9bdeb3;
+  --color-light-yellow: #f4c583;
+  --color-light-red: #ffb3ac;
+  --color-light-grey: #aab9ae;
+}
+
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
+  :root:not([data-theme="dark"]):not([data-theme="organic"]) {
     color-scheme: light;
     --color-bg: #f5f7f3;
     --color-rail: #eef2e9;
@@ -57,7 +82,8 @@
   }
 }
 
-:root[data-theme="light"] {
+:root[data-theme="light"],
+:root[data-theme="organic-light"] {
   color-scheme: light;
   --color-bg: #f5f7f3;
   --color-rail: #eef2e9;
@@ -104,3 +130,175 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DT-F1: Tema Organico Mobile Breakpoint (<= 650px)
+   Alinhado com DESIGN.md section 8 (<= 650px: compacto, mobile-first)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 650px) {
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Header compacto em telas estreitas */
+  header > div {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 8px;
+  }
+
+  header h1 {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
+  /* Segmented control do EnvToggle acessivel para toque em mobile */
+  fieldset label span {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font-size: 13px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Botao Atualizar */
+  header button {
+    min-height: 38px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  /* Espacamento do container principal em mobile */
+  main {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 12px;
+    padding-bottom: 24px;
+    gap: 12px;
+  }
+
+  /* Tablist com rolagem horizontal suave */
+  [role="tablist"] {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  [role="tablist"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  [role="tab"] {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 13px;
+    min-height: 40px;
+    white-space: nowrap;
+  }
+
+  /* Tabelas responsivas com rolagem por toque */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 6px 8px;
+  }
+
+  thead th {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+
+  /* Filtros de PlaybooksView em grid mobile */
+  [role="group"][aria-label="Filtros"] {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  [role="group"][aria-label="Filtros"] > label {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 110px;
+    font-size: 11px;
+  }
+
+  [role="group"][aria-label="Filtros"] select {
+    width: 100%;
+    min-height: 38px;
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  /* Previa do playbook */
+  pre {
+    max-height: 240px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  /* Dialog de registro em viewport mobile */
+  dialog {
+    width: calc(100vw - 16px) !important;
+    max-width: 100vw !important;
+    max-height: calc(100dvh - 16px) !important;
+    margin: auto !important;
+    border-radius: 12px !important;
+  }
+
+  dialog form {
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+
+  dialog form input,
+  dialog form select,
+  dialog form textarea {
+    min-height: 42px;
+    font-size: 14px;
+  }
+
+  dialog form button {
+    min-height: 42px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  /* Painel de saude do ambiente */
+  section[aria-labelledby="health-panel-title"] {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  section[aria-labelledby="health-panel-title"] li {
+    grid-template-columns: 5.5rem 1fr;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  /* Linha do tempo */
+  figure {
+    padding: 8px;
+  }
+
+  /* Touch action para elementos interativos */
+  button {
+    touch-action: manipulation;
+  }
+}
+
