@@ -1250,6 +1250,25 @@
       "valid_at": "2026-10-15"
     },
     {
+      "id": "agent_implementer_high",
+      "label": "Implementer-High (Multi-m\u00f3dulo)",
+      "type": "Agente Workflow",
+      "domain": "platform",
+      "evidence": "implementado",
+      "document": "systems/kiosk-agentes-ia-multiagente.md",
+      "views": {
+        "ontology": [
+          130,
+          150
+        ],
+        "agents": [
+          130,
+          170
+        ]
+      },
+      "valid_at": "2026-10-15"
+    },
+    {
       "id": "agent_reviewer",
       "label": "Reviewer (Adversarial)",
       "type": "Agente Workflow",
