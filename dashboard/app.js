@@ -1,6 +1,7 @@
 /* Offline UI adapter. Source documents are data, never instructions or executable HTML. */
 (function () {
 'use strict';
+if(typeof window!=='undefined'&&!window.BrainBridge&&typeof document!=='undefined'&&document.head&&document.createElement){const s=document.createElement('script');s.src='post-message-bridge.js';s.defer=true;document.head.appendChild(s);}
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
@@ -273,7 +274,7 @@ function render(){
     ]));
     const frame=el('iframe',{src:'jev/index.html#tab=playbooks',title:'JEV — Playbooks',class:'jev-frame'});
     const unavailable=()=>frame.replaceWith(empty('JEV indisponível','O módulo de playbooks foi consolidado no JEV. Inicie o BFF ou rode npm run build em jev-app.',button('Tentar novamente',()=>render())));
-    frame.addEventListener('load',()=>{try{const doc=frame.contentDocument;if(!doc||!doc.getElementById('root')||doc.querySelector('meta[name=application-name]')?.content!=='jev-app')unavailable();}catch(_){unavailable();}});
+    frame.addEventListener('load',()=>{if(window.BrainBridge)window.BrainBridge.registerIframe('jev-playbooks',frame);try{const doc=frame.contentDocument;if(!doc||!doc.getElementById('root')||doc.querySelector('meta[name=application-name]')?.content!=='jev-app')unavailable();}catch(_){unavailable();}});
     frame.onerror=unavailable;
     main.append(frame);
   }
@@ -284,6 +285,7 @@ function render(){
       button('Abrir em nova aba ↗',()=>window.open('http://127.0.0.1:5173','_blank'),'subtle')
     ]));
     const frame=el('iframe',{src:'http://127.0.0.1:5173',style:'width:100%;height:calc(100vh - 180px);border:none;border-radius:8px;background:#0a0a0a;'});
+    frame.addEventListener('load',()=>{if(window.BrainBridge)window.BrainBridge.registerIframe('nexus',frame);});
     frame.onerror=()=>{frame.replaceWith(empty('Nexus não está rodando','Inicie o servidor: .venv\\Scripts\\python.exe -m backend.ws_server e cd nexus && npm run dev',button('Tentar novamente',()=>render())));};
     main.append(frame);
   }
@@ -294,6 +296,7 @@ function render(){
     const frame=el('iframe',{src:'jev/index.html',title:'JEV',class:'jev-frame'});
     const unavailable=()=>frame.replaceWith(empty('JEV indisponível','Inicie o BFF com um link de sessão (python -m backend.server --issue-link) ou rode npm run build em jev-app.',button('Tentar novamente',()=>render())));
     frame.addEventListener('load',()=>{
+      if(window.BrainBridge)window.BrainBridge.registerIframe('jev',frame);
       // Same-origin: a 401/404 body from the BFF loads fine in the frame, so inspect what actually loaded.
       try{
         const doc=frame.contentDocument;
@@ -316,7 +319,17 @@ $('search-close').addEventListener('click',()=>$('search-dialog').close());
 $('global-query').addEventListener('input',globalSearch);
 $('help-open').addEventListener('click',()=>$('help-dialog').showModal());
 $('help-close').addEventListener('click',()=>$('help-dialog').close());
-$('theme').addEventListener('click',()=>{saved.theme=saved.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=saved.theme;persist();$('theme').setAttribute('aria-label',saved.theme==='dark'?'Ativar tema claro':'Ativar tema escuro');});
+$('theme').addEventListener('click',()=>{
+  saved.theme=saved.theme==='dark'?'light':'dark';
+  document.documentElement.dataset.theme=saved.theme;
+  persist();
+  $('theme').setAttribute('aria-label',saved.theme==='dark'?'Ativar tema claro':'Ativar tema escuro');
+  if(window.BrainBridge){
+    window.BrainBridge.send('nexus','THEME_SYNC',{theme:saved.theme});
+    window.BrainBridge.send('jev','THEME_SYNC',{theme:saved.theme});
+    window.BrainBridge.send('jev-playbooks','THEME_SYNC',{theme:saved.theme});
+  }
+});
 document.addEventListener('keydown',e=>{if(knowledgeProduct)return;if(e.key==='Escape'){const open=document.querySelector('dialog[open]');if(open){e.preventDefault();open.close();}}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(!$('search-dialog').open)$('search-dialog').showModal();globalSearch();$('global-query').focus();}});
 render();
 })();
