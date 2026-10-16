@@ -245,7 +245,7 @@ graph TD
 
 - [[radar-demandas]] · Status operacional de todas as frentes da KIOSK Brands.
 - [[compound_ai_architecture_plan]] · Especificação técnica dos 4 Quality Gates e Golden Evals.
-- [[teams/teams.yaml]] · Mapeamento dos 9 squads autônomos e seus protocolos.
+- [[kiosk-agentes-ia-multiagente]] · Sistema multi-agente organizado por fases de workflow (capabilities/ e domains/).
 - [[prd-second-brain-platform-v2]] · PRD com requisitos funcionais e critérios de aceitação.
 
 ### ADRs (Architecture Decision Records)
