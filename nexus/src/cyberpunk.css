@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    NEXUS — CYBERPUNK THEME  v2.0
    Carregado APÓS office.css — sobrescreve via cascata.
-   Fontes: Orbitron (display) · Share Tech Mono (terminal) · Rajdhani (UI labels)
+   Fontes: Rajdhani (display) · Share Tech Mono (terminal) · Rajdhani (UI labels)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── @property: border animado GPU-accelerated ──────────────────────────── */
@@ -52,7 +52,7 @@
   --ghost:      #8c92a4;
 
   /* Fontes */
-  --font-display: 'Orbitron', sans-serif;
+  --font-display: 'Rajdhani', sans-serif;
   --font-mono:    'Share Tech Mono', 'JetBrains Mono', monospace;
   --font-ui:      'Rajdhani', 'Inter', sans-serif;
 
@@ -222,7 +222,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
   font-family: var(--font-mono) !important;
   letter-spacing: 3px !important;
   color: var(--cyan-dim) !important;
-  font-size: 9px !important;
+  font-size: 11px !important;
 }
 
 .brand-mark {
@@ -445,7 +445,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
   color: var(--surface2);
   font-family: var(--font-mono);
   letter-spacing: 3px;
-  font-size: 9px;
+  font-size: 11px;
 }
 .floor-walkway::before, .floor-walkway::after { background: rgba(0,240,255,0.1); }
 .floor-entry { border-color: rgba(0,240,255,0.12); background: var(--panel); color: var(--ghost); }
@@ -495,7 +495,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
   font-family: var(--font-mono);
   color: var(--ghost);
   letter-spacing: 0.5px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /* ── Status badges — neon ───────────────────────────────────────────────── */
@@ -528,7 +528,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 }
 
 /* ── Status legend ──────────────────────────────────────────────────────── */
-.status-legend { font-family: var(--font-mono); color: var(--ghost); font-size: 10px; }
+.status-legend { font-family: var(--font-mono); color: var(--ghost); font-size: 11px; }
 .status-legend .status-working      { color: var(--green); }
 .status-legend .status-thinking     { color: var(--violet); }
 .status-legend .status-waitingApproval { color: var(--amber); }
@@ -604,7 +604,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
   font-family: var(--font-mono);
   color: var(--ghost);
   letter-spacing: 1.5px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .notice {
@@ -629,7 +629,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
   font-size: 17px !important;
   letter-spacing: 0;
 }
-.summary-label { font-family: var(--font-mono); color: var(--ghost); font-size: 10px; }
+.summary-label { font-family: var(--font-mono); color: var(--ghost); font-size: 11px; }
 
 /* ── Team strip ─────────────────────────────────────────────────────────── */
 .team-button {
@@ -653,7 +653,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .team-info span, .team-info small {
   font-family: var(--font-mono);
   color: var(--ghost);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /* ── Detail panel ───────────────────────────────────────────────────────── */
@@ -674,7 +674,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
   background: rgba(167,139,250,0.03);
   border-radius: 2px;
 }
-.metric span { font-family: var(--font-mono); color: var(--ghost); font-size: 10px; }
+.metric span { font-family: var(--font-mono); color: var(--ghost); font-size: 11px; }
 .metric strong {
   font-family: var(--font-display);
   color: var(--violet);
@@ -741,7 +741,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .bubble-text {
   font-family: var(--font-mono) !important;
   color: var(--aqua) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   letter-spacing: 0.3px;
 }
 
@@ -1034,7 +1034,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .room-task {
   color: var(--ghost) !important;
   font-family: var(--font-mono) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   line-height: 1.5 !important;
   border-left: 2px solid rgba(0,240,255,0.15);
   padding-left: 6px;
@@ -1045,7 +1045,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .room-agent-progress {
   color: var(--ghost) !important;
   font-family: var(--font-mono) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   margin-top: 8px !important;
 }
 .room-agent-progress > span {
@@ -1139,7 +1139,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 /* ── Walkway-label (corredor central) ───────────────────────────────────── */
 .walkway-label {
   font-family: var(--font-mono) !important;
-  font-size: 9px !important;
+  font-size: 11px !important;
   letter-spacing: 3px !important;
   color: rgba(0,240,255,0.3) !important;
   text-transform: uppercase;
@@ -1193,7 +1193,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .source-badge {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 2px;
@@ -1214,7 +1214,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 /* ── Motion preference label ────────────────────────────────────────────── */
 .motion-preference {
   font-family: var(--font-mono) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   color: var(--ghost) !important;
   letter-spacing: 0.3px;
 }
@@ -1223,7 +1223,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .floor-meta {
   font-family: var(--font-mono) !important;
   color: var(--ghost) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   letter-spacing: 0.3px;
 }
 .floor-meta svg { color: var(--cyan-dim) !important; }

@@ -159,7 +159,7 @@
       "valid_at": "2026-10-14",
       "deployment": {
         "label": "Deploy v5 Â· TS migration + deploy automatizado Â· PR #25",
-        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
         "verified_at": "2026-10-14"
       }
@@ -299,7 +299,7 @@
       "valid_at": "2026-10-14",
       "deployment": {
         "label": "Deploy automatizado Â· observaÃ§Ã£o 5min + rollback SSH",
-        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
         "verified_at": "2026-10-14"
       }
@@ -331,7 +331,7 @@
       "valid_at": "2026-10-14",
       "deployment": {
         "label": "Deploy CI Â· GitHub Actions + health check",
-        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
         "verified_at": "2026-10-14"
       }
@@ -452,7 +452,7 @@
       "valid_at": "2026-10-14",
       "deployment": {
         "label": "AdmissÃ£o restaurada Â· PR #16",
-        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
         "verified_at": "2026-10-14"
       }
@@ -481,7 +481,7 @@
       "valid_at": "2026-10-14",
       "deployment": {
         "label": "NF real obrigatÃ³ria Â· dedup webhook corrigido",
-        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
         "verified_at": "2026-10-14"
       }
@@ -1974,7 +1974,7 @@
       "valid_at": "2026-10-14",
       "deployment": {
         "label": "Dedup corrigido Â· NF real obrigatÃ³ria Â· PR #25",
-        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
         "verified_at": "2026-10-14"
       }
@@ -2060,7 +2060,7 @@
       "valid_at": "2026-10-14",
       "deployment": {
         "label": "NF real + dedup fix Â· PR #25",
-        "sha": "1bd36b6c3ce959742ca77fdd33f83cf29240cd82",
+        "sha": "3cf7250afe30931a54621093638e1b0f76f64169",
         "source": "systems/deploy-validacao-hub-2026-10-08.md",
         "verified_at": "2026-10-14"
       }

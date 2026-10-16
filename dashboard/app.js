@@ -252,7 +252,7 @@ function render(){
  }
  if(route.page==='teams'){if(window.BrainTeams)window.BrainTeams.render(main,api);else main.append(empty('Módulo de times indisponível','Recarregue a página e verifique teams-ui.js.',button('Tentar novamente',()=>location.reload())));}
 
-  if(route.page==='playbooks'){if(window.BrainPlaybooks)window.BrainPlaybooks.render(main,api);else main.append(empty('M�dulo de playbooks indispon�vel','Recarregue a p�gina e verifique playbooks-ui.js.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='playbooks'){if(window.BrainPlaybooks)window.BrainPlaybooks.render(main,api);else main.append(empty('Módulo de playbooks indisponível','Recarregue a página e verifique playbooks-ui.js.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='queries'){if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de consultas indisponível','Recarregue a página e verifique workbench.js.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='nexus'){

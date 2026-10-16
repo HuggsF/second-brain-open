@@ -15,7 +15,7 @@ function setup(storage={getItem(){return null;},setItem(){}}){
 }
 function button(root,label){const result=find(root,n=>n.tagName==='button'&&n.textContent.includes(label))[0];assert.ok(result,'button '+label);return result;}
 test('product starts with a readable grouped overview and truthful development context',()=>{
- const h=setup(),app=h.mount();assert.match(h.main.textContent,/Em desenvolvimento/);assert.match(h.main.textContent,/84/);
+ const h=setup(),app=h.mount();assert.match(h.main.textContent,/Em desenvolvimento/);assert.match(h.main.textContent,/85/);
  assert.ok(h.scene.nodes.length<=6,'overview progressively reveals categories, not 84 tiny labels');
  assert.match(h.main.textContent,/Explorar/);assert.match(h.main.textContent,/Biblioteca/);app.dispose();assert.ok(h.dead);
 });

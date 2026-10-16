@@ -128,7 +128,7 @@ export default class OfficeScene extends Phaser.Scene {
     // Label
     this.add.text(OFFICE_W / 2, WALKWAY_Y + WALKWAY_H / 2, '⚡ CONTEXTO COMPARTILHADO', {
       fontFamily: '"Inter", sans-serif',
-      fontSize: '9px',
+      fontSize: '11px',
       fontStyle: 'bold',
       color: '#475569',
       letterSpacing: 3,
@@ -226,7 +226,7 @@ export default class OfficeScene extends Phaser.Scene {
       // Name label
       const nameTag = this.add.text(0, 24, def.name, {
         fontFamily: '"Inter", sans-serif',
-        fontSize: '10px',
+        fontSize: '11px',
         fontStyle: 'bold',
         color: '#' + def.color.toString(16).padStart(6, '0'),
         stroke: '#06050e',
@@ -237,7 +237,7 @@ export default class OfficeScene extends Phaser.Scene {
       // Role label
       const roleTag = this.add.text(0, 36, def.role, {
         fontFamily: '"Inter", sans-serif',
-        fontSize: '8px',
+        fontSize: '11px',
         color: '#64748b',
         stroke: '#06050e',
         strokeThickness: 2,
@@ -429,7 +429,7 @@ export default class OfficeScene extends Phaser.Scene {
 
     const bubbleText = this.add.text(x, y, text, {
       fontFamily: '"Inter", sans-serif',
-      fontSize: '9px',
+      fontSize: '11px',
       color: '#e2e8f0',
       wordWrap: { width: maxW - 16 },
       padding: { x: 8, y: 6 },

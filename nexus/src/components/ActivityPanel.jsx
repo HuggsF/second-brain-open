@@ -11,7 +11,7 @@ export function restoreLogAnchor(stream, anchor) {
   const row = Array.from(stream.children).find(child => child.dataset.logId === anchor.id);
   if (row) stream.scrollTop += row.getBoundingClientRect().top - stream.getBoundingClientRect().top - anchor.offset;
 }
-export default function ActivityPanel({ state, selectAgent, visible = true }) {
+export default function ActivityPanel({ state, connection, selectAgent, visible = true }) {
   const streamRef = useRef(null);
   const readingAnchor = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -50,6 +50,6 @@ export default function ActivityPanel({ state, selectAgent, visible = true }) {
         </article>;
       })}
     </div>
-    <div className="panel-footer"><span className="status-dot" aria-hidden="true" /> {state.connection?.mode === 'ws' ? (state.connection?.status === 'connected' ? 'Backend Python Ativo (Porta 8848) · FastMCP & Qdrant' : 'Conectando ao Backend Python...') : 'Memória local · sem serviços conectados'}</div>
+    <div className="panel-footer"><span className="status-dot" aria-hidden="true" /> {connection?.mode === 'ws' ? (connection?.status === 'connected' ? 'Backend Python Ativo (Porta 8848) · FastMCP & Qdrant' : 'Conectando ao Backend Python...') : 'Memória local · sem serviços conectados'}</div>
   </>;
 }

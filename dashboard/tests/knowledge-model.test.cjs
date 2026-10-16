@@ -122,7 +122,7 @@ test('source search returns matching body lines and labels title-only results as
 test('actual snapshot finds NF real in source bodies and builds deterministic scenes without mutation', () => {
   const context={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../graph-data.js'),'utf8'),context);
   const snapshot=context.window.KIOSK_GRAPH,before=JSON.stringify(snapshot),model=Model.build(snapshot);
-  assert.equal(model.stats.nodes,84);assert.equal(model.stats.documents,151);
+  assert.equal(model.stats.nodes,85);assert.equal(model.stats.documents,151);
   assert.ok(model.stats.relations<131 && model.stats.relations>53);
   assert.ok(model.stats.briefSources>=11);
   const hits=Model.search(model,'NF real',{kind:'document'});

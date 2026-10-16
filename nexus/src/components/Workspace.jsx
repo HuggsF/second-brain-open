@@ -110,7 +110,7 @@ export default function Workspace() {
           </section>
           <aside className="side-panel" aria-label={selected ? 'Detalhes de ' + selected.name : 'Painel de atividade'}>
             {selected && <AgentDetail agent={selected} state={state} onBack={back} onApprove={approve} collaborators={collaborators} />}
-            <div className="activity-panel" hidden={Boolean(selected)}><ActivityPanel state={state} selectAgent={selectAgent} visible={!selected} /></div>
+            <div className="activity-panel" hidden={Boolean(selected)}><ActivityPanel state={state} connection={workspace.connection} selectAgent={selectAgent} visible={!selected} /></div>
           </aside>
         </div>
         <section className="team-strip" aria-label="Equipe de agentes"><span className="section-label">SEU TIME</span>

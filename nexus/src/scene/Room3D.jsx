@@ -162,8 +162,8 @@ export default function Room3D({
           className="room-label-3d"
           style={{
             color: accent,
-            fontFamily: 'Orbitron, monospace',
-            fontSize: '10px',
+            fontFamily: 'Rajdhani, sans-serif',
+            fontSize: '11px',
             fontWeight: 700,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',

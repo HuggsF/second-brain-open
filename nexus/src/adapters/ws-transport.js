@@ -36,8 +36,7 @@ export function createWsTransport(url = DEFAULT_URL) {
 
       // Enviar mensagens enfileiradas durante a desconexão
       while (pendingQueue.length > 0) {
-        const msg = pendingQueue.shift();
-        try { ws.send(msg); } catch (_) { break; }
+        try { ws.send(pendingQueue[0]); pendingQueue.shift(); } catch (_) { break; }
       }
 
       // Notificar listeners com um evento de conexão

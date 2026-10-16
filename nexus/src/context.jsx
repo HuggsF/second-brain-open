@@ -64,7 +64,7 @@ export function SimulationProvider({ children, task, now = Date.now }) {
       setSpeed: speed => send('SET_SPEED',speed), toggleMotion: () => send('TOGGLE_MOTION'),
       setSystemMotion: value => send('SET_SYSTEM_MOTION',value), openTask: () => send('OPEN_TASK'), closeTask: () => send('CLOSE_TASK') };
   }, [dispatch]);
-  useEffect(() => createTickDriver(workspace,dispatch,{ now: () => clock.current() }),
+  useEffect(() => ADAPTER_MODE === 'ws' ? undefined : createTickDriver(workspace,dispatch,{ now: () => clock.current() }),
     [workspace.simulation.mode,workspace.simulation.needsApproval,workspace.speed,workspace.missionId,dispatch]);
   useEffect(() => subscribeSystemMotion(actions.setSystemMotion),[actions]);
   const value = useMemo(() => ({workspace, simulation:workspace.simulation, actions, bindings,
