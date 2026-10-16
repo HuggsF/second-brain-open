@@ -5,6 +5,14 @@ const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
 const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],nexus:['🏢','Nexus Office'],jev:['📊','JEV']};
+const NAV_GROUPS = [
+  { icon: '◈', label: 'Visão Geral', page: 'overview' },
+  { icon: '🧠', label: 'Conhecimento', children: ['knowledge','graph','queries'] },
+  { icon: '📋', label: 'Operação', children: ['playbooks','workflows'] },
+  { icon: '🏗️', label: 'Arquitetura', children: ['architecture','product','teams'] },
+  { icon: '📡', label: 'Observabilidade', page: 'observability' },
+  { icon: '🤖', label: 'Agentes', children: ['nexus','jev'] },
+];
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
 const categories = {all:'Todas as fontes',architecture:'Arquitetura · System Design',playbooks:'Playbooks',systems:'Sistemas',adrs:'Decisões · ADRs',product:'Produto',domain:'Domínio',daily:'Memória diária',general:'Geral'};
 let storageOK = true, noticeTimer;
@@ -237,7 +245,14 @@ function render(){
  window.BrainGraphUI?.dispose();
  const main=$('main');main.replaceChildren();route=readRoute();$('page-name').textContent=pages[route.page][1];
  document.body.classList.toggle('knowledge-product-mode',route.page==='graph'&&route.experience==='product'&&!!window.BrainKnowledgeView);
- $('navigation').replaceChildren(...Object.entries(pages).map(([id,[icon,name]])=>el('a',{class:'nav-item',href:'#page='+id,'aria-current':route.page===id?'page':null},el('span',{class:'nav-icon','aria-hidden':true},icon),name)));
+ $('navigation').replaceChildren(...NAV_GROUPS.map(group=>{
+   if(group.page){const p=pages[group.page];return el('a',{class:'nav-item',href:'#page='+group.page,'aria-current':route.page===group.page?'page':null},el('span',{class:'nav-icon','aria-hidden':true},group.icon),group.label);}
+   const active=group.children.includes(route.page);
+   const details=el('details',{class:'nav-group',open:active||null});
+   details.append(el('summary',{class:'nav-item nav-group-toggle','aria-expanded':String(active)},el('span',{class:'nav-icon','aria-hidden':true},group.icon),group.label));
+   for(const id of group.children){const[icon,name]=pages[id];details.append(el('a',{class:'nav-item nav-sub',href:'#page='+id,'aria-current':route.page===id?'page':null},el('span',{class:'nav-icon','aria-hidden':true},icon),name));}
+   return details;
+  }));
  document.title=pages[route.page][1]+' · KIOSK Second Brain';
  if(!dataOK || !C || !M){main.append(empty('Não foi possível carregar o snapshot','Verifique graph-data.js e gere novamente o catálogo.',button('Tentar novamente',()=>location.reload(),'primary')));return;}
  if(route.page==='product'){if(window.BrainProductUI)window.BrainProductUI.render(main,api);else main.append(empty('Módulo de produto indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
