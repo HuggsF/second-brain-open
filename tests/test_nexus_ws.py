@@ -171,11 +171,19 @@ class TestHostCommandsNeedHumanApproval(unittest.TestCase):
     def test_a_host_command_step_is_refused_without_calling_the_executor(self):
         pattern = {"keywords": ["servidor"], "steps": [
             {"agent": "coder", "tool": "run_safe_command", "input": {"command": "uptime"}, "bubble": "..."}]}
-        with mock.patch.object(orch_mod, "MISSION_PATTERNS", [pattern]):
-            missions, stub = _run_missions(["olhar o servidor"])
-        self.assertEqual(stub.calls, [])
-        messages = [e["payload"]["message"] for e in missions[0] if e["type"] == "message"]
-        self.assertTrue(any("run_safe_command" in m and "aprovação" in m for m in messages), messages)
+        # TEST-01: Usar o broker REAL (sem mock de run_tool) para que a política
+        # de segurança bloqueie run_safe_command via ESCALATE/DENY.
+        async def main():
+            with mock.patch.object(orch_mod, "MISSION_PATTERNS", [pattern]):
+                return await _collect(orch_mod.Orchestrator(pace=0), "olhar o servidor")
+
+        events = asyncio.run(main())
+        messages = [e["payload"]["message"] for e in events if e["type"] == "message"]
+        # Verificar que o broker rejeitou a tool (resultado contém run_safe_command + aprovação)
+        self.assertTrue(
+            any("run_safe_command" in m and "aprovação" in m for m in messages),
+            f"Expected refusal message with 'run_safe_command' and 'aprovação', got: {messages}"
+        )
 
 
 class _FakeEmbedder:

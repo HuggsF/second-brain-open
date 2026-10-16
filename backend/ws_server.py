@@ -147,12 +147,48 @@ async def handler(websocket):
 
             elif action_type == "HITL_DECISION":
                 # Sprint 7: Governança — decisão HITL do operador humano
+                # NEW-02: Autenticação — validar request_id contra pending store
                 try:
-                    from core.governance.hitl_protocol import HITLResponse
+                    from core.governance.hitl_protocol import HITLResponse, HITLDecision
                     from core.integration import _get_hitl_store
                     hitl_payload = action.get("payload", {})
+                    if not isinstance(hitl_payload, dict) or not hitl_payload.get("request_id"):
+                        log.warning(f"HITL_DECISION rejeitado: payload inválido de {remote}")
+                        await websocket.send(json.dumps({
+                            "type": "REJECT",
+                            "commandId": message.get("commandId", ""),
+                            "missionId": message.get("missionId", 0),
+                            "reason": "invalid_hitl_payload",
+                        }))
+                        continue
+
+                    # Validar decision é um enum válido antes de processar
+                    raw_decision = hitl_payload.get("decision", "")
+                    if raw_decision not in {d.value for d in HITLDecision}:
+                        log.warning(f"HITL_DECISION rejeitado: decision inválida '{raw_decision}' de {remote}")
+                        await websocket.send(json.dumps({
+                            "type": "REJECT",
+                            "commandId": message.get("commandId", ""),
+                            "missionId": message.get("missionId", 0),
+                            "reason": "invalid_hitl_decision",
+                        }))
+                        continue
+
                     response = HITLResponse.from_frame(hitl_payload)
                     store = _get_hitl_store()
+
+                    # NEW-02: Verificar que request_id existe no pending store
+                    if not store.is_pending(response.request_id):
+                        log.warning(f"HITL_DECISION rejeitado: request_id '{response.request_id}' "
+                                    f"não encontrado no pending store de {remote}")
+                        await websocket.send(json.dumps({
+                            "type": "REJECT",
+                            "commandId": message.get("commandId", ""),
+                            "missionId": message.get("missionId", 0),
+                            "reason": "unknown_hitl_request",
+                        }))
+                        continue
+
                     store.resolve(response)
                     log.info(f"🔐 HITL decision: {response.decision.value} for {response.request_id}")
                     await websocket.send(json.dumps({

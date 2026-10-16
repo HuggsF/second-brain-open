@@ -108,10 +108,20 @@ class SessionMemoryStore:
 
         # FULL_ACCESS com verificação cross-persona (INV-N13)
         if allowed_fields is None:
-            own_records = all(
+            # H-04: Filtrar records que têm info de ownership
+            owned_records = [
+                r for r in history if r.get("persona_id") or r.get("agent")
+            ]
+            # H-04: Se nenhum record tem ownership info, tratar como cross-persona
+            # (all([]) == True era bug: concedia acesso total a sessões anônimas)
+            if owned_records and all(
                 r.get("persona_id") == persona_id or r.get("agent") == persona_id
-                for r in history if r.get("persona_id") or r.get("agent")
-            )
+                for r in owned_records
+            ):
+                own_records = True
+            else:
+                own_records = False
+
             if own_records or persona_id in ("maia-orchestrator", "manager"):
                 return list(history)  # própria sessão ou supervisor: acesso total
             # Cross-persona: filtrar campos sensíveis
