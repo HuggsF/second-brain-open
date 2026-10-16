@@ -176,7 +176,7 @@ function render(main,U){
   function renderEvent(event){
    if(event.type==='connection'){
     const st=liveHeader.querySelector('.muted');
-    statusDot.className='live-dot '+(event.mode||'disconnected');
+    statusDot.className='live-dot '+(event.mode||'disconnected')+(event.connected?' connected':'');
     st.textContent=event.mode==='sse'?'SSE ativo':event.mode==='ws'?'WebSocket ativo':event.mode==='simulated'?'Simulando atividade':'Desconectado';
     return;
    }
