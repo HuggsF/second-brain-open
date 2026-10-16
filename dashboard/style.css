@@ -21,4 +21,5 @@ dialog{background:var(--panel);color:var(--text);border:1px solid var(--border);
 .legend-dot.good{background:var(--good)}.legend-dot.crm{background:#ec4899}
 .markdown-meta{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0 0 18px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);font-size:13px}.markdown-meta dt{color:var(--muted);font-weight:600}.markdown-meta dd{margin:0;overflow-wrap:anywhere}
 button.danger{background:transparent;border-color:var(--danger);color:var(--danger)}button.danger:hover{background:var(--panel2)}.confirm-dialog{width:440px}.confirm-dialog h2{margin-top:0}
+.nav-group{border:0;padding:0;margin:0}.nav-group summary{list-style:none}.nav-group summary::-webkit-details-marker{display:none}.nav-group-toggle::after{content:"▸";margin-left:auto;font-size:11px;transition:transform .15s}.nav-group[open] .nav-group-toggle::after{transform:rotate(90deg)}.nav-sub{padding-left:34px;font-size:13px;min-height:38px}
 .jev-frame{display:block;width:100%;height:calc(100vh - 180px);min-height:480px;border:0;border-radius:14px;background:var(--panel)}
