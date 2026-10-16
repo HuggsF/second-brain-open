@@ -267,7 +267,16 @@ function render(){
  }
  if(route.page==='teams'){if(window.BrainTeams)window.BrainTeams.render(main,api);else main.append(empty('Módulo de times indisponível','Recarregue a página e verifique teams-ui.js.',button('Tentar novamente',()=>location.reload())));}
 
-  if(route.page==='playbooks'){if(window.BrainPlaybooks)window.BrainPlaybooks.render(main,api);else main.append(empty('Módulo de playbooks indisponível','Recarregue a página e verifique playbooks-ui.js.',button('Tentar novamente',()=>location.reload())));}
+  if(route.page==='playbooks'){
+    main.append(head('PLAYBOOKS','Playbooks consolidados no JEV.','Gerencie e visualize playbooks diretamente na experiência do JEV.',[
+      button('Abrir JEV em nova aba ↗',()=>window.open('./jev/index.html','_blank','noopener'),'subtle')
+    ]));
+    const frame=el('iframe',{src:'jev/index.html#tab=playbooks',title:'JEV — Playbooks',class:'jev-frame'});
+    const unavailable=()=>frame.replaceWith(empty('JEV indisponível','O módulo de playbooks foi consolidado no JEV. Inicie o BFF ou rode npm run build em jev-app.',button('Tentar novamente',()=>render())));
+    frame.addEventListener('load',()=>{try{const doc=frame.contentDocument;if(!doc||!doc.getElementById('root')||doc.querySelector('meta[name=application-name]')?.content!=='jev-app')unavailable();}catch(_){unavailable();}});
+    frame.onerror=unavailable;
+    main.append(frame);
+  }
   if(route.page==='queries'){if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de consultas indisponível','Recarregue a página e verifique workbench.js.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='nexus'){
