@@ -11,6 +11,7 @@ Uso: python -m backend.ws_server
 import asyncio
 import json
 import logging
+import os
 import signal
 import sys
 from pathlib import Path
@@ -29,7 +30,7 @@ from http.cookies import SimpleCookie
 
 from backend.orchestrator import Orchestrator
 from backend.store import Store
-from core.domain.workflow.entities import MAX_MISSION_ID, validate_mission_envelope
+from core.domain.workflow.entities import MAX_MISSION_ID, is_valid_mission_id, validate_mission_envelope
 
 _store = None
 
@@ -61,6 +62,14 @@ ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:8847",
 ]
+
+# ── Strangler Fig: migration flag (temporary — remove after full cutover) ──
+# Values: "legacy" (default), "graph" (new engine), "shadow" (both, return legacy)
+MISSION_ENGINE = os.environ.get("MISSION_ENGINE", "legacy")
+
+# Shared approval events for graph HITL (keyed by mission_id).
+# _run_graph_mission() creates and waits on events; APPROVE handler signals them.
+_graph_approval_events: dict[int, asyncio.Event] = {}
 
 
 def _echoable_mission_id(value):
@@ -121,19 +130,37 @@ async def handler(websocket):
             log.info(f"📩 Comando: {action_type} (mission={message.get('missionId', '?')})")
 
             if action_type == "NEW_TASK":
-                if "mission" in message and isinstance(message["mission"], dict):
+                raw_mission_id = message.get("missionId")
+                has_mission_dict = "mission" in message and isinstance(message["mission"], dict)
+
+                # ── Early missionId validation (legacy envelope only) ──
+                # When a structured mission dict is present, mission.id is the
+                # canonical ID and is validated by validate_mission_envelope().
+                # When absent, missionId IS the mission id — reject if invalid.
+                if not has_mission_dict and raw_mission_id is not None and not is_valid_mission_id(raw_mission_id):
+                    echo_id = _echoable_mission_id(raw_mission_id)
+                    revision += 1
+                    await websocket.send(json.dumps({
+                        "type": "REJECT",
+                        "commandId": message.get("commandId", ""),
+                        "missionId": echo_id,
+                        "revision": revision,
+                        "reason": "mission.id must be a positive integer (JS-safe)",
+                    }))
+                    continue
+
+                if has_mission_dict:
                     envelope = message
                     task_text = message["mission"].get("task", "")
                     target_mission_id = message["mission"].get("id")
                 else:
-                    base_m_id = message.get("missionId", 0)
-                    target_mission_id = (base_m_id + 1) if (isinstance(base_m_id, int) and base_m_id >= 0) else 1
+                    target_mission_id = raw_mission_id if raw_mission_id is not None else 1
                     task_text = action.get("payload", "")
                     envelope = {"mission": {"id": target_mission_id, "task": task_text}}
 
                 error = validate_mission_envelope(envelope)
                 if error:
-                    echo_id = _echoable_mission_id(message.get("missionId"))
+                    echo_id = _echoable_mission_id(raw_mission_id)
                     revision += 1
                     await websocket.send(json.dumps({
                         "type": "REJECT",
@@ -159,32 +186,67 @@ async def handler(websocket):
                 await websocket.send(json.dumps({
                     "type": "ACK",
                     "commandId": message.get("commandId", ""),
-                    "missionId": message.get("missionId", 0),
+                    "missionId": raw_mission_id if raw_mission_id is not None else target_mission_id,
                     "revision": revision,
                 }))
+
+                # ── Strangler Fig: route to graph or legacy engine ──
+                orchestrator = Orchestrator()
+                if MISSION_ENGINE == "graph":
+                    mission_task = asyncio.create_task(
+                        _run_graph_mission(websocket, task_text, target_mission_id)
+                    )
+                else:
+                    mission_task = asyncio.create_task(
+                        _run_mission(websocket, orchestrator, task_text, target_mission_id)
+                    )
 
             elif action_type == "APPROVE":
-                if not orchestrator.awaiting_approval:
-                    echo_id = _echoable_mission_id(message.get("missionId"))
+                # ── Strangler Fig: route approval to graph or legacy ──
+                approve_mid = message.get("missionId")
+                if MISSION_ENGINE == "graph":
+                    evt = _graph_approval_events.get(approve_mid)
+                    if evt is None:
+                        echo_id = _echoable_mission_id(approve_mid)
+                        revision += 1
+                        await websocket.send(json.dumps({
+                            "type": "REJECT",
+                            "commandId": message.get("commandId", ""),
+                            "missionId": echo_id,
+                            "revision": revision,
+                            "reason": "no_mission_waiting_for_approval",
+                        }))
+                        continue
+                    evt.set()
                     revision += 1
                     await websocket.send(json.dumps({
-                        "type": "REJECT",
+                        "type": "ACK",
                         "commandId": message.get("commandId", ""),
-                        "missionId": echo_id,
+                        "missionId": approve_mid,
                         "revision": revision,
-                        "reason": "no_mission_waiting_for_approval",
                     }))
-                    continue
+                else:
+                    if not orchestrator.awaiting_approval:
+                        echo_id = _echoable_mission_id(approve_mid)
+                        revision += 1
+                        await websocket.send(json.dumps({
+                            "type": "REJECT",
+                            "commandId": message.get("commandId", ""),
+                            "missionId": echo_id,
+                            "revision": revision,
+                            "reason": "no_mission_waiting_for_approval",
+                        }))
+                        continue
 
-                mission_id = message.get("missionId", orchestrator.mission_id)
-                orchestrator.approve()
-                revision += 1
-                await websocket.send(json.dumps({
-                    "type": "ACK",
-                    "commandId": message.get("commandId", ""),
-                    "missionId": mission_id,
-                    "revision": revision,
-                }))
+                    mission_id = approve_mid if approve_mid is not None else orchestrator.mission_id
+                    orchestrator.approve()
+                    revision += 1
+                    await websocket.send(json.dumps({
+                        "type": "ACK",
+                        "commandId": message.get("commandId", ""),
+                        "missionId": mission_id,
+                        "revision": revision,
+                    }))
 
             elif action_type == "START":
                 if "mission" in message:
@@ -228,9 +290,15 @@ async def handler(websocket):
                         except asyncio.CancelledError:
                             pass
                     orchestrator = Orchestrator()
-                    mission_task = asyncio.create_task(
-                        _run_mission(websocket, orchestrator, start_task, start_mission_id)
-                    )
+                    # ── Strangler Fig: route to graph or legacy engine ──
+                    if MISSION_ENGINE == "graph":
+                        mission_task = asyncio.create_task(
+                            _run_graph_mission(websocket, start_task, start_mission_id)
+                        )
+                    else:
+                        mission_task = asyncio.create_task(
+                            _run_mission(websocket, orchestrator, start_task, start_mission_id)
+                        )
 
                 revision += 1
                 await websocket.send(json.dumps({
@@ -348,6 +416,116 @@ async def _run_mission(websocket, orchestrator, task_text, mission_id=None):
         except Exception:
             pass
 
+
+async def _run_graph_mission(websocket, task_text, mission_id):
+    """Execute a mission via the Node Loop Graph with HITL support.
+
+    Uses the lower-level graph APIs directly (instead of ``run_mission_graph``)
+    to support the HITL resume loop: when the graph suspends for approval,
+    waits for the APPROVE handler to signal ``_graph_approval_events[mission_id]``,
+    then resumes from the suspended node.
+
+    This is the Strangler Fig replacement for ``_run_mission()``.
+    """
+    log.info(f"🚀 Graph missão iniciada (missionId={mission_id}): '{task_text[:80]}'")
+    try:
+        from core.graph.edges import build_graph  # noqa: WPS433
+        from core.graph.nexus_adapter import NexusEventAdapter  # noqa: WPS433
+        from core.graph.telemetry import instrumented_run_graph  # noqa: WPS433
+        from core.state import create_initial_state  # noqa: WPS433
+
+        async def send_event(event):
+            try:
+                await websocket.send(json.dumps(event))
+                log.info(
+                    "  📤 [%s] %s → %s",
+                    event.get("agentId", "?"),
+                    event.get("type", "?"),
+                    event.get("payload", {}).get("bubble", "")[:40],
+                )
+            except websockets.exceptions.ConnectionClosed:
+                log.warning("Conexão fechada durante missão (graph)")
+
+        adapter = NexusEventAdapter(mission_id, send_event)
+
+        # Build graph and initial state
+        graph = build_graph()
+        state = create_initial_state()
+        state = {
+            **state,
+            "metadata": {
+                **state["metadata"],
+                "task_text": task_text,
+                "mission_id": mission_id,
+            },
+        }
+
+        # Initial run
+        result = await instrumented_run_graph(
+            graph, state, on_event=adapter.on_event,
+        )
+
+        # ── HITL resume loop ──────────────────────────────────────
+        while result.get("status") == "awaiting_approval":
+            approval_event = asyncio.Event()
+            _graph_approval_events[mission_id] = approval_event
+            log.info("⏸️ Graph missão %s aguardando aprovação", mission_id)
+            try:
+                await asyncio.wait_for(approval_event.wait(), timeout=300)
+            except asyncio.TimeoutError:
+                log.warning("Graph missão %s: timeout de aprovação (300s)", mission_id)
+                await adapter.on_event({
+                    "type": "graph_end",
+                    "trace_id": result.get("trace_id", ""),
+                    "iteration": 0,
+                    "status": "failed",
+                    "reason": "approval_timeout",
+                })
+                return
+            finally:
+                _graph_approval_events.pop(mission_id, None)
+
+            resume_from = result.get("metadata", {}).get("_suspended_at")
+            if not resume_from:
+                log.error(
+                    "Graph missão %s: _suspended_at not found in state", mission_id,
+                )
+                return
+
+            log.info("▶️ Graph missão %s retomada de '%s'", mission_id, resume_from)
+            result = await instrumented_run_graph(
+                graph, result,
+                on_event=adapter.on_event,
+                resume_from=resume_from,
+            )
+
+        log.info(
+            "✅ Graph missão %s concluída: status=%s",
+            mission_id,
+            result.get("status", "?"),
+        )
+
+    except asyncio.CancelledError:
+        log.info("🔶 Graph missão cancelada (nova missão recebida)")
+    except Exception as exc:
+        log.error(f"❌ Erro na graph missão: {exc}")
+        try:
+            import time as _time
+
+            await websocket.send(json.dumps({
+                "schemaVersion": 1,
+                "id": f"error:{id(exc)}",
+                "missionId": mission_id,
+                "sequence": 0,
+                "agentId": "manager",
+                "type": "message",
+                "timestamp": _time.time() * 1000,
+                "payload": {"message": f"Erro: {exc}", "bubble": "❌ Erro interno"},
+            }))
+        except Exception:
+            pass
+    finally:
+        _graph_approval_events.pop(mission_id, None)
 
 async def serve(port=None, origins=None, store=None):
     """Factory para criar servidor WS. Usada em testes com port=0 para port aleatório."""
