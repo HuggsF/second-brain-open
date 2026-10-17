@@ -13,6 +13,8 @@ import { useBubbleQueue } from '../hooks/useBubbleQueue.js';
 import { useTransfers } from '../hooks/useTransfers.js';
 import { useCelebration } from '../hooks/useCelebration.js';
 
+const isWsMode = import.meta.env.VITE_ADAPTER_MODE === 'ws';
+
 // ── Feature flag: VITE_RENDER_MODE=3d → isometric 3D scene ─────────────────
 const use3D = import.meta.env.VITE_RENDER_MODE === '3d';
 const OfficeFloor3D = use3D ? lazy(() => import('../scene/OfficeFloor3D.jsx')) : null;
@@ -58,7 +60,7 @@ export default function Workspace() {
 
   const { approve, reset, newTask } = actions;
   const start = paused ? actions.resume : actions.start;
-  const phase = paused ? 'Simulação pausada' : state.needsApproval ? 'Aguardando aprovação' :
+  const phase = paused ? (isWsMode ? 'Missão pausada' : 'Simulação pausada') : state.needsApproval ? 'Aguardando aprovação' :
     state.mode === 'completed' ? 'Missão concluída' : running ? 'Equipe em atividade' : 'Pronto para começar';
 
   return <div className={'office-app' + (paused ? ' sim-paused' : '') + (reducedMotion ? ' reduced-motion' : '') + (celebrating ? ' is-celebrating' : '')}>
@@ -75,17 +77,17 @@ export default function Workspace() {
             <div className="floor-heading"><div><span className="section-label">UMA EQUIPE. MÚLTIPLAS PERSPECTIVAS.</span>
               <h1>Escritório de agentes</h1><p>Clique em um agente para acompanhar seu trabalho.</p></div>
               <div className="floor-controls"><button type="button" className="btn btn-icon reset-button" onClick={reset}
-                aria-label="Reiniciar simulação" title="Reiniciar simulação"><RotateCcw size={17} /></button>
+                aria-label="Reiniciar" title="Reiniciar"><RotateCcw size={17} /></button>
                 <button type="button" className={'btn ' + (running ? 'btn-secondary' : 'btn-primary')}
                   onClick={running ? actions.pause : start}>
                   {running ? <Pause size={16} /> : <Play size={16} />}
-                  {running ? 'Pausar' : paused ? 'Retomar' : state.mode === 'completed' ? 'Simular novamente' : 'Iniciar simulação'}
+                  {running ? 'Pausar' : paused ? 'Retomar' : state.mode === 'completed' ? (isWsMode ? 'Nova missão' : 'Simular novamente') : (isWsMode ? 'Iniciar missão' : 'Iniciar simulação')}
                 </button></div>
             </div>
             <div className="mission-strip"><span className="mission-icon"><Sparkles size={17} /></span><div><span className="section-label">MISSÃO DO TIME</span>
               <p>{state.task}</p></div><span className="mission-progress">{progress}%</span></div>
             <div className="floor-meta"><span className={'phase-indicator phase-' + state.mode} role="status">
-              <span className="status-dot" /> {phase}</span><span>{paused ? 'Progresso congelado' : state.needsApproval ? 'A equipe espera sua decisão' : 'Etapa ' + state.tick + ' de ' + TOTAL_STEPS}</span></div>
+              <span className="status-dot" /> {phase}</span><span>{paused ? 'Progresso congelado' : state.needsApproval ? 'A equipe espera sua decisão' : isWsMode ? 'Executando via backend' : 'Etapa ' + state.tick + ' de ' + TOTAL_STEPS}</span></div>
             {use3D ? (
               <Suspense fallback={<div className="office-floor" style={{display:'flex',alignItems:'center',justifyContent:'center',color:'#00f0ff',fontFamily:'Share Tech Mono'}}>Carregando cena 3D…</div>}>
                 <OfficeFloor3D simulation={state} missionId={missionId} paused={paused} reducedMotion={reducedMotion}
@@ -121,7 +123,7 @@ export default function Workspace() {
           </button>)}
         </section>
       </main>
-      <footer className="app-footer"><span><Network size={13} /> Trabalho coordenado, contexto visível.</span><span>Protótipo local · métricas e tarefas simuladas</span></footer>
+      <footer className="app-footer"><span><Network size={13} /> Trabalho coordenado, contexto visível.</span><span>{isWsMode ? 'Backend Python · Node Loop Graph' : 'Protótipo local · métricas e tarefas simuladas'}</span></footer>
     </div>
     {taskOpen && <TaskDialog currentTask={state.task} onClose={actions.closeTask} onSubmit={newTask} />}
   </div>;
