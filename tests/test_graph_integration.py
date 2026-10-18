@@ -34,7 +34,7 @@ from core.state import GraphState, create_initial_state
 # ═══════════════════════════════════════════════════════════════════════
 
 
-# -- Mock for backend.orchestrator module (lazy import in plan_node) --
+# -- Mock for core.domain.workflow.constants module (lazy import in plan_node) --
 MOCK_PATTERNS = [
     {
         "keywords": ["test", "deploy"],
@@ -199,12 +199,12 @@ def _patch_graph_infra(
     mock_moe_module = MagicMock()
     mock_moe_module.MoERouter = router_class
 
-    # backend.orchestrator: plan_node does `from backend.orchestrator import ...`
-    orch = orchestrator_module if orchestrator_module is not None else _mock_orchestrator
+    # core.domain.workflow.constants: plan_node does `from core.domain.workflow.constants import ...`
+    constants_mod = orchestrator_module if orchestrator_module is not None else _mock_orchestrator
 
     # -- Collect modules to inject --
     injected = {
-        "backend.orchestrator": orch,
+        "core.domain.workflow.constants": constants_mod,
         "core.broker": mock_broker,
         "core.policy": mock_policy,
         "core.policy.autonomy": mock_policy_autonomy,

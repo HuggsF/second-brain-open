@@ -536,16 +536,16 @@ class TestNodes:
         mock_defaults = [{"tool": "default_tool", "agent": "default_agent"}]
         mock_agent_map = {"manager": "test-manager"}
 
-        # plan_node does lazy imports from backend.orchestrator and
+        # plan_node does lazy imports from core.domain.workflow.constants and
         # core.integration inside its body, so we must mock the source
         # modules via sys.modules + patch on the real module path.
-        mock_orchestrator = MagicMock(
+        mock_constants = MagicMock(
             MISSION_PATTERNS=mock_patterns,
             DEFAULT_STEPS=mock_defaults,
             AGENT_PERSONA_MAP=mock_agent_map,
         )
         with (
-            patch.dict("sys.modules", {"backend.orchestrator": mock_orchestrator}),
+            patch.dict("sys.modules", {"core.domain.workflow.constants": mock_constants}),
             patch("core.integration.get_persona_contract", return_value=None),
         ):
             state = _make_state(metadata={

@@ -70,8 +70,8 @@ async def plan_node(state: GraphState) -> GraphState:
         ``metadata["manager_persona_id"]``, ``metadata["current_step_index"]``,
         ``metadata["step_results"]``, ``status="running"``
     """
-    # Lazy imports — backend.orchestrator has heavy module-level side effects
-    from backend.orchestrator import (  # noqa: WPS433
+    # Workflow domain constants — extracted from backend.orchestrator (V1 Clean Arch)
+    from core.domain.workflow.constants import (  # noqa: WPS433
         AGENT_PERSONA_MAP,
         DEFAULT_STEPS,
         MISSION_PATTERNS,
