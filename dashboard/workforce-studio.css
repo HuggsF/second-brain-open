@@ -1,0 +1,92 @@
+/* Workforce Studio — KIOSK Second Brain
+   Layout: pipeline + split-screen (perguntas | documentação viva)
+   Follows DESIGN.md tokens and spacing scale. */
+
+/* ── Squad bar (agent icons) ─────────────────────────────── */
+.wf-squad{display:flex;gap:12px;flex-wrap:wrap;padding:16px 0}
+.wf-agent-card{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 16px;min-width:140px;flex:1;cursor:default;transition:border-color .15s}
+.wf-agent-card[data-active="true"]{border-color:var(--accent)}
+.wf-agent-card[data-waiting="true"]{border-color:var(--warn)}
+.wf-agent-icon{font-size:22px;line-height:1;flex-shrink:0}
+.wf-agent-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wf-agent-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wf-agent-status{font-size:11px;color:var(--muted)}
+.wf-agent-status[data-state="done"]{color:var(--good)}
+.wf-agent-status[data-state="active"]{color:var(--accent)}
+.wf-agent-status[data-state="waiting"]{color:var(--warn)}
+.wf-agent-status[data-state="locked"]{color:var(--muted)}
+
+/* ── Pipeline (horizontal node-edge-node) ────────────────── */
+.wf-pipeline{display:flex;align-items:center;gap:0;padding:18px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.wf-pipeline-node{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--border);min-width:110px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.wf-pipeline-node:hover,.wf-pipeline-node:focus-visible{border-color:var(--accent);background:var(--panel2)}
+.wf-pipeline-node[data-state="done"]{border-color:var(--good)}
+.wf-pipeline-node[data-state="active"]{border-color:var(--accent);background:var(--panel2)}
+.wf-pipeline-node[data-state="locked"]{opacity:.55}
+.wf-pipeline-node[data-state="blocked"]{border-color:var(--warn)}
+.wf-pipeline-label{font-size:12px;font-weight:600;white-space:nowrap}
+.wf-pipeline-mark{font-size:18px;line-height:1}
+.wf-pipeline-edge{width:28px;height:2px;background:var(--border);flex-shrink:0;position:relative}
+.wf-pipeline-edge[data-done="true"]{background:var(--good)}
+
+/* ── DoR Score bar ───────────────────────────────────────── */
+.wf-dor{display:flex;align-items:center;gap:14px;padding:14px 0}
+.wf-dor-label{font-size:13px;font-weight:600;white-space:nowrap}
+.wf-dor-track{flex:1;height:10px;background:var(--panel2);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.wf-dor-fill{height:100%;border-radius:8px;transition:width .4s ease,background .3s}
+.wf-dor-pct{font-size:14px;font-weight:700;min-width:44px;text-align:right}
+
+/* ── Split layout (questions | live doc) ─────────────────── */
+.wf-split{display:grid;grid-template-columns:1fr 1fr;gap:18px;min-height:420px}
+@media(max-width:900px){.wf-split{grid-template-columns:1fr}}
+
+/* ── Questions pane ──────────────────────────────────────── */
+.wf-questions{display:flex;flex-direction:column;gap:14px}
+.wf-question-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.wf-question-card[data-answered="true"]{border-color:var(--good);opacity:.8}
+.wf-question-target{font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--muted)}
+.wf-question-target[data-target="operacao"]{color:var(--blue)}
+.wf-question-target[data-target="fornecedor"]{color:var(--violet)}
+.wf-question-target[data-target="arquitetura"]{color:var(--accent)}
+.wf-question-text{font-size:14px;line-height:1.6}
+.wf-answer-row{display:flex;gap:8px;align-items:flex-end}
+.wf-answer-input{flex:1;min-height:44px;background:var(--bg);color:var(--text);border:1px solid var(--field-border);border-radius:8px;padding:10px 12px;font:inherit;resize:vertical}
+.wf-answer-btn{min-height:44px;padding:8px 14px;border-radius:9px;background:var(--accent);color:var(--accent-ink);border:none;font-weight:600;cursor:pointer;white-space:nowrap}
+.wf-answer-btn:hover{filter:brightness(1.1)}
+.wf-answer-saved{font-size:12px;color:var(--good);padding:4px 0}
+
+/* ── Live doc pane ───────────────────────────────────────── */
+.wf-doc-pane{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;overflow-y:auto;max-height:70vh}
+.wf-doc-pane h2{font-size:16px;margin:0 0 8px}
+.wf-doc-pane h3{font-size:14px;color:var(--muted);margin:16px 0 6px}
+.wf-doc-section{margin-bottom:14px}
+.wf-doc-section[data-filled="true"] .wf-doc-section-title{color:var(--good)}
+.wf-doc-section[data-filled="false"] .wf-doc-section-title{color:var(--warn)}
+.wf-doc-section-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.wf-doc-section-body{font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;padding:6px 0}
+.wf-doc-section-body:empty::after{content:'Aguardando informação…';color:var(--muted);font-style:italic}
+
+/* ── Demand input (brain dump) ───────────────────────────── */
+.wf-braindump{display:flex;flex-direction:column;gap:10px}
+.wf-braindump textarea{min-height:100px;background:var(--bg);color:var(--text);border:1px solid var(--field-border);border-radius:8px;padding:12px;font:inherit;resize:vertical}
+.wf-braindump-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── Demand list (sidebar/top) ───────────────────────────── */
+.wf-demand-list{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0}
+.wf-demand-pill{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--panel);font-size:12px;font-weight:550;cursor:pointer;transition:border-color .15s}
+.wf-demand-pill:hover,.wf-demand-pill[aria-pressed="true"]{border-color:var(--accent);background:var(--panel2)}
+.wf-demand-pill .wf-demand-score{font-size:11px;color:var(--muted);margin-left:6px}
+
+/* ── Gate validation table ───────────────────────────────── */
+.wf-gates{display:flex;flex-direction:column;gap:6px;padding:10px 0}
+.wf-gate{display:flex;align-items:center;gap:10px;font-size:13px;padding:6px 10px;border-radius:8px;background:var(--panel2)}
+.wf-gate-mark{font-size:15px;flex-shrink:0}
+.wf-gate-label{flex:1}
+.wf-gate[data-ok="true"] .wf-gate-mark{color:var(--good)}
+.wf-gate[data-ok="false"] .wf-gate-mark{color:var(--warn)}
+
+/* ── Tabs inside doc pane ────────────────────────────────── */
+.wf-doc-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.wf-doc-tab{padding:8px 14px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:550;cursor:pointer;border-bottom:2px solid transparent;min-height:44px}
+.wf-doc-tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.wf-doc-tab:hover{color:var(--text)}

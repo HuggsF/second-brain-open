@@ -61,13 +61,15 @@ class QdrantStore:
         self, 
         query_vector: List[float], 
         limit: int = 4, 
-        category: Optional[str] = None
+        category: Optional[str] = None,
+        bounded_context: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        query_filter = None
+        conditions = []
         if category:
-            query_filter = Filter(
-                must=[FieldCondition(key="category", match=MatchValue(value=category))]
-            )
+            conditions.append(FieldCondition(key="category", match=MatchValue(value=category)))
+        if bounded_context:
+            conditions.append(FieldCondition(key="bounded_context", match=MatchValue(value=bounded_context)))
+        query_filter = Filter(must=conditions) if conditions else None
 
         results = self.client.query_points(
             collection_name=self.collection_name,

@@ -1,4 +1,5 @@
 ---
+type: rule
 id: RULE-002
 title: Em homologação nenhum job chama ERP, J&T ou WMS
 status: active

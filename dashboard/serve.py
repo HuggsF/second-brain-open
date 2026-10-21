@@ -19,6 +19,9 @@ if str(PROJECT_ROOT) not in sys.path:
 from backend.workflow_api import MAX_BODY_BYTES, WorkflowApi  # noqa: E402
 from config import settings  # noqa: E402
 from backend.playbooks_api import PlaybooksApi  # noqa: E402,F401
+from backend.workforce_api import WorkforceApi  # noqa: E402
+from core.analytics_etl import get_emission_trends, get_error_analysis, get_throughput_analysis, get_logistics_health  # noqa: E402
+from core.operational_rules import list_rules as list_operational_rules  # noqa: E402
 
 STATIC_SUFFIXES = {'.html', '.css', '.js', '.json', '.svg', '.jpg', '.png', '.webp', '.md'}
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
@@ -26,7 +29,7 @@ CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 
 CSP_FRAMEABLE = CSP.replace("frame-ancestors 'none'", "frame-ancestors 'self'")
 
 
-def make_handler(api, playbooks_api=None, directory=None):
+def make_handler(api, playbooks_api=None, workforce_api=None, directory=None):
     static_root = Path(directory) if directory else api.root / 'dashboard'
 
     class DashboardHandler(SimpleHTTPRequestHandler):
@@ -63,6 +66,17 @@ def make_handler(api, playbooks_api=None, directory=None):
                     if result is not None:
                         status, payload = result
                         return self.send_json(status, payload)
+                # Workforce API
+                if workforce_api and path.startswith('/api/workforce/'):
+                    result = workforce_api.handle('GET', path, b'')
+                    if result is not None:
+                        return self.send_json(*result)
+                # Operational rules API
+                if path == '/api/operational-rules':
+                    return self._handle_operational_rules()
+                # Analytics API
+                if path.startswith('/api/analytics/'):
+                    return self._handle_analytics(path)
                 # Fall through to workflow API
                 result = api.handle('GET', path, b'')
                 return self.send_json(*result) if result else self.send_json(404, {'error': 'NOT_FOUND'})
@@ -90,10 +104,49 @@ def make_handler(api, playbooks_api=None, directory=None):
                 if result is not None:
                     status, payload = result
                     return self.send_json(status, payload)
+            # Workforce API POST (refine demand via LLM)
+            if workforce_api and path.startswith('/api/workforce/'):
+                result = workforce_api.handle('POST', path, body)
+                if result is not None:
+                    return self.send_json(*result)
             if path == '/api/workflow/execute-step' and self.headers.get('Content-Type', '').split(';')[0].strip() != 'application/json':
                 return self.send_json(415, {'error': 'JSON_REQUIRED'})
             result = api.handle('POST', path, body)
             return self.send_json(*result) if result else self.send_json(404, {'error': 'NOT_FOUND'})
+
+        def _handle_operational_rules(self):
+            from urllib.parse import parse_qs
+            parsed = urlparse(self.path)
+            params = parse_qs(parsed.query)
+            category = params.get('category', [None])[0]
+            try:
+                rules = list_operational_rules(category)
+                return self.send_json(200, rules)
+            except Exception as exc:
+                return self.send_json(500, {'error': str(exc)})
+
+        def _handle_analytics(self, path):
+            from urllib.parse import parse_qs
+            parsed = urlparse(self.path)
+            params = parse_qs(parsed.query)
+            endpoint = path.replace('/api/analytics/', '', 1)
+            try:
+                if endpoint.startswith('emission-trends'):
+                    days = int(params.get('days', ['30'])[0])
+                    return self.send_json(200, get_emission_trends(days))
+                elif endpoint.startswith('error-analysis'):
+                    days = int(params.get('days', ['14'])[0])
+                    return self.send_json(200, get_error_analysis(days))
+                elif endpoint.startswith('throughput'):
+                    days = int(params.get('days', ['7'])[0])
+                    return self.send_json(200, get_throughput_analysis(days))
+                elif endpoint.startswith('logistics-health'):
+                    days = int(params.get('days', ['14'])[0])
+                    return self.send_json(200, get_logistics_health(days))
+                else:
+                    return self.send_json(404, {'error': 'ANALYTICS_ENDPOINT_NOT_FOUND'})
+            except Exception as exc:
+                return self.send_json(500, {'error': str(exc)})
 
         def send_head(self):
             path = unquote(urlparse(self.path).path)
@@ -124,10 +177,19 @@ if __name__ == '__main__':
     api = WorkflowApi(PROJECT_ROOT, port=args.port)
     pb_api = PlaybooksApi(PROJECT_ROOT / 'vault')
     pb_count = len(pb_api._all_playbooks())
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(api, pb_api, ROOT))
+    wf_api = WorkforceApi(
+        PROJECT_ROOT,
+        ollama_url=settings.ollama_url,
+        chat_model=settings.chat_model,
+        qdrant_url=settings.qdrant_url,
+        qdrant_collection=settings.qdrant_collection,
+        embedding_model=settings.embedding_model,
+    )
+    server = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(api, pb_api, wf_api, ROOT))
     server.daemon_threads = True
     print(f'Dashboard & Workflow API running: http://127.0.0.1:{args.port}/', flush=True)
     print(f'Server PID: {os.getpid()} | Audit log: {api.audit_file} | Playbooks: {pb_count}', flush=True)
+    print(f'Workforce LLM: {settings.chat_model} @ {settings.ollama_url} | RAG: {settings.qdrant_collection} @ {settings.qdrant_url}', flush=True)
 
     try:
         server.serve_forever()

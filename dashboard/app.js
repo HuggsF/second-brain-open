@@ -5,13 +5,13 @@ if(typeof window!=='undefined'&&!window.BrainBridge&&typeof document!=='undefine
 const $ = id => document.getElementById(id);
 const G = window.KIOSK_GRAPH, C = window.BrainCore, M = window.BrainMarkdown;
 const dataOK=window.BrainSchema?.validateSnapshot(G).ok||false;
-const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],'tool-calls':['🔧','Tool Calls'],nexus:['🏢','Nexus Office'],jev:['📊','JEV']};
+const pages = {overview:['◈','Visão geral'],knowledge:['▤','Conhecimento'],playbooks:['📋','Playbooks'],graph:['◎','Grafo'],queries:['⌕','Consultas'],workflows:['🔀','Workflows de IA'],workforce:['🚀','Workforce Studio'],architecture:['🏛','System Design'],product:['🎯','Produto & OKRs'],teams:['⚙','Times'],observability:['◉','Observabilidade'],'tool-calls':['🔧','Tool Calls'],nexus:['🏢','Nexus Office'],jev:['📊','JEV'],analytics:['📊','Analytics Hub'],oprules:['📜','Regras Op.']};
 const NAV_GROUPS = [
   { icon: '◈', label: 'Visão Geral', page: 'overview' },
   { icon: '🧠', label: 'Conhecimento', children: ['knowledge','graph','queries'] },
-  { icon: '📋', label: 'Operação', children: ['playbooks','workflows'] },
+  { icon: '📋', label: 'Operação', children: ['playbooks','workflows','workforce','oprules'] },
   { icon: '🏗️', label: 'Arquitetura', children: ['architecture','product','teams'] },
-  { icon: '📡', label: 'Observabilidade', children: ['observability','tool-calls'] },
+  { icon: '📡', label: 'Observabilidade', children: ['observability','tool-calls','analytics'] },
   { icon: '🤖', label: 'Agentes', children: ['nexus','jev'] },
 ];
 const evidence = {implementado:'Implementado no código',local:'Implementado localmente',documentado:'Documentado',relatado:'Relatado',parcial:'Parcial',proposto:'Proposto'};
@@ -282,7 +282,8 @@ function render(){
   }
   if(route.page==='queries'){if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de consultas indisponível','Recarregue a página e verifique workbench.js.',button('Tentar novamente',()=>location.reload())));}
   if(route.page==='workflows'){if(window.BrainAgentArena)window.BrainAgentArena.render(main,api);else if(window.BrainWorkbench)window.BrainWorkbench.render(main,api);else main.append(empty('Módulo de workflows e agentes indisponível','Recarregue a página.',button('Tentar novamente',()=>location.reload())));}
-  if(route.page==='nexus'){
+     if(route.page==='workforce'){if(window.BrainWorkforceStudio)window.BrainWorkforceStudio.render(main,api);else main.append(empty('Módulo Workforce Studio indisponível','Recarregue a página e verifique workforce-studio.js.',button('Tentar novamente',()=>location.reload())));}
+   if(route.page==='nexus'){
     main.append(head('NEXUS OFFICE','Escritório de agentes em tempo real.','Agentes executando tarefas reais com busca vetorial, queries SQL e aprovação humana.',[
       button('Abrir em nova aba ↗',()=>window.open('http://127.0.0.1:5173','_blank'),'subtle')
     ]));
@@ -307,6 +308,14 @@ function render(){
     });
     frame.onerror=unavailable;
     main.append(frame);
+  }
+  if(route.page==='analytics'){
+    if(window.renderAnalytics)window.renderAnalytics(main);
+    else main.innerHTML='<div class="empty"><h2>Analytics não disponível</h2></div>';
+  }
+  if(route.page==='oprules'){
+    if(window.renderRules)window.renderRules(main);
+    else main.innerHTML='<div class="empty"><h2>Regras operacionais não disponíveis</h2></div>';
   }
  if(route.page==='knowledge'&&route.doc&&!route.section&&matchMedia('(max-width:650px)').matches)requestAnimationFrame(()=>{const reader=main.querySelector('.reader');reader?.focus({preventScroll:true});reader?.scrollIntoView({block:'start'});});
  $('snapshot-label').textContent='Snapshot '+G.snapshot_id.slice(0,8)+' · '+formatDate(G.built_at);

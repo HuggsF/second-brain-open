@@ -1,4 +1,5 @@
 ---
+type: rule
 id: RULE-001
 title: Toda nova emissão de etiqueta exige NF real
 status: active

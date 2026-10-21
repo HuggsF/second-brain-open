@@ -25,9 +25,9 @@ def tools_of(module_name):
 
 
 class TestServersAreTraced(unittest.TestCase):
-    def test_total_tool_count_is_55(self):
+    def test_total_tool_count_is_65(self):
         total = sum(len(tools_of(name)[1]) for name in SERVERS)
-        self.assertEqual(total, 55)
+        self.assertEqual(total, 65)
 
     def test_every_tool_has_optional_task_id(self):
         for name in SERVERS:

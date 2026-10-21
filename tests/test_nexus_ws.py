@@ -192,7 +192,7 @@ class _FakeEmbedder:
 
 
 class _FakeStore:
-    def search(self, query_vector, limit, category=None):
+    def search(self, query_vector, limit, category=None, bounded_context=None):
         return [{"score": 0.8, "payload": {"file_path": "systems/hub.md", "doc_title": "Hub", "section": "OAuth",
                                            "category": "systems", "content": "Conteúdo da seção OAuth do Hub."}}]
 
@@ -202,8 +202,8 @@ class TestRetrieverContent(unittest.TestCase):
         r = retriever_mod.BrainRetriever.__new__(retriever_mod.BrainRetriever)
         r.embedder, r.store = _FakeEmbedder(), _FakeStore()
         orig_query = r.query
-        def query(user_question, limit=4, category=None, include_content=False):
-            res = orig_query(user_question, limit=limit, category=category)
+        def query(user_question, limit=4, category=None, bounded_context=None, include_content=False):
+            res = orig_query(user_question, limit=limit, category=category, bounded_context=bounded_context)
             if include_content:
                 hits = r.store.search(None, limit, category)
                 for s, h in zip(res["sources"], hits):

@@ -13,6 +13,14 @@ class MarkdownChunker:
         text = file_path.read_text(encoding="utf-8")
         text, front = self._split_frontmatter(text)
         extra = {key: str(front[name]) for key, name in (("status", "status"), ("doc_type", "type")) if front.get(name) is not None}
+        # Ontology-aware metadata from frontmatter
+        for field in ("related", "bounded_context", "entities"):
+            val = front.get(field)
+            if val is not None:
+                if isinstance(val, list):
+                    extra[field] = ",".join(str(v) for v in val)
+                else:
+                    extra[field] = str(val)
         rel_path = file_path.relative_to(vault_dir).as_posix()
         category = file_path.parent.name if file_path.parent != vault_dir else "general"
 
