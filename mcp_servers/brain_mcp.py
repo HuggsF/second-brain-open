@@ -10,6 +10,18 @@ from core.retriever import BrainRetriever
 from core.qdrant_store import QdrantStore
 from core import evidence, tracing
 from core.evidence_store import EvidenceStore, EvidenceStoreError
+from core.ontology import resolve_term, list_bounded_contexts, list_entities
+from core.operational_rules import (
+    list_rules as list_op_rules_fn,
+    get_details as get_op_rule_details_fn,
+)
+from core.analytics_etl import (
+    extract_and_store as etl_extract,
+    get_emission_trends,
+    get_error_analysis,
+    get_throughput_analysis,
+    get_logistics_health,
+)
 
 mcp =FastMCP("KIOSK Second Brain")
 mcp.add_middleware(TraceMiddleware('KIOSK Second Brain'))
@@ -17,14 +29,16 @@ mcp.add_middleware(TraceMiddleware('KIOSK Second Brain'))
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,63}$")
 
 @mcp.tool()
-def search_knowledge_base(query: str, category: Optional[str] = None, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
+def search_knowledge_base(query: str, category: Optional[str] = None, bounded_context: Optional[str] = None, include_content: bool = False, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Pesquisa a base de conhecimento técnica e arquitetural da holding KIOSK Brands.
     Categorias válidas: 'adrs', 'systems', 'domain', 'daily'.
+    bounded_context: filtra por bounded context DDD (ex: 'Fiscal', 'Expedição e Remessas').
+    include_content: se True, inclui o conteúdo completo de cada chunk no resultado.
     task_id: optional label that groups this call with others of the same task
     """
     retriever = BrainRetriever()
-    result = retriever.query(query, limit=5, category=category)
+    result = retriever.query(query, limit=5, category=category, bounded_context=bounded_context, include_content=include_content)
     return result["sources"]
 
 @mcp.tool()
@@ -46,7 +60,10 @@ def get_adr(adr_identifier: str, task_id: Optional[str] = None) -> str:
 @mcp.tool()
 def get_system_architecture(system_name: str, task_id: Optional[str] = None) -> str:
     """
-    Recupera a documentação técnica de um sistema específico da holding: 'sap', 'sults', 'holmes', 'salesforce'.
+    Recupera a documentação técnica de um sistema específico da holding.
+    Exemplos: 'sap', 'sults', 'holmes', 'salesforce', 'hub-ontologia-ddd-proposta',
+    'hub-mapa-entidades-dominios', 'hub-regras-operacionais-codex',
+    'hub-gatilho-nfe-e-politicas-de-emissao', 'protecoes-processamento-emissao-hub'.
     task_id: optional label that groups this call with others of the same task
     """
     name = (system_name or "").lower().strip()
@@ -121,6 +138,104 @@ def record_test_execution(
     except EvidenceStoreError as exc:
         return {"error": str(exc)}
     return {"recorded": new_id, "trace_id": trace_id}
+
+# --- Ontology Tools (T1) ---
+
+@mcp.tool()
+def resolve_ontology_term(term: str, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Busca fuzzy (substring, case-insensitive) de um termo na ontologia DDD proposta do Hub Logístico.
+    Retorna até 10 matches com nome atual, nome proposto, bounded context e natureza.
+    Útil para descobrir o nome canônico de uma entidade, porta ou use case.
+    task_id: optional label that groups this call with others of the same task
+    """
+    return resolve_term(term)
+
+@mcp.tool()
+def list_ddd_bounded_contexts(task_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Lista os 5 bounded contexts do Hub Logístico (Pedidos, Fiscal, Expedição, Configuração, Consulta)
+    com suas entidades, use cases, portas e implementações atuais (JS e TS).
+    task_id: optional label that groups this call with others of the same task
+    """
+    return list_bounded_contexts()
+
+@mcp.tool()
+def list_domain_entities(bounded_context: Optional[str] = None, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Lista entidades de domínio da ontologia DDD proposta, opcionalmente filtradas por bounded context.
+    Exemplo: bounded_context='Fiscal' retorna NfeSnapshot, NfeDispatchPolicy, ValidatedInvoice.
+    task_id: optional label that groups this call with others of the same task
+    """
+    return list_entities(bounded_context)
+
+# --- Operational Rules Tools (T2) ---
+
+@mcp.tool()
+def list_operational_rules(category: Optional[str] = None, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Lista as 74 regras operacionais do Hub Logístico catalogadas pelo agente Codex.
+    Categorias: emission, preflight, nfe, recovery, weight, monitor, logging, deploy.
+    Sem filtro retorna todas as regras. Cada regra tem: id, descrição, categoria, documento-fonte, branch.
+    task_id: optional label that groups this call with others of the same task
+    """
+    return list_op_rules_fn(category)
+
+@mcp.tool()
+def get_operational_rule_details(rule_id: str, task_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Retorna detalhes completos de uma regra operacional pelo ID (ex: 'INV-01', 'PREFLIGHT-03', 'NFE-07').
+    Inclui descrição completa, categoria, documento-fonte e branch de origem.
+    task_id: optional label that groups this call with others of the same task
+    """
+    return get_op_rule_details_fn(rule_id)
+
+# --- ETL & Analytics Tools (T5) ---
+
+@mcp.tool()
+def etl_run(days: int = 7, environment: str = "production", task_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Executa o pipeline ETL: extrai dados agregados do Hub Logístico via SSH e armazena localmente.
+    Não armazena PII (NEG-03). Não altera o Hub (NEG-02). days: janela de extração (1-90).
+    environment: 'production' ou 'hml'. task_id: optional label.
+    """
+    days = max(1, min(int(days), 90))
+    if environment not in ("production", "hml"):
+        return {"error": "environment must be 'production' or 'hml'"}
+    return etl_extract(days, environment)
+
+@mcp.tool()
+def predict_emission_trends(days: int = 30, task_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Analisa tendências de emissão dos últimos N dias e projeta volume do dia seguinte.
+    Retorna médias, taxa de sucesso/falha, tendência (increasing/stable/decreasing) e dados diários.
+    Requer ETL prévio (etl_run). task_id: optional label.
+    """
+    return get_emission_trends(max(1, min(int(days), 365)))
+
+@mcp.tool()
+def analyze_error_patterns(days: int = 14, task_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Analisa padrões de erro (RATE_LIMIT, TIMEOUT, REVIEW_REQUIRED, UNCERTAIN_STATE, CANCELLATION)
+    dos últimos N dias. Identifica o problema mais frequente. Requer ETL prévio. task_id: optional label.
+    """
+    return get_error_analysis(max(1, min(int(days), 365)))
+
+@mcp.tool()
+def analyze_throughput(days: int = 7, task_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Analisa throughput por hora do dia, identifica pico e vale de operação,
+    sugere janela de manutenção. Requer ETL prévio. task_id: optional label.
+    """
+    return get_throughput_analysis(max(1, min(int(days), 365)))
+
+@mcp.tool()
+def analyze_logistics_health(days: int = 14, task_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Analisa saúde do objeto logístico: cobertura, LOGISTICS_OBJECT_MISSING e MULTIPLE_VOLUMES.
+    Requer ETL prévio. task_id: optional label.
+    """
+    return get_logistics_health(max(1, min(int(days), 365)))
 
 if __name__ == "__main__":
     mcp.run()

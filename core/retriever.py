@@ -13,11 +13,13 @@ class BrainRetriever:
         self, 
         user_question: str, 
         limit: int = 4, 
-        category: Optional[str] = None
+        category: Optional[str] = None,
+        bounded_context: Optional[str] = None,
+        include_content: bool = False
     ) -> Dict[str, Any]:
         """Recupera os blocos mais relevantes no Qdrant para uma pergunta."""
         query_vector = self.embedder.get_embedding(user_question)
-        hits = self.store.search(query_vector=query_vector, limit=limit, category=category)
+        hits = self.store.search(query_vector=query_vector, limit=limit, category=category, bounded_context=bounded_context)
         
         context_parts = []
         sources = []
@@ -29,13 +31,16 @@ class BrainRetriever:
                 f"--- Fonte: {payload.get('file_path')} | Seção: {payload.get('section')} (Relevância: {score:.2f}) ---\n"
                 f"{payload.get('content')}\n"
             )
-            sources.append({
+            source = {
                 "file_path": payload.get("file_path"),
                 "doc_title": payload.get("doc_title"),
                 "section": payload.get("section"),
                 "category": payload.get("category"),
                 "score": score
-            })
+            }
+            if include_content:
+                source["content"] = payload.get("content", "")
+            sources.append(source)
 
         context_text = "\n".join(context_parts)
         return {

@@ -29,6 +29,7 @@ import httpx
 from core import tracing
 from core import evidence as evidence_core
 from core.evidence_store import EvidenceStore, EvidenceStoreError
+from core.qdrant_store import QdrantStore
 
 console = Console(force_terminal=True)
 
@@ -427,6 +428,20 @@ def task_eval(min_accuracy, profile_name):
     if accuracy < min_accuracy:
         raise SystemExit(1)
 
+
+
+@cli.command("etl")
+@click.option("--days", type=int, default=7, show_default=True, help="Dias de dados a extrair (1-90)")
+@click.option("--environment", default="production", type=click.Choice(["production", "hml"]), help="Ambiente do Hub")
+def etl_cmd(days, environment):
+    """Executa o pipeline ETL para extrair dados analíticos do Hub Logístico."""
+    from core.analytics_etl import extract_and_store
+    result = extract_and_store(days, environment)
+    console.print_json(json.dumps(result))
+
+
+from scripts.sanitize import sanitize_cmd
+cli.add_command(sanitize_cmd, "sanitize")
 
 if __name__ == "__main__":
     cli()

@@ -28,3 +28,14 @@ extracted_pm3/
 # JEV app (React)
 jev-app/node_modules/
 jev-app/.vite/
+
+# Chaves e certificados sensiveis
+*.pem
+*.key
+hub.db
+
+
+# Analytics data (local only)
+data/analytics.db
+data/analytics.db-wal
+data/analytics.db-shm
