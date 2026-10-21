@@ -3,7 +3,7 @@ type: rule
 id: RULE-003
 title: Conferência NF-e obrigatória antes de despacho automático
 status: active
-source: vault/systems/hub-gatilho-nfe-e-politicas-de-emissao.md
+source: vault/systems/hub-gatilho-nfe-e-politicas-de-emissao.md:67
 domain: logistica
 ---
 

@@ -3,7 +3,7 @@ type: rule
 id: RULE-004
 title: Emissão protegida contra race condition (reserva atômica SQLite)
 status: active
-source: vault/systems/protecoes-processamento-emissao-hub.md
+source: vault/systems/protecoes-processamento-emissao-hub.md:12
 domain: logistica
 ---
 

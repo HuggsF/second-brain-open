@@ -7,6 +7,7 @@ import json
 import os
 import re
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -65,6 +66,43 @@ def _hub_query(sql: str, environment: str = "production") -> str:
     # Use sqlite3 CLI with JSON mode for structured output
     command = f'sqlite3 -json "{db_path}" "{sql_clean};"'
     return _ssh_exec(command)
+
+
+# --- Batched SSH session (NEG-09: max 1 SSH connection per ETL cycle) ---
+
+@contextmanager
+def _ssh_session():
+    """Context manager that yields a connected SSH client. Use for batched queries (NEG-09)."""
+    client = paramiko.SSHClient()
+    try:
+        client.load_host_keys(str(PIN))
+        client.set_missing_host_key_policy(paramiko.RejectPolicy())
+        key = paramiko.RSAKey.from_private_key_file(
+            os.getenv("SRV_API_KEY_PATH", r"C:\KIOSK\SRV-API_key.pem"))
+        client.connect(
+            os.getenv("SRV_API_HOST", "191.233.18.195"),
+            port=int(os.getenv("SRV_API_PORT", "22")),
+            username=os.getenv("SRV_API_USER", "ti-kiosk"),
+            pkey=key, timeout=15,
+            banner_timeout=15, auth_timeout=15,
+            allow_agent=False, look_for_keys=False)
+        yield client
+    finally:
+        client.close()
+
+
+def _hub_query_on(client: paramiko.SSHClient, sql: str, environment: str = "production") -> str:
+    """Runs a SELECT query on the Hub SQLite DB using an existing SSH client."""
+    sql_clean = sql.strip().rstrip(";")
+    if not sql_clean.upper().startswith("SELECT"):
+        raise ValueError("Only SELECT queries are allowed (NEG-02)")
+    db_path = _hub_db_path(environment)
+    command = f'sqlite3 -json "{db_path}" "{sql_clean};"'
+    _, stdout, _ = client.exec_command(command, timeout=60)
+    data = stdout.read(512 * 1024 + 1)
+    if len(data) > 512 * 1024:
+        raise ValueError("Oversized response")
+    return data.decode("utf-8")
 
 
 # --- Local analytics DB ---
@@ -200,63 +238,64 @@ def extract_and_store(days: int = 7, environment: str = "production") -> Dict[st
     results = {"extracted_at": now, "environment": environment, "tables": {}}
 
     try:
-        # 1. Daily stats
-        raw = _hub_query(_DAILY_STATS_SQL.format(days=days), environment)
-        rows = json.loads(raw) if raw.strip() else []
-        for row in rows:
-            conn.execute("""
-                INSERT OR REPLACE INTO emission_daily
-                (date, environment, total_orders, successful, failed, review_required,
-                 avg_retry_count, avg_processing_seconds, extracted_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (row["date"], environment, row["total_orders"], row["successful"],
-                  row["failed"], row["review_required"],
-                  row.get("avg_retry_count", 0), row.get("avg_processing_seconds", 0), now))
-        results["tables"]["emission_daily"] = len(rows)
+        with _ssh_session() as client:
+            # 1. Daily stats
+            raw = _hub_query_on(client, _DAILY_STATS_SQL.format(days=days), environment)
+            rows = json.loads(raw) if raw.strip() else []
+            for row in rows:
+                conn.execute("""
+                    INSERT OR REPLACE INTO emission_daily
+                    (date, environment, total_orders, successful, failed, review_required,
+                     avg_retry_count, avg_processing_seconds, extracted_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (row["date"], environment, row["total_orders"], row["successful"],
+                      row["failed"], row["review_required"],
+                      row.get("avg_retry_count", 0), row.get("avg_processing_seconds", 0), now))
+            results["tables"]["emission_daily"] = len(rows)
 
-        # 2. Error patterns
-        raw = _hub_query(_ERROR_PATTERNS_SQL.format(days=days), environment)
-        rows = json.loads(raw) if raw.strip() else []
-        for row in rows:
-            # Sanitize: truncate last_message, remove any PII patterns
-            msg = (row.get("last_message") or "")[:200]
-            msg = re.sub(r'\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b', '[CPF]', msg)
-            msg = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', '[EMAIL]', msg)
-            conn.execute("""
-                INSERT OR REPLACE INTO error_patterns
-                (date, environment, error_type, count, last_message, extracted_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (row["date"], environment, row["error_type"], row["count"], msg, now))
-        results["tables"]["error_patterns"] = len(rows)
+            # 2. Error patterns
+            raw = _hub_query_on(client, _ERROR_PATTERNS_SQL.format(days=days), environment)
+            rows = json.loads(raw) if raw.strip() else []
+            for row in rows:
+                # Sanitize: truncate last_message, remove any PII patterns
+                msg = (row.get("last_message") or "")[:200]
+                msg = re.sub(r'\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b', '[CPF]', msg)
+                msg = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', '[EMAIL]', msg)
+                conn.execute("""
+                    INSERT OR REPLACE INTO error_patterns
+                    (date, environment, error_type, count, last_message, extracted_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (row["date"], environment, row["error_type"], row["count"], msg, now))
+            results["tables"]["error_patterns"] = len(rows)
 
-        # 3. Throughput hourly
-        raw = _hub_query(_THROUGHPUT_HOURLY_SQL.format(days=days), environment)
-        rows = json.loads(raw) if raw.strip() else []
-        for row in rows:
-            conn.execute("""
-                INSERT OR REPLACE INTO throughput_hourly
-                (date, hour, environment, emissions_started, emissions_completed,
-                 avg_duration_seconds, extracted_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (row["date"], row["hour"], environment, row["emissions_started"],
-                  row["emissions_completed"], row.get("avg_duration_seconds", 0), now))
-        results["tables"]["throughput_hourly"] = len(rows)
+            # 3. Throughput hourly
+            raw = _hub_query_on(client, _THROUGHPUT_HOURLY_SQL.format(days=days), environment)
+            rows = json.loads(raw) if raw.strip() else []
+            for row in rows:
+                conn.execute("""
+                    INSERT OR REPLACE INTO throughput_hourly
+                    (date, hour, environment, emissions_started, emissions_completed,
+                     avg_duration_seconds, extracted_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (row["date"], row["hour"], environment, row["emissions_started"],
+                      row["emissions_completed"], row.get("avg_duration_seconds", 0), now))
+            results["tables"]["throughput_hourly"] = len(rows)
 
-        # 4. Logistics status
-        raw = _hub_query(_LOGISTICS_STATUS_SQL.format(days=days), environment)
-        rows = json.loads(raw) if raw.strip() else []
-        for row in rows:
-            conn.execute("""
-                INSERT OR REPLACE INTO logistics_status
-                (date, environment, total_with_logistics, total_without_logistics,
-                 review_logistics_missing, review_multiple_volumes, extracted_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (row["date"], environment, row.get("total_with_logistics", 0),
-                  row.get("total_without_logistics", 0), row.get("review_logistics_missing", 0),
-                  row.get("review_multiple_volumes", 0), now))
-        results["tables"]["logistics_status"] = len(rows)
+            # 4. Logistics status
+            raw = _hub_query_on(client, _LOGISTICS_STATUS_SQL.format(days=days), environment)
+            rows = json.loads(raw) if raw.strip() else []
+            for row in rows:
+                conn.execute("""
+                    INSERT OR REPLACE INTO logistics_status
+                    (date, environment, total_with_logistics, total_without_logistics,
+                     review_logistics_missing, review_multiple_volumes, extracted_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (row["date"], environment, row.get("total_with_logistics", 0),
+                      row.get("total_without_logistics", 0), row.get("review_logistics_missing", 0),
+                      row.get("review_multiple_volumes", 0), now))
+            results["tables"]["logistics_status"] = len(rows)
 
-        conn.commit()
+            conn.commit()
     except Exception as e:
         results["error"] = str(e)
     finally:

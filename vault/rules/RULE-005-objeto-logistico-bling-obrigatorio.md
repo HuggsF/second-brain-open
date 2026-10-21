@@ -3,7 +3,7 @@ type: rule
 id: RULE-005
 title: Objeto logístico Bling deve existir antes de emissão
 status: active
-source: vault/systems/hub-regras-operacionais-codex.md
+source: vault/systems/hub-regras-operacionais-codex.md:47
 domain: logistica
 ---
 

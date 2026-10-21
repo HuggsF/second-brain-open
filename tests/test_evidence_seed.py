@@ -16,11 +16,12 @@ class TestRealSeed(unittest.TestCase):
     def test_real_definitions_load_without_errors_and_lint_clean(self):
         defs = evidence.load_definitions(settings.vault_dir)
         self.assertEqual(defs.errors, [])
-        self.assertEqual(sorted(defs.rules), ["RULE-001", "RULE-002"])
+        self.assertEqual(sorted(defs.rules), ["RULE-001", "RULE-002", "RULE-003", "RULE-004", "RULE-005"])
         expected_pbs = [
             "PB-001", "PB-002", "PB-003", "PB-004", "PB-005",
             "PB-006", "PB-007", "PB-008", "PB-009", "PB-010",
             "PB-011", "PB-012", "PB-013",
+            "PB-014", "PB-015", "PB-016",
         ]
         self.assertEqual(sorted(defs.playbooks), expected_pbs)
         self.assertEqual(evidence.lint(defs), [])
@@ -30,7 +31,7 @@ class TestRealSeed(unittest.TestCase):
     def test_real_seed_marks_pb001_and_pb002_as_tests(self):
         defs = evidence.load_definitions(settings.vault_dir)
         for pb_id, playbook in defs.playbooks.items():
-            self.assertEqual(playbook.kind, "test" if pb_id in ("PB-001", "PB-002") else "runbook", pb_id)
+            self.assertEqual(playbook.kind, "test" if pb_id in ("PB-001", "PB-002", "PB-014", "PB-015", "PB-016") else "runbook", pb_id)
             self.assertEqual(playbook.ttl_hours, 168, pb_id)
 
     def test_every_rule_source_line_exists(self):
@@ -73,7 +74,7 @@ class TestRealSeed(unittest.TestCase):
 
     def test_all_new_notes_use_crlf(self):
         notes = sorted((settings.vault_dir / "rules").glob("*.md")) + sorted((settings.vault_dir / "playbooks").glob("*.md"))
-        self.assertEqual(len(notes), 15)
+        self.assertEqual(len(notes), 21)
         for note in notes:
             data = note.read_bytes()
             self.assertTrue(data.count(b"\r\n") > 0, note.name)

@@ -8,6 +8,9 @@ from unittest import mock
 from core.analytics_etl import (
     _ensure_analytics_db,
     _hub_query,
+    _hub_query_on,
+    _ssh_session,
+    extract_and_store,
     get_emission_trends,
     get_error_analysis,
     get_throughput_analysis,
@@ -82,3 +85,83 @@ class TestStatisticalFunctions:
         assert result["summary"]["avg_daily_orders"] > 0
         assert "trend" in result
         assert result["trend"]["direction"] in ("increasing", "decreasing", "stable")
+
+
+class TestHubQueryOn:
+    """Tests for _hub_query_on (batched query on existing SSH client)."""
+
+    def test_rejects_non_select(self):
+        fake_client = mock.MagicMock()
+        with pytest.raises(ValueError, match="Only SELECT"):
+            _hub_query_on(fake_client, "DELETE FROM orders_queue")
+        fake_client.exec_command.assert_not_called()
+
+    def test_rejects_insert(self):
+        fake_client = mock.MagicMock()
+        with pytest.raises(ValueError, match="Only SELECT"):
+            _hub_query_on(fake_client, "INSERT INTO orders_queue VALUES (1)")
+
+    def test_rejects_update(self):
+        fake_client = mock.MagicMock()
+        with pytest.raises(ValueError, match="Only SELECT"):
+            _hub_query_on(fake_client, "UPDATE orders_queue SET status='x'")
+
+    def test_select_returns_output(self):
+        fake_client = mock.MagicMock()
+        fake_stdout = mock.MagicMock()
+        fake_stdout.read.return_value = b'[{"count":42}]'
+        fake_client.exec_command.return_value = (None, fake_stdout, None)
+        result = _hub_query_on(fake_client, "SELECT COUNT(*) as count FROM orders_queue")
+        assert result == '[{"count":42}]'
+        fake_client.exec_command.assert_called_once()
+
+    def test_oversized_response_raises(self):
+        fake_client = mock.MagicMock()
+        fake_stdout = mock.MagicMock()
+        fake_stdout.read.return_value = b"x" * (512 * 1024 + 1)
+        fake_client.exec_command.return_value = (None, fake_stdout, None)
+        with pytest.raises(ValueError, match="Oversized response"):
+            _hub_query_on(fake_client, "SELECT * FROM orders_queue")
+
+
+class TestExtractAndStoreNEG09:
+    """NEG-09: ETL must use at most 1 SSH connection per collection cycle."""
+
+    def test_single_ssh_connection(self, tmp_path, monkeypatch):
+        """extract_and_store() opens exactly 1 SSH session for all 4 queries."""
+        db_path = tmp_path / "test.db"
+        monkeypatch.setattr("core.analytics_etl.ANALYTICS_DB", db_path)
+
+        empty_json = "[]"
+        call_count = {"hub_query_on": 0}
+
+        def fake_hub_query_on(client, sql, environment="production"):
+            call_count["hub_query_on"] += 1
+            return empty_json
+
+        ssh_session_enters = {"count": 0}
+        original_ssh_session = _ssh_session
+
+        from contextlib import contextmanager
+
+        @contextmanager
+        def counting_ssh_session():
+            ssh_session_enters["count"] += 1
+            # Yield a mock client instead of real SSH
+            yield mock.MagicMock()
+
+        monkeypatch.setattr("core.analytics_etl._ssh_session", counting_ssh_session)
+        monkeypatch.setattr("core.analytics_etl._hub_query_on", fake_hub_query_on)
+
+        result = extract_and_store(days=7, environment="production")
+
+        # NEG-09: exactly 1 SSH session
+        assert ssh_session_enters["count"] == 1, (
+            f"Expected 1 SSH session, got {ssh_session_enters['count']}"
+        )
+        # All 4 queries executed
+        assert call_count["hub_query_on"] == 4, (
+            f"Expected 4 queries, got {call_count['hub_query_on']}"
+        )
+        assert "error" not in result
+        assert len(result["tables"]) == 4
