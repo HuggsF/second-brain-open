@@ -1,4 +1,5 @@
 ---
+type: playbook
 id: PB-001
 title: Suíte automatizada do Hub (npm test)
 status: active
