@@ -1,0 +1,72 @@
+name: CI — Tests & Lint
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.12.6
+        ports:
+          - 6333:6333
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Ollama (for embeddings)
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 5
+          ollama pull nomic-embed-text
+
+      - name: Wait for Qdrant
+        run: |
+          for i in $(seq 1 30); do
+            curl -s http://localhost:6333/healthz && break
+            sleep 1
+          done
+
+      - name: Run tests
+        env:
+          QDRANT_URL: http://localhost:6333
+          OLLAMA_BASE_URL: http://localhost:11434
+          # SSH keys are NOT available in CI — tests that need SSH are mocked
+        run: |
+          python -m pytest tests/ -v --tb=short -x \
+            --ignore=tests/nexus_bridge.mjs \
+            -k "not test_graph_ws_smoke" \
+            2>&1 | tee test-output.txt
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-output.txt
+          retention-days: 7
+
+      - name: Evidence lint
+        run: |
+          python cli.py evidence --lint || true

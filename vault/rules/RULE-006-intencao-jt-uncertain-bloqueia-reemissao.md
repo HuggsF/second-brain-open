@@ -1,4 +1,4 @@
-﻿---
+---
 id: RULE-006
 title: Intenção J&T uncertain não é reemitida automaticamente
 status: active

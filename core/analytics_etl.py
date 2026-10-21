@@ -17,12 +17,42 @@ from dotenv import load_dotenv
 
 from config import settings
 
+# --- PII sanitization (NEG-03) ---
+
+_PII_PATTERNS = [
+    (re.compile(r'\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b'), '[CPF]'),
+    (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'), '[EMAIL]'),
+    (re.compile(r'\b(?:\+55\s?)?(?:\(?\d{2}\)?\s?)?\d{4,5}[-\s]?\d{4}\b'), '[PHONE]'),
+    (re.compile(r'\b\d{5}-?\d{3}\b'), '[CEP]'),
+]
+
+
+def _sanitize_pii(text: str) -> str:
+    """Redact known PII patterns from text. Returns sanitized copy."""
+    for pattern, replacement in _PII_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
+
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
 PIN = ROOT / ".runtime" / "known_hosts"
 ANALYTICS_DB = ROOT / "data" / "analytics.db"
 
 # --- SSH helper (same pattern as hub_observability_mcp.py) ---
+
+def _remote_output(stdout, stderr) -> str:
+    """Returns stdout of a remote command. A failed command (non-zero exit or any
+    stderr) raises instead of returning empty output, which would look like
+    "no rows" and hide the error."""
+    data = stdout.read(512 * 1024 + 1)
+    if len(data) > 512 * 1024:
+        raise ValueError("Oversized response")
+    status = stdout.channel.recv_exit_status()
+    err = stderr.read(4096).decode("utf-8", "replace").strip()
+    if status != 0 or err:
+        raise RuntimeError("HUB_QUERY_FAILED: " + err[:300])
+    return data.decode("utf-8")
+
 
 def _ssh_exec(command: str) -> str:
     """Opens SSH session to SRV-API, runs one read-only command, returns stdout."""
@@ -39,11 +69,12 @@ def _ssh_exec(command: str) -> str:
             pkey=key, timeout=15,
             banner_timeout=15, auth_timeout=15,
             allow_agent=False, look_for_keys=False)
-        _, stdout, _ = client.exec_command(command, timeout=60)
-        data = stdout.read(512 * 1024 + 1)
-        if len(data) > 512 * 1024:
-            raise ValueError("Oversized response")
-        return data.decode("utf-8")
+        _, stdout, stderr = client.exec_command(command, timeout=60)
+        return _remote_output(stdout, stderr)
+    except RuntimeError as exc:
+        if str(exc).startswith("HUB_QUERY_FAILED"):
+            raise
+        raise RuntimeError("SSH_UNAVAILABLE") from None
     except Exception:
         raise RuntimeError("SSH_UNAVAILABLE") from None
     finally:
@@ -54,7 +85,9 @@ def _hub_db_path(environment: str = "production") -> str:
     """Returns the SQLite DB path on the server."""
     if environment == "production":
         return "/home/ti-kiosk/hub/hub.db"
-    return "/home/ti-kiosk/hub-homolog/hub.db"
+    if environment == "hml":
+        return "/home/ti-kiosk/hub-homolog/hub-homolog.db"
+    raise ValueError("Ambiente inválido para o ETL: use production ou hml")
 
 
 def _hub_query(sql: str, environment: str = "production") -> str:
@@ -98,11 +131,8 @@ def _hub_query_on(client: paramiko.SSHClient, sql: str, environment: str = "prod
         raise ValueError("Only SELECT queries are allowed (NEG-02)")
     db_path = _hub_db_path(environment)
     command = f'sqlite3 -json "{db_path}" "{sql_clean};"'
-    _, stdout, _ = client.exec_command(command, timeout=60)
-    data = stdout.read(512 * 1024 + 1)
-    if len(data) > 512 * 1024:
-        raise ValueError("Oversized response")
-    return data.decode("utf-8")
+    _, stdout, stderr = client.exec_command(command, timeout=60)
+    return _remote_output(stdout, stderr)
 
 
 # --- Local analytics DB ---
@@ -170,11 +200,9 @@ SELECT
     COUNT(*) as total_orders,
     SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as successful,
     SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
-    SUM(CASE WHEN status LIKE '%REVIEW%' THEN 1 ELSE 0 END) as review_required,
-    AVG(retry_count) as avg_retry_count,
-    AVG(CASE WHEN completed_at IS NOT NULL
-        THEN (julianday(completed_at) - julianday(created_at)) * 86400
-        ELSE NULL END) as avg_processing_seconds
+    SUM(CASE WHEN error_log LIKE '%REVIEW_REQUIRED%' THEN 1 ELSE 0 END) as review_required,
+    AVG(retries) as avg_retry_count,
+    NULL as avg_processing_seconds
 FROM orders_queue
 WHERE created_at >= date('now', '-{days} days')
 GROUP BY date(created_at)
@@ -183,9 +211,9 @@ ORDER BY date DESC
 
 _ERROR_PATTERNS_SQL = """
 SELECT
-    date(timestamp) as date,
+    date(created_at) as date,
     CASE
-        WHEN message LIKE '%429%' OR message LIKE '%rate limit%' THEN 'RATE_LIMIT'
+        WHEN message LIKE '%429%' OR message LIKE '%rate limit%' OR message LIKE '%TOO_MANY_REQUESTS%' THEN 'RATE_LIMIT'
         WHEN message LIKE '%timeout%' OR message LIKE '%ETIMEDOUT%' THEN 'TIMEOUT'
         WHEN message LIKE '%REVIEW_REQUIRED%' THEN 'REVIEW_REQUIRED'
         WHEN message LIKE '%uncertain%' THEN 'UNCERTAIN_STATE'
@@ -195,9 +223,9 @@ SELECT
     COUNT(*) as count,
     MAX(message) as last_message
 FROM system_logs
-WHERE level IN ('error', 'warn')
-    AND timestamp >= date('now', '-{days} days')
-GROUP BY date(timestamp), error_type
+WHERE type IN ('erro', 'warn')
+    AND created_at >= date('now', '-{days} days')
+GROUP BY date(created_at), error_type
 ORDER BY date DESC, count DESC
 """
 
@@ -206,10 +234,8 @@ SELECT
     date(created_at) as date,
     CAST(strftime('%H', created_at) AS INTEGER) as hour,
     COUNT(*) as emissions_started,
-    SUM(CASE WHEN status IN ('success', 'confirmed') THEN 1 ELSE 0 END) as emissions_completed,
-    AVG(CASE WHEN completed_at IS NOT NULL
-        THEN (julianday(completed_at) - julianday(created_at)) * 86400
-        ELSE NULL END) as avg_duration_seconds
+    SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as emissions_completed,
+    NULL as avg_duration_seconds
 FROM orders_queue
 WHERE created_at >= date('now', '-{days} days')
 GROUP BY date(created_at), CAST(strftime('%H', created_at) AS INTEGER)
@@ -219,12 +245,12 @@ ORDER BY date DESC, hour
 _LOGISTICS_STATUS_SQL = """
 SELECT
     date(oq.created_at) as date,
-    SUM(CASE WHEN blc.id IS NOT NULL THEN 1 ELSE 0 END) as total_with_logistics,
-    SUM(CASE WHEN blc.id IS NULL THEN 1 ELSE 0 END) as total_without_logistics,
-    SUM(CASE WHEN oq.status LIKE '%LOGISTICS_OBJECT_MISSING%' THEN 1 ELSE 0 END) as review_logistics_missing,
-    SUM(CASE WHEN oq.status LIKE '%MULTIPLE_VOLUMES%' THEN 1 ELSE 0 END) as review_multiple_volumes
+    SUM(CASE WHEN blc.erp_id IS NOT NULL THEN 1 ELSE 0 END) as total_with_logistics,
+    SUM(CASE WHEN blc.erp_id IS NULL THEN 1 ELSE 0 END) as total_without_logistics,
+    SUM(CASE WHEN oq.error_log LIKE '%LOGISTICS_OBJECT_MISSING%' THEN 1 ELSE 0 END) as review_logistics_missing,
+    SUM(CASE WHEN oq.error_log LIKE '%MULTIPLE_VOLUMES%' THEN 1 ELSE 0 END) as review_multiple_volumes
 FROM orders_queue oq
-LEFT JOIN bling_logistics_creations blc ON oq.erp_id = blc.erp_order_id
+LEFT JOIN bling_logistics_creations blc ON oq.erp_id = blc.erp_id
 WHERE oq.created_at >= date('now', '-{days} days')
 GROUP BY date(oq.created_at)
 ORDER BY date DESC
@@ -257,10 +283,8 @@ def extract_and_store(days: int = 7, environment: str = "production") -> Dict[st
             raw = _hub_query_on(client, _ERROR_PATTERNS_SQL.format(days=days), environment)
             rows = json.loads(raw) if raw.strip() else []
             for row in rows:
-                # Sanitize: truncate last_message, remove any PII patterns
-                msg = (row.get("last_message") or "")[:200]
-                msg = re.sub(r'\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b', '[CPF]', msg)
-                msg = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', '[EMAIL]', msg)
+                # Sanitize: truncate last_message, remove any PII patterns (NEG-03)
+                msg = _sanitize_pii((row.get("last_message") or "")[:200])
                 conn.execute("""
                     INSERT OR REPLACE INTO error_patterns
                     (date, environment, error_type, count, last_message, extracted_at)

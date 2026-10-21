@@ -1,4 +1,4 @@
-﻿---
+---
 id: RULE-008
 title: Cancelamento recebido durante a emissão vai para revisão e não cancela na J&T
 status: active

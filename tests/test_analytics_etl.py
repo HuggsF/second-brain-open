@@ -110,7 +110,10 @@ class TestHubQueryOn:
         fake_client = mock.MagicMock()
         fake_stdout = mock.MagicMock()
         fake_stdout.read.return_value = b'[{"count":42}]'
-        fake_client.exec_command.return_value = (None, fake_stdout, None)
+        fake_stdout.channel.recv_exit_status.return_value = 0
+        fake_stderr = mock.MagicMock()
+        fake_stderr.read.return_value = b''
+        fake_client.exec_command.return_value = (None, fake_stdout, fake_stderr)
         result = _hub_query_on(fake_client, "SELECT COUNT(*) as count FROM orders_queue")
         assert result == '[{"count":42}]'
         fake_client.exec_command.assert_called_once()
@@ -165,3 +168,51 @@ class TestExtractAndStoreNEG09:
         )
         assert "error" not in result
         assert len(result["tables"]) == 4
+
+
+class TestSanitizePII:
+    """Tests for DD-01 — PII sanitization in analytics ETL."""
+
+    def test_sanitize_cpf_with_dots(self):
+        from core.analytics_etl import _sanitize_pii
+        assert _sanitize_pii("Error for 123.456.789-01") == "Error for [CPF]"
+
+    def test_sanitize_cpf_without_dots(self):
+        from core.analytics_etl import _sanitize_pii
+        assert _sanitize_pii("Error for 12345678901") == "Error for [CPF]"
+
+    def test_sanitize_email(self):
+        from core.analytics_etl import _sanitize_pii
+        assert _sanitize_pii("Contact hugo@kiosk.com for info") == "Contact [EMAIL] for info"
+
+    def test_sanitize_phone_with_ddd(self):
+        from core.analytics_etl import _sanitize_pii
+        result = _sanitize_pii("Call (11) 98765-4321 now")
+        assert "[PHONE]" in result
+        assert "98765" not in result
+
+    def test_sanitize_phone_international(self):
+        from core.analytics_etl import _sanitize_pii
+        result = _sanitize_pii("WhatsApp +55 11 98765-4321")
+        assert "[PHONE]" in result
+
+    def test_sanitize_cep(self):
+        from core.analytics_etl import _sanitize_pii
+        assert _sanitize_pii("CEP 01310-100 invalid") == "CEP [CEP] invalid"
+
+    def test_sanitize_multiple_pii(self):
+        from core.analytics_etl import _sanitize_pii
+        text = "User 123.456.789-01 email hugo@test.com phone (11) 99999-8888 CEP 01310-100"
+        result = _sanitize_pii(text)
+        assert "[CPF]" in result
+        assert "[EMAIL]" in result
+        assert "[PHONE]" in result
+        assert "[CEP]" in result
+        assert "123.456" not in result
+        assert "hugo@test" not in result
+        assert "99999" not in result
+
+    def test_sanitize_no_pii(self):
+        from core.analytics_etl import _sanitize_pii
+        text = "HTTP 429 rate limit exceeded for endpoint /api/orders"
+        assert _sanitize_pii(text) == text
