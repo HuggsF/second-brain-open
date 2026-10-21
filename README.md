@@ -11,7 +11,9 @@ Regras de trabalho no repositório (proibições, gate de testes, definição de
 | Vault | `vault/` | Notas Markdown: ADRs, sistemas, regras, playbooks, produto, times |
 | CLI | `cli.py` | Sincronizar o índice, perguntar com RAG, evidências, trace |
 | Servidores MCP | `mcp_servers/` | Ferramentas para IDEs e agentes (busca, ADRs, GitHub, SRV-API, Hub, tarefas locais) |
-| BFF | `backend/` | Servidor local com sessão: dashboard, observabilidade e API de workflows |
+| BFF | `backend/` | Servidor local com sessão: dashboard, observabilidade, WebSocket e API de workflows |
+| Graph Engine | `core/graph/` | Node Loop Graph: 7 nós, telemetria, circuit breakers, HITL |
+| Nexus | `nexus/` | Escritório visual de agentes (React + Vite) — simulação local ou WS para backend |
 | Dashboard | `dashboard/` | Interface estática: biblioteca, grafo, consultas, Workflow Studio, observabilidade |
 | Ingestão | `ingestion/` | Sync do vault, Google Drive, curso de System Design, chunks de inteligência |
 
@@ -20,7 +22,7 @@ resultados de análise 360 (`C:/KIOSK/analise-360`).
 
 ## Instalação
 
-Requer Python 3 e, para os testes do dashboard, Node 24.
+Requer Python 3.14+ e Node.js ≥ 22.12.0 (para Nexus e testes do dashboard).
 
 ```powershell
 python -m venv .venv
@@ -72,6 +74,56 @@ gerar outro link sem subir o servidor: `python -m backend.server --issue-link`. 
 A API do Workflow Studio (`backend/workflow_api.py`) registra cada passo executado no dashboard em
 `.runtime/workflow_audit.jsonl` e o associa a uma nota do vault; ela não executa agentes. Escrita exige `Origin`
 igual ao do servidor. Detalhes do BFF: [second-brain-observability-bff](vault/systems/second-brain-observability-bff.md).
+
+## Orchestrator — Graph Engine
+
+O orquestrador de missões usa o **Node Loop Graph** (`core/graph/`), uma arquitetura baseada em grafos com 7 nós
+assíncronos puros, circuit breakers duplos e suporte a Human-in-the-Loop (HITL).
+
+| Nó | Responsabilidade |
+|---|---|
+| `plan_node` | Decompõe a tarefa em steps via keyword matching |
+| `gate_node` | Quality gates: DAG, DLP, grounding, idempotência |
+| `route_node` | MoE routing dinâmico + unbind de circuit breakers abertos |
+| `execute_node` | Executa o step corrente via broker com retry |
+| `validate_node` | Valida o resultado do último step executado |
+| `correct_node` | Incrementa contador de retry e rebobina step_index |
+| `post_gate_node` | Quality gates pós-missão e sintetização de estado |
+
+Circuit breaker (por step e global) e suspensão Human-in-the-Loop (HITL) são coordenados pelo motor de
+execução (`runner.py`) e pelo servidor WebSocket (`ws_server.py`), mantendo os nós puros e desacoplados.
+
+A feature flag `MISSION_ENGINE=graph` ativa o graph engine; sem ela, o orquestrador legado
+(`backend/orchestrator.py`) continua ativo. Ambas as APIs coexistem (Strangler Fig pattern).
+
+```powershell
+# Ativar o graph engine no WebSocket server
+$env:MISSION_ENGINE = "graph"
+.\.venv\Scripts\python.exe -m backend.ws_server
+```
+
+Detalhes da arquitetura: [ADR do Node Loop Graph](vault/adrs/) · Telemetria: registro estruturado de traces, spans por nó e contagem de tokens em `.runtime/trace-log.jsonl`.
+
+## Nexus — Escritório de Agentes
+
+O **Nexus** (`nexus/`) é o frontend React + Vite que visualiza e controla missões. Opera em dois modos:
+
+| Modo | Variável | Comportamento |
+|---|---|---|
+| **Simulação local** | `VITE_ADAPTER_MODE=local` (padrão) | Tick driver local, dados simulados, métricas fictícias |
+| **Backend real** | `VITE_ADAPTER_MODE=ws` | WebSocket para `ws_server.py`, missões reais, telemetria |
+
+```powershell
+# Modo simulação (desenvolvimento)
+cd nexus; npm install; npm run dev
+
+# Modo backend real
+$env:VITE_ADAPTER_MODE = "ws"
+npm run dev
+```
+
+O adaptador de transporte (`nexus/src/adapters/`) implementa o protocolo de eventos
+(`event-protocol.js`) e roteia ações do React para o backend via WebSocket.
 
 ## Servidores MCP
 
@@ -224,10 +276,51 @@ Regras e playbooks usam o frontmatter próprio validado por `cli.py evidence --l
 Não há CI; o gate é rodado à mão (lista completa em CLAUDE.md, seção 3):
 
 ```powershell
-.\.venv\Scripts\python.exe -m unittest tests.test_components tests.test_bff_wave1 tests.test_hardening tests.test_tracing tests.test_trace_middleware tests.test_trace_servers tests.test_trace_cli tests.test_evidence tests.test_evidence_store tests.test_evidence_tools tests.test_evidence_cli tests.test_evidence_seed tests.test_gates tests.test_memory tests.test_workflow_api tests.test_drive_sync tests.test_protocol tests.test_agnostic_core tests.test_events tests.test_local_tasks tests.test_local_tasks_mcp tests.test_local_tasks_cli tests.test_providers tests.test_openai_compat_client
-node --test --test-isolation=none dashboard/tests/*.test.cjs
+# Backend — todos os testes (inclui graph engine, gates, orchestrator)
+.\.venv\Scripts\python.exe -m pytest tests/ -v --tb=short
+
+# Frontend — Nexus adapters e simulação (executado da raiz)
+node --test --test-isolation=none nexus/tests/adapters.test.mjs
+
+# Dashboard — testes Node.js
+node --test dashboard/tests/*.test.cjs
 .\.venv\Scripts\python.exe dashboard\tests\test_build_graph.py
 ```
 
 `integration.test.cjs` compara hashes de citação com os bytes atuais do vault: rode `dashboard\build_graph.py`
 antes dele sempre que o vault mudar. Avaliações do motor de busca e dos quality gates: `evals/runner.py`.
+
+**Cobertura atual (2026-10-17):**
+
+| Suíte | Testes | Subtestes | Tempo |
+|---|---|---|---|
+| Backend (pytest) | 1.212 passed | 242 | ~74s |
+| Frontend (Nexus) | 11 passed | — | ~200ms |
+| Dashboard (Node) | — | — | — |
+
+O graph engine adiciona **138 testes** dedicados em 5 arquivos:
+`test_graph_unit.py`, `test_graph_integration.py`, `test_graph_entrypoint.py`,
+`test_graph_nexus_adapter.py`, `test_graph_ws_smoke.py`.
+
+## Arquitetura
+
+O projeto segue **Clean Architecture** com camadas bem definidas e **Dependency Inversion** via protocolos:
+
+| Camada | Diretórios | Responsabilidade |
+|---|---|---|
+| **Domain** | `core/state.py`, `core/ports.py`, `core/domain/` | Entidades, Value Objects, Ports (protocolos) |
+| **Application** | `core/graph/`, `core/gates/`, `core/routing/` | Casos de uso, orquestração, quality gates |
+| **Infrastructure** | `core/bootstrap.py`, `core/graph/telemetry.py`, `core/graph/nexus_adapter.py` | Composição, telemetria, adaptadores |
+| **Interface** | `backend/`, `nexus/`, `dashboard/` | Transporte (WS, HTTP), UI |
+
+**Princípios aplicados:**
+
+- **SOLID** — SRP por nó, OCP via edges data-driven, ISP com 5 protocolos focados, DIP via `core/ports.py`
+- **DDD** — Entidades (`Mission`, `Step`), Value Objects (`Message`, `TokenUsage`), Ports & Adapters
+- **Imutabilidade** — `GraphState` usa padrão `{**state, 'field': value}`, dataclasses frozen
+- **Hexagonal** — `core/ports.py` define interfaces; `core/bootstrap.py` é o Composition Root
+
+Dependências apontam **sempre para dentro** (Interface → Application → Domain). O `core/` nunca importa de
+`backend/` ou `nexus/`; a única exceção transitória é `core/graph/nodes.py` importando constantes de
+`backend.orchestrator` (Strangler Fig — será eliminada ao migrar as constantes para `core/domain/`).
+

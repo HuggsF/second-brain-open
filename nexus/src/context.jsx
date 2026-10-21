@@ -58,11 +58,24 @@ export function SimulationProvider({ children, task, now = Date.now }) {
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
   const actions = useMemo(() => {
     const send = (type,payload) => dispatch({ type,payload,now:clock.current() });
-    return { start: () => send('START'), pause: () => send('PAUSE'), resume: () => send('RESUME'),
+    // UI-only actions: always dispatch locally (no backend involvement)
+    const uiActions = {
+      selectAgent: id => send('SELECT_AGENT',id), setSpeed: speed => send('SET_SPEED',speed),
+      toggleMotion: () => send('TOGGLE_MOTION'), setSystemMotion: value => send('SET_SYSTEM_MOTION',value),
+      openTask: () => send('OPEN_TASK'), closeTask: () => send('CLOSE_TASK'),
+    };
+    if (ADAPTER_MODE === 'ws') {
+      // Simulation-control actions route through the adapter (proper protocol envelopes + optimistic updates).
+      // adapter.start(task) sends NEW_TASK+START; adapter.start() sends just START.
+      const a = () => adapterRef.current;
+      return { ...uiActions, start: () => a()?.start(), pause: () => a()?.pause(), resume: () => a()?.resume(),
+        tick: () => a()?.tick(), reset: () => a()?.reset(), approve: () => a()?.approve(),
+        newTask: task => a()?.start(task) };
+    }
+    // Local mode: dispatch directly to reducer (no adapter, tick driver handles progression)
+    return { ...uiActions, start: () => send('START'), pause: () => send('PAUSE'), resume: () => send('RESUME'),
       tick: () => send('TICK'), reset: () => send('RESET'), approve: () => send('APPROVE'),
-      newTask: task => send('NEW_TASK',task), selectAgent: id => send('SELECT_AGENT',id),
-      setSpeed: speed => send('SET_SPEED',speed), toggleMotion: () => send('TOGGLE_MOTION'),
-      setSystemMotion: value => send('SET_SYSTEM_MOTION',value), openTask: () => send('OPEN_TASK'), closeTask: () => send('CLOSE_TASK') };
+      newTask: task => send('NEW_TASK',task) };
   }, [dispatch]);
   useEffect(() => ADAPTER_MODE === 'ws' ? undefined : createTickDriver(workspace,dispatch,{ now: () => clock.current() }),
     [workspace.simulation.mode,workspace.simulation.needsApproval,workspace.speed,workspace.missionId,dispatch]);
