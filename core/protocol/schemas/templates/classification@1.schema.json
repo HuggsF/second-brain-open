@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "classification@1",
+  "type": "object",
+  "required": [
+    "labels",
+    "confidence"
+  ],
+  "properties": {
+    "labels": {
+      "type": "object",
+      "required": [
+        "type",
+        "team",
+        "tags"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "additionalProperties": false
+}

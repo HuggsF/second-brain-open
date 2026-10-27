@@ -1,0 +1,38 @@
+# Golden dataset (ground truth) for continuous evaluation.
+# Fictional example: replace the cases and `expected_sources` with notes from your own vault.
+
+version: 1
+dataset_name: "example_golden_eval_v1"
+curator: "Example Engineering"
+last_updated: "2026-10-27"
+
+cases:
+  - id: "GD-ORD-001"
+    domain: "orders"
+    title: "Duplicate shipping labels under concurrent requests"
+    prompt: "Investigate duplicate labels created when the same order is submitted twice at once and specify a concurrency guard with idempotency."
+    expected_sources:
+      - "systems/order-dispatch.md"
+      - "rules/RULE-001-dispatch-requires-confirmed-order.md"
+    expected_rules:
+      - "RULE-001"
+    must_pass_gates:
+      - "gate_1_grounding_citation"
+      - "gate_2_dag_cycle_validation"
+      - "gate_4_idempotency_concurrency"
+    human_ground_truth:
+      decision: "Take an atomic distributed lock per order_id with a short TTL. On contention, return HTTP 409 and do not call the carrier API."
+      consequence: "Zero duplicate calls to the carrier API."
+
+  - id: "GD-OBS-002"
+    domain: "observability"
+    title: "End-to-end traceability across services"
+    prompt: "How should we standardise tracing with a batch trace id and green/yellow/red status across the services involved in order dispatch?"
+    expected_sources:
+      - "systems/observability.md"
+    expected_rules: []
+    must_pass_gates:
+      - "gate_1_grounding_citation"
+    human_ground_truth:
+      decision: "Propagate one trace id per batch through every service and emit a status per hop."
+      consequence: "A failed hop is visible in one place without reading each service's logs."

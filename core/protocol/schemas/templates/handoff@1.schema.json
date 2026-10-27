@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "handoff@1",
+  "type": "object",
+  "required": [
+    "from",
+    "to",
+    "date",
+    "summary",
+    "done",
+    "pending",
+    "decisions",
+    "files"
+  ],
+  "properties": {
+    "from": {
+      "type": "string"
+    },
+    "to": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "done": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pending": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,159 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEXUS — ORGANIC THEME  v1.0
+   Activated via [data-theme="organic"] on <html>.
+   Tokens mapped from Dashboard DESIGN.md (Second Brain Design System).
+   Font: system-ui stack (Segoe UI) — functional, native, no download.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="organic"] {
+  color-scheme: dark;
+
+  /* ── Backgrounds ── */
+  --void:       #101513;   /* DESIGN.md --bg */
+  --panel:      #19201d;   /* DESIGN.md --bg-card / --panel */
+  --card:       #19201d;   /* same as panel for flat feel */
+  --surface2:   #1d2720;   /* DESIGN.md --panel2 */
+
+  /* ── Accent (green-organic) ── */
+  --cyan:       #b8f37b;   /* DESIGN.md --accent (verde limão) */
+  --cyan-dim:   #7aad3f;   /* DESIGN.md --accent-dim */
+  --cyan-ice:   #c7f79a;   /* lighter accent */
+  --aqua:       #9bdeb3;   /* DESIGN.md --good */
+
+  /* ── Secondary (warm tones instead of neon magenta) ── */
+  --magenta:    #ff007f;   /* keep for agent color identity */
+  --magenta-hi: #ff3d94;
+  --crimson:    #ff0055;
+
+  /* ── Tertiary ── */
+  --violet:     #cbb3ef;   /* DESIGN.md --violet */
+  --violet-deep:#714d96;   /* DESIGN.md light --violet */
+  --violet-dark:#7c4dff;
+
+  /* ── Amber / warning ── */
+  --amber:      #f4c583;   /* DESIGN.md --warn */
+  --amber-dim:  #c99548;
+
+  /* ── Green status ── */
+  --green:      #9bdeb3;   /* DESIGN.md --good */
+  --green-dim:  #6bb88a;
+
+  /* ── Text ── */
+  --ink:        #edf3ed;   /* DESIGN.md --text */
+  --ink-dim:    #d9e5d0;   /* DESIGN.md --text secondary variant */
+  --muted:      #aab9ae;   /* DESIGN.md --muted */
+  --ghost:      #8fa388;   /* DESIGN.md --text-secondary */
+
+  /* ── Typography ── */
+  --font-display: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Cascadia Code', monospace;
+  --font-ui:      'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  /* ── Borders ── */
+  --border-subtle: #2a3530;  /* DESIGN.md --border */
+  --field-border:  #65736a;  /* DESIGN.md --field-border */
+
+  /* ── Glows (toned down — organic is flat, not neon) ── */
+  --glow-cyan-sm:   0 0 6px rgba(184,243,123,0.15);
+  --glow-cyan-md:   0 0 10px rgba(184,243,123,0.2), 0 0 20px rgba(184,243,123,0.08);
+  --glow-violet-sm: 0 0 6px rgba(203,179,239,0.15);
+  --glow-magenta-sm:0 0 6px rgba(255,0,127,0.15);
+  --glow-green-sm:  0 0 6px rgba(155,222,179,0.15);
+  --glow-amber-sm:  0 0 6px rgba(244,197,131,0.15);
+
+  /* ── Semantic status ── */
+  --good:   #9bdeb3;   /* DESIGN.md */
+  --warn:   #f4c583;   /* DESIGN.md */
+  --blue:   #9bc8fa;   /* DESIGN.md */
+  --danger: #ffb3ac;   /* DESIGN.md */
+
+  /* ── Shadow ── */
+  --shadow: 0 20px 60px #0004; /* DESIGN.md */
+
+  /* ── Scanline: disabled for organic ── */
+  --scanline: none;
+}
+
+/* ── Disable cyberpunk-specific effects in organic mode ────────────────── */
+
+[data-theme="organic"] .office-app::before,
+[data-theme="organic"] .office-app::after {
+  display: none;
+}
+
+[data-theme="organic"] .room {
+  clip-path: none;
+  border-radius: 14px; /* DESIGN.md panel radius */
+  border-color: var(--border-subtle);
+}
+
+[data-theme="organic"] .side-panel {
+  clip-path: none;
+  border-radius: 14px;
+  border-color: var(--border-subtle);
+}
+
+[data-theme="organic"] .btn {
+  border-radius: 9px; /* DESIGN.md button radius */
+}
+
+[data-theme="organic"] .btn-primary {
+  clip-path: none;
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: #1d3019; /* DESIGN.md --accent-ink */
+}
+[data-theme="organic"] .btn-primary:hover:not(:disabled) {
+  clip-path: none;
+  background: var(--cyan-dim);
+  box-shadow: var(--glow-cyan-md);
+}
+
+[data-theme="organic"] .btn-secondary {
+  clip-path: none;
+  border-color: var(--border-subtle);
+}
+
+[data-theme="organic"] .speech-bubble {
+  clip-path: none !important;
+  border-radius: 10px !important;
+  border-color: var(--border-subtle) !important;
+}
+
+[data-theme="organic"] .transfer-packet {
+  clip-path: none;
+  border-radius: 8px;
+}
+
+[data-theme="organic"] .approval-banner {
+  clip-path: none;
+  border-radius: 10px;
+}
+
+[data-theme="organic"] .office-floor {
+  animation: none;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(184,243,123,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(155,222,179,0.03) 0%, transparent 40%);
+}
+
+[data-theme="organic"] .office-floor::before {
+  clip-path: none;
+  border-radius: 14px;
+}
+
+[data-theme="organic"] .office-app {
+  background-image:
+    radial-gradient(ellipse at 15% 0%, rgba(184,243,123,0.05) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 95%, rgba(155,222,179,0.03) 0%, transparent 45%);
+}
+
+/* ── Spacing scale tokens (from DESIGN.md) ─────────────────────────────── */
+[data-theme="organic"] {
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+}

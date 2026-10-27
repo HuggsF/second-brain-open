@@ -1,0 +1,227 @@
+{
+  "_meta": {
+    "source": "core/domain/nexus/entities.py",
+    "generator": "scripts/generate_nexus_entities.py",
+    "warning": "DO NOT EDIT — regenerate with: python scripts/generate_nexus_entities.py"
+  },
+  "AGENT_ROLES": {
+    "manager": {
+      "id": "manager",
+      "name": "Maia",
+      "label": "Maia",
+      "agentLabel": "Orquestradora",
+      "role": "Orquestradora",
+      "color": "#ff007f",
+      "room": "orchestrator",
+      "roomId": "orchestrator"
+    },
+    "researcher": {
+      "id": "researcher",
+      "name": "Noah",
+      "label": "Noah",
+      "agentLabel": "Pesquisador",
+      "role": "Pesquisador",
+      "color": "#00f0ff",
+      "room": "research",
+      "roomId": "research"
+    },
+    "coder": {
+      "id": "coder",
+      "name": "Theo",
+      "label": "Theo",
+      "agentLabel": "Dev",
+      "role": "Dev",
+      "color": "#39ff14",
+      "room": "development",
+      "roomId": "development"
+    },
+    "writer": {
+      "id": "writer",
+      "name": "Lia",
+      "label": "Lia",
+      "agentLabel": "Escritora",
+      "role": "Escritora",
+      "color": "#a78bfa",
+      "room": "writing",
+      "roomId": "writing"
+    },
+    "reviewer": {
+      "id": "reviewer",
+      "name": "Eva",
+      "label": "Eva",
+      "agentLabel": "Revisora",
+      "role": "Revisora",
+      "color": "#ffe600",
+      "room": "meeting",
+      "roomId": "meeting"
+    }
+  },
+  "ALLOWED_ROLES": [
+    "coder",
+    "manager",
+    "researcher",
+    "reviewer",
+    "writer"
+  ],
+  "ROOMS": [
+    {
+      "id": "orchestrator",
+      "label": "Orquestração",
+      "position": [
+        2.5,
+        0,
+        3
+      ],
+      "size": [
+        5,
+        3
+      ],
+      "size3d": [
+        5,
+        0.2,
+        3
+      ],
+      "colorKey": "magenta"
+    },
+    {
+      "id": "research",
+      "label": "Investigação",
+      "position": [
+        -5.5,
+        0,
+        -3
+      ],
+      "size": [
+        5,
+        3
+      ],
+      "size3d": [
+        5,
+        0.2,
+        3
+      ],
+      "colorKey": "cyan"
+    },
+    {
+      "id": "development",
+      "label": "Desenvolvimento",
+      "position": [
+        0,
+        0,
+        -3
+      ],
+      "size": [
+        5,
+        3
+      ],
+      "size3d": [
+        5,
+        0.2,
+        3
+      ],
+      "colorKey": "green"
+    },
+    {
+      "id": "writing",
+      "label": "Redação",
+      "position": [
+        5.5,
+        0,
+        -3
+      ],
+      "size": [
+        5,
+        3
+      ],
+      "size3d": [
+        5,
+        0.2,
+        3
+      ],
+      "colorKey": "violet"
+    },
+    {
+      "id": "meeting",
+      "label": "Revisão",
+      "position": [
+        -2.5,
+        0,
+        3
+      ],
+      "size": [
+        5,
+        3
+      ],
+      "size3d": [
+        5,
+        0.2,
+        3
+      ],
+      "colorKey": "amber"
+    }
+  ],
+  "TOOL_REGISTRY": {
+    "manager": [
+      "search_knowledge_base",
+      "get_brain_status",
+      "list_rules",
+      "get_rule_evidence"
+    ],
+    "researcher": [
+      "search_knowledge_base",
+      "get_adr",
+      "get_system_architecture",
+      "get_brain_status"
+    ],
+    "coder": [
+      "search_knowledge_base",
+      "read_vault_file",
+      "get_system_architecture",
+      "get_brain_status",
+      "run_safe_command"
+    ],
+    "writer": [
+      "search_knowledge_base",
+      "read_vault_file",
+      "get_adr"
+    ],
+    "reviewer": [
+      "search_knowledge_base",
+      "get_adr",
+      "list_rules",
+      "get_rule_evidence"
+    ]
+  },
+  "ALLOWED_TOOLS": [
+    "get_adr",
+    "get_brain_status",
+    "get_rule_evidence",
+    "get_system_architecture",
+    "list_rules",
+    "read_vault_file",
+    "run_safe_command",
+    "search_knowledge_base"
+  ],
+  "AUTO_TOOLS": [
+    "get_adr",
+    "get_brain_status",
+    "get_rule_evidence",
+    "get_system_architecture",
+    "list_rules",
+    "read_vault_file",
+    "search_knowledge_base"
+  ],
+  "AGENT_STATUSES": [
+    "done",
+    "idle",
+    "thinking",
+    "waitingApproval",
+    "working"
+  ],
+  "HANDOFF_TYPES": [
+    "approval",
+    "celebration",
+    "context_share",
+    "handoff_review"
+  ]
+}

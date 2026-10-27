@@ -1,0 +1,30 @@
+{
+  "name": "agent-office",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "cross-env VITE_RENDER_MODE=2d node --test --test-isolation=none tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "@react-three/postprocessing": "^3.2.0",
+    "lucide-react": "1.56.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "cross-env": "^10.1.0",
+    "tailwindcss": "4.3.3",
+    "vite": "8.3.4"
+  }
+}

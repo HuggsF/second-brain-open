@@ -1,0 +1,19 @@
+qdrant-client>=1.11.0
+httpx>=0.27.0
+pydantic>=2.7.0
+python-dotenv>=1.0.0
+rich>=13.7.0
+click>=8.1.7
+fastmcp==4.0.11
+watchdog>=4.0.0
+
+paramiko>=3.0,<5
+
+pyyaml>=6.0
+jsonschema>=4.0
+
+# Tests (tests/test_liquid_engine.py uses pytest; the rest uses unittest)
+pytest>=8.0
+
+# WebSocket server — Nexus Agent Office integration
+websockets>=12.0
