@@ -254,6 +254,19 @@ class TestSearchContract(unittest.TestCase):
         self.assertEqual(status["points_count"], 2)
 
 
+class TestBrokerStaleFailSafe(unittest.TestCase):
+    def test_source_without_stale_is_reported_stale(self):  # revisao final: falha segura
+        retriever = mock.Mock()
+        retriever.query.return_value = {
+            "sources": [{"file_path": "a.md", "doc_title": "A", "section": "S", "score": 0.9,
+                         "content": "texto", "sha256": "a" * 64, "line_start": 1, "line_end": 2}],
+            "gaps": [], "index_version": "kb",
+        }
+        with mock.patch("core.tools.BrainRetriever", return_value=retriever):
+            r = asyncio.run(IMPLEMENTATIONS["search_knowledge_base"](query="x"))
+        self.assertIs(r["sources"][0]["stale"], True)
+
+
 class TestSyncDoesNotLoseKnowledge(unittest.TestCase):
     def test_old_vectors_kept_when_embedding_fails(self):
         import tempfile

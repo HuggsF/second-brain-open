@@ -29,7 +29,7 @@ async def search_knowledge(query: str, category: str = None) -> dict:
                 "sha256": s.get("sha256"),
                 "line_start": s.get("line_start"),
                 "line_end": s.get("line_end"),
-                "stale": s.get("stale", False),
+                "stale": s.get("stale", True),  # falha segura: sem a marca, trata como desatualizada
             }
             for s in sources
         ],
