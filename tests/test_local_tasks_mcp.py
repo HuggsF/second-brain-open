@@ -1,4 +1,5 @@
 import asyncio
+import gc
 import json
 import tempfile
 import unittest
@@ -7,7 +8,9 @@ from unittest import mock
 
 from fastmcp import Client
 
+from config import settings
 from core import events, tracing
+from core.budget import BudgetTracker
 from core.local_tasks import router
 from tests.test_local_tasks import GOOD, FakeClient, _profile
 
@@ -16,20 +19,31 @@ class LocalTasksMcpTests(unittest.TestCase):
     def setUp(self):
         import mcp_servers.local_tasks_mcp as module
         self.module = module
-        self.tmp = tempfile.TemporaryDirectory()
+        self.tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.addCleanup(self.tmp.cleanup)
+        self.addCleanup(gc.collect)  # fecha conexões SQLite órfãs antes da limpeza (Windows)
         self.events_log = Path(self.tmp.name) / "events.jsonl"
         self.trace_log = Path(self.tmp.name) / "trace-log.jsonl"
+        # base_dir temporário: o tracker do orçamento abre o budget.db aqui, não no .runtime real.
         for target, attr, value in (
+            (settings, "base_dir", Path(self.tmp.name)),
             (events, "EVENTS_LOG", self.events_log),
             (tracing, "TRACE_LOG", self.trace_log),
+            (module, "_budget_tracker", None),
+            (module, "_budget_tracker_no_config", False),
         ):
             patcher = mock.patch.object(target, attr, value)
             patcher.start()
             self.addCleanup(patcher.stop)
+        self.addCleanup(self._close_tracker)
         patcher = mock.patch.object(router, "load_profile", return_value=_profile())
         patcher.start()
         self.addCleanup(patcher.stop)
+
+    def _close_tracker(self):
+        tracker = self.module._budget_tracker
+        if isinstance(tracker, BudgetTracker):
+            tracker.close()
 
     def call(self, tool, args, *answers):
         fake = FakeClient(*answers)

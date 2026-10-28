@@ -94,6 +94,47 @@ class TestBudgetStates:
         assert s.daily_remaining == 0.0
 
 
+class TestZeroLimit:
+    def test_zero_daily_limit_is_exceeded_without_spend(self, tmp_path):
+        st = _tracker(tmp_path, daily=0, monthly=10).status()
+        assert (st.state, st.limiting_period) == ("exceeded", "daily")
+        assert st.daily_remaining == 0.0
+
+    def test_zero_both_limits_with_spend_is_exceeded(self, tmp_path):
+        t = _tracker(tmp_path, daily=0, monthly=0)
+        t.record(_cost(5.0, "p"), envelope_id=_eid())
+        st = t.status()
+        assert st.state == "exceeded"
+        assert st.limiting_period == "daily"
+
+    def test_zero_monthly_only(self, tmp_path):
+        st = _tracker(tmp_path, daily=1, monthly=0).status()
+        assert (st.state, st.limiting_period) == ("exceeded", "monthly")
+        assert st.monthly_remaining == 0.0
+
+    def test_ts_index_exists(self, tmp_path):
+        import sqlite3
+        _tracker(tmp_path)
+        conn = sqlite3.connect(tmp_path / "budget.db")
+        names = [r[0] for r in conn.execute("select name from sqlite_master where type='index'")]
+        conn.close()
+        assert "idx_cost_log_ts" in names
+
+    def test_ts_index_added_to_existing_db(self, tmp_path):
+        import sqlite3
+        db = tmp_path / "budget.db"
+        _tracker(tmp_path).close()
+        conn = sqlite3.connect(db)
+        conn.execute("DROP INDEX idx_cost_log_ts")
+        conn.commit()
+        conn.close()
+        BudgetTracker(db, BudgetConfig()).close()
+        conn = sqlite3.connect(db)
+        names = [r[0] for r in conn.execute("select name from sqlite_master where type='index'")]
+        conn.close()
+        assert "idx_cost_log_ts" in names
+
+
 # ── Monthly limit triggers ───────────────────────────────────────────
 
 

@@ -71,6 +71,23 @@ class ProviderSpecTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_providers("t", [{"kind": "ollama", "model": "m", "price": {"input": "abc"}}], defaults)
 
+    def test_rejects_negative_or_non_finite_price(self):
+        """Preco negativo reduziria o gasto; NaN/inf corrompem a soma. Vale com ou sem budget."""
+        from core.local_tasks.providers import parse_providers
+        defaults = {"timeout_seconds": 30, "keep_alive": "30m"}
+        base = {"kind": "openai_compatible", "model": "m", "base_url": "https://api.test/v1"}
+        for campo in ("input", "output"):
+            for bad in (-1, -0.5, "-1", "nan", "inf", "-inf", float("nan"), float("inf")):
+                item = dict(base, price={campo: bad})
+                with self.subTest(campo=campo, valor=bad):
+                    with self.assertRaises(ValueError) as ctx:
+                        parse_providers("t", [dict(base), item], defaults)
+                    self.assertIn(f"providers[1].price.{campo} deve ser finito e >= 0",
+                                  str(ctx.exception))
+        # zero continua aceito
+        specs = parse_providers("t", [dict(base, price={"input": 0, "output": "0.0"})], defaults)
+        self.assertEqual(specs[0].price, {"input": 0.0, "output": 0.0})
+
     def test_profile_without_providers_is_empty_tuple(self):
         from core.local_tasks.profile import Profile
         with tempfile.TemporaryDirectory() as tmp:

@@ -82,6 +82,12 @@ def load_profile(name: str | None = None, root: Path = PROFILES_DIR) -> Profile:
             warn_pct=float(budget_raw.get("warn_pct", 0.80)),
             critical_pct=float(budget_raw.get("critical_pct", 0.95)),
         )
+        # Com orcamento, provedor pago sem preco faria o gasto contar US$ 0.
+        for i, spec in enumerate(providers):
+            if (spec.kind == "openai_compatible"
+                    and spec.price["input"] == 0 and spec.price["output"] == 0):
+                raise ValueError(
+                    f"profile {name}: providers[{i}].price é obrigatório quando o perfil tem budget")
 
     return Profile(
         name=name,

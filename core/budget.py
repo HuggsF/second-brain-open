@@ -131,6 +131,8 @@ CREATE TABLE IF NOT EXISTS cost_log (
 )
 """
 
+_CREATE_INDEX = "CREATE INDEX IF NOT EXISTS idx_cost_log_ts ON cost_log(ts)"
+
 _INSERT = """\
 INSERT OR IGNORE INTO cost_log
     (envelope_id, ts, trace_id, task, sender, provider, model, tier,
@@ -164,6 +166,7 @@ class BudgetTracker:
         self._lock = threading.Lock()
         self._conn = self._connect()
         self._conn.execute(_CREATE_TABLE)
+        self._conn.execute(_CREATE_INDEX)
         self._conn.commit()
 
     def _connect(self) -> sqlite3.Connection:
@@ -219,8 +222,9 @@ class BudgetTracker:
         cur.execute(_SUM_MONTH, (month_start, next_month))
         monthly_spent = cur.fetchone()[0]
 
-        daily_pct = daily_spent / self._config.daily_usd if self._config.daily_usd > 0 else 0.0
-        monthly_pct = monthly_spent / self._config.monthly_usd if self._config.monthly_usd > 0 else 0.0
+        # A limit of 0 means "no paid spend allowed": always exceeded.
+        daily_pct = self._pct(daily_spent, self._config.daily_usd)
+        monthly_pct = self._pct(monthly_spent, self._config.monthly_usd)
 
         daily_state = self._classify(daily_pct)
         monthly_state = self._classify(monthly_pct)
@@ -283,6 +287,7 @@ class BudgetTracker:
         with self._lock:
             self._conn.execute("DROP TABLE IF EXISTS cost_log")
             self._conn.execute(_CREATE_TABLE)
+            self._conn.execute(_CREATE_INDEX)
             self._conn.commit()
 
     def rebuild_reconcile(self) -> None:
@@ -300,6 +305,7 @@ class BudgetTracker:
                 )
                 self._conn.execute("DROP TABLE IF EXISTS cost_log")
                 self._conn.execute("ALTER TABLE cost_log_new RENAME TO cost_log")
+                self._conn.execute(_CREATE_INDEX)
                 self._conn.commit()
             except Exception:
                 self._conn.rollback()
@@ -359,6 +365,12 @@ class BudgetTracker:
         self._staging_conn = None
 
     # ── Internal ─────────────────────────────────────────────────────
+
+    @staticmethod
+    def _pct(spent: float, limit: float) -> float:
+        if limit <= 0:
+            return float("inf")
+        return spent / limit
 
     def _classify(self, pct: float) -> BudgetState:
         if pct >= 1.0:
