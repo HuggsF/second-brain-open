@@ -236,6 +236,38 @@ class TestSearchContract(unittest.TestCase):
             asyncio.run(run())
         self.assertIn(self.EMPTY_INDEX_ERROR, str(ctx.exception))
 
+    def test_mcp_filter_no_match_gives_no_evidence_not_rebuild(self):
+        """Busca com bounded_context sem match num espaco com pontos: sem evidencia, nao erro de rebuild."""
+        from core.citations import GAP_NO_EVIDENCE
+        self._use(self.with_evidence)
+        # bounded_context que nenhum ponto tem: a busca retorna vazio,
+        # mas o espaco tem pontos, entao a lacuna e "sem evidencia"
+        result = self.with_evidence.query("x", bounded_context="Inexistente")
+        self.assertEqual(result["citations"], [])
+        self.assertEqual(result["gaps"], [GAP_NO_EVIDENCE])
+        # MCP devolve lista vazia sem erro
+        sources = brain.search_knowledge_base("x", bounded_context="Inexistente")
+        self.assertEqual(sources, [])
+
+    def test_mcp_filter_no_match_with_legacy_index_gives_rebuild(self):
+        """Busca com filtro num indice so com pontos antigos (sem space_id): erro de rebuild."""
+        from core.citations import GAP_EMPTY_INDEX
+        self._use(self.empty_index)  # empty_index tem 0 pontos do espaco
+        result = self.empty_index.query("x", bounded_context="Fiscal")
+        self.assertEqual(result["gaps"], [GAP_EMPTY_INDEX])
+        with self.assertRaises(RuntimeError) as ctx:
+            brain.search_knowledge_base("x", bounded_context="Fiscal")
+        self.assertEqual(str(ctx.exception), self.EMPTY_INDEX_ERROR)
+
+    def test_mcp_category_no_match_gives_no_evidence(self):
+        """Busca com category sem match num espaco com pontos: sem evidencia."""
+        from core.citations import GAP_NO_EVIDENCE
+        self._use(self.with_evidence)
+        result = self.with_evidence.query("x", category="inexistente")
+        self.assertEqual(result["gaps"], [GAP_NO_EVIDENCE])
+        sources = brain.search_knowledge_base("x", category="inexistente")
+        self.assertEqual(sources, [])
+
     def test_brain_status_reports_legacy_points(self):
         from qdrant_client.models import PointStruct
         from tests.test_retrieval_contract import VECTOR_SIZE, make_store, vector_for

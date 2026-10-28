@@ -260,6 +260,18 @@ class TestRetriever(unittest.TestCase):
         self.assertEqual((r["citations"], r["gaps"]), ([], ["Índice vazio ou indisponível para este espaço."]))
         self.assertEqual(r["gaps"], [GAP_EMPTY_INDEX])
 
+    def test_filter_no_match_with_populated_space_gives_no_evidence(self):
+        """Busca com bounded_context sem match: espaco tem pontos, lacuna e sem evidencia."""
+        r = self.retriever.query("x", bounded_context="Inexistente")
+        self.assertEqual(r["citations"], [])
+        self.assertEqual(r["gaps"], [GAP_NO_EVIDENCE])
+
+    def test_filter_no_match_on_old_index_gives_empty_index(self):
+        """Busca com filtro num indice so com pontos antigos: lacuna de indice vazio."""
+        r = self.retriever_on_old_points.query("x", bounded_context="Fiscal")
+        self.assertEqual(r["citations"], [])
+        self.assertEqual(r["gaps"], [GAP_EMPTY_INDEX])
+
     def test_apply_floor_false_returns_raw(self):
         r = self.retriever_low_scores.query("x", apply_floor=False)
         self.assertEqual(len(r["sources"]), 4)

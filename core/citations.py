@@ -90,10 +90,14 @@ def build_citations(hits: list[dict], vault_dir: Path) -> list[Citation]:
     return citations
 
 
-def gaps_for(citations: list[Citation], top_score: float | None, min_score: float) -> list[str]:
-    """Avisos de lacuna: indice vazio, sem evidencia acima do piso, ou citacoes de versao anterior."""
+def gaps_for(citations: list[Citation], top_score: float | None, min_score: float, *, space_has_points: bool = False) -> list[str]:
+    """Avisos de lacuna: indice vazio, sem evidencia acima do piso, ou citacoes de versao anterior.
+
+    `space_has_points` distingue indice realmente vazio (o espaco nao tem nenhum ponto) de busca
+    filtrada sem resultado (o espaco tem pontos mas o filtro extra descartou tudo).
+    """
     if not citations:
         if top_score is None:
-            return [GAP_EMPTY_INDEX]
+            return [GAP_NO_EVIDENCE] if space_has_points else [GAP_EMPTY_INDEX]
         return [GAP_NO_EVIDENCE] if top_score < min_score else []
     return [GAP_STALE] if any(c.stale for c in citations) else []

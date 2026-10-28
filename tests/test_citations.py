@@ -185,6 +185,23 @@ class GapsForTest(unittest.TestCase):
     def test_fresh_citations_have_no_gaps(self):
         self.assertEqual(gaps_for([self._cit(False)], 0.80, 0.65), [])
 
+    def test_empty_space_no_top_score_gives_empty_index_gap(self):
+        # space_has_points=False (default): indice realmente vazio
+        self.assertEqual(gaps_for([], None, 0.65), [EMPTY_GAP])
+        self.assertEqual(gaps_for([], None, 0.65, space_has_points=False), [EMPTY_GAP])
+
+    def test_filter_no_match_with_space_points_gives_no_evidence(self):
+        # space_has_points=True: o espaco tem pontos mas o filtro extra descartou tudo
+        self.assertEqual(gaps_for([], None, 0.65, space_has_points=True), [LOW_GAP])
+
+    def test_space_has_points_irrelevant_when_citations_exist(self):
+        self.assertEqual(gaps_for([self._cit(False)], 0.80, 0.65, space_has_points=True), [])
+        self.assertEqual(gaps_for([self._cit(False)], 0.80, 0.65, space_has_points=False), [])
+
+    def test_space_has_points_irrelevant_when_top_score_present(self):
+        self.assertEqual(gaps_for([], 0.50, 0.65, space_has_points=True), [LOW_GAP])
+        self.assertEqual(gaps_for([], 0.50, 0.65, space_has_points=False), [LOW_GAP])
+
 
 if __name__ == "__main__":
     unittest.main()

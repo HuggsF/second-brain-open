@@ -38,6 +38,9 @@ class BrainRetriever:
             space_id=settings.space_id,
         )
         top_score = raw_hits[0]["score"] if raw_hits else None
+        space_has_points = bool(raw_hits) or bool(
+            self.store.space_points_count(settings.space_id)
+        )
         if apply_floor:
             hits = select_hits(
                 raw_hits,
@@ -81,7 +84,8 @@ class BrainRetriever:
             "context": context_text,
             "sources": sources,
             "citations": [asdict(citation) for citation in citations],
-            "gaps": gaps_for(citations, top_score, settings.retrieval_min_score),
+            "gaps": gaps_for(citations, top_score, settings.retrieval_min_score,
+                            space_has_points=space_has_points),
             "index_version": self.store.index_version(),
         }
 

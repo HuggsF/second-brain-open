@@ -37,9 +37,11 @@ def search_knowledge_base(query: str, category: Optional[str] = None, bounded_co
     bounded_context: filtra por bounded context DDD (ex: 'Fiscal', 'Expedição e Remessas').
     include_content: se True, inclui o conteúdo completo de cada chunk no resultado.
     Cada item traz sha256, line_start, line_end e stale (citação verificável). Lista vazia significa sem evidência:
-    nada acima do piso de relevância no espaço atual; não invente resposta.
-    Um erro (em vez de lista) significa índice vazio ou não reconstruído para este espaço:
-    rode 'cli.py sync --rebuild --yes'; não trate como ausência de evidência.
+    nada acima do piso de relevância no espaço atual (inclusive quando um filtro de category ou
+    bounded_context descarta todos os candidatos); não invente resposta.
+    Um erro (em vez de lista) significa que o espaço não tem nenhum ponto indexado (índice vazio
+    ou não reconstruído após a onda B): rode 'cli.py sync --rebuild --yes'; não trate como
+    ausência de evidência.
     task_id: optional label that groups this call with others of the same task
     """
     retriever = BrainRetriever()
