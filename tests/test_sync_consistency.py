@@ -578,6 +578,23 @@ class TestRebuild(SyncTestBase):
         self.assertEqual(self.store.indexed_files(), {"velho.md": 1})
         self.assertFalse(self.manifest_path.exists())
 
+    def test_failed_drop_of_old_collection_does_not_fail_rebuild(self):  # passo 6
+        real_drop = self.store.drop_collection
+
+        def drop(name):
+            if name == "kb__old":
+                raise RuntimeError("qdrant recusou")
+            return real_drop(name)
+
+        with mock.patch.object(self.store, "drop_collection", side_effect=drop):
+            r = self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.alias_target("kb"), r["collection"])
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
+        self.assertEqual(set(self.manifest()), {"a.md", "b.md"})
+        # a sobra sai na varredura da proxima reconstrucao
+        r2 = self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.collections_with_prefix("kb__"), [r2["collection"]])
+
     def test_incremental_sync_after_rebuild_is_noop(self):
         self.engine.rebuild(verbose=False)
         res = self.engine.sync_vault(verbose=False)

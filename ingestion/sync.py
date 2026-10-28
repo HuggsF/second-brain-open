@@ -160,9 +160,16 @@ class SyncEngine:
         # 5. Manifesto novo (escrita atômica), sem ler o antigo (pode estar ilegível).
         self.manifest_manager.save_manifest(new_manifest)
 
-        # 6. Apaga a coleção que o alias apontava antes.
+        # 6. Apaga a coleção que o alias apontava antes. Alias e manifesto já trocaram: falha aqui
+        # só deixa sobra, que a varredura do passo 0b da próxima reconstrução remove.
         if old_target is not None and old_target != new:
-            self.store.drop_collection(old_target)
+            try:
+                self.store.drop_collection(old_target)
+            except Exception as e:
+                console.print(
+                    f"[yellow]Aviso: não foi possível apagar a coleção anterior {old_target} "
+                    f"(a próxima reconstrução remove):[/yellow] {e}"
+                )
 
         if verbose:
             console.print(
