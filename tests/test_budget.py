@@ -310,3 +310,38 @@ class TestRebuild:
         cur = t._conn.execute("SELECT COUNT(*) FROM cost_log")
         assert cur.fetchone()[0] == 2
         assert t.daily_spent() == pytest.approx(0.30)
+
+
+# ── Rebuild staging concurrency (P2 regression) ─────────────────────
+
+
+class TestRebuildStagingConcurrency:
+    def test_record_during_staging_population(self, tmp_path):
+        """P2 regression: record() must succeed while staging inserts are
+        happening on a separate connection."""
+        t = _tracker(tmp_path, daily=100.0)
+        eid_before = _eid()
+        t.record(_cost(0.10, "p"), envelope_id=eid_before, task="classify")
+
+        # Start staging on separate connection
+        t.create_staging_table()
+        t.insert_staging(
+            envelope_id=eid_before,
+            ts=datetime.now(timezone.utc).isoformat(),
+            trace_id=None, task="classify", sender="cli",
+            provider="p", model="m", tier="cloud",
+            tokens_in=10, tokens_out=5, actual_usd=0.10,
+            paid_equivalent_usd=0.0,
+        )
+
+        # Concurrent record on the main connection must NOT raise
+        eid_concurrent = _eid()
+        t.record(_cost(0.05, "p"), envelope_id=eid_concurrent, task="extract")
+
+        t.commit_staging()
+        t.rebuild_reconcile()
+
+        # Both records survive
+        cur = t._conn.execute("SELECT COUNT(*) FROM cost_log")
+        assert cur.fetchone()[0] == 2
+        assert t.daily_spent() == pytest.approx(0.15)

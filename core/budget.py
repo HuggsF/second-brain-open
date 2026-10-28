@@ -276,10 +276,20 @@ class BudgetTracker:
                 raise
 
     def create_staging_table(self) -> None:
-        """Create the staging table for rebuild population."""
-        self._conn.execute("DROP TABLE IF EXISTS cost_log_new")
-        self._conn.execute(_CREATE_TABLE.replace("cost_log", "cost_log_new"))
-        self._conn.commit()
+        """Create the staging table for rebuild population.
+
+        Opens a **separate** SQLite connection in autocommit mode so
+        that staging inserts do not hold a persistent write lock that
+        would block ``record()`` on the main connection.  Each
+        ``insert_staging()`` call commits immediately; the write lock
+        is held only for the duration of each individual INSERT.
+        """
+        self._staging_conn = sqlite3.connect(
+            self._db_path, check_same_thread=False, isolation_level=None)
+        self._staging_conn.execute("PRAGMA journal_mode=WAL")
+        self._staging_conn.execute("PRAGMA busy_timeout=5000")
+        self._staging_conn.execute("DROP TABLE IF EXISTS cost_log_new")
+        self._staging_conn.execute(_CREATE_TABLE.replace("cost_log", "cost_log_new"))
 
     def insert_staging(
         self,
@@ -296,17 +306,27 @@ class BudgetTracker:
         actual_usd: float,
         paid_equivalent_usd: float,
     ) -> None:
-        """Insert a row into the staging table (for rebuild)."""
+        """Insert a row into the staging table (for rebuild).
+
+        Commits immediately (autocommit connection) so the write lock
+        is released between inserts and ``record()`` is never blocked.
+        """
         ts_utc = _to_utc_iso(ts)
-        self._conn.execute(
+        self._staging_conn.execute(
             _INSERT.replace("cost_log", "cost_log_new"),
             (envelope_id, ts_utc, trace_id, task, sender, provider, model, tier,
              tokens_in, tokens_out, actual_usd, paid_equivalent_usd),
         )
 
     def commit_staging(self) -> None:
-        """Commit pending staging inserts."""
-        self._conn.commit()
+        """Close the staging connection.
+
+        Since each ``insert_staging()`` auto-commits, there is nothing
+        pending.  The staging table is already visible to all WAL
+        readers.  ``rebuild_reconcile()`` proceeds on the main connection.
+        """
+        self._staging_conn.close()
+        self._staging_conn = None
 
     # ── Internal ─────────────────────────────────────────────────────
 
