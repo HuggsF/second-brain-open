@@ -1406,5 +1406,64 @@ class BudgetGuardRobustnessTests(unittest.TestCase):
         self.assertIn("[budget] falha ao registrar custo: OperationalError", self.stderr)
 
 
+# ── Gasto que escapava: preco obrigatorio com budget (onda C, correcao) ──
+
+_CLOUD_NO_PRICE = (
+    "providers:\n"
+    "  - kind: ollama\n"
+    "    model: local-m\n"
+    "  - kind: openai_compatible\n"
+    "    name: cloud\n"
+    "    model: cloud-m\n"
+    "    base_url: https://api.test/v1\n"
+    "    api_key_env: CLOUD_KEY_TEST\n"
+)
+_BUDGET = "budget:\n  daily_usd: 1.0\n  monthly_usd: 20.0\n"
+
+
+class BudgetSpendAccountingTests(unittest.TestCase):
+    def _load(self, name, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, name, "labels:\n  type: [a]\n" + text)
+            return load_profile(name, root=root)
+
+    def test_budget_with_unpriced_cloud_provider_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            self._load("pb", _CLOUD_NO_PRICE + _BUDGET)
+        self.assertEqual(
+            str(cm.exception),
+            "profile pb: providers[1].price é obrigatório quando o perfil tem budget")
+
+    def test_budget_with_explicit_zero_price_raises(self):
+        text = _CLOUD_NO_PRICE + "    price:\n      input: 0\n      output: 0\n" + _BUDGET
+        with self.assertRaises(ValueError) as cm:
+            self._load("pz", text)
+        self.assertIn("providers[1].price é obrigatório", str(cm.exception))
+
+    def test_budget_with_priced_cloud_provider_loads(self):
+        text = _CLOUD_NO_PRICE + "    price:\n      input: 0.1\n      output: 0\n" + _BUDGET
+        p = self._load("pp", text)
+        self.assertIsNotNone(p.budget)
+        self.assertEqual(p.providers[1].price, {"input": 0.1, "output": 0.0})
+
+    def test_budget_with_unpriced_local_provider_loads(self):
+        p = self._load("pl", "providers:\n  - kind: ollama\n    model: local-m\n" + _BUDGET)
+        self.assertIsNotNone(p.budget)
+
+    def test_no_budget_accepts_zero_price(self):
+        p = self._load("nb", _CLOUD_NO_PRICE)
+        self.assertIsNone(p.budget)
+        self.assertEqual(p.providers[1].price, {"input": 0.0, "output": 0.0})
+
+    def test_real_kiosk_profile_loads_with_priced_cloud(self):
+        p = load_profile("kiosk")
+        self.assertIsNotNone(p.budget)
+        cloud = [s for s in p.providers if s.kind == "openai_compatible"]
+        self.assertTrue(cloud)
+        for spec in cloud:
+            self.assertTrue(spec.price["input"] > 0 or spec.price["output"] > 0)
+
+
 if __name__ == "__main__":
     unittest.main()

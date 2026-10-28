@@ -13,13 +13,22 @@ from core.local_tasks.ollama_client import Completion, LocalModelError
 PROBE_TIMEOUT_SECONDS = 5.0  # teto da sonda de disponibilidade
 
 
-def _token_count(usage, key: str) -> int:
-    """Contador de tokens do bloco usage; ausente, nao numerico, negativo ou nao finito vale 0."""
+def _estimate_tokens(text: str) -> int:
+    """Estimativa de tokens quando o provedor nao informa: ceil(caracteres / 4), minimo 1."""
+    return max(1, math.ceil(len(text) / 4))
+
+
+def _token_count(usage, key: str, fallback_text: str) -> int:
+    """Contador de tokens do bloco usage.
+
+    Ausente, nao numerico, negativo ou nao finito: estimado a partir de ``fallback_text``,
+    para que uma resposta paga sem ``usage`` nao seja contada como gasto zero.
+    """
     value = usage.get(key) if isinstance(usage, dict) else None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return 0
+        return _estimate_tokens(fallback_text)
     if not math.isfinite(value) or value < 0:
-        return 0
+        return _estimate_tokens(fallback_text)
     return int(value)
 
 
@@ -99,8 +108,8 @@ class OpenAICompatClient:
         usage = data.get("usage")
         return Completion(
             text=text,
-            tokens_in=_token_count(usage, "prompt_tokens"),
-            tokens_out=_token_count(usage, "completion_tokens"),
+            tokens_in=_token_count(usage, "prompt_tokens", system + user),
+            tokens_out=_token_count(usage, "completion_tokens", text),
             ms=ms,
             model=model,
         )
