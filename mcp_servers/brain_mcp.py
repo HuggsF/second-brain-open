@@ -39,6 +39,9 @@ def search_knowledge_base(query: str, category: Optional[str] = None, bounded_co
     Cada item traz sha256, line_start, line_end e stale (citação verificável). Lista vazia significa sem evidência:
     nada acima do piso de relevância no espaço atual (inclusive quando um filtro de category ou
     bounded_context descarta todos os candidatos); não invente resposta.
+    Lista vazia também vem quando a pergunta tem um nome próprio (sigla ou palavra com maiúscula fora
+    do início da frase) sem registro em nenhuma nota do vault: reformule sem esse nome, ou em
+    minúsculas, antes de concluir que não há evidência.
     Um erro (em vez de lista) significa que o espaço não tem nenhum ponto indexado (índice vazio
     ou não reconstruído após a onda B): rode 'cli.py sync --rebuild --yes'; não trate como
     ausência de evidência.

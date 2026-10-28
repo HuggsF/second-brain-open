@@ -86,7 +86,8 @@ Follow every numbered item; do not paraphrase a subset.
   checkout (ADR-034). The floor in `config.py` stays provisional until it runs.
 - Embedding scheme (ADR-037): after changing the embedding model or the query/document prefixes
   (`OLLAMA_EMBED_*`), run `cli.py sync --rebuild --yes` from the canonical checkout before restarting
-  the `second-brain` MCP and the BFF; until the rebuild, sync, reconcile and `retrieval-eval` refuse.
+  the `second-brain` MCP and the BFF, and open no new Claude Code session in between (each one starts
+  the MCP with the new code); until the rebuild, sync, reconcile and `retrieval-eval` refuse.
   A golden-dataset negative's `absent_entities` must never appear in any vault note
   (`tests/test_golden_dataset.py`).
 - Typecheck / lint / format: none configured. Coverage or quality gates: none.

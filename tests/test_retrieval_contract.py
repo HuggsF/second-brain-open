@@ -372,6 +372,14 @@ class TestAskCli(unittest.TestCase):
         self.assertEqual(out.exit_code, 0, out.output)
         self.assertNotIn(REBUILD_HINT, out.output)
 
+    def test_unknown_term_gap_is_printed(self):
+        gap = "Termo(s) sem registro no vault: Acme; não há evidência para esta consulta."
+        out = self._ask({"answer": NO_DOC_TEXT, "sources": [], "status": "no_evidence",
+                         "citations": [], "gaps": [gap]})
+        self.assertEqual(out.exit_code, 0, out.output)
+        self.assertIn(gap, out.output)
+        self.assertNotIn(REBUILD_HINT, out.output)
+
     def test_old_result_without_gaps_still_prints(self):
         out = self._ask({"answer": "ok", "sources": [{"file_path": "a.md", "section": "S", "score": 0.9}]})
         self.assertEqual(out.exit_code, 0, out.output)

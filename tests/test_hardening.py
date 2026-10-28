@@ -200,6 +200,11 @@ class TestSearchContract(unittest.TestCase):
         self.assertIn("erro", doc)
         self.assertIn("--rebuild --yes", doc)
 
+    def test_mcp_docstring_explains_unknown_term_refusal(self):
+        doc = brain.search_knowledge_base.fn.__doc__ if hasattr(brain.search_knowledge_base, "fn")             else brain.search_knowledge_base.__doc__
+        self.assertIn("nome próprio", doc)
+        self.assertIn("reformule", doc)
+
     EMPTY_INDEX_ERROR = "Índice vazio para este espaço; rode 'cli.py sync --rebuild --yes'."
 
     def test_mcp_raises_on_empty_index(self):  # Important #1 da revisao final

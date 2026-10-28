@@ -149,9 +149,14 @@ def ask(question: str, category: str):
             border_style="cyan"
         ))
 
-        from core.citations import GAP_EMPTY_INDEX
+        from core.citations import GAP_EMPTY_INDEX, GAP_UNKNOWN_ENTITY
         if GAP_EMPTY_INDEX in result.get("gaps", []):
             click.echo("Rode 'cli.py sync --rebuild' para reconstruir o índice deste espaço.")
+        # Termo recusado pelo gate: quem pergunta precisa ver qual foi para reformular.
+        unknown_prefix = GAP_UNKNOWN_ENTITY.split("{terms}")[0]
+        for gap in result.get("gaps", []):
+            if gap.startswith(unknown_prefix):
+                click.echo(gap)
 
         # Exibir fontes citadas
         if result["sources"]:
