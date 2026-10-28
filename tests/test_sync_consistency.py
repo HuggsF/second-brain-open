@@ -303,6 +303,14 @@ class TestIncrementalSync(SyncTestBase):
                 self.engine.sync_vault(verbose=False)
         self.assertFalse(self.manifest_path.exists())
 
+    def test_undecodable_note_goes_to_failed(self):
+        (self.vault / "ruim.md").write_bytes(b"## S1\n\ntexto \xff\xfe invalido\n")
+        res = self.engine.sync_vault(verbose=False)
+        self.assertEqual((res["failed"], res["failed_files"]), (1, ["ruim.md"]))
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3})
+        self.assertNotIn("ruim.md", self.manifest())
+        self.assertIn("a.md", self.manifest())
+
     def test_second_run_is_noop(self):
         self.engine.sync_vault(verbose=False)
         self.assertEqual(self.engine.sync_vault(verbose=False)["chunks_indexed"], 0)
@@ -559,6 +567,16 @@ class TestRebuild(SyncTestBase):
                 self.engine.rebuild(verbose=False)
         self.assertEqual(self.store.alias_target("kb"), "kb__old")
         self.assertEqual(self.store.collections_with_prefix("kb__"), ["kb__old"])
+
+    def test_undecodable_note_aborts_rebuild(self):  # INV-N07
+        (self.vault / "ruim.md").write_bytes(b"## S1\n\ntexto \xff\xfe invalido\n")
+        with self.assertRaises(RuntimeError) as ctx:
+            self.engine.rebuild(verbose=False)
+        self.assertIn("ruim.md", str(ctx.exception))
+        self.assertEqual(self.store.alias_target("kb"), "kb__old")
+        self.assertEqual(self.store.collections_with_prefix("kb__"), ["kb__old"])
+        self.assertEqual(self.store.indexed_files(), {"velho.md": 1})
+        self.assertFalse(self.manifest_path.exists())
 
     def test_incremental_sync_after_rebuild_is_noop(self):
         self.engine.rebuild(verbose=False)

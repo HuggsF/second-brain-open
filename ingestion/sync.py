@@ -119,7 +119,8 @@ class SyncEngine:
                 rel_path = file_path.relative_to(self.vault_dir).as_posix()
                 try:
                     sha, chunks = self._read_and_chunk(file_path, rel_path)
-                except OSError as e:
+                except (OSError, UnicodeDecodeError) as e:
+                    # A validação do passo 3 aborta a reconstrução com o nome do arquivo.
                     failed.append(rel_path)
                     console.print(f"[bold red]Erro ao ler {rel_path}:[/bold red] {e}")
                     continue
@@ -173,7 +174,8 @@ class SyncEngine:
     def _read_and_chunk(self, file_path: Path, rel_path: str):
         """Leitura única: o hash devolvido é o dos mesmos bytes que geram os chunks (INV-N05).
 
-        Devolve `(sha256, chunks)`; erro de leitura levanta `OSError`.
+        Devolve `(sha256, chunks)`; erro de leitura levanta `OSError`, bytes fora de UTF-8
+        levantam `UnicodeDecodeError`.
         """
         raw = file_path.read_bytes()
         return hashlib.sha256(raw).hexdigest(), self.chunker.chunk_bytes(raw, rel_path, self.vault_dir)
@@ -288,7 +290,8 @@ class SyncEngine:
 
             try:
                 sha, chunks = self._read_and_chunk(file_path, rel_path)
-            except OSError as e:
+            except (OSError, UnicodeDecodeError) as e:
+                # Nada foi tocado: o manifesto não avança e o próximo sync tenta de novo.
                 failed.append(rel_path)
                 console.print(f"[bold red]Erro ao ler {rel_path}:[/bold red] {e}")
                 continue
