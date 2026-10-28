@@ -57,6 +57,7 @@ Follow every numbered item; do not paraphrase a subset.
   New modules (onda A, ingestion/paths): `tests.test_vault_docs tests.test_sync_lock tests.test_sync_consistency`.
   New modules (onda B, citations/scope): `tests.test_citations tests.test_retrieval_contract tests.test_bff_retrievals`.
   New modules (onda C, cost/budget): `tests.test_cost tests.test_budget tests.test_budget_wiring`.
+  New modules (segundo sinal, ADR-037): `tests.test_vault_vocab tests.test_golden_dataset tests.test_embeddings`.
 - Full gate: `.\.venv\Scripts\python.exe -m pytest -q`; `node --test dashboard/tests/*.test.cjs`; `cd jev-app && npm test`.
 - JEV front-end (React 19 + Tailwind 4) lives in `jev-app/`; its build is committed to `dashboard/jev/` (no CI), so after any change in `jev-app/src` run `cd jev-app && npm test && npm run build` and commit the output.
 - Budget guard (ADR-035): when `BudgetTracker.status().state == "exceeded"`, `run_task` executes exclusively via local providers (zero cloud calls). If no local provider exists and the task needs a model, it returns `status="budget_exceeded"`. Deterministic tasks (unknown_task, validate-without-source) always pass. CLI exit code for `budget_exceeded` is 3.
@@ -75,13 +76,19 @@ Follow every numbered item; do not paraphrase a subset.
   the kiosk model) and needs Ollama already running for the reserve. From a worktree, pass the
   key file by path only: `BRAIN_ENV_FILE=C:/KIOSK/second-brain/.env`.
 - Retrieval quality (not part of the gate above): `.\.venv\Scripts\python.exe cli.py retrieval-eval
-  [--min-recall 0.8] [--dataset PATH] [--k 5]` runs the golden dataset (13 positives, 16 negatives)
-  through the real retriever, tries a grid of `min_score` x `max_drop`, suggests the pair and writes
-  a report to `evals/reports/` (git-ignored); it exits 1 when no pair of the grid clears every
-  negative, when the suggested pair's recall is below `--min-recall`, or on a Qdrant/Ollama error. It
-  makes real calls to the local Qdrant and Ollama (nothing is paid) and needs the index rebuilt
-  first with `cli.py sync --rebuild --yes` from the canonical checkout (ADR-034). The floor in
-  `config.py` stays provisional until it runs.
+  [--min-recall 0.8] [--dataset PATH] [--k 5]` runs the golden dataset (30 positives, 30 negatives,
+  3 known limits) through the real retriever, prints a grid of `min_score` x `max_drop` without and
+  with the unknown-term gate (ADR-037), suggests the pair from the gated grid and writes a report to
+  `evals/reports/` (git-ignored); it exits 1 when no gated pair clears every negative, when the
+  suggested pair's recall is below `--min-recall`, when the index holds points of an older embedding
+  scheme, or on a Qdrant/Ollama error. It makes real calls to the local Qdrant and Ollama (nothing is
+  paid) and needs the index rebuilt first with `cli.py sync --rebuild --yes` from the canonical
+  checkout (ADR-034). The floor in `config.py` stays provisional until it runs.
+- Embedding scheme (ADR-037): after changing the embedding model or the query/document prefixes
+  (`OLLAMA_EMBED_*`), run `cli.py sync --rebuild --yes` from the canonical checkout before restarting
+  the `second-brain` MCP and the BFF; until the rebuild, sync, reconcile and `retrieval-eval` refuse.
+  A golden-dataset negative's `absent_entities` must never appear in any vault note
+  (`tests/test_golden_dataset.py`).
 - Typecheck / lint / format: none configured. Coverage or quality gates: none.
 - CI: none. The suite above is the only gate and is run by hand.
 
