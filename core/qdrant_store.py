@@ -73,6 +73,10 @@ class QdrantStore:
             if offset is None:
                 return counts
 
+    def points_count(self) -> int:
+        """Total exato de pontos da coleção (sem scroll)."""
+        return self.client.count(collection_name=self.collection_name, exact=True).count
+
     def alias_target(self, alias: str) -> Optional[str]:
         for item in self.client.get_aliases().aliases:
             if item.alias_name == alias:

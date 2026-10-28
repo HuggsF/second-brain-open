@@ -331,14 +331,19 @@ class TestReconcile(SyncTestBase):
         self.engine.reconcile(verbose=False)
         self.assertEqual(
             self.engine.reconcile(verbose=False),
-            {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 0},
+            {
+                "orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 0,
+                "failed": 0, "failed_files": [],
+            },
         )
 
     def test_missing_from_index_is_reindexed(self):
         self.store.delete_by_file_path("b.md")
         res = self.engine.reconcile(verbose=False)
         self.assertEqual(
-            res, {"orphans_removed": 0, "missing_reindexed": 1, "untracked_reindexed": 0}
+            res,
+            {"orphans_removed": 0, "missing_reindexed": 1, "untracked_reindexed": 0,
+             "failed": 0, "failed_files": []},
         )
         self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
         self.assertIn("b.md", self.manifest())
@@ -349,7 +354,9 @@ class TestReconcile(SyncTestBase):
         self.engine.manifest_manager.save_manifest(manifest)
         res = self.engine.reconcile(verbose=False)
         self.assertEqual(
-            res, {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 1}
+            res,
+            {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 1,
+             "failed": 0, "failed_files": []},
         )
         self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
         self.assertIn("b.md", self.manifest())
@@ -361,7 +368,7 @@ class TestReconcile(SyncTestBase):
         (self.vault / "c.md").write_text(ONE_SECTION, encoding="utf-8")
         res = self.engine.reconcile(verbose=False)
         self.assertEqual(
-            res, {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 1}
+            (res["orphans_removed"], res["missing_reindexed"], res["untracked_reindexed"]), (0, 0, 1)
         )
         self.assertEqual(self.store.indexed_files()["c.md"], 1)
 
@@ -370,7 +377,10 @@ class TestReconcile(SyncTestBase):
         self.engine.sync_vault(verbose=False)
         self.assertIn("e.md", self.manifest())
         self.assertNotIn("e.md", self.store.indexed_files())
-        zeros = {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 0}
+        zeros = {
+            "orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 0,
+            "failed": 0, "failed_files": [],
+        }
         self.assertEqual(self.engine.reconcile(verbose=False), zeros)
         self.assertEqual(self.engine.reconcile(verbose=False), zeros)
 
@@ -391,6 +401,37 @@ class TestReconcile(SyncTestBase):
         with self.assertRaises(ManifestError):
             self.engine.reconcile(verbose=False)
         self.assertNotIn("kb", [c.name for c in self.client.get_collections().collections])
+
+    def test_failure_inside_auto_reconcile_is_retried_next_sync(self):
+        self.client.delete_collection("kb")  # manifesto cheio, colecao some
+        with mock.patch.object(self.store, "indexed_files", side_effect=ConnectionError("fora")):
+            with self.assertRaises(ConnectionError):
+                self.engine.sync_vault(verbose=False)
+        # a colecao foi recriada (vazia) pelo sync que falhou: created nao se repete
+        self.assertEqual(self.store.points_count(), 0)
+        self.engine.sync_vault(verbose=False)
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
+
+    def test_populated_collection_does_not_reconcile(self):
+        with mock.patch.object(self.engine, "_reconcile_unlocked") as spy:
+            self.engine.sync_vault(verbose=False)
+        spy.assert_not_called()
+
+    def test_undecodable_missing_file_is_counted_as_missing(self):
+        self.store.delete_by_file_path("b.md")
+        with mock.patch.object(self.engine.chunker, "chunk_bytes",
+                               side_effect=UnicodeDecodeError("utf-8", b"abc", 0, 1, "invalido")):
+            report = self.engine._reconcile_unlocked(self.manifest(), verbose=False)
+        self.assertEqual(report["missing_reindexed"], 1)
+        self.assertNotIn("b.md", self.manifest())
+
+    def test_reconcile_reports_sync_failures(self):
+        self.store.delete_by_file_path("b.md")
+        with mock.patch.object(self.engine.embedder, "get_embedding", side_effect=RuntimeError("ollama fora")):
+            res = self.engine.reconcile(verbose=False)
+        self.assertEqual(res["missing_reindexed"], 1)
+        self.assertEqual((res["failed"], res["failed_files"]), (1, ["b.md"]))
+        self.assertNotIn("b.md", self.store.indexed_files())
 
     def test_reconcile_holds_the_lock(self):
         with sync_lock(self.engine.lock_path):

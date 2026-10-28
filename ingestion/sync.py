@@ -44,14 +44,18 @@ class SyncEngine:
     def reconcile(self, verbose: bool = True) -> Dict[str, int]:
         """Reconcilia manifesto e índice (spec §2.7) e reindexa o que saiu do manifesto.
 
-        Roda dentro do lock. Devolve `{"orphans_removed", "missing_reindexed", "untracked_reindexed"}`.
+        Roda dentro do lock. Devolve `{"orphans_removed", "missing_reindexed", "untracked_reindexed"}`
+        mais `failed` e `failed_files` do sync que reindexa (arquivos que ainda não voltaram ao índice).
         """
         with sync_lock(self.lock_path, self.lock_wait):
             # Manifesto ilegível levanta ManifestError antes de tocar o Qdrant.
             manifest = self.manifest_manager.load_manifest()
             self.store.ensure_collection()
             report = self._reconcile_unlocked(manifest, verbose)
-            self._sync_unlocked(verbose)
+            # O sync seguinte reindexa o que saiu do manifesto; as falhas dele entram no resultado.
+            sync_result = self._sync_unlocked(verbose)
+            report["failed"] = sync_result["failed"]
+            report["failed_files"] = list(sync_result["failed_files"])
             return report
 
     def _reconcile_unlocked(self, manifest: Dict[str, str], verbose: bool = True) -> Dict[str, int]:
@@ -80,7 +84,7 @@ class SyncEngine:
                 continue
             try:
                 chunks = self.chunker.chunk_bytes(file_path.read_bytes(), rel_path, self.vault_dir)
-            except OSError:
+            except (OSError, UnicodeDecodeError):
                 chunks = [None]  # ilegível agora: o sync seguinte tenta de novo
             if chunks:
                 missing.append(rel_path)
@@ -112,7 +116,10 @@ class SyncEngine:
 
         # Garantir coleção ativa no Qdrant (True quando acabou de criar): coleção nova
         # com manifesto cheio -> reconcilia antes do diff para reindexar o que sumiu.
-        if self.store.ensure_collection():
+        # `created` só vale uma vez; se a reconciliação falhar depois da criação, o sinal durável
+        # é "manifesto cheio e coleção sem pontos", que repete a reconciliação no sync seguinte.
+        created = self.store.ensure_collection()
+        if created or (manifest and self.store.points_count() == 0):
             self._reconcile_unlocked(manifest, verbose)
 
         added, modified, deleted, _ = self.manifest_manager.get_diff_with_hashes(self.vault_dir, manifest)
