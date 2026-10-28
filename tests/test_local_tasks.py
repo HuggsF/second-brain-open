@@ -1210,25 +1210,79 @@ class BudgetGuardTests(unittest.TestCase):
         self.assertEqual(env["status"], "ok")
 
     def test_budget_map_reduce_records_monetary_sum(self):
-        """Coverage: map-reduce cost must be correctly summed in the tracker."""
+        """Coverage: map-reduce with priced provider — verify monetary sum.
+
+        Uses a FakeClient subclass that re-sets ``last_provider`` on each
+        ``chat()`` call, mimicking ``FallbackClient`` behaviour.  Without
+        this, ``_Deadline.__init__`` resets ``last_provider = None`` and
+        the router never sees a provider.
+        """
+        from core.local_tasks.providers import ProviderSpec
         tracker = self._tracker(daily=100.0)
         text = "\n\n".join(["a" * 30, "b" * 30, "c" * 30])
-        fc = FakeClient({"summary": "s1", "key_points": []},
-                        {"summary": "s2", "key_points": []},
-                        {"summary": "s3", "key_points": []},
-                        {"summary": "final", "key_points": ["k"]})
+        spec = ProviderSpec(
+            kind="openai_compatible", name="priced", model="m",
+            base_url="https://api.test/v1", timeout_seconds=20,
+            price={"input": 1.0, "output": 2.0})
+
+        class PricedFakeClient(FakeClient):
+            """FakeClient that sets last_provider on each chat() call."""
+            def chat(self, model, system, user, schema):
+                result = super().chat(model, system, user, schema)
+                self.last_provider = spec
+                return result
+
+        fc = PricedFakeClient(
+            {"summary": "s1", "key_points": []},
+            {"summary": "s2", "key_points": []},
+            {"summary": "s3", "key_points": []},
+            {"summary": "final", "key_points": ["k"]})
         env = self.run_task("summarize", client=fc, text=text,
                             profile=_profile_small(), budget_tracker=tracker)
         self.assertEqual(env["status"], "ok")
-        # The actual_usd in the tracker must be > 0 and match the envelope cost
-        actual = tracker.daily_spent()
-        envelope_cost = env["cost"].get("actual_usd", 0.0)
-        self.assertEqual(actual, envelope_cost)
-        # With 4 calls, the cost should be positive (local tier = 0.0 unless
-        # the FakeClient has a provider attached, but the router calculates it)
-        cur = tracker._conn.execute("SELECT actual_usd FROM cost_log")
-        row = cur.fetchone()
-        self.assertIsNotNone(row)
+        self.assertEqual(fc.calls, 4)
+        # Each call: tokens_in=10, tokens_out=5
+        # Per call: (10 * 1.0 + 5 * 2.0) / 1e6 = 0.00002
+        # 4 calls accumulated by _Deadline: 4 * 0.00002 = 0.00008
+        expected_usd = 4 * (10 * 1.0 + 5 * 2.0) / 1e6
+        self.assertAlmostEqual(env["cost"]["actual_usd"], expected_usd, places=10)
+        self.assertAlmostEqual(tracker.daily_spent(), expected_usd, places=10)
+        self.assertGreater(expected_usd, 0.0)
+        self.assertEqual(env["cost"]["tier"], "cloud")
+        self.assertEqual(env["cost"]["provider"], "priced")
+
+    def test_failed_tracker_blocks_cloud_only(self):
+        """P1 regression: FailedBudgetTracker + cloud-only -> budget_exceeded."""
+        from core.budget import FailedBudgetTracker, BudgetConfig
+        sentinel = FailedBudgetTracker(BudgetConfig())
+
+        fc = FakeClient(GOOD)
+        env = self.run_task(client=fc, profile=_cloud_only_profile(),
+                            budget_tracker=sentinel)
+        self.assertEqual(env["status"], "budget_exceeded")
+        self.assertEqual(fc.calls, 0)
+
+    def test_failed_tracker_allows_local_in_mixed(self):
+        """P1 regression: FailedBudgetTracker + mixed profile -> local exec."""
+        from core.budget import FailedBudgetTracker, BudgetConfig
+        from core.local_tasks import providers
+        sentinel = FailedBudgetTracker(BudgetConfig())
+
+        local_fc = FakeClient(GOOD)
+        with mock.patch.object(providers, "OllamaClient", return_value=local_fc):
+            env = self.run_task(profile=_mixed_profile(),
+                                budget_tracker=sentinel)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(local_fc.calls, 1)
+
+    def test_failed_tracker_allows_legacy_profile(self):
+        """P1 regression: FailedBudgetTracker + legacy (no providers) -> ok."""
+        from core.budget import FailedBudgetTracker, BudgetConfig
+        sentinel = FailedBudgetTracker(BudgetConfig())
+
+        env = self.run_task(client=FakeClient(GOOD), profile=_profile(),
+                            budget_tracker=sentinel)
+        self.assertEqual(env["status"], "ok")
 
 
 if __name__ == "__main__":

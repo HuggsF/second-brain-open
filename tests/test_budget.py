@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from core.budget import BudgetConfig, BudgetStatus, BudgetTracker, _to_utc_iso
+from core.budget import BudgetConfig, BudgetStatus, BudgetTracker, FailedBudgetTracker, _to_utc_iso
 from core.cost import CostRecord
 
 
@@ -345,3 +345,34 @@ class TestRebuildStagingConcurrency:
         cur = t._conn.execute("SELECT COUNT(*) FROM cost_log")
         assert cur.fetchone()[0] == 2
         assert t.daily_spent() == pytest.approx(0.15)
+
+
+# ── FailedBudgetTracker sentinel (P1 regression) ────────────────────
+
+
+class TestFailedBudgetTracker:
+    def test_status_reports_exceeded(self):
+        cfg = BudgetConfig(daily_usd=0.50, monthly_usd=10.0)
+        ft = FailedBudgetTracker(cfg)
+        s = ft.status()
+        assert s.state == "exceeded"
+        assert s.daily_remaining == 0.0
+        assert s.monthly_remaining == 0.0
+        assert s.limiting_period == "daily"
+        assert s.daily_limit == 0.50
+        assert s.monthly_limit == 10.0
+
+    def test_record_is_noop(self):
+        cfg = BudgetConfig()
+        ft = FailedBudgetTracker(cfg)
+        # Must not raise
+        ft.record(_cost(0.10, "p"), envelope_id=_eid(), task="classify")
+
+    def test_status_reflects_config_limits(self):
+        cfg = BudgetConfig(daily_usd=2.0, monthly_usd=50.0)
+        ft = FailedBudgetTracker(cfg)
+        s = ft.status()
+        assert s.daily_spent == 2.0
+        assert s.monthly_spent == 50.0
+        assert s.daily_limit == 2.0
+        assert s.monthly_limit == 50.0
