@@ -1,6 +1,7 @@
 """Testes de consistencia vault -> Qdrant (onda A)."""
 import hashlib
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -647,6 +648,147 @@ class TestWatcher(unittest.TestCase):
     def test_directory_ignored(self):
         self.handler.on_any_event(FakeEvent("sub.md", is_directory=True))
         self.assertEqual(self.timers, [])
+
+
+class TestCli(unittest.TestCase):
+    """cli.py sync --reconcile/--rebuild/--yes e mensagens de erro (spec 2.7, 2.8)."""
+
+    SYNC_OK = {"added": 1, "modified": 2, "deleted": 3, "chunks_indexed": 4, "failed": 0, "failed_files": []}
+    RECONCILE_OK = {"orphans_removed": 5, "missing_reindexed": 6, "untracked_reindexed": 7,
+                    "failed": 0, "failed_files": []}
+    REBUILD_OK = {"collection": "kiosk_brain_20261027", "files": 8, "chunks": 9, "migrated": False}
+
+    def setUp(self):
+        import importlib
+        import importlib.util
+        import sys
+        import types
+
+        import click
+        from click.testing import CliRunner
+
+        # cli.py importa scripts.sanitize no fim do modulo; se ele nao existe neste checkout,
+        # um stub (so durante o teste) deixa o grupo carregar. sys.modules e restaurado no fim.
+        modules = mock.patch.dict(sys.modules)
+        modules.start()
+        self.addCleanup(modules.stop)
+        sys.modules.pop("cli", None)
+        try:
+            real_sanitize = importlib.util.find_spec("scripts.sanitize") is not None
+        except ImportError:
+            real_sanitize = False
+        if not real_sanitize:
+            stub = types.ModuleType("scripts.sanitize")
+            stub.sanitize_cmd = click.Command("sanitize", callback=lambda: None)
+            sys.modules["scripts.sanitize"] = stub
+        cli_module = importlib.import_module("cli")
+
+        self.cli = cli_module.cli
+        self.runner = CliRunner()
+        patcher = mock.patch("ingestion.sync.SyncEngine")
+        self.engine = patcher.start().return_value
+        self.addCleanup(patcher.stop)
+        self.engine.sync_vault.return_value = dict(self.SYNC_OK)
+        self.engine.reconcile.return_value = dict(self.RECONCILE_OK)
+        self.engine.rebuild.return_value = dict(self.REBUILD_OK)
+
+    def invoke(self, *args):
+        result = self.runner.invoke(self.cli, ["sync", *args])
+        # o console do cli e forcado a terminal: remove as sequencias ANSI antes de comparar
+        result.output_text = re.sub(r"\x1b\[[0-9;]*m", "", result.output)
+        return result
+
+    def test_plain_sync_prints_panel_and_exits_zero(self):
+        result = self.invoke()
+        self.assertEqual(result.exit_code, 0, result.output_text)
+        self.assertIn("Sincronização Concluída", result.output_text)
+        self.engine.sync_vault.assert_called_once()
+        self.engine.reconcile.assert_not_called()
+        self.engine.rebuild.assert_not_called()
+
+    def test_plain_sync_with_failures_exits_one(self):
+        self.engine.sync_vault.return_value = dict(self.SYNC_OK, failed=2)
+        result = self.invoke()
+        self.assertEqual(result.exit_code, 1)
+        self.assertIn("Sincronização com falhas", result.output_text)
+
+    def test_reconcile_prints_result_and_exits_zero(self):
+        result = self.invoke("--reconcile")
+        self.assertEqual(result.exit_code, 0, result.output_text)
+        self.engine.reconcile.assert_called_once()
+        self.engine.sync_vault.assert_not_called()
+        for value in ("Órfãos removidos: 5", "Reindexados (faltavam no índice): 6",
+                      "Reindexados (fora do manifesto): 7", "Falhas: 0"):
+            self.assertIn(value, result.output_text)
+
+    def test_reconcile_with_failures_exits_one(self):
+        self.engine.reconcile.return_value = dict(self.RECONCILE_OK, failed=1)
+        result = self.invoke("--reconcile")
+        self.assertEqual(result.exit_code, 1)
+        self.assertIn("Falhas: 1", result.output_text)
+
+    def test_rebuild_prints_result_and_exits_zero(self):
+        result = self.invoke("--rebuild")
+        self.assertEqual(result.exit_code, 0, result.output_text)
+        self.engine.rebuild.assert_called_once_with(verbose=True, confirm_migration=False)
+        self.assertIn("kiosk_brain_20261027", result.output_text)
+        self.assertIn("Arquivos: 8", result.output_text)
+        self.assertIn("Blocos: 9", result.output_text)
+
+    def test_rebuild_yes_confirms_migration(self):
+        result = self.invoke("--rebuild", "--yes")
+        self.assertEqual(result.exit_code, 0, result.output_text)
+        self.engine.rebuild.assert_called_once_with(verbose=True, confirm_migration=True)
+
+    def test_busy_lock_message(self):
+        self.engine.sync_vault.side_effect = SyncBusy()
+        result = self.invoke()
+        self.assertEqual(result.exit_code, 1)
+        self.assertIn("Outro sync está em andamento.", result.output_text)
+
+    def test_busy_lock_message_on_reconcile_and_rebuild(self):
+        self.engine.reconcile.side_effect = SyncBusy()
+        self.engine.rebuild.side_effect = SyncBusy()
+        for flag in ("--reconcile", "--rebuild"):
+            result = self.invoke(flag)
+            self.assertEqual(result.exit_code, 1, flag)
+            self.assertIn("Outro sync está em andamento.", result.output_text)
+
+    def test_unreadable_manifest_message(self):
+        self.engine.sync_vault.side_effect = ManifestError("corrompido")
+        result = self.invoke()
+        self.assertEqual(result.exit_code, 1)
+        self.assertIn("Manifesto ilegível; rode 'cli.py sync --rebuild'.", result.output_text)
+
+    def test_migration_needs_confirmation_message(self):
+        self.engine.rebuild.side_effect = MigrationNeedsConfirmation()
+        result = self.invoke("--rebuild")
+        self.assertEqual(result.exit_code, 1)
+        self.assertIn(
+            "A coleção atual vira alias nesta reconstrução e a busca falha por um instante. "
+            "Rode de novo com --yes.",
+            result.output_text,
+        )
+
+    def test_generic_error_keeps_message_and_exit_one(self):
+        self.engine.rebuild.side_effect = RuntimeError("colecao nova vazia")
+        result = self.invoke("--rebuild", "--yes")
+        self.assertEqual(result.exit_code, 1)
+        self.assertIn("Erro ao sincronizar:", result.output_text)
+        self.assertIn("colecao nova vazia", result.output_text)
+
+    def test_yes_without_rebuild_is_usage_error(self):
+        result = self.invoke("--yes")
+        self.assertEqual(result.exit_code, 2)
+        self.assertIn("--yes só vale com --rebuild", result.output_text)
+        self.engine.sync_vault.assert_not_called()
+
+    def test_reconcile_with_rebuild_is_usage_error(self):
+        result = self.invoke("--reconcile", "--rebuild")
+        self.assertEqual(result.exit_code, 2)
+        self.assertIn("--reconcile e --rebuild não podem ser usados juntos", result.output_text)
+        self.engine.reconcile.assert_not_called()
+        self.engine.rebuild.assert_not_called()
 
 
 if __name__ == "__main__":
