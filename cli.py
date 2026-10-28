@@ -340,7 +340,7 @@ def evidence(rule_id, do_lint, do_import):
         raise SystemExit(1)
 
 
-_TASK_EXIT = {"ok": 0, "escalate": 2}
+_TASK_EXIT = {"ok": 0, "escalate": 2, "budget_exceeded": 3}
 _GOLDEN_LOCAL_TASKS = Path(__file__).parent / "tests" / "golden_dataset_local_tasks.json"
 
 
@@ -357,12 +357,139 @@ def _task_text(text, file_path):
     return text if text is not None else _read_text_file(file_path)
 
 
+
+_budget_tracker_singleton = None
+
+
+def _get_tracker():
+    """Lazy singleton: creates BudgetTracker once from the active profile."""
+    global _budget_tracker_singleton
+    if _budget_tracker_singleton is not None:
+        return _budget_tracker_singleton
+    try:
+        from core.local_tasks.profile import load_profile
+        profile = load_profile()
+        if profile.budget is None:
+            return None
+        from core.budget import BudgetTracker
+        from config import settings
+        db_path = settings.base_dir / ".runtime" / "budget.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        _budget_tracker_singleton = BudgetTracker(db_path, profile.budget)
+        return _budget_tracker_singleton
+    except Exception:
+        return None
+
+
 def _emit_task(task: str, **kwargs):
     from core.local_tasks import router
-    envelope = router.run_task(task, sender="cli", **kwargs)
+    tracker = _get_tracker()
+    envelope = router.run_task(task, sender="cli", budget_tracker=tracker, **kwargs)
     click.echo(json.dumps(envelope, ensure_ascii=False, indent=2))
     raise SystemExit(_TASK_EXIT.get(envelope.get("status"), 1))
 
+
+
+@cli.command("budget")
+@click.option("--history", "history_days", type=int, default=None, help="Mostra gasto por dia, últimos N dias")
+@click.option("--rebuild", "do_rebuild", is_flag=True, help="Reconstrói budget.db a partir dos eventos")
+def budget_cmd(history_days, do_rebuild):
+    """Orçamento de chamadas pagas: gasto, limite, estado."""
+    from core.local_tasks.profile import load_profile
+    try:
+        profile = load_profile()
+    except Exception as exc:
+        click.echo(f"Erro ao carregar o perfil: {exc}")
+        raise SystemExit(1)
+    if profile.budget is None:
+        click.echo("Budget não configurado no perfil.")
+        raise SystemExit(0)
+    from core.budget import BudgetTracker
+    from config import settings
+    db_path = settings.base_dir / ".runtime" / "budget.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    tracker = BudgetTracker(db_path, profile.budget)
+    if do_rebuild:
+        _rebuild_budget(tracker, settings.base_dir)
+        return
+    if history_days is not None:
+        rows = tracker.history(history_days)
+        for row in rows:
+            click.echo(f"  {row['date']}  US$ {row['actual_usd']:.4f}")
+        return
+    st = tracker.status()
+    click.echo(f"Budget status: {st.state}")
+    daily_pct = (st.daily_spent / st.daily_limit * 100) if st.daily_limit > 0 else 0
+    monthly_pct = (st.monthly_spent / st.monthly_limit * 100) if st.monthly_limit > 0 else 0
+    click.echo(f"Daily:   US$ {st.daily_spent:.2f} / {st.daily_limit:.2f}  "
+               f"({daily_pct:.0f}%)  remaining: US$ {st.daily_remaining:.2f}")
+    click.echo(f"Monthly: US$ {st.monthly_spent:.2f} / {st.monthly_limit:.2f}  "
+               f"({monthly_pct:.0f}%)  remaining: US$ {st.monthly_remaining:.2f}")
+
+
+def _rebuild_budget(tracker, base_dir):
+    """Rebuild budget.db from all available events files."""
+    from core import events
+    from core.budget import _to_utc_iso
+    events_log = base_dir / ".runtime" / "events.jsonl"
+    # Read all rotated + current event files (oldest to newest)
+    sources = []
+    for i in range(3, 0, -1):
+        rotated = events_log.with_name(f"{events_log.stem}.{i}{events_log.suffix}")
+        if rotated.exists():
+            sources.append(rotated)
+    if events_log.exists():
+        sources.append(events_log)
+    # Phase 1: populate staging table (outside exclusive transaction)
+    tracker.create_staging_table()
+    count = 0
+    for source_path in sources:
+        try:
+            text = source_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for line in text.split("\n"):
+            try:
+                record = json.loads(line)
+            except ValueError:
+                continue
+            if not isinstance(record, dict):
+                continue
+            if record.get("kind") != "task.result":
+                continue
+            cost = record.get("cost")
+            if cost is None:
+                continue
+            envelope_id = record.get("id")
+            if not envelope_id:
+                continue
+            tracker.insert_staging(
+                envelope_id=envelope_id,
+                ts=record.get("ts", ""),
+                trace_id=record.get("trace_id"),
+                task=record.get("task"),
+                sender=record.get("from"),
+                provider=cost.get("provider"),
+                model=cost.get("model"),
+                tier=cost.get("tier"),
+                tokens_in=cost.get("tokens_in", 0),
+                tokens_out=cost.get("tokens_out", 0),
+                actual_usd=cost.get("actual_usd", 0.0),
+                paid_equivalent_usd=cost.get("paid_equivalent_usd", 0.0),
+            )
+            count += 1
+    tracker.commit_staging()
+    # Phase 2: reconcile and swap (exclusive transaction)
+    tracker.rebuild_reconcile()
+    click.echo("\u26a0 A reconstru\u00e7\u00e3o cobre apenas o hist\u00f3rico "
+               "dispon\u00edvel nos arquivos de eventos.")
+    # Final report
+    total_usd = tracker.daily_spent() if count > 0 else 0.0
+    # Actually get the total from the full month
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    total_usd = tracker.monthly_spent(now.year, now.month)
+    click.echo(f"Reconstru\u00eddo: {count} registros, US$ {total_usd:.2f} acumulado.")
 
 @cli.group()
 def task():
@@ -452,10 +579,17 @@ def _no_provider_message(info: dict) -> str:
 def task_eval(min_accuracy, profile_name):
     """Avalia as tarefas locais contra tests/golden_dataset_local_tasks.json."""
     from core.local_tasks import router
+    eval_tracker = None
     try:
         profile = router.load_profile(profile_name)
         client = router.build_client(profile)
         info = router.status(profile)  # sondagem curta
+        if profile.budget is not None:
+            from core.budget import BudgetTracker
+            from config import settings
+            db_path = settings.base_dir / ".runtime" / "budget.db"
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            eval_tracker = BudgetTracker(db_path, profile.budget)
     except Exception as exc:
         click.echo(f"Erro ao preparar a avaliação: {exc}")
         raise SystemExit(1)
@@ -469,6 +603,7 @@ def task_eval(min_accuracy, profile_name):
             case["task"], text=case["text"], template=case.get("template"),
             target_words=case.get("target_words", 120), source=case.get("source"),
             sender="task-eval", profile=profile, client=client,
+            budget_tracker=eval_tracker,
         )
         row = stats.setdefault(case["task"], {"cases": 0, "passed": 0, "escalate": 0,
                                                 "ms_total": 0, "tiers": {}})
@@ -487,6 +622,11 @@ def task_eval(min_accuracy, profile_name):
     total = sum(r["cases"] for r in stats.values())
     accuracy = sum(r["passed"] for r in stats.values()) / total if total else 0.0
     click.echo(f"Acerto geral: {accuracy:.0%} (mínimo {min_accuracy:.0%})")
+    if eval_tracker is not None:
+        bst = eval_tracker.status()
+        if bst.state == "exceeded":
+            click.echo(f"⚠ Budget excedido durante a avaliação "
+                        f"(US$ {bst.daily_spent:.2f} / {bst.daily_limit:.2f} diário).")
     if accuracy < min_accuracy:
         raise SystemExit(1)
 
