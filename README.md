@@ -41,6 +41,9 @@ Os gateways que acessam GitHub e o servidor SRV-API leem host, usuário e caminh
 |---|---|
 | `cli.py status` | Estado do Qdrant, do Ollama e do vault |
 | `cli.py sync` | Sincronização diferencial (SHA-256) do vault com o Qdrant; sai com 1 se algum arquivo falhar |
+| `cli.py sync --reconcile` | Reconcilia o manifesto com o índice vetorial: remove órfãos, reindexa o que falta; sai com 1 se algum arquivo falhar |
+| `cli.py sync --rebuild` | Reconstrói o índice inteiro em uma coleção nova e troca o alias; saída para manifesto ilegível |
+| `cli.py sync --rebuild --yes` | Igual, confirmando a primeira migração da coleção atual para alias (a busca falha por um instante) |
 | `cli.py ask "pergunta"` | Resposta com RAG local e fontes |
 | `cli.py pull-models` | Baixa os modelos de embedding e de chat no Ollama |
 | `cli.py drive-sync` | Baixa documentos do Google Drive e gera notas em `vault/product/references/` |

@@ -47,12 +47,58 @@ def drive_sync_cmd(folder_id: str):
     engine.run()
 
 @cli.command()
-def sync():
+@click.option("--reconcile", "do_reconcile", is_flag=True, help="Reconcilia o manifesto com o índice vetorial e corrige as diferenças")
+@click.option("--rebuild", "do_rebuild", is_flag=True, help="Reconstrói o índice inteiro em uma coleção nova e troca o alias")
+@click.option("--yes", "assume_yes", is_flag=True, help="Com --rebuild: confirma a migração da coleção atual para alias")
+def sync(do_reconcile, do_rebuild, assume_yes):
     """Executa a sincronização diferencial do Vault com o Qdrant."""
-    console.print("[bold yellow][*] Iniciando sincronização diferencial do Vault...[/bold yellow]")
+    if do_reconcile and do_rebuild:
+        raise click.UsageError("--reconcile e --rebuild não podem ser usados juntos")
+    if assume_yes and not do_rebuild:
+        raise click.UsageError("--yes só vale com --rebuild")
+    if do_rebuild:
+        banner = "Iniciando reconstrução do índice do Vault em uma coleção nova..."
+    elif do_reconcile:
+        banner = "Iniciando reconciliação do manifesto com o índice vetorial..."
+    else:
+        banner = "Iniciando sincronização diferencial do Vault..."
+    console.print(f"[bold yellow][*] {banner}[/bold yellow]")
     try:
-        from ingestion.sync import SyncEngine
+        from core.hasher import ManifestError
+        from core.sync_lock import SyncBusy
+        from ingestion.sync import MigrationNeedsConfirmation, SyncEngine
+    except Exception as e:
+        console.print(f"[bold red]Erro ao sincronizar:[/bold red] {e}")
+        raise SystemExit(1)
+    try:
         engine = SyncEngine()
+        if do_rebuild:
+            result = engine.rebuild(verbose=True, confirm_migration=assume_yes)
+            console.print(Panel(
+                f"[bold green]Status da Reconstrução:[/bold green]\n"
+                f"• Coleção: {result['collection']}\n"
+                f"• Arquivos: {result['files']}\n"
+                f"• Blocos: {result['chunks']}\n"
+                f"• Migrou coleção para alias: {'sim' if result['migrated'] else 'não'}",
+                title="Reconstrução Concluída",
+                border_style="green"
+            ))
+            return
+        if do_reconcile:
+            result = engine.reconcile(verbose=True)
+            failed = result.get("failed", 0)
+            console.print(Panel(
+                f"[bold green]Status da Reconciliação:[/bold green]\n"
+                f"• Órfãos removidos: {result['orphans_removed']}\n"
+                f"• Reindexados (faltavam no índice): {result['missing_reindexed']}\n"
+                f"• Reindexados (fora do manifesto): {result['untracked_reindexed']}\n"
+                f"• Falhas: {failed}",
+                title="Reconciliação Concluída" if not failed else "Reconciliação com falhas",
+                border_style="green" if not failed else "red"
+            ))
+            if failed:
+                raise SystemExit(1)
+            return
         result = engine.sync_vault(verbose=True)
         console.print(Panel(
             f"[bold green]Status da Sincronização:[/bold green]\n"
@@ -68,6 +114,15 @@ def sync():
             raise SystemExit(1)
     except SystemExit:
         raise
+    except SyncBusy:
+        click.echo("Outro sync está em andamento.")
+        raise SystemExit(1)
+    except ManifestError:
+        click.echo("Manifesto ilegível; rode 'cli.py sync --rebuild'.")
+        raise SystemExit(1)
+    except MigrationNeedsConfirmation:
+        click.echo("A coleção atual vira alias nesta reconstrução e a busca falha por um instante. Rode de novo com --yes.")
+        raise SystemExit(1)
     except Exception as e:
         console.print(f"[bold red]Erro ao sincronizar:[/bold red] {e}")
         raise SystemExit(1)

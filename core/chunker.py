@@ -1,5 +1,5 @@
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import yaml
 from typing import Dict, List, Any
 from config import settings
@@ -10,7 +10,17 @@ class MarkdownChunker:
         self.overlap = overlap
 
     def chunk_file(self, file_path: Path, vault_dir: Path = settings.vault_dir) -> List[Dict[str, Any]]:
-        text = file_path.read_text(encoding="utf-8")
+        rel_path = file_path.relative_to(vault_dir).as_posix()
+        return self.chunk_bytes(file_path.read_bytes(), rel_path, vault_dir)
+
+    def chunk_bytes(self, raw: bytes, rel_path: str, vault_dir: Path = settings.vault_dir) -> List[Dict[str, Any]]:
+        """Gera os chunks a partir dos bytes já lidos (o sync lê cada arquivo uma vez só).
+
+        `rel_path` é relativo ao vault, em formato POSIX; `vault_dir` fica pela simetria com
+        `chunk_file`. As quebras de linha são normalizadas como na leitura em modo texto.
+        """
+        text = raw.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
+        rel = PurePosixPath(rel_path)
         text, front = self._split_frontmatter(text)
         extra = {key: str(front[name]) for key, name in (("status", "status"), ("doc_type", "type")) if front.get(name) is not None}
         # Ontology-aware metadata from frontmatter
@@ -21,12 +31,12 @@ class MarkdownChunker:
                     extra[field] = ",".join(str(v) for v in val)
                 else:
                     extra[field] = str(val)
-        rel_path = file_path.relative_to(vault_dir).as_posix()
-        category = file_path.parent.name if file_path.parent != vault_dir else "general"
+        # Pasta-mãe imediata, como antes (file_path.parent.name); arquivo na raiz do vault -> "general".
+        category = rel.parent.name or "general"
 
         # Extrair título principal
         title_match = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
-        doc_title = title_match.group(1).strip() if title_match else file_path.stem.replace("-", " ").title()
+        doc_title = title_match.group(1).strip() if title_match else rel.stem.replace("-", " ").title()
 
         # Quebrar em seções baseadas em headers (## ou ###)
         sections = self._split_by_headers(text)
