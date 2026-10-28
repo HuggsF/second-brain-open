@@ -77,6 +77,18 @@ class QdrantStore:
         """Total exato de pontos da coleção (sem scroll)."""
         return self.client.count(collection_name=self.collection_name, exact=True).count
 
+    def legacy_points_count(self) -> int:
+        """Total exato de pontos sem `space_id` no payload (gravados antes da onda B).
+
+        IsEmptyCondition casa chave ausente, null ou lista vazia; a busca escopada não os vê.
+        """
+        legacy = models.Filter(
+            must=[models.IsEmptyCondition(is_empty=models.PayloadField(key="space_id"))]
+        )
+        return self.client.count(
+            collection_name=self.collection_name, count_filter=legacy, exact=True
+        ).count
+
     def alias_target(self, alias: str) -> Optional[str]:
         for item in self.client.get_aliases().aliases:
             if item.alias_name == alias:

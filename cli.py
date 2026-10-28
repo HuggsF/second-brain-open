@@ -66,7 +66,7 @@ def sync(do_reconcile, do_rebuild, assume_yes):
     try:
         from core.hasher import ManifestError
         from core.sync_lock import SyncBusy
-        from ingestion.sync import MigrationNeedsConfirmation, SyncEngine
+        from ingestion.sync import LEGACY_INDEX_MESSAGE, LegacyIndexError, MigrationNeedsConfirmation, SyncEngine
     except Exception as e:
         console.print(f"[bold red]Erro ao sincronizar:[/bold red] {e}")
         raise SystemExit(1)
@@ -119,6 +119,9 @@ def sync(do_reconcile, do_rebuild, assume_yes):
         raise SystemExit(1)
     except ManifestError:
         click.echo("Manifesto ilegível; rode 'cli.py sync --rebuild'.")
+        raise SystemExit(1)
+    except LegacyIndexError:
+        click.echo(LEGACY_INDEX_MESSAGE)
         raise SystemExit(1)
     except MigrationNeedsConfirmation:
         click.echo("A coleção atual vira alias nesta reconstrução e a busca falha por um instante. Rode de novo com --yes.")
