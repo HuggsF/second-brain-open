@@ -145,7 +145,11 @@ def local_tasks_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     info = router.status()
     tracker = _get_budget_tracker()
     if tracker is not None:
-        bst = tracker.status()
+        try:
+            bst = tracker.status()
+        except Exception:
+            info["budget"] = {"state": "unavailable"}
+            return info
         info["budget"] = {"state": bst.state, "daily_spent": bst.daily_spent,
                           "daily_limit": bst.daily_limit, "daily_remaining": bst.daily_remaining,
                           "monthly_spent": bst.monthly_spent, "monthly_limit": bst.monthly_limit,
@@ -166,7 +170,11 @@ def get_budget_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     tracker = _get_budget_tracker()
     if tracker is None:
         return {"state": "unconfigured"}
-    bst = tracker.status()
+    try:
+        bst = tracker.status()
+    except Exception as exc:
+        # Só o tipo: a mensagem pode trazer caminhos ou detalhes do banco.
+        return {"state": "unavailable", "error": type(exc).__name__}
     return {"state": bst.state, "daily_spent": bst.daily_spent,
             "daily_limit": bst.daily_limit, "daily_remaining": bst.daily_remaining,
             "monthly_spent": bst.monthly_spent, "monthly_limit": bst.monthly_limit,

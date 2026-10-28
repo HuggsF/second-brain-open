@@ -349,6 +349,25 @@ class McpBudgetWiringTests(_TempRuntime):
             out = self.call("local_tasks_status")
         self.assertNotIn("budget", out)
 
+    def _broken_tracker(self):
+        """Tracker cujo status() levanta, com uma mensagem que não pode vazar."""
+        broken = mock.Mock()
+        broken.status.side_effect = sqlite3.OperationalError("segredo /caminho/budget.db")
+        return mock.patch.object(self.module, "_get_budget_tracker", return_value=broken)
+
+    def test_local_tasks_status_tolerates_failing_budget_status(self):
+        with self._broken_tracker(), \
+                mock.patch.object(router, "status", return_value={"profile": "t"}):
+            out = self.call("local_tasks_status", {"task_id": "t-1"})
+        self.assertEqual(out["profile"], "t")
+        self.assertEqual(out["budget"], {"state": "unavailable"})
+
+    def test_get_budget_status_tolerates_failing_status_without_leaking(self):
+        with self._broken_tracker():
+            out = self.call("get_budget_status", {"task_id": "t-1"})
+        self.assertEqual(out, {"state": "unavailable", "error": "OperationalError"})
+        self.assertNotIn("segredo", json.dumps(out))
+
     def test_classify_records_cloud_cost_in_tracker(self):
         profile = _with_budget(_cloud_only_profile(), daily=1.0, monthly=20.0)
         cloud = profile.providers[0]
