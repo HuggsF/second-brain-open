@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import json
+import math
 from pathlib import Path
 
 if sys.platform == "win32":
@@ -443,9 +444,20 @@ def budget_cmd(history_days, do_rebuild):
                f"({monthly_pct:.0f}%)  remaining: US$ {st.monthly_remaining:.2f}")
 
 
+def _cost_number(value):
+    """Valor de custo do evento para o rebuild: ausente ou ``null`` vale 0.0 (como o antigo
+    ``or 0.0``); número finito que não seja bool vira ``float``; qualquer outro valor (texto,
+    bool, NaN, inf) devolve ``None`` e a linha é pulada."""
+    if value is None:
+        return 0.0
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    value = float(value)
+    return value if math.isfinite(value) else None
+
+
 def _rebuild_budget(tracker, base_dir):
     """Rebuild budget.db from all available events files."""
-    from core import events
     from core.budget import _to_utc_iso
     events_log = base_dir / ".runtime" / "events.jsonl"
     # Read all rotated + current event files (oldest to newest)
@@ -492,7 +504,11 @@ def _rebuild_budget(tracker, base_dir):
             except ValueError:
                 ignored += 1
                 continue
-            actual_usd = cost.get("actual_usd", 0.0)
+            actual_usd = _cost_number(cost.get("actual_usd"))
+            paid_equivalent_usd = _cost_number(cost.get("paid_equivalent_usd"))
+            if actual_usd is None or paid_equivalent_usd is None:
+                ignored += 1
+                continue
             tracker.insert_staging(
                 envelope_id=envelope_id,
                 ts=ts,
@@ -505,10 +521,10 @@ def _rebuild_budget(tracker, base_dir):
                 tokens_in=cost.get("tokens_in", 0),
                 tokens_out=cost.get("tokens_out", 0),
                 actual_usd=actual_usd,
-                paid_equivalent_usd=cost.get("paid_equivalent_usd", 0.0),
+                paid_equivalent_usd=paid_equivalent_usd,
             )
             if envelope_id not in totals:
-                totals[envelope_id] = float(actual_usd or 0.0)
+                totals[envelope_id] = actual_usd
                 count += 1
     tracker.commit_staging()
     # Phase 2: reconcile and swap (exclusive transaction)

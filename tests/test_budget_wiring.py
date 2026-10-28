@@ -205,6 +205,35 @@ class CliBudgetRebuildTests(_CliBase):
         self.assertEqual(self.rows(), {"ok-1": 0.25, "ok-2": 0.5})
         self.assertIn("Reconstruído: 2 registros, ignoradas: 4, US$ 0.7500 acumulado.", result.output)
 
+    def test_rebuild_skips_and_counts_non_numeric_costs(self):
+        """actual_usd/paid_equivalent_usd em texto, NaN, inf ou bool: linha pulada e contada."""
+        nan_line = _result_line("nan", self.now.isoformat(), 0.0).replace(
+            '"actual_usd": 0.0', '"actual_usd": NaN')
+        self.assertIn('"actual_usd": NaN', nan_line)
+        inf_line = _result_line("inf", self.now.isoformat(), 0.0).replace(
+            '"actual_usd": 0.0', '"actual_usd": Infinity')
+        paid_text = json.loads(_result_line("paid-texto", self.now.isoformat(), 0.125))
+        paid_text["cost"]["paid_equivalent_usd"] = "x"
+        sem_valor = json.loads(_result_line("sem-valor", self.now.isoformat(), 0.0))
+        del sem_valor["cost"]["actual_usd"]
+        nulo = json.loads(_result_line("nulo", self.now.isoformat(), 0.0))
+        nulo["cost"]["actual_usd"] = None
+        self.write("events.jsonl", [
+            _result_line("abc", self.now.isoformat(), "abc"),
+            nan_line,
+            inf_line,
+            _result_line("bool", self.now.isoformat(), True),
+            json.dumps(paid_text),
+            json.dumps(sem_valor),   # ausente conta 0.0, como antes
+            json.dumps(nulo),        # null conta 0.0, como antes
+            _result_line("ok", self.now.isoformat(), 0.25),
+        ])
+        result = self.invoke("--rebuild")
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIsNone(result.exception, result.output)
+        self.assertEqual(self.rows(), {"sem-valor": 0.0, "nulo": 0.0, "ok": 0.25})
+        self.assertIn("Reconstruído: 3 registros, ignoradas: 5, US$ 0.2500 acumulado.", result.output)
+
     def test_rebuild_keeps_rows_missing_from_events(self):
         self.tracker().record(_cost(0.0625), envelope_id="so-no-banco")
         self.write("events.jsonl", [_result_line("ok", self.now.isoformat(), 0.25)])
