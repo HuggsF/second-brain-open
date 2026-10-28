@@ -934,5 +934,46 @@ class TestCli(unittest.TestCase):
         self.engine.rebuild.assert_not_called()
 
 
+class TestPayloadProvenance(SyncTestBase):
+    """Onda B: todo ponto grava o hash do documento (o do manifesto) e o espaco."""
+
+    def setUp(self):
+        super().setUp()
+        self.mm = self.engine.manifest_manager
+        # A reconstrucao cria um QdrantStore novo: precisa ver o mesmo cliente em memoria.
+        patcher = mock.patch("core.qdrant_store.QdrantClient", return_value=self.client)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_sync_writes_hash_and_space(self):  # CA-02
+        self.engine.sync_vault(verbose=False)
+        pts, _ = self.client.scroll("kb", limit=100, with_payload=True)
+        manifest = self.mm.load_manifest()
+        self.assertTrue(pts)
+        for p in pts:
+            self.assertEqual(p.payload["doc_sha256"], manifest[p.payload["file_path"]])
+            self.assertEqual(p.payload["space_id"], settings.space_id)
+
+    def test_rebuild_writes_hash_and_space(self):  # CA-02
+        r = self.engine.rebuild(verbose=False, confirm_migration=True)
+        pts, _ = self.client.scroll(r["collection"], limit=100, with_payload=True)
+        self.assertTrue(
+            pts
+            and all(
+                p.payload["space_id"] == settings.space_id and len(p.payload["doc_sha256"]) == 64
+                for p in pts
+            )
+        )
+        manifest = self.mm.load_manifest()
+        for p in pts:
+            self.assertEqual(p.payload["doc_sha256"], manifest[p.payload["file_path"]])
+
+    def test_space_comes_from_settings(self):
+        with mock.patch.object(settings, "space_id", "outro"):
+            self.engine.sync_vault(verbose=False)
+        pts, _ = self.client.scroll("kb", limit=100, with_payload=True)
+        self.assertTrue(pts and all(p.payload["space_id"] == "outro" for p in pts))
+
+
 if __name__ == "__main__":
     unittest.main()

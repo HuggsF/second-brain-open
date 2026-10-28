@@ -185,7 +185,13 @@ class SyncEngine:
         levantam `UnicodeDecodeError`.
         """
         raw = file_path.read_bytes()
-        return hashlib.sha256(raw).hexdigest(), self.chunker.chunk_bytes(raw, rel_path, self.vault_dir)
+        sha = hashlib.sha256(raw).hexdigest()
+        chunks = self.chunker.chunk_bytes(raw, rel_path, self.vault_dir)
+        # Procedência no payload: o mesmo hash do manifesto e o espaço do índice.
+        for chunk in chunks:
+            chunk["metadata"]["doc_sha256"] = sha
+            chunk["metadata"]["space_id"] = settings.space_id
+        return sha, chunks
 
     def _embed_chunks(self, chunks, rel_path: str):
         """Embeddings de todos os chunks, ou `None` se algum falhou (o arquivo inteiro é ignorado)."""
