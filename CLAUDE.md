@@ -72,9 +72,10 @@ Follow every numbered item; do not paraphrase a subset.
   the kiosk model) and needs Ollama already running for the reserve. From a worktree, pass the
   key file by path only: `BRAIN_ENV_FILE=C:/KIOSK/second-brain/.env`.
 - Retrieval quality (not part of the gate above): `.\.venv\Scripts\python.exe cli.py retrieval-eval
-  [--min-recall 0.8] [--dataset PATH] [--k 5]` runs the golden dataset (13 positives, 10 negatives)
+  [--min-recall 0.8] [--dataset PATH] [--k 5]` runs the golden dataset (13 positives, 16 negatives)
   through the real retriever, tries a grid of `min_score` x `max_drop`, suggests the pair and writes
-  a report to `evals/reports/` (git-ignored); it exits 1 when recall is below `--min-recall`. It
+  a report to `evals/reports/` (git-ignored); it exits 1 when no pair of the grid clears every
+  negative, when the suggested pair's recall is below `--min-recall`, or on a Qdrant/Ollama error. It
   makes real calls to the local Qdrant and Ollama (nothing is paid) and needs the index rebuilt
   first with `cli.py sync --rebuild --yes` from the canonical checkout (ADR-034). The floor in
   `config.py` stays provisional until it runs.
@@ -94,6 +95,8 @@ Follow every numbered item; do not paraphrase a subset.
 
 - Vault note changed → `.\.venv\Scripts\python.exe cli.py sync` finishes with exit code 0
   (it exits 1 and reports `Falhas` when any file failed) and `dashboard\build_graph.py` is rerun.
+  Incremental `sync` (and `--reconcile`) refuses with exit 1 while the index holds points without
+  `space_id` (pre-onda B); run `cli.py sync --rebuild --yes` from the canonical checkout first (ADR-034).
 - New or changed system, rule or demand → the node and its relations in
   `dashboard/graph-catalog.json` match the note.
 - Behaviour change in an MCP server → a test in `tests/` covers it, including the refusal path.

@@ -33,12 +33,13 @@ Uma instância por porta: a exclusividade de coleta vale dentro do processo; uma
 
 - POST `/v1/retrievals?space=kiosk` (onda B, ADR-034): recuperação vetorial com citações.
   - Guarda: sessão e verificação de mesma origem (Host, `Sec-Fetch-Site` e `Origin` explícito, como nas demais escritas); `Content-Type: application/json`.
-  - Corpo JSON: `query` (texto, 1 a 500 caracteres), `limit` (inteiro de 1 a 10, padrão 5) e `category` (texto ou `null`). Espaço diferente de `kiosk` na query string recebe 403.
+  - Corpo JSON: `query` (texto, 1 a 500 caracteres), `limit` (inteiro de 1 a 10, padrão 5) e `category` (texto ou `null`). Espaço diferente do configurado (`settings.space_id`, padrão `kiosk`) na query string recebe 403; o envelope devolve esse mesmo `space_id`.
   - Resposta 200: `schema_version`, `space_id`, `request_id`, `mode: "vector"`, `query`, `index_version`, `citations`, `gaps` e `timings_ms.retrieval`. Cada citação traz `document`, `section`, `line_start`, `line_end`, `sha256`, `score`, `stale` e `excerpt` (trecho com até 400 caracteres). `citations` vazio com `gaps` preenchido significa sem evidência.
   - Erros tipados: 400 (`INVALID_JSON`, `INVALID_QUERY`, `INVALID_LIMIT`, `INVALID_LENGTH`), 401 (`AUTH_REQUIRED`), 403 (`ORIGIN_DENIED`, `SPACE_DENIED`), 413 (`BODY_TOO_LARGE`), 415 (`JSON_REQUIRED`) e 503 (`RETRIEVAL_UNAVAILABLE`, quando Qdrant ou Ollama falham). O texto da exceção nunca vai na resposta; vai só ao log local.
-  - O retriever é criado sob demanda: o BFF sobe sem Qdrant, e a rota devolve 503 enquanto o serviço estiver fora. O índice anterior à onda B não devolve nada até `cli.py sync --rebuild --yes` (ADR-034).
+  - O retriever é criado sob demanda: o BFF sobe sem Qdrant, e a rota devolve 503 enquanto o serviço estiver fora. Os pontos do índice anterior à onda B ficam invisíveis, e o sync incremental recusa rodar, até `cli.py sync --rebuild --yes` (ADR-034).
 
-Rotas de dados e arquivos do dashboard exigem sessão. Espaço diferente recebe 403; ambiente inválido 400; ausência de sessão 401. Fora `POST /v1/retrievals`, as rotas de dados são somente GET, sem ferramentas corretivas. Host e Origin validados; não há CORS. Diretórios fora do dashboard não são servidos.
+Rotas de dados e arquivos do dashboard exigem sessão. Espaço diferente recebe 403; ambiente inválido 400; ausência de sessão 401. Além de `POST /v1/retrievals`, há rotas POST de playbooks (`/api/playbooks/executions`, `/api/playbooks/<id>/render`) e de workflow (`/api/workflow/*`); as demais rotas de dados são GET, sem ferramentas corretivas. Host e Origin validados; não há CORS. Diretórios fora do dashboard não são servidos.
+Nas rotas POST, o `Content-Length` é conferido antes da origem e da sessão (400 `INVALID_LENGTH`, 413 `BODY_TOO_LARGE`). Em `POST /v1/retrievals`, `gaps` pode vir junto com citações (o texto de citação desatualizada).
 
 ## Daemon e interpretação
 

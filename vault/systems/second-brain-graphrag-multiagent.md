@@ -9,7 +9,7 @@ Data da auditoria: 08/10/2026. Escopo: leitura dos arquivos locais do Second Bra
 
 ## Atualização posterior — wave 1
 
-O piloto local agora tem adapter HTTP, BFF autenticado e daemon de observação de produção/homologação por MCP, com histórico e estado de coleta. O baseline abaixo registra a auditoria inicial, anterior à conexão real. GraphRAG semântico e execução multiagente continuam não conectados. A onda B (ADR-034) acrescentou à recuperação vetorial citações verificáveis, piso de relevância, filtro por espaço e lacunas explícitas, e expôs `POST /v1/retrievals`; ver "Recuperação vetorial com citações (onda B)" abaixo. Consulte `vault/systems/second-brain-observability-bff.md` (na raiz do projeto) para operação, contrato e rollback.
+O piloto local agora tem adapter HTTP, BFF autenticado e daemon de observação de produção/homologação por MCP, com histórico e estado de coleta. O baseline abaixo registra a auditoria inicial, anterior à conexão real. GraphRAG (grafo) e execução multiagente continuam não conectados. A onda B (ADR-034) acrescentou à recuperação vetorial citações verificáveis, piso de relevância, filtro por espaço e lacunas explícitas, e expôs `POST /v1/retrievals`; ver "Recuperação vetorial com citações (onda B)" abaixo. Consulte `vault/systems/second-brain-observability-bff.md` (na raiz do projeto) para operação, contrato e rollback.
 
 ## Estado comprovado na auditoria inicial
 
