@@ -1,6 +1,6 @@
-# Second Brain — KIOSK Brands
+# Second Brain —  [empresa]
 
-Base de conhecimento de engenharia da KIOSK Brands (Touti, Amavia e Yes! Cosméticos), local e offline.
+Base de conhecimento de engenharia da [empresa], local e offline.
 O **vault** em Markdown é a fonte de verdade; o índice vetorial (Qdrant + Ollama), o grafo do dashboard e as
 respostas dos servidores MCP são derivados dele e podem ser reconstruídos.
 
