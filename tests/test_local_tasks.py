@@ -952,3 +952,210 @@ class ProvidersStatusTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ── Budget guard tests (T3, onda C) ─────────────────────────────────
+
+import pytest
+
+
+def _budget_tracker(db_path, daily=0.50, monthly=10.0):
+    from core.budget import BudgetConfig, BudgetTracker
+    cfg = BudgetConfig(daily_usd=daily, monthly_usd=monthly)
+    return BudgetTracker(db_path, cfg)
+
+
+def _exhaust_budget(tracker, amount=0.01):
+    from core.cost import CostRecord
+    import uuid
+    cr = CostRecord(model="m", tier="cloud", tokens_in=0, tokens_out=0,
+                     ms=0, paid_equivalent_usd=0.0, provider="cloud",
+                     actual_usd=amount)
+    tracker.record(cr, envelope_id=str(uuid.uuid4()), task="warmup")
+
+
+def _cloud_only_profile():
+    from core.local_tasks.providers import ProviderSpec
+    return Profile(
+        name="t", labels={"type": ["adr", "system"], "team": ["logistics", "platform"]},
+        local_model="m", timeout_seconds=5, max_input_tokens=6000, retries=1,
+        paid_reference={"model": "ref", "input": 1.0, "output": 2.0},
+        providers=(
+            ProviderSpec(kind="openai_compatible", name="cloud", model="cloud-m",
+                         base_url="https://api.test/v1", timeout_seconds=20,
+                         price={"input": 0.5, "output": 1.0}),
+        ),
+    )
+
+
+def _mixed_profile():
+    from core.local_tasks.providers import ProviderSpec
+    return Profile(
+        name="t", labels={"type": ["adr", "system"], "team": ["logistics", "platform"]},
+        local_model="m", timeout_seconds=5, max_input_tokens=6000, retries=1,
+        paid_reference={"model": "ref", "input": 1.0, "output": 2.0},
+        providers=(
+            ProviderSpec(kind="openai_compatible", name="cloud", model="cloud-m",
+                         base_url="https://api.test/v1", timeout_seconds=20,
+                         api_key_env="CLOUD_KEY_TEST",
+                         price={"input": 0.5, "output": 1.0}),
+            ProviderSpec(kind="ollama", name="local", model="m",
+                         base_url="http://localhost:11434", timeout_seconds=120),
+        ),
+    )
+
+
+class BudgetGuardTests(unittest.TestCase):
+    def setUp(self):
+        from core import events
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.tmpdir = Path(self.tmp.name)
+        self.log = self.tmpdir / "events.jsonl"
+        patcher = mock.patch.object(events, "EVENTS_LOG", self.log)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self._trackers = []
+
+    def _tracker(self, daily=0.01, monthly=10.0):
+        t = _budget_tracker(self.tmpdir / f"budget_{len(self._trackers)}.db",
+                            daily=daily, monthly=monthly)
+        self._trackers.append(t)
+        self.addCleanup(t.close)
+        return t
+
+    def run_task(self, task="classify", client=None, profile=None, **kw):
+        from core.local_tasks import router
+        kw.setdefault("text", "some text")
+        return router.run_task(task, profile=profile or _profile(), client=client, **kw)
+
+    def test_budget_exceeded_blocks_cloud_only_task(self):
+        """CA-2: budget exceeded + only cloud providers -> budget_exceeded status."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        fc = FakeClient(GOOD)
+        env = self.run_task(client=fc, profile=_cloud_only_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "budget_exceeded")
+        self.assertEqual(env["reason"], "budget_daily")
+        self.assertEqual(fc.calls, 0)
+
+    def test_budget_exceeded_mixed_profile_uses_local(self):
+        """CA-3: budget exceeded + mixed profile -> executes via local only."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        from core.local_tasks import providers
+        local_fc = FakeClient(GOOD)
+        with mock.patch.object(providers, "OllamaClient", return_value=local_fc):
+            env = self.run_task(profile=_mixed_profile(), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(local_fc.calls, 1)
+
+    def test_budget_exceeded_mixed_profile_no_cloud_attempt(self):
+        """CA-3: budget exceeded + mixed profile -> zero cloud calls."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        from core.local_tasks import providers
+        cloud_mock = mock.Mock()
+        local_fc = FakeClient(GOOD)
+        with mock.patch.object(providers, "OllamaClient", return_value=local_fc), \
+             mock.patch.object(providers, "OpenAICompatClient", return_value=cloud_mock):
+            env = self.run_task(profile=_mixed_profile(), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        cloud_mock.chat.assert_not_called()
+
+    def test_budget_exceeded_allows_deterministic_validate(self):
+        """CA-4: budget exceeded + validate without source -> deterministic, ok."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        fc = FakeClient(GOOD)
+        env = self.run_task("validate", client=fc, profile=_cloud_only_profile(),
+                            template="adr@1",
+                            text="---\ntype: adr\nstatus: accepted\ndate: 2026-01-01\n---\n# T\n",
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(env["cost"]["tier"], "deterministic")
+        self.assertEqual(fc.calls, 0)
+
+    def test_budget_exceeded_allows_unknown_task(self):
+        """CA-4: budget exceeded + unknown task -> invalid status, not budget_exceeded."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        fc = FakeClient(GOOD)
+        env = self.run_task("frobnicate", client=fc, profile=_cloud_only_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "invalid")
+        self.assertEqual(env["reason"], "unknown_task")
+        self.assertEqual(fc.calls, 0)
+
+    def test_budget_records_after_execute(self):
+        """CA-14: task with real cost -> tracker receives record."""
+        tracker = self._tracker(daily=100.0)
+        env = self.run_task(client=FakeClient(GOOD), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        cur = tracker._conn.execute("SELECT COUNT(*) FROM cost_log")
+        self.assertEqual(cur.fetchone()[0], 1)
+
+    def test_budget_records_zero_for_deterministic(self):
+        """CA-14: deterministic task -> tracker receives record with actual_usd=0."""
+        tracker = self._tracker(daily=100.0)
+        fc = FakeClient(GOOD)
+        env = self.run_task("frobnicate", client=fc, budget_tracker=tracker)
+        self.assertEqual(env["status"], "invalid")
+        self.assertEqual(env["reason"], "unknown_task")
+        self.assertEqual(tracker.daily_spent(), 0.0)
+        cur = tracker._conn.execute("SELECT COUNT(*) FROM cost_log")
+        self.assertEqual(cur.fetchone()[0], 1)
+
+    def test_budget_records_map_reduce_total(self):
+        """CA-16: summarize with map-reduce -> tracker receives accumulated cost."""
+        tracker = self._tracker(daily=100.0)
+        text = "\n\n".join(["a" * 30, "b" * 30, "c" * 30])
+        fc = FakeClient({"summary": "s1", "key_points": []},
+                        {"summary": "s2", "key_points": []},
+                        {"summary": "s3", "key_points": []},
+                        {"summary": "final", "key_points": ["k"]})
+        env = self.run_task("summarize", client=fc, text=text,
+                            profile=_profile_small(), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(fc.calls, 4)
+        cur = tracker._conn.execute("SELECT COUNT(*) FROM cost_log")
+        self.assertEqual(cur.fetchone()[0], 1)
+
+    def test_no_tracker_no_change(self):
+        """Backward compat: without budget tracker -> identical behaviour."""
+        env = self.run_task(client=FakeClient(GOOD))
+        self.assertEqual(env["status"], "ok")
+
+    def test_envelope_accepts_budget_exceeded_status(self):
+        """CA-5: schema validates budget_exceeded + budget_daily/budget_monthly."""
+        from core.protocol.envelope import validate_envelope
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        env = self.run_task(client=FakeClient(GOOD),
+                            profile=_cloud_only_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "budget_exceeded")
+        errors = validate_envelope(env)
+        self.assertEqual(errors, [])
+
+    def test_budget_monthly_reason_when_monthly_exceeded(self):
+        """Budget monthly exceeded -> reason is budget_monthly."""
+        tracker = self._tracker(daily=100.0, monthly=0.01)
+        _exhaust_budget(tracker)
+
+        env = self.run_task(client=FakeClient(GOOD),
+                            profile=_cloud_only_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "budget_exceeded")
+        self.assertEqual(env["reason"], "budget_monthly")
+
+
+if __name__ == "__main__":
+    unittest.main()

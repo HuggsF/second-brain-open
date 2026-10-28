@@ -142,6 +142,10 @@ class BudgetTracker:
         conn.execute("PRAGMA busy_timeout=5000")
         return conn
 
+    def close(self) -> None:
+        """Close the database connection."""
+        self._conn.close()
+
     # ── Write ────────────────────────────────────────────────────────
 
     def record(
