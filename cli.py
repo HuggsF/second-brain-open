@@ -459,17 +459,23 @@ def _rebuild_budget(tracker, base_dir):
     # Phase 1: populate staging table (outside exclusive transaction)
     tracker.create_staging_table()
     count = 0
+    ignored = 0  # linhas com JSON inválido, sem envelope_id ou sem ts válido: puladas
+    totals = {}  # envelope_id -> actual_usd (o primeiro vence, como o INSERT OR IGNORE)
     for source_path in sources:
         try:
             text = source_path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
         for line in text.split("\n"):
+            if not line.strip():
+                continue
             try:
                 record = json.loads(line)
             except ValueError:
+                ignored += 1
                 continue
             if not isinstance(record, dict):
+                ignored += 1
                 continue
             if record.get("kind") != "task.result":
                 continue
@@ -477,11 +483,19 @@ def _rebuild_budget(tracker, base_dir):
             if cost is None:
                 continue
             envelope_id = record.get("id")
-            if not envelope_id:
+            ts = record.get("ts")
+            if not isinstance(cost, dict) or not envelope_id or not isinstance(ts, str):
+                ignored += 1
                 continue
+            try:
+                _to_utc_iso(ts)
+            except ValueError:
+                ignored += 1
+                continue
+            actual_usd = cost.get("actual_usd", 0.0)
             tracker.insert_staging(
                 envelope_id=envelope_id,
-                ts=record.get("ts", ""),
+                ts=ts,
                 trace_id=record.get("trace_id"),
                 task=record.get("task"),
                 sender=record.get("from"),
@@ -490,22 +504,21 @@ def _rebuild_budget(tracker, base_dir):
                 tier=cost.get("tier"),
                 tokens_in=cost.get("tokens_in", 0),
                 tokens_out=cost.get("tokens_out", 0),
-                actual_usd=cost.get("actual_usd", 0.0),
+                actual_usd=actual_usd,
                 paid_equivalent_usd=cost.get("paid_equivalent_usd", 0.0),
             )
-            count += 1
+            if envelope_id not in totals:
+                totals[envelope_id] = float(actual_usd or 0.0)
+                count += 1
     tracker.commit_staging()
     # Phase 2: reconcile and swap (exclusive transaction)
     tracker.rebuild_reconcile()
     click.echo("\u26a0 A reconstru\u00e7\u00e3o cobre apenas o hist\u00f3rico "
                "dispon\u00edvel nos arquivos de eventos.")
-    # Final report
-    total_usd = tracker.daily_spent() if count > 0 else 0.0
-    # Actually get the total from the full month
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
-    total_usd = tracker.monthly_spent(now.year, now.month)
-    click.echo(f"Reconstru\u00eddo: {count} registros, US$ {total_usd:.2f} acumulado.")
+    # Final report: soma do actual_usd dos registros reconstru\u00eddos (todos os per\u00edodos).
+    total_usd = sum(totals.values())
+    click.echo(f"Reconstru\u00eddo: {count} registros, ignoradas: {ignored}, "
+               f"US$ {total_usd:.4f} acumulado.")
 
 @cli.group()
 def task():
