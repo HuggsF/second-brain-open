@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from core.budget import BudgetConfig, BudgetStatus, BudgetTracker, _to_utc_iso
+from core.budget import BudgetConfig, BudgetStatus, BudgetTracker, FailedBudgetTracker, _to_utc_iso
 from core.cost import CostRecord
 
 
@@ -310,3 +310,69 @@ class TestRebuild:
         cur = t._conn.execute("SELECT COUNT(*) FROM cost_log")
         assert cur.fetchone()[0] == 2
         assert t.daily_spent() == pytest.approx(0.30)
+
+
+# ── Rebuild staging concurrency (P2 regression) ─────────────────────
+
+
+class TestRebuildStagingConcurrency:
+    def test_record_during_staging_population(self, tmp_path):
+        """P2 regression: record() must succeed while staging inserts are
+        happening on a separate connection."""
+        t = _tracker(tmp_path, daily=100.0)
+        eid_before = _eid()
+        t.record(_cost(0.10, "p"), envelope_id=eid_before, task="classify")
+
+        # Start staging on separate connection
+        t.create_staging_table()
+        t.insert_staging(
+            envelope_id=eid_before,
+            ts=datetime.now(timezone.utc).isoformat(),
+            trace_id=None, task="classify", sender="cli",
+            provider="p", model="m", tier="cloud",
+            tokens_in=10, tokens_out=5, actual_usd=0.10,
+            paid_equivalent_usd=0.0,
+        )
+
+        # Concurrent record on the main connection must NOT raise
+        eid_concurrent = _eid()
+        t.record(_cost(0.05, "p"), envelope_id=eid_concurrent, task="extract")
+
+        t.commit_staging()
+        t.rebuild_reconcile()
+
+        # Both records survive
+        cur = t._conn.execute("SELECT COUNT(*) FROM cost_log")
+        assert cur.fetchone()[0] == 2
+        assert t.daily_spent() == pytest.approx(0.15)
+
+
+# ── FailedBudgetTracker sentinel (P1 regression) ────────────────────
+
+
+class TestFailedBudgetTracker:
+    def test_status_reports_exceeded(self):
+        cfg = BudgetConfig(daily_usd=0.50, monthly_usd=10.0)
+        ft = FailedBudgetTracker(cfg)
+        s = ft.status()
+        assert s.state == "exceeded"
+        assert s.daily_remaining == 0.0
+        assert s.monthly_remaining == 0.0
+        assert s.limiting_period == "daily"
+        assert s.daily_limit == 0.50
+        assert s.monthly_limit == 10.0
+
+    def test_record_is_noop(self):
+        cfg = BudgetConfig()
+        ft = FailedBudgetTracker(cfg)
+        # Must not raise
+        ft.record(_cost(0.10, "p"), envelope_id=_eid(), task="classify")
+
+    def test_status_reflects_config_limits(self):
+        cfg = BudgetConfig(daily_usd=2.0, monthly_usd=50.0)
+        ft = FailedBudgetTracker(cfg)
+        s = ft.status()
+        assert s.daily_spent == 2.0
+        assert s.monthly_spent == 50.0
+        assert s.daily_limit == 2.0
+        assert s.monthly_limit == 50.0
