@@ -147,6 +147,35 @@ class RetrievalsEndpointTests(unittest.TestCase):
         self.assertNotIn('segredo', json.dumps(body))
         self.assertNotIn('qdrant', json.dumps(body))
 
+    def test_unencodable_query_is_400_before_retriever(self):
+        status, body = self.post(None, raw=b'{"query":"\\ud800"}')
+        self.assertEqual((status, body['error']), (400, 'INVALID_QUERY'))
+        self.retriever.query.assert_not_called()
+
+    def test_unserializable_result_is_typed_503(self):
+        for bad in [object(), '\ud800']:
+            self.retriever.query.return_value = {**fake_result(), 'index_version': bad}
+            with mock.patch('sys.stderr'):
+                status, body = self.post({'query': 'x'})
+            self.assertEqual((status, body['error']), (503, 'RETRIEVAL_UNAVAILABLE'))
+
+    def test_misaligned_sources_is_typed_503(self):
+        result = fake_result(2)
+        result['sources'] = result['sources'][:1]
+        self.retriever.query.return_value = result
+        with mock.patch('sys.stderr'):
+            status, body = self.post({'query': 'x'})
+        self.assertEqual((status, body['error']), (503, 'RETRIEVAL_UNAVAILABLE'))
+
+    def test_failure_detail_goes_to_log_not_response(self):
+        self.retriever.query.side_effect = RuntimeError('C:\\segredo\\boom')
+        with mock.patch('sys.stderr') as stderr:
+            status, body = self.post({'query': 'x'})
+        self.assertEqual(status, 503)
+        self.assertNotIn('segredo', json.dumps(body))
+        logged = ''.join(call.args[0] for call in stderr.write.call_args_list if call.args)
+        self.assertIn('RuntimeError', logged)
+
     def test_lazy_construction_failure_is_503(self):
         handler = handler_for(self.store, Path(self.tmp.name), self.port)
         self.server.RequestHandlerClass = handler

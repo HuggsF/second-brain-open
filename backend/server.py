@@ -129,17 +129,20 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None, retriever
             if category is not None and not isinstance(category,str):
                 return self.error(400,'INVALID_JSON')
             question = question.strip()
+            try: question.encode('utf-8')  # Lone surrogates are valid JSON but cannot be sent back.
+            except UnicodeEncodeError: return self.error(400,'INVALID_QUERY')
             try:
                 started = time.perf_counter()
                 result = self.get_retriever().query(question,limit=limit,category=category,include_content=True)
                 elapsed = int((time.perf_counter()-started)*1000)
                 citations = [{**citation,'excerpt':str(source.get('content') or '')[:EXCERPT_CHARS]}
-                             for citation,source in zip(result['citations'],result['sources'])]
+                             for citation,source in zip(result['citations'],result['sources'],strict=True)]
                 payload = {**envelope,'mode':'vector','query':question,'index_version':result['index_version'],
                            'citations':citations,'gaps':result['gaps'],'timings_ms':{'retrieval':elapsed}}
+                json.dumps(payload,ensure_ascii=False).encode()  # Fail here as a typed 503, never inside send().
             except Exception as exc:
-                # Never echo exception text or paths to the client (INV-N07); log only the type.
-                print(f'retrieval failed: {type(exc).__name__}',file=sys.stderr)
+                # The detail goes to the local log only; the response stays generic (INV-N07).
+                print(f'retrieval failed: {type(exc).__name__}: {exc!r}',file=sys.stderr)
                 return self.error(503,'RETRIEVAL_UNAVAILABLE')
             return self.send(200,payload)
 
