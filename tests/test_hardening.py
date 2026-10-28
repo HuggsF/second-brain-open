@@ -104,20 +104,30 @@ class TestBrokerToolPaths(unittest.TestCase):
 
 class TestSyncDoesNotLoseKnowledge(unittest.TestCase):
     def test_old_vectors_kept_when_embedding_fails(self):
-        engine = SyncEngine.__new__(SyncEngine)
+        import tempfile
         from pathlib import Path
         from config import settings
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        engine = SyncEngine.__new__(SyncEngine)
+        engine.lock_path = Path(tmp.name) / "sync.lock"
+        engine.lock_wait = 0.0
+        engine.vault_dir = settings.vault_dir
         f = next(settings.adrs_dir.glob("*.md"))
+        rel = f.relative_to(settings.vault_dir).as_posix()
         engine.manifest_manager = mock.Mock()
-        engine.manifest_manager.get_diff.return_value = ([], [f], [])
+        engine.manifest_manager.load_manifest.return_value = {rel: "0" * 64}
+        engine.manifest_manager.get_diff_with_hashes.return_value = ([], [f], [], {rel: "1" * 64})
         engine.chunker = mock.Mock()
-        engine.chunker.chunk_file.return_value = [{"content": "x", "id": "i", "metadata": {}}]
+        engine.chunker.chunk_bytes.return_value = [{"content": "x", "id": "i", "metadata": {}}]
         engine.embedder = mock.Mock()
         engine.embedder.get_embedding.side_effect = RuntimeError("ollama fora do ar")
         engine.store = mock.Mock()
         res = engine.sync_vault(verbose=False)
         engine.store.delete_by_file_path.assert_not_called()
-        engine.manifest_manager.update_file_hash.assert_not_called()
+        engine.store.delete_stale.assert_not_called()
+        engine.store.upsert_chunks.assert_not_called()
+        engine.manifest_manager.save_manifest.assert_not_called()
         self.assertEqual(res["failed"], 1)
 
 

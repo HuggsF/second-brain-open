@@ -1,5 +1,6 @@
 """Testes de consistencia vault -> Qdrant (onda A)."""
 import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,8 +9,20 @@ from unittest import mock
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
 
+from config import settings
+from core.chunker import MarkdownChunker
 from core.hasher import ManifestError, ManifestManager
 from core.qdrant_store import QdrantStore
+from core.sync_lock import SyncBusy, sync_lock
+from ingestion.sync import SyncEngine
+
+
+def sha256(raw: bytes) -> str:
+    return hashlib.sha256(raw).hexdigest()
+
+
+THREE_SECTIONS = "## S1\n\ntexto um\n\n## S2\n\ntexto dois\n\n## S3\n\ntexto tres\n"
+ONE_SECTION = "## S1\n\ntexto novo\n"
 
 
 class TestManifest(unittest.TestCase):
@@ -121,6 +134,173 @@ class TestStore(unittest.TestCase):
         self.assertEqual(sorted(self.store.collections_with_prefix("kb__")), ["kb__1", "kb__2"])
         self.store.drop_collection("kb__1")
         self.assertEqual(self.store.collections_with_prefix("kb__"), ["kb__2"])
+
+
+class TestChunkBytes(unittest.TestCase):
+    def test_crlf_bytes_match_text_mode_reading(self):
+        raw = "## S1\r\n\r\ntexto um\r\n".encode("utf-8")
+        chunks = MarkdownChunker().chunk_bytes(raw, "a.md")
+        self.assertEqual(len(chunks), 1)
+        self.assertNotIn("\r", chunks[0]["content"])
+        self.assertEqual(chunks[0]["metadata"]["section"], "S1")
+
+    def test_category_is_immediate_parent_like_chunk_file(self):
+        chunker = MarkdownChunker()
+        cases = {"a.md": "general", "adrs/x.md": "adrs", "architecture/full-cycle/x.md": "full-cycle"}
+        for rel, category in cases.items():
+            with self.subTest(rel=rel):
+                chunks = chunker.chunk_bytes(ONE_SECTION.encode("utf-8"), rel)
+                self.assertEqual(chunks[0]["metadata"]["category"], category)
+                self.assertEqual(chunks[0]["metadata"]["file_path"], rel)
+                self.assertEqual(chunks[0]["metadata"]["doc_title"], "X" if rel != "a.md" else "A")
+
+
+class FakeEmbedder:
+    def get_embedding(self, text):
+        return [0.1] * settings.vector_size
+
+
+class TestIncrementalSync(unittest.TestCase):
+    def setUp(self):
+        vault_tmp = tempfile.TemporaryDirectory()
+        state_tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(vault_tmp.cleanup)
+        self.addCleanup(state_tmp.cleanup)
+        self.vault = Path(vault_tmp.name)
+        state = Path(state_tmp.name)
+        self.manifest_path = state / "manifest.json"
+
+        self.client = QdrantClient(location=":memory:")
+        self.addCleanup(self.client.close)
+        with mock.patch("core.qdrant_store.QdrantClient", return_value=self.client):
+            self.engine = SyncEngine(lock_path=state / "run" / "sync.lock", lock_wait=0.0)
+            self.store = QdrantStore(url="http://qdrant.invalid", collection_name="kb")
+        self.engine.store = self.store
+        self.engine.embedder = FakeEmbedder()
+        self.engine.manifest_manager = ManifestManager(manifest_path=self.manifest_path)
+        self.engine.vault_dir = self.vault
+
+        (self.vault / "a.md").write_text(THREE_SECTIONS, encoding="utf-8")
+
+    def manifest(self):
+        return json.loads(self.manifest_path.read_text(encoding="utf-8"))
+
+    def index_initial(self):
+        res = self.engine.sync_vault(verbose=False)
+        self.assertEqual(res["failed"], 0)
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3})
+
+    def test_hash_written_is_hash_indexed(self):  # CA-06
+        self.indexed_bytes = {}
+        real = self.engine.chunker.chunk_bytes
+
+        def spy(raw, rel_path, *args, **kwargs):
+            self.indexed_bytes[rel_path] = raw
+            # edicao concorrente: o arquivo muda no disco enquanto o sync indexa
+            (self.vault / rel_path).write_text(ONE_SECTION, encoding="utf-8")
+            return real(raw, rel_path, *args, **kwargs)
+
+        with mock.patch.object(self.engine.chunker, "chunk_bytes", side_effect=spy):
+            self.engine.sync_vault(verbose=False)
+        self.assertEqual(self.manifest()["a.md"], sha256(self.indexed_bytes["a.md"]))
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3})
+        # o proximo sync percebe a edicao e reindexa
+        res = self.engine.sync_vault(verbose=False)
+        self.assertEqual((res["modified"], res["chunks_indexed"]), (1, 1))
+        self.assertEqual(self.store.indexed_files(), {"a.md": 1})
+
+    def test_edit_between_diff_and_read_records_new_bytes(self):  # CA-06 / INV-N05
+        mm = self.engine.manifest_manager
+        real = mm.get_diff_with_hashes
+
+        def diff_then_edit(*args, **kwargs):
+            result = real(*args, **kwargs)
+            (self.vault / "a.md").write_text(ONE_SECTION, encoding="utf-8")
+            return result
+
+        with mock.patch.object(mm, "get_diff_with_hashes", side_effect=diff_then_edit):
+            self.engine.sync_vault(verbose=False)
+        self.assertEqual(self.manifest()["a.md"], sha256((self.vault / "a.md").read_bytes()))
+        self.assertEqual(self.store.indexed_files(), {"a.md": 1})
+
+    def test_shrinking_file_never_has_zero_points(self):  # CA-07 / INV-N06
+        self.index_initial()
+        (self.vault / "a.md").write_text(ONE_SECTION, encoding="utf-8")
+        self.points_seen_before_delete = 0
+        self.points_seen_before_upsert = 0
+        real_delete = self.store.delete_stale
+        real_upsert = self.store.upsert_chunks
+
+        def delete_spy(rel_path, keep_ids):
+            self.points_seen_before_delete = self.store.indexed_files().get("a.md", 0)
+            return real_delete(rel_path, keep_ids)
+
+        def upsert_spy(chunks, vectors):
+            self.points_seen_before_upsert = self.store.indexed_files().get("a.md", 0)
+            return real_upsert(chunks, vectors)
+
+        with mock.patch.object(self.store, "delete_stale", side_effect=delete_spy), \
+                mock.patch.object(self.store, "upsert_chunks", side_effect=upsert_spy):
+            res = self.engine.sync_vault(verbose=False)
+        self.assertEqual(res["failed"], 0)
+        self.assertGreater(self.points_seen_before_upsert, 0)
+        self.assertGreater(self.points_seen_before_delete, 0)
+        self.assertEqual(self.store.indexed_files()["a.md"], 1)
+
+    def test_renamed_note_moves_index(self):  # Review Focus 1
+        self.index_initial()
+        (self.vault / "a.md").rename(self.vault / "b.md")
+        self.engine.sync_vault(verbose=False)
+        self.assertEqual(set(self.store.indexed_files()), {"b.md"})
+        self.assertEqual(set(self.manifest()), {"b.md"})
+
+    def test_unreadable_manifest_touches_nothing(self):  # CA-03
+        self.index_initial()
+        self.before = self.store.indexed_files()
+        (self.vault / "a.md").write_text(ONE_SECTION, encoding="utf-8")
+        self.manifest_path.write_text("{", encoding="utf-8")
+        with self.assertRaises(ManifestError):
+            self.engine.sync_vault(verbose=False)
+        self.assertEqual(self.store.indexed_files(), self.before)
+
+    def test_qdrant_down_leaves_manifest(self):  # Review Focus 5
+        self.index_initial()
+        self.manifest_before = self.manifest_path.read_bytes()
+        (self.vault / "a.md").write_text(ONE_SECTION, encoding="utf-8")
+        with mock.patch.object(self.store, "ensure_collection", side_effect=ConnectionError("fora")):
+            with self.assertRaises(ConnectionError):
+                self.engine.sync_vault(verbose=False)
+        self.assertEqual(self.manifest_path.read_bytes(), self.manifest_before)
+
+    def test_delete_stale_failure_keeps_manifest(self):  # spec 6.2
+        self.index_initial()
+        old_hash = self.manifest()["a.md"]
+        (self.vault / "a.md").write_text(ONE_SECTION, encoding="utf-8")
+        with mock.patch.object(self.store, "delete_stale", side_effect=RuntimeError("fora")):
+            res = self.engine.sync_vault(verbose=False)
+        self.assertEqual((res["failed"], res["failed_files"]), (1, ["a.md"]))
+        self.assertEqual(self.manifest()["a.md"], old_hash)
+        # o proximo sync repete e limpa o que sobrou
+        self.engine.sync_vault(verbose=False)
+        self.assertEqual(self.store.indexed_files(), {"a.md": 1})
+
+    def test_emptied_file_loses_points_and_records_hash(self):
+        self.index_initial()
+        (self.vault / "a.md").write_text("", encoding="utf-8")
+        res = self.engine.sync_vault(verbose=False)
+        self.assertEqual(res["failed"], 0)
+        self.assertEqual(self.store.indexed_files(), {})
+        self.assertEqual(self.manifest()["a.md"], sha256(b""))
+
+    def test_busy_lock_raises(self):
+        with sync_lock(self.engine.lock_path):
+            with self.assertRaises(SyncBusy):
+                self.engine.sync_vault(verbose=False)
+        self.assertFalse(self.manifest_path.exists())
+
+    def test_second_run_is_noop(self):
+        self.engine.sync_vault(verbose=False)
+        self.assertEqual(self.engine.sync_vault(verbose=False)["chunks_indexed"], 0)
 
 
 if __name__ == "__main__":
