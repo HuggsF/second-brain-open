@@ -10,21 +10,39 @@ import yaml
 from config import settings
 from core.citations import select_hits
 
-__all__ = ["DEFAULT_DROPS", "DEFAULT_MINS", "collect", "grid", "load_cases", "suggest"]
+__all__ = ["DEFAULT_DROPS", "DEFAULT_MINS", "collect", "grid", "load_cases", "load_known_limits", "suggest"]
 
 DEFAULT_MINS = [0.55, 0.60, 0.65, 0.70, 0.75]
 DEFAULT_DROPS = [0.05, 0.10, 0.15, 0.20]
 
 
+def _read(path: Path) -> dict:
+    return yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+
+
+def _prompts(items) -> list[str]:
+    """Perguntas de uma lista de negativos: string antiga ou registro com `prompt`."""
+    prompts = []
+    for item in items or []:
+        prompt = item.get("prompt") if isinstance(item, dict) else item
+        if prompt:
+            prompts.append(str(prompt))
+    return prompts
+
+
 def load_cases(path: Path) -> tuple[list[dict], list[str]]:
     """Positivos (casos com `prompt` e `expected_sources`) e negativos (lista `negatives`) do dataset."""
-    data = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    data = _read(path)
     positives = [
         case for case in data.get("cases") or []
         if case.get("prompt") and case.get("expected_sources")
     ]
-    negatives = [str(prompt) for prompt in data.get("negatives") or [] if prompt]
-    return positives, negatives
+    return positives, _prompts(data.get("negatives"))
+
+
+def load_known_limits(path: Path) -> list[str]:
+    """Perguntas de `known_limit_negatives`: medidas a parte, fora da escolha do piso."""
+    return _prompts(_read(path).get("known_limit_negatives"))
 
 
 def _raw_hits(retriever, prompt: str, k: int) -> list[dict]:

@@ -11,7 +11,7 @@ from qdrant_client.models import PointStruct
 from config import settings
 from core.citations import GAP_EMPTY_INDEX, GAP_NO_EVIDENCE, GAP_STALE
 from core.qdrant_store import QdrantStore
-from evals.retrieval_eval import collect, grid, load_cases, suggest
+from evals.retrieval_eval import collect, grid, load_cases, load_known_limits, suggest
 
 VECTOR_SIZE = 4
 QUERY_VECTOR = [1.0, 0.0, 0.0, 0.0]
@@ -393,6 +393,31 @@ class TestRetrievalEval(unittest.TestCase):
         rows = grid(collected, [0.55], [0.10])
         self.assertEqual(rows[0]["recall_at_k"], 0.5)  # b.md cai abaixo do corte de queda
         self.assertEqual(rows[0]["negatives_cleared"], 1.0)
+
+    def _write_dataset(self, text):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        path = Path(tmp.name) / "ds.yaml"
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def test_load_cases_accepts_string_and_mapping_negatives(self):
+        path = self._write_dataset(
+            "cases: []\n"
+            "negatives:\n"
+            "  - \"a\"\n"
+            "  - {prompt: \"b\", absent_entities: [\"Acme\"], neighbor_domain: true}\n"
+        )
+        _, neg = load_cases(path)
+        self.assertEqual(neg, ["a", "b"])
+
+    def test_load_known_limits(self):
+        path = self._write_dataset(
+            "known_limit_negatives:\n"
+            "  - {prompt: \"c\", absent_entities: [\"acme\"], neighbor_domain: true}\n"
+        )
+        self.assertEqual(load_known_limits(path), ["c"])
+        self.assertEqual(load_known_limits(self._write_dataset("cases: []\n")), [])
 
     def test_dataset_has_enough_cases_and_files_exist(self):
         pos, neg = load_cases(Path("evals/golden_dataset.yaml"))

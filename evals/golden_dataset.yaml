@@ -184,22 +184,204 @@ cases:
       decision: "A análise de 08/10/2026 registra centenas de TOO_MANY_REQUESTS, concentrados em UPDATE e GET, todos com limite de 3 por segundo."
       consequence: "A PR reduz sobreposição e chamadas desnecessárias, sem resolver por completo os 429."
 
+  # Positivos 014-030 (onda segundo-sinal, 2026-10-28): fonte conferida por leitura da nota.
+  - id: "GD-HML-014"
+    domain: "logistics"
+    title: "Homologação sem chamadas externas"
+    prompt: "Em homologação o hub pode chamar o ERP, a J&T ou o WMS ao processar um job?"
+    expected_sources:
+      - "rules/RULE-002-homologacao-sem-chamadas-externas.md"
+    expected_rules:
+      - "RULE-002"
+    must_pass_gates: []
+
+  - id: "GD-NFE-015"
+    domain: "logistics"
+    title: "Critérios de validação da NF-e antes do despacho"
+    prompt: "Quais critérios a nota fiscal precisa cumprir antes de um despacho automático, como situação fiscal, número e série?"
+    expected_sources:
+      - "rules/RULE-003-conferencia-nfe-obrigatoria.md"
+    expected_rules:
+      - "RULE-003"
+    must_pass_gates: []
+
+  - id: "GD-RAC-016"
+    domain: "logistics"
+    title: "Emissão protegida contra race condition"
+    prompt: "Como a emissão evita que dois workers reservem o mesmo pedido da fila ao mesmo tempo?"
+    expected_sources:
+      - "rules/RULE-004-emissao-protegida-race-condition.md"
+    expected_rules:
+      - "RULE-004"
+    must_pass_gates: []
+
+  - id: "GD-CAN-017"
+    domain: "logistics"
+    title: "Cancelamento recebido durante a emissão"
+    prompt: "O que acontece se o Bling avisar o cancelamento depois que o hub já obteve a etiqueta na J&T?"
+    expected_sources:
+      - "rules/RULE-008-cancelamento-durante-emissao-revisao-sem-cancelar-jt.md"
+    expected_rules:
+      - "RULE-008"
+    must_pass_gates: []
+
+  - id: "GD-GAT-018"
+    domain: "logistics"
+    title: "Gatilho de emissão por NF-e"
+    prompt: "Quando a emissão disparada pela nota fiscal pode começar, considerando o vínculo com o pedido e as lojas no escopo?"
+    expected_sources:
+      - "rules/RULE-009-gatilho-nfe-vinculo-pedido-e-escopo.md"
+    expected_rules:
+      - "RULE-009"
+    must_pass_gates: []
+
+  - id: "GD-BKP-019"
+    domain: "engineering"
+    title: "Backup e versionamento do hub de etiquetas"
+    prompt: "Por que o hub de etiquetas do servidor de produção passou a ter backup e controle de versão no Git?"
+    expected_sources:
+      - "adrs/ADR-002-backup-e-versionamento-hub-etiquetas.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-EVI-020"
+    domain: "second_brain"
+    title: "Árvore de evidências"
+    prompt: "Como regras de negócio, playbooks e execuções de teste se ligam no second brain?"
+    expected_sources:
+      - "adrs/ADR-005-arvore-de-evidencias-regras-playbooks-execucoes.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-FMT-021"
+    domain: "second_brain"
+    title: "Frontmatter como padrão de metadados"
+    prompt: "Qual é o padrão de metadados das notas do vault para registrar status e data?"
+    expected_sources:
+      - "adrs/ADR-014-frontmatter-yaml-como-padrao-de-metadados-do-vault.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-CUR-022"
+    domain: "second_brain"
+    title: "Texto bruto de cursos fora do repositório"
+    prompt: "Onde fica o texto bruto extraído de cursos e livros e por que ele saiu do repositório?"
+    expected_sources:
+      - "adrs/ADR-015-texto-bruto-de-cursos-fora-do-repositorio.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-LOC-023"
+    domain: "second_brain"
+    title: "Tier local de tarefas"
+    prompt: "Por que tarefas pequenas como classificar uma nota rodam num modelo local e o que acontece quando ele não resolve?"
+    expected_sources:
+      - "adrs/ADR-017-tier-local-de-tarefas-e-nucleo-com-perfis.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-PRV-024"
+    domain: "second_brain"
+    title: "Provedores de nuvem com reserva local"
+    prompt: "Como funciona a cadeia de provedores de nuvem com reserva local e que garantia de retenção de dados ela exige?"
+    expected_sources:
+      - "adrs/ADR-018-provedores-nuvem-com-reserva-local.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-ESC-025"
+    domain: "second_brain"
+    title: "Escopo do second brain"
+    prompt: "Qual é o escopo do second brain e por que o código de produto do hub saiu deste repositório?"
+    expected_sources:
+      - "adrs/ADR-021-escopo-do-second-brain-conhecimento-observabilidade-multiagente.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-POL-026"
+    domain: "second_brain"
+    title: "Política única e corretor de ferramentas"
+    prompt: "Por que existe uma lista única de comandos permitidos e um corretor por onde passam as ferramentas dos agentes?"
+    expected_sources:
+      - "adrs/ADR-022-politica-unica-e-corretor-de-ferramentas.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-LUZ-027"
+    domain: "second_brain"
+    title: "Luz de teste e luz de saúde"
+    prompt: "Qual é a diferença entre a luz de teste e a luz de saúde de uma regra?"
+    expected_sources:
+      - "adrs/ADR-023-luzes-de-teste-e-dominio-de-observacao.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-CIT-028"
+    domain: "second_brain"
+    title: "Citações e piso da recuperação"
+    prompt: "Como a busca no vault declara que não há evidência e o que cada citação traz para ser verificada?"
+    expected_sources:
+      - "adrs/ADR-034-citacoes-piso-e-escopo-da-recuperacao.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-ORC-029"
+    domain: "second_brain"
+    title: "Orçamento de custo dos modelos"
+    prompt: "Como o orçamento diário e mensal limita o gasto com modelos pagos?"
+    expected_sources:
+      - "adrs/ADR-035-orcamento-e-circuit-breaker-de-custo.md"
+    expected_rules: []
+    must_pass_gates: []
+
+  - id: "GD-AUD-030"
+    domain: "logistics"
+    title: "Auditoria de faturamento Bling contra o hub"
+    prompt: "Como auditar se todo pedido faturado no Bling entrou na fila do hub e se houve cobrança duplicada de frete?"
+    expected_sources:
+      - "playbooks/PB-013-auditoria-conciliacao-faturamento-bling-vs-hub.md"
+    expected_rules: []
+    must_pass_gates: []
+
+# Negativos: perguntas sem resposta no vault. `absent_entities` lista os nomes que não podem aparecer
+# em vault/ (tests/test_golden_dataset.py confere); `neighbor_domain` marca sistemas plausíveis para a
+# operação da holding que o vault não documenta.
 negatives:
-  - "Qual é a receita de bolo de cenoura com cobertura de chocolate?"
-  - "Quem ganhou a Copa do Mundo de 2022 e qual foi o placar da final?"
-  - "Quantas luas tem Júpiter e qual é a maior delas?"
-  - "Como faço para treinar um cachorro filhote a não morder os móveis?"
-  - "Qual é a previsão do tempo para o próximo fim de semana em Curitiba?"
-  - "Quais são os melhores pontos turísticos para visitar em Lisboa?"
-  - "Como funciona a fotossíntese nas plantas?"
-  - "Qual é a diferença entre o vinho tinto e o vinho branco na harmonização com carnes?"
-  - "Como declarar imposto de renda de pessoa física este ano?"
-  - "Qual é a melhor posição de agachamento para ganhar massa muscular?"
-  # Negativos do domínio: engenharia e operação da holding, mas sem nota no vault
-  # (termos-chave conferidos por grep em vault/ em 2026-10-28: nenhuma ocorrência relevante).
-  - "Como é feita a integração com a transportadora Jadlog para cotar frete e emitir etiquetas?"
-  - "Como o pedido de venda é integrado ao ERP TOTVS Protheus e como o faturamento é conciliado nele?"
-  - "Quais monitores do Datadog acionam o plantão no PagerDuty quando a fila de emissão atrasa?"
-  - "Como os pedidos da loja VTEX chegam ao hub e qual webhook a VTEX chama na mudança de status?"
-  - "Como a Intelipost opera a logística reversa dos pedidos e qual é o prazo de coleta?"
-  - "Como os tickets do Zendesk são abertos automaticamente para o atendimento quando um pedido atrasa na transportadora?"
+  - {prompt: "Qual é a receita de bolo de cenoura com cobertura de chocolate?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Quem ganhou a Copa do Mundo de 2022 e qual foi o placar da final?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Quantas luas tem Júpiter e qual é a maior delas?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Como faço para treinar um cachorro filhote a não morder os móveis?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Qual é a previsão do tempo para o próximo fim de semana em Curitiba?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Quais são os melhores pontos turísticos para visitar em Lisboa?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Como funciona a fotossíntese nas plantas?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Qual é a diferença entre o vinho tinto e o vinho branco na harmonização com carnes?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Como declarar imposto de renda de pessoa física este ano?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Qual é a melhor posição de agachamento para ganhar massa muscular?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Como se calcula a área de um círculo a partir do diâmetro?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Quais exercícios de alongamento ajudam a aliviar dor nas costas depois de um dia sentado?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Qual é a melhor época do ano para plantar tomate em vaso na varanda?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Como tirar mancha de vinho de um tapete de lã?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Quantos minutos devo cozinhar um ovo para a gema ficar mole?", absent_entities: [], neighbor_domain: false}
+  - {prompt: "Qual é a origem do samba e quais foram os primeiros compositores?", absent_entities: [], neighbor_domain: false}
+  # Domínio vizinho: engenharia e operação da holding, sem nota no vault.
+  - {prompt: "Como é feita a integração com a transportadora Jadlog para cotar frete e emitir etiquetas?", absent_entities: ["Jadlog"], neighbor_domain: true}
+  - {prompt: "Como o pedido de venda é integrado ao ERP TOTVS Protheus e como o faturamento é conciliado nele?", absent_entities: ["TOTVS", "Protheus"], neighbor_domain: true}
+  - {prompt: "Quais monitores do Datadog acionam o plantão no PagerDuty quando a fila de emissão atrasa?", absent_entities: ["Datadog", "PagerDuty"], neighbor_domain: true}
+  - {prompt: "Como os pedidos da loja VTEX chegam ao hub e qual webhook a VTEX chama na mudança de status?", absent_entities: ["VTEX"], neighbor_domain: true}
+  - {prompt: "Como a Intelipost opera a logística reversa dos pedidos e qual é o prazo de coleta?", absent_entities: ["Intelipost"], neighbor_domain: true}
+  - {prompt: "Como os tickets do Zendesk são abertos automaticamente para o atendimento quando um pedido atrasa na transportadora?", absent_entities: ["Zendesk"], neighbor_domain: true}
+  - {prompt: "Como as notas fiscais de entrada são lançadas no ERP Omie e conciliadas com o estoque das lojas?", absent_entities: ["Omie"], neighbor_domain: true}
+  - {prompt: "Qual é o fluxo de postagem dos pedidos pelos pontos de coleta da Kangu e como o rastreio volta para o hub?", absent_entities: ["Kangu"], neighbor_domain: true}
+  - {prompt: "Como o hub compara as cotações de frete da plataforma Melhor Envio antes de escolher a transportadora?", absent_entities: ["Melhor Envio"], neighbor_domain: true}
+  - {prompt: "Como os leads das franquias são enviados para o RD Station e qual automação de e-mail eles recebem?", absent_entities: ["RD Station"], neighbor_domain: true}
+  - {prompt: "Quais alertas do Sentry disparam quando o worker de emissão lança uma exceção?", absent_entities: ["Sentry"], neighbor_domain: true}
+  - {prompt: "Como os chamados das lojas abertos no Freshdesk são roteados para o time de logística?", absent_entities: ["Freshdesk"], neighbor_domain: true}
+  - {prompt: "Quais painéis do Metabase mostram a taxa de fulfillment diária por marca?", absent_entities: ["Metabase"], neighbor_domain: true}
+  - {prompt: "Como os pedidos pesados são despachados pela Azul Cargo e qual é a regra de cubagem do contrato?", absent_entities: ["Azul Cargo"], neighbor_domain: true}
+
+# Limite conhecido (medido à parte, sem exigência): o nome aparece só em minúsculas, então o gate de
+# entidade não age e a recusa depende do piso.
+known_limit_negatives:
+  - {prompt: "como os pedidos da nuvemshop chegam ao hub e qual status volta para a loja?", absent_entities: ["nuvemshop"], neighbor_domain: true}
+  - {prompt: "qual é o prazo de repasse dos pedidos vendidos no magalu para as franquias?", absent_entities: ["magalu"], neighbor_domain: true}
+  - {prompt: "como a olist publica os produtos das marcas e sincroniza o estoque com o hub?", absent_entities: ["olist"], neighbor_domain: true}
