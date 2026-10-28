@@ -57,6 +57,36 @@ class BudgetStatus:
     limiting_period: Literal["daily", "monthly"] | None
 
 
+# ── Failed sentinel ──────────────────────────────────────────────────
+
+
+class FailedBudgetTracker:
+    """Sentinel returned when budget IS configured but SQLite init failed.
+
+    Reports ``exceeded`` state so the router blocks cloud calls or falls
+    back to local execution.  ``record()`` is a silent no-op.
+    The caller retries real init on the next invocation.
+    """
+
+    def __init__(self, config: BudgetConfig) -> None:
+        self._config = config
+
+    def status(self) -> BudgetStatus:
+        return BudgetStatus(
+            state="exceeded",
+            daily_spent=self._config.daily_usd,
+            daily_limit=self._config.daily_usd,
+            daily_remaining=0.0,
+            monthly_spent=self._config.monthly_usd,
+            monthly_limit=self._config.monthly_usd,
+            monthly_remaining=0.0,
+            limiting_period="daily",
+        )
+
+    def record(self, *args, **kwargs) -> None:
+        """No-op — cannot record without a database."""
+
+
 # ── Helpers ──────────────────────────────────────────────────────────
 
 

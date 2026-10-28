@@ -365,20 +365,23 @@ _budget_tracker_no_config = False  # True only when profile has no budget block
 def _get_tracker():
     """Lazy singleton: creates BudgetTracker once from the active profile.
 
-    If the SQLite open fails, the tracker stays None and is retried on
-    the next call — never cached as "init done".
+    If the SQLite open fails, returns a :class:`FailedBudgetTracker`
+    sentinel that reports ``exceeded`` — blocking cloud calls on this
+    invocation.  The real tracker is retried on the next call.
     """
     global _budget_tracker_singleton, _budget_tracker_no_config
     if _budget_tracker_singleton is not None:
         return _budget_tracker_singleton
     if _budget_tracker_no_config:
         return None
+    budget_config = None
     try:
         from core.local_tasks.profile import load_profile
         profile = load_profile()
         if profile.budget is None:
             _budget_tracker_no_config = True
             return None
+        budget_config = profile.budget
         from core.budget import BudgetTracker
         from config import settings
         db_path = settings.base_dir / ".runtime" / "budget.db"
@@ -388,6 +391,9 @@ def _get_tracker():
     except Exception:
         import logging
         logging.getLogger(__name__).warning("BudgetTracker init failed; will retry", exc_info=True)
+        if budget_config is not None:
+            from core.budget import FailedBudgetTracker
+            return FailedBudgetTracker(budget_config)
         return None
 
 

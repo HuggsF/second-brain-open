@@ -50,21 +50,23 @@ def _get_budget_tracker():
     """Create the BudgetTracker once on first call.  Returns None when
     the active profile has no budget config.
 
-    If the SQLite open fails, the tracker stays None and is retried on
-    the next call — never cached as "init done".  This prevents silent
-    loss of budget control after a transient I/O error.
+    If the SQLite open fails, returns a :class:`FailedBudgetTracker`
+    sentinel that reports ``exceeded`` — blocking cloud calls on this
+    invocation.  The real tracker is retried on the next call.
     """
     global _budget_tracker, _budget_tracker_no_config
     if _budget_tracker is not None:
         return _budget_tracker
     if _budget_tracker_no_config:
         return None
+    budget_config = None
     try:
         from core.local_tasks.profile import load_profile
         profile = load_profile()
         if profile.budget is None:
             _budget_tracker_no_config = True
             return None
+        budget_config = profile.budget
         from core.budget import BudgetTracker
         db_path = settings.base_dir / ".runtime" / "budget.db"
         db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -72,6 +74,9 @@ def _get_budget_tracker():
     except Exception:
         import logging
         logging.getLogger(__name__).warning("BudgetTracker init failed; will retry", exc_info=True)
+        if budget_config is not None:
+            from core.budget import FailedBudgetTracker
+            return FailedBudgetTracker(budget_config)
     return _budget_tracker
 
 
