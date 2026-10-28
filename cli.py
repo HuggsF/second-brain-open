@@ -145,6 +145,10 @@ def ask(question: str, category: str):
             border_style="cyan"
         ))
 
+        from core.citations import GAP_EMPTY_INDEX
+        if GAP_EMPTY_INDEX in result.get("gaps", []):
+            click.echo("Rode 'cli.py sync --rebuild' para reconstruir o índice deste espaço.")
+
         # Exibir fontes citadas
         if result["sources"]:
             table = Table(title="Fontes Consultadas", show_header=True, header_style="bold magenta")
