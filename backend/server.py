@@ -18,6 +18,7 @@ from backend.assessment import build_assessment
 from backend.playbooks_api import PlaybooksApi
 from backend.store import Store
 from backend.workflow_api import MAX_BODY_BYTES, WorkflowApi
+from config import settings
 from core.events import subscribe, unsubscribe
 from mcp_servers.hub_observability_mcp import mcp
 
@@ -64,8 +65,16 @@ class Collector:
             self.stop.wait(60)
 
 
-def handler_for(store, dashboard, port, workflow=None, playbooks=None):
+MAX_QUERY_CHARS = 500
+MAX_RETRIEVAL_LIMIT = 10
+DEFAULT_RETRIEVAL_LIMIT = 5
+EXCERPT_CHARS = 400
+
+
+def handler_for(store, dashboard, port, workflow=None, playbooks=None, retriever=None):
     origin = f'http://127.0.0.1:{port}'
+    retriever_box = [retriever]
+    retriever_lock = threading.Lock()
     workflow = workflow or WorkflowApi(ROOT, port=port)
     if not workflow.port: workflow.port = port
     playbooks = playbooks or PlaybooksApi(ROOT / 'vault')
@@ -94,6 +103,50 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
             except Exception as exc:
                 print(f'playbooks api failed: {type(exc).__name__}',file=sys.stderr)
                 return 500,{'schema_version':1,'error':'INTERNAL','request_id':str(uuid.uuid4())}
+
+        def envelope(self,query):
+            # Single-space pilot: only the configured space (settings.space_id) is served. None when denied.
+            space = settings.space_id
+            if query.get('space',[space]) != [space]: return None
+            return {'schema_version':1,'space_id':space,'request_id':str(uuid.uuid4())}
+
+        def get_retriever(self):
+            with retriever_lock:
+                if retriever_box[0] is None:
+                    from core.retriever import BrainRetriever  # Lazy: the BFF must start without Qdrant.
+                    retriever_box[0] = BrainRetriever()
+                return retriever_box[0]
+
+        def retrieval(self,body,envelope):
+            try: data = json.loads(body.decode('utf-8'))
+            except (ValueError, UnicodeDecodeError): return self.error(400,'INVALID_JSON')
+            if not isinstance(data,dict): return self.error(400,'INVALID_JSON')
+            question = data.get('query')
+            if not isinstance(question,str) or not 1 <= len(question.strip()) <= MAX_QUERY_CHARS:
+                return self.error(400,'INVALID_QUERY')
+            limit = data.get('limit',DEFAULT_RETRIEVAL_LIMIT)
+            if not isinstance(limit,int) or isinstance(limit,bool) or not 1 <= limit <= MAX_RETRIEVAL_LIMIT:
+                return self.error(400,'INVALID_LIMIT')
+            category = data.get('category')
+            if category is not None and not isinstance(category,str):
+                return self.error(400,'INVALID_JSON')
+            question = question.strip()
+            try: question.encode('utf-8')  # Lone surrogates are valid JSON but cannot be sent back.
+            except UnicodeEncodeError: return self.error(400,'INVALID_QUERY')
+            try:
+                started = time.perf_counter()
+                result = self.get_retriever().query(question,limit=limit,category=category,include_content=True)
+                elapsed = int((time.perf_counter()-started)*1000)
+                citations = [{**citation,'excerpt':str(source.get('content') or '')[:EXCERPT_CHARS]}
+                             for citation,source in zip(result['citations'],result['sources'],strict=True)]
+                payload = {**envelope,'mode':'vector','query':question,'index_version':result['index_version'],
+                           'citations':citations,'gaps':result['gaps'],'timings_ms':{'retrieval':elapsed}}
+                json.dumps(payload,ensure_ascii=False).encode()  # Fail here as a typed 503, never inside send().
+            except Exception as exc:
+                # The detail goes to the local log only; the response stays generic (INV-N07).
+                print(f'retrieval failed: {type(exc).__name__}: {exc!r}',file=sys.stderr)
+                return self.error(503,'RETRIEVAL_UNAVAILABLE')
+            return self.send(200,payload)
 
         def has_session(self):
             cookie = SimpleCookie()
@@ -126,11 +179,11 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
                 result = self.playbooks_call(path,'GET')
                 return self.send(result[0],result[1]) if result else self.error(404,'NOT_FOUND')
             if path.startswith('/v1/'):
-                if query.get('space',['kiosk']) != ['kiosk']:
+                envelope = self.envelope(query)
+                if envelope is None:
                     return self.error(403,'SPACE_DENIED')
-                envelope = {'schema_version':1,'space_id':'kiosk','request_id':str(uuid.uuid4())}
                 if path == '/v1/capabilities':
-                    return self.send(200,{**envelope,'authentication':'local-session','observability':{'enabled':True,'interval_seconds':60,'stale_after_seconds':180,'targets':list(TARGETS)},'semantic_retrieval':False,'agent_execution':False,'workflow_audit':True})
+                    return self.send(200,{**envelope,'authentication':'local-session','observability':{'enabled':True,'interval_seconds':60,'stale_after_seconds':180,'targets':list(TARGETS)},'semantic_retrieval':True,'agent_execution':False,'workflow_audit':True})
                 if path in ('/v1/observability','/v1/observability/history','/v1/observability/assessment'):
                     env = query.get('environment',['production'])
                     if len(env)!=1 or env[0] not in TARGETS:
@@ -193,7 +246,15 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None):
                 return self.error(403,'ORIGIN_DENIED')
             if not self.has_session():
                 return self.error(401,'AUTH_REQUIRED')
-            path = unquote(urlsplit(self.path).path)
+            url = urlsplit(self.path)
+            path = unquote(url.path)
+            if path == '/v1/retrievals':
+                if self.headers.get('Content-Type','').split(';')[0].strip() != 'application/json':
+                    return self.error(415,'JSON_REQUIRED')
+                envelope = self.envelope(parse_qs(url.query))
+                if envelope is None:
+                    return self.error(403,'SPACE_DENIED')
+                return self.retrieval(body,envelope)
             if path == '/api/playbooks/executions' or re.fullmatch(PLAYBOOK_RENDER_ROUTE,path):
                 if self.headers.get('Content-Type','').split(';')[0].strip() != 'application/json':
                     return self.error(415,'JSON_REQUIRED')

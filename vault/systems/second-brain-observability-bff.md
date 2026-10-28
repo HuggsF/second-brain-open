@@ -27,11 +27,19 @@ Uma instância por porta: a exclusividade de coleta vale dentro do processo; uma
 
 ## Contrato HTTP v1
 
-- GET `/v1/capabilities`: recursos habilitados; GraphRAG semântico e execução de agentes continuam false.
+- GET `/v1/capabilities`: recursos habilitados; `semantic_retrieval` agora é true (recuperação vetorial com citações, ADR-034); execução de agentes continua false e GraphRAG (grafo) não está conectado.
 - GET `/v1/observability?space=kiosk&environment=production`: última observação válida, última tentativa, idade, stale e collection_failed.
 - GET `/v1/observability/history?space=kiosk&environment=hml&limit=30`: tentativas recentes, máximo 100 por resposta.
 
-Rotas de dados e arquivos do dashboard exigem sessão. Espaço diferente recebe 403; ambiente inválido 400; ausência de sessão 401. API somente GET, sem ferramentas corretivas. Host e Origin validados; não há CORS. Diretórios fora do dashboard não são servidos.
+- POST `/v1/retrievals?space=kiosk` (onda B, ADR-034): recuperação vetorial com citações.
+  - Guarda: sessão e verificação de mesma origem (Host, `Sec-Fetch-Site` e `Origin` explícito, como nas demais escritas); `Content-Type: application/json`.
+  - Corpo JSON: `query` (texto, 1 a 500 caracteres), `limit` (inteiro de 1 a 10, padrão 5) e `category` (texto ou `null`). Espaço diferente do configurado (`settings.space_id`, padrão `kiosk`) na query string recebe 403; o envelope devolve esse mesmo `space_id`.
+  - Resposta 200: `schema_version`, `space_id`, `request_id`, `mode: "vector"`, `query`, `index_version`, `citations`, `gaps` e `timings_ms.retrieval`. Cada citação traz `document`, `section`, `line_start`, `line_end`, `sha256`, `score`, `stale` e `excerpt` (trecho com até 400 caracteres). `citations` vazio com `gaps` preenchido significa sem evidência.
+  - Erros tipados: 400 (`INVALID_JSON`, `INVALID_QUERY`, `INVALID_LIMIT`, `INVALID_LENGTH`), 401 (`AUTH_REQUIRED`), 403 (`ORIGIN_DENIED`, `SPACE_DENIED`), 413 (`BODY_TOO_LARGE`), 415 (`JSON_REQUIRED`) e 503 (`RETRIEVAL_UNAVAILABLE`, quando Qdrant ou Ollama falham). O texto da exceção nunca vai na resposta; vai só ao log local.
+  - O retriever é criado sob demanda: o BFF sobe sem Qdrant, e a rota devolve 503 enquanto o serviço estiver fora. Os pontos do índice anterior à onda B ficam invisíveis, e o sync incremental recusa rodar, até `cli.py sync --rebuild --yes` (ADR-034).
+
+Rotas de dados e arquivos do dashboard exigem sessão. Espaço diferente recebe 403; ambiente inválido 400; ausência de sessão 401. Além de `POST /v1/retrievals`, há rotas POST de playbooks (`/api/playbooks/executions`, `/api/playbooks/<id>/render`) e de workflow (`/api/workflow/*`); as demais rotas de dados são GET, sem ferramentas corretivas. Host e Origin validados; não há CORS. Diretórios fora do dashboard não são servidos.
+Nas rotas POST, o `Content-Length` é conferido antes da origem e da sessão (400 `INVALID_LENGTH`, 413 `BODY_TOO_LARGE`). Em `POST /v1/retrievals`, `gaps` pode vir junto com citações (o texto de citação desatualizada).
 
 ## Daemon e interpretação
 
@@ -43,7 +51,7 @@ Os campos `*SinceDeploy` do coletor são contagens da janela móvel de cinco min
 
 ## Continuidade
 
-Wave 2: recuperar texto e vetores com citações e escopo autorizado; corrigir leitura de paths nos MCPs de conhecimento antes de exposição. Wave 3: orquestrador durável, estados de runs, budgets, cancelamento e SSE. Wave 4: ferramentas isoladas e aprovações vinculadas à ação. Conectar watcher de ingestão exige heartbeat e estratégia para falha de embeddings; ele não é ativado por esta wave.
+Wave 2: recuperar texto e vetores com citações e escopo autorizado (a leitura de paths nos MCPs foi corrigida na onda A, ADR-033; a recuperação vetorial com citações, piso e espaço entrou na onda B, ADR-034; resta a recuperação de texto e grafo). Wave 3: orquestrador durável, estados de runs, budgets, cancelamento e SSE. Wave 4: ferramentas isoladas e aprovações vinculadas à ação. Conectar watcher de ingestão exige heartbeat e estratégia para falha de embeddings; ele não é ativado por esta wave.
 
 Antes de abrir acesso em rede: TLS, identidade multiusuário, permissões reais por espaço, limites de conexões, supervisão do daemon, auditoria de acesso sem segredos e verificação independente do host SSH.
 

@@ -28,6 +28,17 @@ class MigrationNeedsConfirmation(RuntimeError):
     """O alias ainda é uma coleção real: a primeira reconstrução precisa de confirmação."""
 
 
+LEGACY_INDEX_MESSAGE = "Índice anterior à onda B; rode 'cli.py sync --rebuild --yes'."
+
+
+class LegacyIndexError(RuntimeError):
+    """A coleção tem pontos sem `space_id` (anteriores à onda B): só a reconstrução resolve.
+
+    O sync incremental e o reconcile recusam rodar: indexariam só parte do vault com `space_id`
+    e a busca escopada responderia "sem evidência" para o resto, sem aviso.
+    """
+
+
 def _utc_stamp() -> str:
     """Carimbo AAAAMMDDHHMMSS em UTC para o nome da coleção versionada."""
     return datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -60,7 +71,8 @@ class SyncEngine:
         with sync_lock(self.lock_path, self.lock_wait):
             # Manifesto ilegível levanta ManifestError antes de tocar o Qdrant.
             manifest = self.manifest_manager.load_manifest()
-            self.store.ensure_collection()
+            created = self.store.ensure_collection()
+            self._refuse_legacy_index(created)
             report = self._reconcile_unlocked(manifest, verbose)
             # O sync seguinte reindexa o que saiu do manifesto; as falhas dele entram no resultado.
             sync_result = self._sync_unlocked(verbose)
@@ -185,7 +197,13 @@ class SyncEngine:
         levantam `UnicodeDecodeError`.
         """
         raw = file_path.read_bytes()
-        return hashlib.sha256(raw).hexdigest(), self.chunker.chunk_bytes(raw, rel_path, self.vault_dir)
+        sha = hashlib.sha256(raw).hexdigest()
+        chunks = self.chunker.chunk_bytes(raw, rel_path, self.vault_dir)
+        # Procedência no payload: o mesmo hash do manifesto e o espaço do índice.
+        for chunk in chunks:
+            chunk["metadata"]["doc_sha256"] = sha
+            chunk["metadata"]["space_id"] = settings.space_id
+        return sha, chunks
 
     def _embed_chunks(self, chunks, rel_path: str):
         """Embeddings de todos os chunks, ou `None` se algum falhou (o arquivo inteiro é ignorado)."""
@@ -248,6 +266,15 @@ class SyncEngine:
             "untracked_reindexed": len(untracked),
         }
 
+    def _refuse_legacy_index(self, created: bool) -> None:
+        """Levanta `LegacyIndexError` se a coleção já existia e tem pontos sem `space_id`.
+
+        Chamado depois de carregar o manifesto e antes de qualquer escrita. Coleção recém-criada
+        está vazia; a reconstrução (`rebuild`) não passa por aqui e é a saída.
+        """
+        if not created and self.store.legacy_points_count() > 0:
+            raise LegacyIndexError(LEGACY_INDEX_MESSAGE)
+
     def _sync_unlocked(self, verbose: bool = True) -> Dict[str, Any]:
         """Sync incremental; quem chama já segura o lock."""
         # Manifesto lido uma vez por sync, antes de tocar o Qdrant: ilegível -> ManifestError
@@ -259,6 +286,7 @@ class SyncEngine:
         # `created` só vale uma vez; se a reconciliação falhar depois da criação, o sinal durável
         # é "manifesto cheio e coleção sem pontos", que repete a reconciliação no sync seguinte.
         created = self.store.ensure_collection()
+        self._refuse_legacy_index(created)
         if created or (manifest and self.store.points_count() == 0):
             self._reconcile_unlocked(manifest, verbose)
 

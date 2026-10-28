@@ -19,9 +19,13 @@ class MarkdownChunker:
         `rel_path` é relativo ao vault, em formato POSIX; `vault_dir` fica pela simetria com
         `chunk_file`. As quebras de linha são normalizadas como na leitura em modo texto.
         """
-        text = raw.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
+        decoded = raw.decode("utf-8").replace("\r\n", "\n")
+        text = decoded.replace("\r", "\n")
+        # Linha original (1-based, só CRLF -> LF) de cada linha do texto normalizado; um CR isolado
+        # vira quebra no texto, mas continua dentro da mesma linha do arquivo original.
+        line_map = [number for number, line in enumerate(decoded.split("\n"), start=1) for _ in range(line.count("\r") + 1)]
         rel = PurePosixPath(rel_path)
-        text, front = self._split_frontmatter(text)
+        text, front, offset = self._split_frontmatter(text)
         extra = {key: str(front[name]) for key, name in (("status", "status"), ("doc_type", "type")) if front.get(name) is not None}
         # Ontology-aware metadata from frontmatter
         for field in ("related", "bounded_context", "entities"):
@@ -39,18 +43,26 @@ class MarkdownChunker:
         doc_title = title_match.group(1).strip() if title_match else rel.stem.replace("-", " ").title()
 
         # Quebrar em seções baseadas em headers (## ou ###)
-        sections = self._split_by_headers(text)
+        sections = self._split_by_headers(text, line_map[offset:])
 
         chunks: List[Dict[str, Any]] = []
         chunk_idx = 0
 
-        for header, content in sections:
+        for header, section_lines in sections:
+            content = "\n".join(line for _, line in section_lines)
             if not content.strip():
                 continue
-            
-            # Se o conteúdo da seção couber no chunk_size
+
+            # Se o conteúdo da seção couber no chunk_size: uma peça só, da primeira à última linha não vazia
             if len(content) <= self.chunk_size:
-                full_chunk_text = f"# {doc_title}\n## {header}\n\n{content.strip()}"
+                filled = [number for number, line in section_lines if line.strip()]
+                pieces = [(content, filled[0], filled[-1])]
+            else:
+                # Subdividir seção longa com overlap
+                pieces = self._sliding_window_split(section_lines, self.chunk_size, self.overlap)
+
+            for piece, line_start, line_end in pieces:
+                full_chunk_text = f"# {doc_title}\n## {header}\n\n{piece.strip()}"
                 chunks.append({
                     "id": f"{rel_path}:{chunk_idx}",
                     "content": full_chunk_text,
@@ -60,73 +72,71 @@ class MarkdownChunker:
                         "section": header,
                         "category": category,
                         "chunk_index": chunk_idx,
+                        "line_start": line_start,
+                        "line_end": line_end,
                         **extra
                     }
                 })
                 chunk_idx += 1
-            else:
-                # Subdividir seção longa com overlap
-                sub_chunks = self._sliding_window_split(content, self.chunk_size, self.overlap)
-                for sub in sub_chunks:
-                    full_chunk_text = f"# {doc_title}\n## {header}\n\n{sub.strip()}"
-                    chunks.append({
-                        "id": f"{rel_path}:{chunk_idx}",
-                        "content": full_chunk_text,
-                        "metadata": {
-                            "file_path": rel_path,
-                            "doc_title": doc_title,
-                            "section": header,
-                            "category": category,
-                            "chunk_index": chunk_idx,
-                            **extra
-                        }
-                    })
-                    chunk_idx += 1
 
         return chunks
 
     @staticmethod
-    def _split_frontmatter(text: str) -> tuple[str, Dict[str, Any]]:
-        """Remove o frontmatter YAML inicial do texto e devolve os campos dele."""
+    def _split_frontmatter(text: str) -> tuple[str, Dict[str, Any], int]:
+        """Remove o frontmatter YAML inicial do texto e devolve os campos dele.
+
+        O terceiro valor é quantas linhas do início foram removidas (0 sem frontmatter).
+        """
         match = re.match(r"^---\r?\n(.*?)\r?\n---\r?\n", text, re.DOTALL)
         if not match:
-            return text, {}
+            return text, {}, 0
         try:
             data = yaml.safe_load(match.group(1))
         except yaml.YAMLError:
-            return text, {}
-        return text[match.end():], data if isinstance(data, dict) else {}
+            return text, {}, 0
+        return text[match.end():], data if isinstance(data, dict) else {}, match.group(0).count("\n")
 
-    def _split_by_headers(self, text: str) -> List[tuple[str, str]]:
-        # Regex para identificar ## ou ###
+    def _split_by_headers(self, text: str, line_numbers: List[int]) -> List[tuple[str, List[tuple[int, str]]]]:
+        """Quebra o texto em seções (## ou ###), cada uma com `(linha_original, texto)` por linha.
+
+        `line_numbers[i]` é a linha original da i-ésima linha de `text`. A linha do cabeçalho não entra
+        na seção; o título `#` fica na seção "Introdução".
+        """
         lines = text.split("\n")
-        sections: List[tuple[str, str]] = []
+        sections: List[tuple[str, List[tuple[int, str]]]] = []
         current_header = "Introdução"
-        current_lines: List[str] = []
+        current_lines: List[tuple[int, str]] = []
 
-        for line in lines:
+        for number, line in zip(line_numbers, lines):
             header_match = re.match(r"^(#{2,3})\s+(.+)$", line)
             if header_match:
                 if current_lines:
-                    sections.append((current_header, "\n".join(current_lines)))
+                    sections.append((current_header, current_lines))
                     current_lines = []
                 current_header = header_match.group(2).strip()
             else:
-                current_lines.append(line)
+                current_lines.append((number, line))
 
         if current_lines:
-            sections.append((current_header, "\n".join(current_lines)))
+            sections.append((current_header, current_lines))
 
         return sections
 
-    def _sliding_window_split(self, text: str, size: int, overlap: int) -> List[str]:
-        words = text.split()
-        chunks: List[str] = []
+    def _sliding_window_split(self, section_lines: List[tuple[int, str]], size: int, overlap: int) -> List[tuple[str, int, int]]:
+        """Janela deslizante sobre as palavras da seção: `(texto, linha_inicial, linha_final)` por peça."""
+        words: List[str] = []
+        word_lines: List[int] = []
+        for number, line in section_lines:
+            line_words = line.split()
+            words.extend(line_words)
+            word_lines.extend([number] * len(line_words))
+        chunks: List[tuple[str, int, int]] = []
         start = 0
         while start < len(words):
             end = start + size // 5  # Estimativa aproximada de palavras por caracteres
             chunk_words = words[start:end]
-            chunks.append(" ".join(chunk_words))
+            span = word_lines[start:end] or [section_lines[0][0], section_lines[-1][0]]
+            chunks.append((" ".join(chunk_words), span[0], span[-1]))
             if end >= len(words):
                 break
             start = end - (overlap // 5)

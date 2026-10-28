@@ -55,6 +55,7 @@ Follow every numbered item; do not paraphrase a subset.
   Also run the whole suite with `.\.venv\Scripts\python.exe -m pytest` (three of the new suites are pytest-style); new modules: `tests.test_policy tests.test_policy_registry tests.test_broker tests.test_tools tests.test_mission_guard tests.test_no_local_allowlist tests.test_ws_server`.
   New modules (Phase 6): `tests.test_evidence_lights tests.test_domain_observation tests.test_bff_phase6`.
   New modules (onda A, ingestion/paths): `tests.test_vault_docs tests.test_sync_lock tests.test_sync_consistency`.
+  New modules (onda B, citations/scope): `tests.test_citations tests.test_retrieval_contract tests.test_bff_retrievals`.
 - Full gate: `.\.venv\Scripts\python.exe -m pytest -q`; `node --test dashboard/tests/*.test.cjs`; `cd jev-app && npm test`.
 - JEV front-end (React 19 + Tailwind 4) lives in `jev-app/`; its build is committed to `dashboard/jev/` (no CI), so after any change in `jev-app/src` run `cd jev-app && npm test && npm run build` and commit the output.
 - Lights (ADR-023): the test light (evidence) and the health light (observation) are separate signals; a rule's light comes from `evidence.list_rules`, health, for the JEV, from `core/domain/observation` (the Observability page still computes health in JS with `dashboard/hub-topology.js`).
@@ -70,6 +71,14 @@ Follow every numbered item; do not paraphrase a subset.
   per task. It makes real, paid cloud calls when the key is set (about US$ 0.0003 per call with
   the kiosk model) and needs Ollama already running for the reserve. From a worktree, pass the
   key file by path only: `BRAIN_ENV_FILE=C:/KIOSK/second-brain/.env`.
+- Retrieval quality (not part of the gate above): `.\.venv\Scripts\python.exe cli.py retrieval-eval
+  [--min-recall 0.8] [--dataset PATH] [--k 5]` runs the golden dataset (13 positives, 16 negatives)
+  through the real retriever, tries a grid of `min_score` x `max_drop`, suggests the pair and writes
+  a report to `evals/reports/` (git-ignored); it exits 1 when no pair of the grid clears every
+  negative, when the suggested pair's recall is below `--min-recall`, or on a Qdrant/Ollama error. It
+  makes real calls to the local Qdrant and Ollama (nothing is paid) and needs the index rebuilt
+  first with `cli.py sync --rebuild --yes` from the canonical checkout (ADR-034). The floor in
+  `config.py` stays provisional until it runs.
 - Typecheck / lint / format: none configured. Coverage or quality gates: none.
 - CI: none. The suite above is the only gate and is run by hand.
 
@@ -86,6 +95,8 @@ Follow every numbered item; do not paraphrase a subset.
 
 - Vault note changed → `.\.venv\Scripts\python.exe cli.py sync` finishes with exit code 0
   (it exits 1 and reports `Falhas` when any file failed) and `dashboard\build_graph.py` is rerun.
+  Incremental `sync` (and `--reconcile`) refuses with exit 1 while the index holds points without
+  `space_id` (pre-onda B); run `cli.py sync --rebuild --yes` from the canonical checkout first (ADR-034).
 - New or changed system, rule or demand → the node and its relations in
   `dashboard/graph-catalog.json` match the note.
 - Behaviour change in an MCP server → a test in `tests/` covers it, including the refusal path.

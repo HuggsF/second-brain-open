@@ -83,3 +83,123 @@ cases:
     human_ground_truth:
       decision: "Middleware FastMCP (core/trace_middleware.py) intercepta todas as ferramentas gerando W3C trace_id (32 hex) e span_id (16 hex), gravando registros em .runtime/trace-log.jsonl com mascaramento de segredos."
       consequence: "Histórico auditável consultável via cli.py trace."
+
+  - id: "GD-GIT-006"
+    domain: "engineering"
+    title: "Política de branches e pull requests"
+    prompt: "Posso fazer push direto na branch main dos repositórios da empresa ou preciso abrir pull request?"
+    expected_sources:
+      - "adrs/ADR-003-politica-git-branches-e-pull-requests.md"
+    expected_rules: []
+    must_pass_gates: []
+    human_ground_truth:
+      decision: "Push direto para main ou master é proibido; todo trabalho nasce numa branch temática e só entra na main por pull request com causa raiz, correção e evidências."
+      consequence: "Toda alteração em sistemas integrados a ERP e transportadora passa por revisão e deixa histórico de auditoria."
+
+  - id: "GD-IDX-007"
+    domain: "second_brain"
+    title: "Índice versionado por alias e lock do sync"
+    prompt: "Como o sync do vault impede que dois processos rodem ao mesmo tempo e como o índice é trocado sem a busca ficar vazia?"
+    expected_sources:
+      - "adrs/ADR-033-indice-versionado-e-lock-do-sync.md"
+    expected_rules: []
+    must_pass_gates: []
+    human_ground_truth:
+      decision: "O índice é reconstruído numa coleção nova e o alias é trocado ao final; um lock do sistema operacional impede dois syncs simultâneos."
+      consequence: "A busca nunca fica vazia durante o rebuild e CLI e watcher não corrompem o manifesto."
+
+  - id: "GD-PRE-008"
+    domain: "logistics"
+    title: "Objeto logístico do Bling antes da emissão"
+    prompt: "O que o hub faz com um pedido que não tem objeto logístico no Bling antes de emitir a etiqueta?"
+    expected_sources:
+      - "rules/RULE-005-objeto-logistico-bling-obrigatorio.md"
+      - "systems/hub-logistics-preflight.md"
+    expected_rules:
+      - "RULE-005"
+    must_pass_gates: []
+    human_ground_truth:
+      decision: "O pedido vai para REVIEW_REQUIRED com motivo LOGISTICS_OBJECT_MISSING antes de criar a intenção J&T; o objeto não é criado por presunção de contrato."
+      consequence: "Nenhuma etiqueta é emitida sem objeto logístico válido."
+
+  - id: "GD-JT-009"
+    domain: "logistics"
+    title: "Emissão J&T em estado incerto"
+    prompt: "A emissão na J&T deu timeout e ficou em estado uncertain: o hub pode reemitir o pedido automaticamente?"
+    expected_sources:
+      - "rules/RULE-006-intencao-jt-uncertain-bloqueia-reemissao.md"
+      - "playbooks/PB-017-reconciliacao-emissao-uncertain.md"
+    expected_rules:
+      - "RULE-006"
+    must_pass_gates: []
+    human_ground_truth:
+      decision: "Não. Uma intenção uncertain bloqueia nova chamada addOrder, inclusive após reinício ou reenvio manual; a saída é a reconciliação manual com evidência do fornecedor (PB-017)."
+      consequence: "Evita etiqueta duplicada e cobrança dupla de frete."
+
+  - id: "GD-DEP-010"
+    domain: "operations"
+    title: "Validação pós-deploy e rollback do hub"
+    prompt: "Que verificações devo fazer depois de ativar um deploy do hub logístico e como é o procedimento de rollback?"
+    expected_sources:
+      - "systems/hub-deploy-rollback.md"
+    expected_rules: []
+    must_pass_gates: []
+    human_ground_truth:
+      decision: "Validar PM2, HTTP, SHA, ambiente, SQLite e lojas, observar o tráfego por cinco minutos; no rollback, restaurar só o código anterior e manter o banco atual, com o worker pausado."
+      consequence: "Reversão sem perder pedidos processados depois do deploy."
+
+  - id: "GD-DOM-011"
+    domain: "business"
+    title: "Marcas e modelo de quiosques da holding"
+    prompt: "Quais são as marcas da KIOSK Brands e como funciona a operação de quiosques e franqueados?"
+    expected_sources:
+      - "domain/kiosk-brands.md"
+    expected_rules: []
+    must_pass_gates: []
+    human_ground_truth:
+      decision: "A holding opera Touti, Amavia e Yes! Cosméticos; a matriz distribui e dá suporte, e os quiosques são operações de varejo ágeis que dependem de reposição pontual."
+      consequence: "Falta de estoque em um quiosque causa perda imediata de venda, o que prioriza o tracking de pedidos."
+
+  - id: "GD-OAU-012"
+    domain: "logistics"
+    title: "Diagnóstico de falha OAuth do Bling no hub"
+    prompt: "Pedidos estão falhando com erro 404 ou invalid_grant na API do Bling; como diagnosticar e recuperar o token no hub?"
+    expected_sources:
+      - "playbooks/PB-008-diagnostico-recuperacao-oauth-hub.md"
+    expected_rules: []
+    must_pass_gates: []
+    human_ground_truth:
+      decision: "Seguir o playbook PB-008: verificar o estado do token e o acesso à API, identificar o erro e recuperar a renovação do token."
+      consequence: "Pedidos parados em failed voltam a ser processados."
+
+  - id: "GD-RLM-013"
+    domain: "logistics"
+    title: "Rate limiting do Bling em produção"
+    prompt: "Quais evidências existem de erros 429 por excesso de requisições do Bling no hub em produção e qual é o limite por segundo?"
+    expected_sources:
+      - "systems/rate-limiting-bling-producao.md"
+    expected_rules: []
+    must_pass_gates: []
+    human_ground_truth:
+      decision: "A análise de 08/10/2026 registra centenas de TOO_MANY_REQUESTS, concentrados em UPDATE e GET, todos com limite de 3 por segundo."
+      consequence: "A PR reduz sobreposição e chamadas desnecessárias, sem resolver por completo os 429."
+
+negatives:
+  - "Qual é a receita de bolo de cenoura com cobertura de chocolate?"
+  - "Quem ganhou a Copa do Mundo de 2022 e qual foi o placar da final?"
+  - "Quantas luas tem Júpiter e qual é a maior delas?"
+  - "Como faço para treinar um cachorro filhote a não morder os móveis?"
+  - "Qual é a previsão do tempo para o próximo fim de semana em Curitiba?"
+  - "Quais são os melhores pontos turísticos para visitar em Lisboa?"
+  - "Como funciona a fotossíntese nas plantas?"
+  - "Qual é a diferença entre o vinho tinto e o vinho branco na harmonização com carnes?"
+  - "Como declarar imposto de renda de pessoa física este ano?"
+  - "Qual é a melhor posição de agachamento para ganhar massa muscular?"
+  # Negativos do domínio: engenharia e operação da holding, mas sem nota no vault
+  # (termos-chave conferidos por grep em vault/ em 2026-10-28: nenhuma ocorrência relevante).
+  - "Como é feita a integração com a transportadora Jadlog para cotar frete e emitir etiquetas?"
+  - "Como o pedido de venda é integrado ao ERP TOTVS Protheus e como o faturamento é conciliado nele?"
+  - "Quais monitores do Datadog acionam o plantão no PagerDuty quando a fila de emissão atrasa?"
+  - "Como os pedidos da loja VTEX chegam ao hub e qual webhook a VTEX chama na mudança de status?"
+  - "Como a Intelipost opera a logística reversa dos pedidos e qual é o prazo de coleta?"
+  - "Como os tickets do Zendesk são abertos automaticamente para o atendimento quando um pedido atrasa na transportadora?"

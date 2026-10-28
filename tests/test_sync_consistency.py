@@ -15,7 +15,7 @@ from core.chunker import MarkdownChunker
 from core.hasher import ManifestError, ManifestManager
 from core.qdrant_store import QdrantStore
 from core.sync_lock import SyncBusy, sync_lock
-from ingestion.sync import MigrationNeedsConfirmation, SyncEngine
+from ingestion.sync import LegacyIndexError, MigrationNeedsConfirmation, SyncEngine
 
 
 def sha256(raw: bytes) -> str:
@@ -24,6 +24,15 @@ def sha256(raw: bytes) -> str:
 
 THREE_SECTIONS = "## S1\n\ntexto um\n\n## S2\n\ntexto dois\n\n## S3\n\ntexto tres\n"
 ONE_SECTION = "## S1\n\ntexto novo\n"
+LEGACY_MESSAGE = "Índice anterior à onda B; rode 'cli.py sync --rebuild --yes'."
+
+
+def add_legacy_point(store, rel_path):
+    """Ponto gravado antes da onda B: payload sem space_id."""
+    store.upsert_chunks(
+        [{"id": f"{rel_path}:0", "content": "velho", "metadata": {"file_path": rel_path}}],
+        [[1.0] * settings.vector_size],
+    )
 
 
 class TestManifest(unittest.TestCase):
@@ -156,6 +165,18 @@ class TestStore(unittest.TestCase):
         files = self.store.indexed_files()
         self.assertEqual(sum(files.values()), 600)
         self.assertEqual(files, {"a.md": 300, "b.md": 200, "c.md": 100})
+
+    def test_legacy_points_count_counts_points_without_space(self):
+        self.store.ensure_collection(4)
+        self.assertEqual(self.store.legacy_points_count(), 0)
+        self._load("velho.md", 3)  # sem space_id: anterior a onda B
+        self.store.upsert_chunks(
+            [{"id": "novo.md:0", "content": "n", "metadata": {"file_path": "novo.md", "space_id": "kiosk"}},
+             {"id": "outro.md:0", "content": "o", "metadata": {"file_path": "outro.md", "space_id": "s2"}}],
+            [[1.0, 0.0, 0.0, 0.0]] * 2,
+        )
+        self.assertEqual(self.store.points_count(), 5)
+        self.assertEqual(self.store.legacy_points_count(), 3)
 
     def test_alias_helpers(self):
         self.assertIsNone(self.store.alias_target("kb"))
@@ -351,6 +372,25 @@ class TestIncrementalSync(SyncTestBase):
         self.engine.sync_vault(verbose=False)
         self.assertEqual(self.engine.sync_vault(verbose=False)["chunks_indexed"], 0)
 
+    def test_legacy_points_refuse_sync_and_touch_nothing(self):  # Important #1 da revisao final
+        self.index_initial()
+        add_legacy_point(self.store, "velho.md")
+        (self.vault / "a.md").write_text(ONE_SECTION, encoding="utf-8")
+        (self.vault / "novo.md").write_text(ONE_SECTION, encoding="utf-8")
+        files_before = self.store.indexed_files()
+        manifest_before = self.manifest_path.read_bytes()
+        with self.assertRaises(LegacyIndexError) as ctx:
+            self.engine.sync_vault(verbose=False)
+        self.assertEqual(str(ctx.exception), LEGACY_MESSAGE)
+        self.assertEqual(self.store.indexed_files(), files_before)
+        self.assertEqual(self.store.legacy_points_count(), 1)
+        self.assertEqual(self.manifest_path.read_bytes(), manifest_before)
+
+    def test_missing_collection_is_not_legacy(self):
+        res = self.engine.sync_vault(verbose=False)  # colecao criada agora: nada anterior a onda B
+        self.assertEqual(res["failed"], 0)
+        self.assertEqual(self.store.legacy_points_count(), 0)
+
 
 class TestReconcile(SyncTestBase):
     def setUp(self):
@@ -367,7 +407,8 @@ class TestReconcile(SyncTestBase):
 
     def test_orphan_removed(self):  # CA-08
         self.store.upsert_chunks(
-            [{"id": "x.md:0", "content": "x", "metadata": {"file_path": "x.md"}}], [[1.0] * 768]
+            [{"id": "x.md:0", "content": "x", "metadata": {"file_path": "x.md", "space_id": settings.space_id}}],
+            [[1.0] * 768],
         )
         self.assertEqual(self.engine.reconcile(verbose=False)["orphans_removed"], 1)
         self.assertNotIn("x.md", self.store.indexed_files())
@@ -408,7 +449,8 @@ class TestReconcile(SyncTestBase):
 
     def test_orphan_in_vault_is_untracked_not_orphan(self):
         self.store.upsert_chunks(
-            [{"id": "c.md:0", "content": "c", "metadata": {"file_path": "c.md"}}], [[1.0] * 768]
+            [{"id": "c.md:0", "content": "c", "metadata": {"file_path": "c.md", "space_id": settings.space_id}}],
+            [[1.0] * 768],
         )
         (self.vault / "c.md").write_text(ONE_SECTION, encoding="utf-8")
         res = self.engine.reconcile(verbose=False)
@@ -482,6 +524,17 @@ class TestReconcile(SyncTestBase):
         with sync_lock(self.engine.lock_path):
             with self.assertRaises(SyncBusy):
                 self.engine.reconcile(verbose=False)
+
+    def test_legacy_points_refuse_reconcile_and_touch_nothing(self):  # Important #1 da revisao final
+        add_legacy_point(self.store, "orfao.md")  # orfao sem space_id: o reconcile o removeria
+        self.store.delete_by_file_path("b.md")  # e reindexaria b.md
+        files_before = self.store.indexed_files()
+        manifest_before = self.manifest_path.read_bytes()
+        with self.assertRaises(LegacyIndexError) as ctx:
+            self.engine.reconcile(verbose=False)
+        self.assertEqual(str(ctx.exception), LEGACY_MESSAGE)
+        self.assertEqual(self.store.indexed_files(), files_before)
+        self.assertEqual(self.manifest_path.read_bytes(), manifest_before)
 
 
 class FailingOnCallEmbedder:
@@ -636,6 +689,16 @@ class TestRebuild(SyncTestBase):
         res = self.engine.sync_vault(verbose=False)
         self.assertEqual((res["added"], res["modified"], res["deleted"]), (0, 0, 0))
 
+    def test_rebuild_is_the_way_out_of_a_legacy_index(self):  # Important #1 da revisao final
+        self.assertEqual(self.store.legacy_points_count(), 1)  # kb__old: ponto sem space_id
+        with self.assertRaises(LegacyIndexError):
+            self.engine.sync_vault(verbose=False)
+        r = self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.alias_target("kb"), r["collection"])
+        self.assertEqual(self.store.legacy_points_count(), 0)
+        res = self.engine.sync_vault(verbose=False)
+        self.assertEqual((res["added"], res["modified"], res["deleted"], res["failed"]), (0, 0, 0, 0))
+
 
 class FakeEvent:
     def __init__(self, path, is_directory=False):
@@ -711,6 +774,17 @@ class TestWatcher(unittest.TestCase):
         self.handler.on_any_event(FakeEvent("a.md"))
         self.timers[-1].fire()
         self.assertEqual(len(self.timers), 1)
+
+    def test_legacy_index_is_logged_and_not_rearmed(self):  # Important #1 da revisao final
+        from ingestion import scheduler
+
+        self.sync_fn.side_effect = LegacyIndexError(LEGACY_MESSAGE)
+        self.handler.on_any_event(FakeEvent("a.md"))
+        with mock.patch.object(scheduler.console, "print") as printed:
+            self.timers[-1].fire()
+        self.assertEqual(len(self.timers), 1)
+        logged = " ".join(str(c.args[0]) for c in printed.call_args_list)
+        self.assertIn(LEGACY_MESSAGE, logged)
 
     def test_non_markdown_ignored(self):
         self.handler.on_any_event(FakeEvent("a.png"))
@@ -897,6 +971,16 @@ class TestCli(unittest.TestCase):
             self.assertEqual(result.exit_code, 1, flag)
             self.assertIn("Outro sync está em andamento.", result.output_text)
 
+    def test_legacy_index_message_on_sync_and_reconcile(self):  # Important #1 da revisao final
+        self.engine.sync_vault.side_effect = LegacyIndexError(LEGACY_MESSAGE)
+        self.engine.reconcile.side_effect = LegacyIndexError(LEGACY_MESSAGE)
+        for args in ((), ("--reconcile",)):
+            with self.subTest(args=args):
+                result = self.invoke(*args)
+                self.assertEqual(result.exit_code, 1, result.output_text)
+                self.assertIn(LEGACY_MESSAGE, result.output_text)
+                self.assertNotIn("Erro ao sincronizar", result.output_text)
+
     def test_unreadable_manifest_message(self):
         self.engine.sync_vault.side_effect = ManifestError("corrompido")
         result = self.invoke()
@@ -932,6 +1016,47 @@ class TestCli(unittest.TestCase):
         self.assertIn("--reconcile e --rebuild não podem ser usados juntos", result.output_text)
         self.engine.reconcile.assert_not_called()
         self.engine.rebuild.assert_not_called()
+
+
+class TestPayloadProvenance(SyncTestBase):
+    """Onda B: todo ponto grava o hash do documento (o do manifesto) e o espaco."""
+
+    def setUp(self):
+        super().setUp()
+        self.mm = self.engine.manifest_manager
+        # A reconstrucao cria um QdrantStore novo: precisa ver o mesmo cliente em memoria.
+        patcher = mock.patch("core.qdrant_store.QdrantClient", return_value=self.client)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_sync_writes_hash_and_space(self):  # CA-02
+        self.engine.sync_vault(verbose=False)
+        pts, _ = self.client.scroll("kb", limit=100, with_payload=True)
+        manifest = self.mm.load_manifest()
+        self.assertTrue(pts)
+        for p in pts:
+            self.assertEqual(p.payload["doc_sha256"], manifest[p.payload["file_path"]])
+            self.assertEqual(p.payload["space_id"], settings.space_id)
+
+    def test_rebuild_writes_hash_and_space(self):  # CA-02
+        r = self.engine.rebuild(verbose=False, confirm_migration=True)
+        pts, _ = self.client.scroll(r["collection"], limit=100, with_payload=True)
+        self.assertTrue(
+            pts
+            and all(
+                p.payload["space_id"] == settings.space_id and len(p.payload["doc_sha256"]) == 64
+                for p in pts
+            )
+        )
+        manifest = self.mm.load_manifest()
+        for p in pts:
+            self.assertEqual(p.payload["doc_sha256"], manifest[p.payload["file_path"]])
+
+    def test_space_comes_from_settings(self):
+        with mock.patch.object(settings, "space_id", "outro"):
+            self.engine.sync_vault(verbose=False)
+        pts, _ = self.client.scroll("kb", limit=100, with_payload=True)
+        self.assertTrue(pts and all(p.payload["space_id"] == "outro" for p in pts))
 
 
 if __name__ == "__main__":

@@ -77,11 +77,36 @@ class QdrantStore:
         """Total exato de pontos da coleção (sem scroll)."""
         return self.client.count(collection_name=self.collection_name, exact=True).count
 
+    def legacy_points_count(self) -> int:
+        """Total exato de pontos sem `space_id` no payload (gravados antes da onda B).
+
+        IsEmptyCondition casa chave ausente, null ou lista vazia; a busca escopada não os vê.
+        """
+        legacy = models.Filter(
+            must=[models.IsEmptyCondition(is_empty=models.PayloadField(key="space_id"))]
+        )
+        return self.client.count(
+            collection_name=self.collection_name, count_filter=legacy, exact=True
+        ).count
+
+    def space_points_count(self, space_id: str) -> int:
+        """Total exato de pontos com este `space_id`; 0 quando o espaco nao existe ou esta vazio."""
+        space_filter = models.Filter(
+            must=[FieldCondition(key="space_id", match=MatchValue(value=space_id))]
+        )
+        return self.client.count(
+            collection_name=self.collection_name, count_filter=space_filter, exact=True
+        ).count
+
     def alias_target(self, alias: str) -> Optional[str]:
         for item in self.client.get_aliases().aliases:
             if item.alias_name == alias:
                 return item.collection_name
         return None
+
+    def index_version(self) -> str:
+        """Colecao real atras do alias (ou o proprio nome, se nao for alias)."""
+        return self.alias_target(self.collection_name) or self.collection_name
 
     def is_real_collection(self, name: str) -> bool:
         return name in [c.name for c in self.client.get_collections().collections]
@@ -146,9 +171,12 @@ class QdrantStore:
         query_vector: List[float], 
         limit: int = 4, 
         category: Optional[str] = None,
-        bounded_context: Optional[str] = None
+        bounded_context: Optional[str] = None,
+        space_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         conditions = []
+        if space_id is not None:
+            conditions.append(FieldCondition(key="space_id", match=MatchValue(value=space_id)))
         if category:
             conditions.append(FieldCondition(key="category", match=MatchValue(value=category)))
         if bounded_context:

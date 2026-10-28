@@ -66,7 +66,7 @@ def sync(do_reconcile, do_rebuild, assume_yes):
     try:
         from core.hasher import ManifestError
         from core.sync_lock import SyncBusy
-        from ingestion.sync import MigrationNeedsConfirmation, SyncEngine
+        from ingestion.sync import LEGACY_INDEX_MESSAGE, LegacyIndexError, MigrationNeedsConfirmation, SyncEngine
     except Exception as e:
         console.print(f"[bold red]Erro ao sincronizar:[/bold red] {e}")
         raise SystemExit(1)
@@ -120,6 +120,9 @@ def sync(do_reconcile, do_rebuild, assume_yes):
     except ManifestError:
         click.echo("Manifesto ilegível; rode 'cli.py sync --rebuild'.")
         raise SystemExit(1)
+    except LegacyIndexError:
+        click.echo(LEGACY_INDEX_MESSAGE)
+        raise SystemExit(1)
     except MigrationNeedsConfirmation:
         click.echo("A coleção atual vira alias nesta reconstrução e a busca falha por um instante. Rode de novo com --yes.")
         raise SystemExit(1)
@@ -144,6 +147,10 @@ def ask(question: str, category: str):
             title="[bold green]Resposta do Assistente Técnico[/bold green]",
             border_style="cyan"
         ))
+
+        from core.citations import GAP_EMPTY_INDEX
+        if GAP_EMPTY_INDEX in result.get("gaps", []):
+            click.echo("Rode 'cli.py sync --rebuild' para reconstruir o índice deste espaço.")
 
         # Exibir fontes citadas
         if result["sources"]:
@@ -483,6 +490,59 @@ def task_eval(min_accuracy, profile_name):
     if accuracy < min_accuracy:
         raise SystemExit(1)
 
+
+
+REPORTS_DIR = Path(__file__).resolve().parent / "evals" / "reports"
+
+
+@cli.command("retrieval-eval")
+@click.option("--min-recall", type=float, default=0.8, show_default=True, help="Recall mínimo da sugestão; abaixo disso sai com 1")
+@click.option("--dataset", "dataset_path", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None,
+              help="Golden dataset YAML (padrão: evals/golden_dataset.yaml)")
+@click.option("--k", "k", type=click.IntRange(min=1), default=5, show_default=True, help="Trechos considerados por consulta")
+def retrieval_eval_cmd(min_recall, dataset_path, k):
+    """Mede recall dos positivos e negativos sem fonte numa grade de pisos e sugere o piso (precisa de Qdrant e Ollama)."""
+    from datetime import datetime
+    from evals import retrieval_eval as ev
+
+    dataset = dataset_path or Path(__file__).resolve().parent / "evals" / "golden_dataset.yaml"
+    positives, negatives = ev.load_cases(dataset)
+    click.echo(f"Avaliando {len(positives)} consultas positivas e {len(negatives)} negativas (k={k})...")
+    from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
+    try:
+        from core.retriever import BrainRetriever
+        collected = ev.collect(BrainRetriever(), positives, negatives, k=k)
+    except (httpx.HTTPError, ResponseHandlingException, UnexpectedResponse, RuntimeError, OSError) as exc:
+        click.echo(f"Erro ao consultar o Qdrant/Ollama: {exc}. Confira se os serviços estão no ar e rode de novo.", err=True)
+        raise SystemExit(1)
+    rows = ev.grid(collected, ev.DEFAULT_MINS, ev.DEFAULT_DROPS, k=k)
+    best = ev.suggest(rows)
+
+    table = Table(title="Grade de pisos", show_header=True, header_style="bold magenta")
+    for column in ("min_score", "max_drop", f"recall@{k}", "negativos sem fonte"):
+        table.add_column(column, justify="right")
+    for row in rows:
+        mark = "  <-" if best is not None and row == best else ""
+        table.add_row(f"{row['min_score']:.2f}", f"{row['max_drop']:.2f}",
+                      f"{row['recall_at_k']:.0%}", f"{row['negatives_cleared']:.0%}{mark}")
+    console.print(table)
+
+    report = {"generated_at": datetime.now().isoformat(timespec="seconds"), "k": k, "min_recall": min_recall,
+              "dataset": str(dataset), "positives": len(positives), "negatives": len(negatives),
+              "rows": rows, "suggestion": best, "collected": collected}
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    report_path = REPORTS_DIR / f"retrieval-{datetime.now():%Y%m%d-%H%M}.json"
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    click.echo(f"Relatório gravado em {report_path}")
+
+    if best is None:
+        click.echo("Nenhum par da grade limpa todos os negativos; não há piso a sugerir.")
+        raise SystemExit(1)
+    click.echo(f"Sugestão: RETRIEVAL_MIN_SCORE={best['min_score']:.2f} RETRIEVAL_MAX_DROP={best['max_drop']:.2f} "
+               f"(recall@{k} {best['recall_at_k']:.0%}, negativos sem fonte {best['negatives_cleared']:.0%})")
+    if best["recall_at_k"] < min_recall:
+        click.echo(f"Recall {best['recall_at_k']:.0%} abaixo do mínimo {min_recall:.0%}.")
+        raise SystemExit(1)
 
 
 @cli.command("etl")

@@ -192,15 +192,20 @@ class _FakeEmbedder:
 
 
 class _FakeStore:
-    def search(self, query_vector, limit, category=None, bounded_context=None):
+    def search(self, query_vector, limit, category=None, bounded_context=None, space_id=None):
         return [{"score": 0.8, "payload": {"file_path": "systems/hub.md", "doc_title": "Hub", "section": "OAuth",
                                            "category": "systems", "content": "Conteúdo da seção OAuth do Hub."}}]
+
+    def index_version(self):
+        return "kb"
 
 
 class TestRetrieverContent(unittest.TestCase):
     def _retriever(self):
-        r = retriever_mod.BrainRetriever.__new__(retriever_mod.BrainRetriever)
-        r.embedder, r.store = _FakeEmbedder(), _FakeStore()
+        import tempfile
+        vault = tempfile.TemporaryDirectory()
+        self.addCleanup(vault.cleanup)
+        r = retriever_mod.BrainRetriever(embedder=_FakeEmbedder(), store=_FakeStore(), vault_dir=Path(vault.name))
         orig_query = r.query
         def query(user_question, limit=4, category=None, bounded_context=None, include_content=False):
             res = orig_query(user_question, limit=limit, category=category, bounded_context=bounded_context)
@@ -214,7 +219,9 @@ class TestRetrieverContent(unittest.TestCase):
 
     def test_default_sources_are_unchanged_for_mcp_clients(self):
         sources = self._retriever().query("oauth")["sources"]
-        self.assertEqual(set(sources[0]), {"file_path", "doc_title", "section", "category", "score"})
+        # Chaves antigas preservadas (INV-N05); as de citacao sao aditivas; sem o texto do chunk.
+        self.assertTrue({"file_path", "doc_title", "section", "category", "score"} <= set(sources[0]))
+        self.assertNotIn("content", sources[0])
 
     def test_include_content_adds_the_chunk_text(self):
         sources = self._retriever().query("oauth", include_content=True)["sources"]

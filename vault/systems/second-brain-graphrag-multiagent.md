@@ -9,21 +9,34 @@ Data da auditoria: 08/10/2026. Escopo: leitura dos arquivos locais do Second Bra
 
 ## Atualização posterior — wave 1
 
-O piloto local agora tem adapter HTTP, BFF autenticado e daemon de observação de produção/homologação por MCP, com histórico e estado de coleta. O baseline abaixo registra a auditoria inicial, anterior à conexão real. GraphRAG semântico e execução multiagente continuam não conectados. Consulte `vault/systems/second-brain-observability-bff.md` (na raiz do projeto) para operação, contrato e rollback.
+O piloto local agora tem adapter HTTP, BFF autenticado e daemon de observação de produção/homologação por MCP, com histórico e estado de coleta. O baseline abaixo registra a auditoria inicial, anterior à conexão real. GraphRAG (grafo) e execução multiagente continuam não conectados. A onda B (ADR-034) acrescentou à recuperação vetorial citações verificáveis, piso de relevância, filtro por espaço e lacunas explícitas, e expôs `POST /v1/retrievals`; ver "Recuperação vetorial com citações (onda B)" abaixo. Consulte `vault/systems/second-brain-observability-bff.md` (na raiz do projeto) para operação, contrato e rollback.
 
 ## Estado comprovado na auditoria inicial
 
 | Área | Implementação existente | Limite atual |
 |---|---|---|
 | Conhecimento | Vault com 30 arquivos Markdown na leitura inicial | O catálogo do dashboard cobre apenas parte do vault |
-| Recuperação | `core/retriever.py` gera embedding pelo Ollama e busca no Qdrant | Busca top-k filtrada por categoria; não consulta o grafo |
-| Geração | `BrainRetriever.answer()` chama Ollama, sem streaming | Falha do modelo vira texto no campo de resposta, sem estado de erro tipado |
+| Recuperação | `core/retriever.py` gera embedding pelo Ollama e busca no Qdrant | Busca top-k filtrada por categoria; não consulta o grafo. Estado atual (onda B): ver seção "Recuperação vetorial com citações (onda B)" |
+| Geração | `BrainRetriever.answer()` chama Ollama, sem streaming | Falha do modelo vira texto no campo de resposta, sem estado de erro tipado. Estado atual: `answer()` devolve `status` (`ok`, `no_evidence`, `model_error`) |
 | Ferramentas | `mcp_servers/brain_mcp.py` expõe pesquisa, ADR, arquitetura e estatísticas via FastMCP | Não equivale a uma API web com autenticação e autorização por espaço |
 | Grafo | Catálogo curado de 19 nós, 16 relações, 3 vistas e 8 fontes no build inicial | Não há extração automática, comunidades nem armazenamento de grafo utilizado pelo retriever |
 | Frontend inicial | HTML/CSS/JS estático, carregando `graph-data.js` | Sem HTTP API, stream de eventos, execução de agentes ou persistência de runs |
 | Agentes | Gateway MCP pode ser utilizado por clientes externos | Não há orquestrador de múltiplos agentes, scheduler, runs ou aprovações persistidas no projeto |
 
 O armazenamento vetorial encontrado é **Qdrant**. Não foi encontrada implementação Chroma nesses arquivos. Disponibilidade atual dos serviços não foi testada, portanto o frontend não deve apresentar “online” a partir da existência desses módulos.
+
+## Recuperação vetorial com citações (onda B)
+
+Estado atual da recuperação vetorial (ADR-034); a tabela acima registra a auditoria inicial.
+
+- **Linhas e hash:** cada chunk guarda `line_start` e `line_end` no arquivo original (base 1, intervalo fechado; CRLF conta como uma quebra; o frontmatter entra no deslocamento). O sync e a reconstrução gravam `doc_sha256` (o mesmo do manifesto) e `space_id` em cada ponto. `content` e `id` não mudaram.
+- **Citação:** `core/citations.py` define `Citation` (`document, section, line_start, line_end, sha256, score, stale`). `stale` é verdadeiro quando o hash indexado difere do hash atual do arquivo, o arquivo sumiu, o resolvedor recusou o caminho ou não há hash. A obsolescência é calculada na consulta.
+- **Escopo:** `QdrantStore.search(..., space_id=...)` filtra por espaço (`BRAIN_SPACE`); `index_version()` é a coleção real por trás do alias.
+- **Piso e lacunas:** `select_hits` descarta tudo quando o melhor score fica abaixo de `min_score`; senão mantém `score >= min_score` e `score >= topo - max_drop`, depois `max_per_doc` por documento e `limit`. `gaps_for` devolve três textos exatos; "sem evidência" só quando o topo está abaixo de `min_score`. Valores em `config.py` (`0.65` / `0.10` / `2`) são provisórios até `cli.py retrieval-eval` rodar com Qdrant e Ollama reais.
+- **Consumidores:** `BrainRetriever.query` devolve `citations`, `gaps`, `index_version` e, por fonte, `sha256`, `line_start`, `line_end`, `stale`. `answer()` devolve `status` (`ok`, `no_evidence`, `model_error`), `citations` e `gaps`; com `no_evidence` o modelo não é chamado. O MCP `search_knowledge_base` devolve a mesma lista (vazia significa sem evidência); o broker acrescenta os quatro campos aos itens e `gaps` e `index_version` ao resultado.
+- **BFF:** `POST /v1/retrievals` está implementado (contrato em `vault/systems/second-brain-observability-bff.md`) e `/v1/capabilities` informa `semantic_retrieval: true`. O modo é `vector`; o modo `hybrid-text-vector-graph` do exemplo abaixo continua futuro.
+- **Avaliação:** `cli.py retrieval-eval` mede recall e negativos com serviços reais; o dataset dourado tem 13 positivos e 10 negativos. `evals/runner.py` só pontua gates e não declara recall.
+- **Pendência:** o índice anterior à onda B não tem `doc_sha256`, `space_id` nem linhas e não devolve nada até `cli.py sync --rebuild --yes` rodar no checkout canônico (primeira reconstrução = migração de alias da ADR-033). A citação identifica o trecho recuperado; citação por afirmação continua fora (`POST /v1/answers`).
 
 ## O que o núcleo local faz
 
@@ -90,14 +103,14 @@ Começar pelo catálogo curado permite provar caminhos de recuperação antes de
 
 ## Contratos de API para implementação futura
 
-Nenhum endpoint abaixo é disponibilizado por esta wave. São contratos propostos para a próxima fase de backend.
+Somente `POST /v1/retrievals` está implementado (onda B, formato vetorial mínimo; ver `vault/systems/second-brain-observability-bff.md`). `GET /v1/capabilities` existe na API local de observabilidade, com campos próprios. Os demais endpoints são contratos propostos para a próxima fase de backend.
 
 | Endpoint | Entrada/resultado mínimo |
 |---|---|
 | `GET /v1/capabilities` | Modo, schema/API version, recursos realmente habilitados e permissões do usuário |
 | `GET /v1/catalog` | Snapshot autorizado de entidades/relações com IDs, aliases, tipos e proveniência |
 | `GET /v1/documents/:id` | Conteúdo autorizado, SHA256, revisão, seção/linhas e classificação |
-| `POST /v1/retrievals` | Query, estratégia e filtros; candidatos/chunks, scores com método identificado, caminhos, exclusões, timings e snapshot |
+| `POST /v1/retrievals` (**implementado**, onda B) | Query, estratégia e filtros; candidatos/chunks, scores com método identificado, caminhos, exclusões, timings e snapshot. Implementado: `query`, `limit`, `category`; resposta com `citations`, `gaps`, `index_version`, `timings_ms`; sem caminhos nem snapshot |
 | `POST /v1/answers` | Resposta, citações por claim/chunk, hashes de fontes e indicação de claims sem suporte |
 | `POST /v1/runs` | Plano versionado, agentes, dependências, ferramentas permitidas, orçamento e chave de idempotência |
 | `GET /v1/runs/:id` | Estado, passos, artefatos, consumo, responsável e causa de falha/bloqueio |
@@ -131,7 +144,7 @@ Todos os contratos precisam `request_id`, `schema_version`, `space_id` e estados
 }
 ```
 
-Isso é um exemplo futuro. O modo atual permanece `local-text-graph`, com o formato mínimo do `BrainCore` e sem model calls. Não usar os números deste exemplo como medição real.
+Isso é um exemplo futuro. O dashboard offline permanece em `local-text-graph`, com o formato mínimo do `BrainCore` e sem model calls; o endpoint implementado usa o modo `vector`. Não usar os números deste exemplo como medição real.
 
 ## Plano local, DAG e execução futura
 
@@ -196,8 +209,8 @@ Expor jobs com estados `queued`, `running`, `succeeded`, `partially_failed`, `fa
 
 ## Critérios de aceitação da evolução
 
-1. Consulta com termos desconhecidos produz fontes vazias e lacuna explícita.
-2. Citação reproduz exatamente as linhas da revisão indicada; um hash divergente é sinalizado.
+1. Consulta com termos desconhecidos produz fontes vazias e lacuna explícita (atendido na recuperação vetorial pelo piso de relevância, ADR-034).
+2. Citação reproduz exatamente as linhas da revisão indicada; um hash divergente é sinalizado (atendido na recuperação vetorial: `line_start`, `line_end`, `sha256` e `stale`, ADR-034).
 3. Caminhos usam somente relações existentes e exibem direção, tipo e fonte.
 4. Usuário sem acesso não encontra documento, chunk, entidade derivada ou artefato restrito.
 5. A interface distingue recuperação textual local, resultado vetorial, resposta do modelo e execução real.

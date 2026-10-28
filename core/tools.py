@@ -26,9 +26,15 @@ async def search_knowledge(query: str, category: str = None) -> dict:
                 "section": s.get("section") or "",
                 "score": round(s.get("score", 0), 3),
                 "excerpt": (s.get("content") or "")[:200],
+                "sha256": s.get("sha256"),
+                "line_start": s.get("line_start"),
+                "line_end": s.get("line_end"),
+                "stale": s.get("stale", True),  # falha segura: sem a marca, trata como desatualizada
             }
             for s in sources
         ],
+        "gaps": result.get("gaps", []),
+        "index_version": result.get("index_version"),
     }
 
 
