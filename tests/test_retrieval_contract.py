@@ -11,7 +11,7 @@ from qdrant_client.models import PointStruct
 from config import settings
 from core.citations import GAP_EMPTY_INDEX, GAP_NO_EVIDENCE, GAP_STALE
 from core.qdrant_store import QdrantStore
-from evals.retrieval_eval import collect, grid, load_cases, load_known_limits, suggest
+from evals.retrieval_eval import collect, grid, known_limits_metric, load_cases, load_known_limits, suggest
 
 VECTOR_SIZE = 4
 QUERY_VECTOR = [1.0, 0.0, 0.0, 0.0]
@@ -469,16 +469,58 @@ class TestRetrievalEval(unittest.TestCase):
             {"file_path": "a.md", "score": 0.8, "section": "S", "sha256": "x"},
             {"file_path": "b.md", "score": 0.6, "section": "T"}]}
         positives = [{"prompt": "p1", "expected_sources": ["a.md"]}]
-        out = collect(retriever, positives, ["n1"], k=5)
+        out = collect(retriever, positives, ["n1"], k=5, vocabulary=frozenset({"x"}))
         self.assertEqual(retriever.query.call_count, 2)
         for call in retriever.query.call_args_list:
             self.assertIs(call.kwargs["apply_floor"], False)
             self.assertEqual(call.kwargs["limit"], 15)
         self.assertEqual(out["positives"], [{"prompt": "p1", "expected": ["a.md"],
                                              "hits": [{"file_path": "a.md", "score": 0.8},
-                                                      {"file_path": "b.md", "score": 0.6}]}])
+                                                      {"file_path": "b.md", "score": 0.6}],
+                                             "unknown": []}])
         self.assertEqual(out["negatives"][0]["prompt"], "n1")
         self.assertEqual(len(out["negatives"][0]["hits"]), 2)
+
+    def test_collect_records_unknown_and_known_limits(self):
+        retriever = mock.Mock()
+        retriever.query.return_value = {"sources": [{"file_path": "a.md", "score": 0.8}]}
+        out = collect(retriever, [], ["Como a Acme vende?"], k=5, known_limits=["como a acme vende?"],
+                      vocabulary=frozenset({"vende"}))
+        self.assertEqual(out["negatives"][0]["unknown"], ["Acme"])
+        self.assertEqual(out["known_limits"][0]["unknown"], [])
+        self.assertEqual(out["known_limits"][0]["hits"], [{"file_path": "a.md", "score": 0.8}])
+
+    def test_gate_clears_high_scoring_negative(self):
+        collected = {"positives": [], "negatives": [
+            {"prompt": "n", "hits": [{"file_path": "x.md", "score": 0.80}], "unknown": ["Acme"]}]}
+        self.assertEqual(grid(collected, [0.65], [0.10], gate=False)[0]["negatives_cleared"], 0.0)
+        self.assertEqual(grid(collected, [0.65], [0.10], gate=True)[0]["negatives_cleared"], 1.0)
+
+    def test_gate_drops_recall_of_unknown_positive(self):
+        hits = [{"file_path": "a.md", "score": 0.9}]
+        collected = {"negatives": [], "positives": [
+            {"prompt": "p1", "expected": ["a.md"], "hits": hits, "unknown": []},
+            {"prompt": "p2", "expected": ["a.md"], "hits": hits, "unknown": ["Acme"]}]}
+        self.assertEqual(grid(collected, [0.65], [0.10], gate=False)[0]["recall_at_k"], 1.0)
+        self.assertEqual(grid(collected, [0.65], [0.10], gate=True)[0]["recall_at_k"], 0.5)
+
+    def test_gate_accepts_collected_without_unknown(self):
+        collected = fake_collected([(0.9, True)], [0.5])
+        self.assertEqual(grid(collected, [0.65], [0.10], gate=True), grid(collected, [0.65], [0.10]))
+
+    def test_known_limits_metric(self):
+        collected = {"positives": [], "negatives": [], "known_limits": [
+            {"prompt": "k1", "hits": [{"file_path": "a.md", "score": 0.50}], "unknown": []},
+            {"prompt": "k2", "hits": [], "unknown": []},
+            {"prompt": "k3", "hits": [{"file_path": "b.md", "score": 0.90}], "unknown": []}]}
+        metric = known_limits_metric(collected, min_score=0.65, max_drop=0.10, k=5, basis="provisional")
+        self.assertEqual(metric, {"count": 3, "without_sources": 2, "fraction_without_sources": 2 / 3,
+                                  "min_score": 0.65, "max_drop": 0.10, "basis": "provisional"})
+
+    def test_known_limits_not_in_negative_denominator(self):
+        collected = fake_collected([], [0.5])
+        collected["known_limits"] = [{"prompt": "k", "hits": [{"file_path": "a.md", "score": 0.9}], "unknown": []}]
+        self.assertEqual(grid(collected, [0.65], [0.10], gate=True)[0]["negatives_cleared"], 1.0)
 
     def test_runner_no_longer_claims_recall(self):
         from evals.runner import run_evals
@@ -527,8 +569,9 @@ class TestRetrievalEvalCli(unittest.TestCase):
         self.cli = cli_module.cli
         self.runner = CliRunner()
         patcher = mock.patch("core.retriever.BrainRetriever")
-        patcher.start()
+        self.retriever_cls = patcher.start()
         self.addCleanup(patcher.stop)
+        self.retriever_cls.return_value.store.legacy_points_count.return_value = 0
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.reports_dir = Path(self.tmp.name) / "reports"
@@ -555,6 +598,36 @@ class TestRetrievalEvalCli(unittest.TestCase):
         rows = [{"min_score": 0.60, "max_drop": 0.10, "recall_at_k": 1.0, "negatives_cleared": 0.5}]
         out = self.invoke(rows=rows)
         self.assertEqual(out.exit_code, 1, out.output)
+
+    def test_prints_two_tables_and_suggests_from_gate_rows(self):
+        def rows_by_gate(*args, gate=False, **kwargs):
+            return self.SUGGESTED_ROWS if gate else [dict(self.SUGGESTED_ROWS[0], negatives_cleared=0.5)]
+        with mock.patch("evals.retrieval_eval.collect", return_value=self.COLLECTED),                 mock.patch("evals.retrieval_eval.grid", side_effect=rows_by_gate):
+            out = self.runner.invoke(self.cli, ["retrieval-eval"])
+        self.assertEqual(out.exit_code, 0, out.output)
+        self.assertIn("Grade sem gate", out.output)
+        self.assertIn("Grade com gate", out.output)
+
+    def test_report_has_gate_rows_known_limits_scheme_and_dataset_hash(self):
+        import json
+        from core.embeddings import current_embed_scheme
+        dataset = Path("evals/golden_dataset.yaml")
+        out = self.invoke("--dataset", str(dataset))
+        self.assertEqual(out.exit_code, 0, out.output)
+        report = json.loads(next(self.reports_dir.glob("retrieval-*.json")).read_text(encoding="utf-8"))
+        self.assertEqual(report["gate_rows"], self.SUGGESTED_ROWS)
+        self.assertEqual(report["known_limits"]["basis"], "suggested")
+        self.assertEqual(report["embed_scheme"], current_embed_scheme())
+        self.assertEqual(report["dataset_sha256"], hashlib.sha256(dataset.read_bytes()).hexdigest())
+
+    def test_legacy_index_exits_one_before_collect(self):
+        self.retriever_cls.return_value.store.legacy_points_count.return_value = 3
+        with mock.patch("evals.retrieval_eval.collect") as collect_mock:
+            out = self.runner.invoke(self.cli, ["retrieval-eval"])
+        self.assertEqual(out.exit_code, 1, out.output)
+        self.assertIn("Índice com esquema anterior; rode 'cli.py sync --rebuild --yes'.", out.output)
+        collect_mock.assert_not_called()
+        self.assertFalse(self.reports_dir.exists() and list(self.reports_dir.iterdir()))
 
     def test_connection_error_prints_message_without_traceback(self):
         with mock.patch("evals.retrieval_eval.collect", side_effect=ConnectionError("recusada")):
