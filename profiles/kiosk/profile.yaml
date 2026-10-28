@@ -29,3 +29,8 @@ providers:
     model: llama3.2:3b
     timeout_seconds: 120
     keep_alive: 30m
+budget:
+  daily_usd: 0.50
+  monthly_usd: 10.0
+  warn_pct: 0.80
+  critical_pct: 0.95

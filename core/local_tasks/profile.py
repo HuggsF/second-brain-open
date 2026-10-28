@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 from config import settings
+from core.budget import BudgetConfig
 from core.local_tasks.providers import ProviderSpec, parse_providers
 
 PROFILES_DIR = settings.base_dir / "profiles"
@@ -31,6 +32,7 @@ class Profile:
     max_blocks: int = 4
     keep_alive: str | int = "30m"  # tempo que o Ollama mantém o modelo carregado (-1 = sempre)
     providers: tuple[ProviderSpec, ...] = ()
+    budget: BudgetConfig | None = None
 
 
 def _price(name: str, key: str, value) -> float:
@@ -68,6 +70,19 @@ def load_profile(name: str | None = None, root: Path = PROFILES_DIR) -> Profile:
     keep_alive_val = data.get("keep_alive", "30m")
     providers = parse_providers(name, data.get("providers"),
                                 {"timeout_seconds": timeout_s, "keep_alive": keep_alive_val})
+    # Budget config (optional)
+    budget_raw = data.get("budget")
+    budget_cfg = None
+    if budget_raw is not None:
+        if not isinstance(budget_raw, dict):
+            raise ValueError(f"profile {name}: budget must be a mapping")
+        budget_cfg = BudgetConfig(
+            daily_usd=float(budget_raw.get("daily_usd", 0.50)),
+            monthly_usd=float(budget_raw.get("monthly_usd", 10.0)),
+            warn_pct=float(budget_raw.get("warn_pct", 0.80)),
+            critical_pct=float(budget_raw.get("critical_pct", 0.95)),
+        )
+
     return Profile(
         name=name,
         labels={str(k): [str(v) for v in vals] for k, vals in labels.items()},
@@ -79,4 +94,5 @@ def load_profile(name: str | None = None, root: Path = PROFILES_DIR) -> Profile:
         max_blocks=int(data.get("max_blocks", 4)),
         keep_alive=keep_alive_val,
         providers=providers,
+        budget=budget_cfg,
     )

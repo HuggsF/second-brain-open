@@ -954,6 +954,48 @@ if __name__ == "__main__":
     unittest.main()
 
 
+
+
+class ProfileBudgetTests(unittest.TestCase):
+    def test_profile_with_budget_parses_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "b", "labels:\n  type: [a]\nbudget:\n  daily_usd: 1.0\n  monthly_usd: 20.0\n")
+            p = load_profile("b", root=root)
+        self.assertIsNotNone(p.budget)
+        self.assertEqual(p.budget.daily_usd, 1.0)
+        self.assertEqual(p.budget.monthly_usd, 20.0)
+        self.assertEqual(p.budget.warn_pct, 0.80)
+        self.assertEqual(p.budget.critical_pct, 0.95)
+
+    def test_profile_without_budget_is_none(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "nb", "labels:\n  type: [a]\n")
+            p = load_profile("nb", root=root)
+        self.assertIsNone(p.budget)
+
+    def test_profile_budget_invalid_negative_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "bad", "labels:\n  type: [a]\nbudget:\n  daily_usd: -1\n")
+            with self.assertRaises(ValueError):
+                load_profile("bad", root=root)
+
+    def test_profile_budget_warn_above_1_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "bad", "labels:\n  type: [a]\nbudget:\n  warn_pct: 1.5\n")
+            with self.assertRaises(ValueError):
+                load_profile("bad", root=root)
+
+    def test_kiosk_profile_has_budget(self):
+        """Kiosk profile includes the budget block."""
+        p = load_profile("kiosk")
+        self.assertIsNotNone(p.budget)
+        self.assertEqual(p.budget.daily_usd, 0.50)
+        self.assertEqual(p.budget.monthly_usd, 10.0)
+
 # ── Budget guard tests (T3, onda C) ─────────────────────────────────
 
 import pytest
