@@ -90,7 +90,7 @@ def get_system_architecture(system_name: str, task_id: Optional[str] = None) -> 
 def get_brain_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Retorna o status do Qdrant e a quantidade de vetores indexados no Second Brain.
-    legacy_points: pontos sem space_id (anteriores à onda B); acima de 0, rode 'cli.py sync --rebuild --yes'.
+    legacy_points: pontos sem space_id (anteriores à onda B) ou de outro esquema de embedding; acima de 0, rode 'cli.py sync --rebuild --yes'.
     task_id: optional label that groups this call with others of the same task
     """
     store = QdrantStore()

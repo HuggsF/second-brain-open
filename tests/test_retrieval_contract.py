@@ -99,7 +99,7 @@ class FakeEmbedder:
     def __init__(self):
         self.calls = 0
 
-    def get_embedding(self, text):
+    def embed_query(self, text):
         self.calls += 1
         return list(QUERY_VECTOR)
 

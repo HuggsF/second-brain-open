@@ -15,7 +15,7 @@ from rich.console import Console
 from config import settings
 from core.hasher import ManifestManager
 from core.chunker import MarkdownChunker
-from core.embeddings import OllamaEmbeddingClient
+from core.embeddings import OllamaEmbeddingClient, current_embed_scheme
 from core.qdrant_store import QdrantStore
 from core.sync_lock import sync_lock
 
@@ -28,11 +28,11 @@ class MigrationNeedsConfirmation(RuntimeError):
     """O alias ainda é uma coleção real: a primeira reconstrução precisa de confirmação."""
 
 
-LEGACY_INDEX_MESSAGE = "Índice anterior à onda B; rode 'cli.py sync --rebuild --yes'."
+LEGACY_INDEX_MESSAGE = "Índice com esquema anterior; rode 'cli.py sync --rebuild --yes'."
 
 
 class LegacyIndexError(RuntimeError):
-    """A coleção tem pontos sem `space_id` (anteriores à onda B): só a reconstrução resolve.
+    """A coleção tem pontos sem `space_id` (anteriores à onda B) ou de outro esquema de embedding: só a reconstrução resolve.
 
     O sync incremental e o reconcile recusam rodar: indexariam só parte do vault com `space_id`
     e a busca escopada responderia "sem evidência" para o resto, sem aviso.
@@ -199,10 +199,12 @@ class SyncEngine:
         raw = file_path.read_bytes()
         sha = hashlib.sha256(raw).hexdigest()
         chunks = self.chunker.chunk_bytes(raw, rel_path, self.vault_dir)
-        # Procedência no payload: o mesmo hash do manifesto e o espaço do índice.
+        scheme = current_embed_scheme()
+        # Procedência no payload: o mesmo hash do manifesto, o espaço e o esquema de embedding.
         for chunk in chunks:
             chunk["metadata"]["doc_sha256"] = sha
             chunk["metadata"]["space_id"] = settings.space_id
+            chunk["metadata"]["embed_scheme"] = scheme
         return sha, chunks
 
     def _embed_chunks(self, chunks, rel_path: str):
@@ -210,7 +212,7 @@ class SyncEngine:
         vectors = []
         for chunk in chunks:
             try:
-                vectors.append(self.embedder.get_embedding(chunk["content"]))
+                vectors.append(self.embedder.embed_document(chunk["content"]))
             except Exception as e:
                 console.print(f"[bold red]Erro ao gerar embedding para {rel_path}:[/bold red] {e}")
                 return None

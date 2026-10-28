@@ -29,7 +29,7 @@ class BrainRetriever:
 
         `apply_floor=False` devolve os `limit` primeiros hits brutos (so para a avaliacao).
         """
-        query_vector = self.embedder.get_embedding(user_question)
+        query_vector = self.embedder.embed_query(user_question)
         raw_hits = self.store.search(
             query_vector=query_vector,
             limit=limit * 3,

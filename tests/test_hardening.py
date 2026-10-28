@@ -271,13 +271,15 @@ class TestSearchContract(unittest.TestCase):
     def test_brain_status_reports_legacy_points(self):
         from qdrant_client.models import PointStruct
         from tests.test_retrieval_contract import VECTOR_SIZE, make_store, vector_for
+        from core.embeddings import current_embed_scheme
 
         store, client = make_store("kb_status")
         self.addCleanup(client.close)
         store.ensure_collection(vector_size=VECTOR_SIZE)
         client.upsert(collection_name="kb_status", points=[
             PointStruct(id=1, vector=vector_for(0.9), payload={"file_path": "velho.md"}),
-            PointStruct(id=2, vector=vector_for(0.9), payload={"file_path": "a.md", "space_id": "kiosk"}),
+            PointStruct(id=2, vector=vector_for(0.9), payload={"file_path": "a.md", "space_id": "kiosk",
+                                                                  "embed_scheme": current_embed_scheme()}),
         ])
         with mock.patch.object(brain, "QdrantStore", return_value=store):
             status = brain.get_brain_status()
@@ -318,7 +320,7 @@ class TestSyncDoesNotLoseKnowledge(unittest.TestCase):
         engine.chunker = mock.Mock()
         engine.chunker.chunk_bytes.return_value = [{"content": "x", "id": "i", "metadata": {}}]
         engine.embedder = mock.Mock()
-        engine.embedder.get_embedding.side_effect = RuntimeError("ollama fora do ar")
+        engine.embedder.embed_document.side_effect = RuntimeError("ollama fora do ar")
         engine.store = mock.Mock()
         engine.store.ensure_collection.return_value = False
         engine.store.legacy_points_count.return_value = 0
