@@ -56,7 +56,13 @@ def sync(do_reconcile, do_rebuild, assume_yes):
         raise click.UsageError("--reconcile e --rebuild não podem ser usados juntos")
     if assume_yes and not do_rebuild:
         raise click.UsageError("--yes só vale com --rebuild")
-    console.print("[bold yellow][*] Iniciando sincronização diferencial do Vault...[/bold yellow]")
+    if do_rebuild:
+        banner = "Iniciando reconstrução do índice do Vault em uma coleção nova..."
+    elif do_reconcile:
+        banner = "Iniciando reconciliação do manifesto com o índice vetorial..."
+    else:
+        banner = "Iniciando sincronização diferencial do Vault..."
+    console.print(f"[bold yellow][*] {banner}[/bold yellow]")
     try:
         from core.hasher import ManifestError
         from core.sync_lock import SyncBusy

@@ -835,6 +835,20 @@ class TestCli(unittest.TestCase):
         self.engine.reconcile.assert_not_called()
         self.engine.rebuild.assert_not_called()
 
+    def test_banner_matches_mode(self):
+        cases = {
+            (): "Iniciando sincronização diferencial do Vault",
+            ("--reconcile",): "Iniciando reconciliação do manifesto com o índice",
+            ("--rebuild",): "Iniciando reconstrução do índice do Vault",
+        }
+        for args, banner in cases.items():
+            with self.subTest(args=args):
+                result = self.invoke(*args)
+                self.assertEqual(result.exit_code, 0, result.output_text)
+                self.assertIn(banner, result.output_text)
+                if args:
+                    self.assertNotIn("diferencial", result.output_text)
+
     def test_plain_sync_with_failures_exits_one(self):
         self.engine.sync_vault.return_value = dict(self.SYNC_OK, failed=2)
         result = self.invoke()
