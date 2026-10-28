@@ -70,7 +70,7 @@ class WaveTests(unittest.TestCase):
                 self.assertEqual(caught.exception.code,status);caught.exception.close()
             with request('/v1/capabilities',{'Cookie':cookie}) as response:
                 data=json.load(response)
-                self.assertFalse(data['agent_execution']);self.assertFalse(data['semantic_retrieval'])
+                self.assertFalse(data['agent_execution']);self.assertTrue(data['semantic_retrieval'])
         finally:server.shutdown();server.server_close();thread.join()
 
 
