@@ -565,5 +565,89 @@ class TestRebuild(SyncTestBase):
         self.assertEqual((res["added"], res["modified"], res["deleted"]), (0, 0, 0))
 
 
+class FakeEvent:
+    def __init__(self, path, is_directory=False):
+        self.src_path = path
+        self.is_directory = is_directory
+
+
+class FakeTimer:
+    def __init__(self, interval, fn, owner):
+        self.interval = interval
+        self.fn = fn
+        self.owner = owner
+        self.daemon = False
+        self.started = False
+
+    def start(self):
+        self.started = True
+
+    def cancel(self):
+        self.owner.cancelled += 1
+
+    def fire(self):
+        self.fn()
+
+
+class TestWatcher(unittest.TestCase):
+    """Debounce de borda final: um sync apos o ultimo evento (CA-11)."""
+
+    def setUp(self):
+        from ingestion.scheduler import VaultChangeHandler
+
+        self.timers = []
+        self.cancelled = 0
+        self.sync_fn = mock.Mock(return_value=None)
+
+        def factory(interval, fn):
+            t = FakeTimer(interval, fn, self)
+            self.timers.append(t)
+            return t
+
+        self.handler = VaultChangeHandler(self.sync_fn, debounce_seconds=2.0, timer_factory=factory)
+
+    def test_burst_gives_one_trailing_sync(self):
+        for _ in range(3):
+            self.handler.on_any_event(FakeEvent("a.md"))
+        self.assertEqual(self.cancelled, 2)
+        self.assertEqual(len(self.timers), 3)
+        self.timers[-1].fire()
+        self.assertEqual(self.sync_fn.call_count, 1)
+
+    def test_event_does_not_sync_before_timer_fires(self):
+        self.handler.on_any_event(FakeEvent("a.md"))
+        self.assertEqual(self.sync_fn.call_count, 0)
+        self.assertTrue(self.timers[-1].started)
+        self.assertEqual(self.timers[-1].interval, 2.0)
+
+    def test_timer_is_daemon(self):
+        self.handler.on_any_event(FakeEvent("a.md"))
+        self.assertTrue(self.timers[-1].daemon)
+
+    def test_busy_rearms(self):
+        self.sync_fn.side_effect = [SyncBusy(), None]
+        self.handler.on_any_event(FakeEvent("a.md"))
+        self.timers[-1].fire()
+        self.assertEqual(len(self.timers), 2)
+        self.assertEqual(self.timers[-1].interval, 2.0)
+        self.timers[-1].fire()
+        self.assertEqual(self.sync_fn.call_count, 2)
+        self.assertEqual(len(self.timers), 2)
+
+    def test_other_error_is_logged_and_not_rearmed(self):
+        self.sync_fn.side_effect = RuntimeError("boom")
+        self.handler.on_any_event(FakeEvent("a.md"))
+        self.timers[-1].fire()
+        self.assertEqual(len(self.timers), 1)
+
+    def test_non_markdown_ignored(self):
+        self.handler.on_any_event(FakeEvent("a.png"))
+        self.assertEqual(self.timers, [])
+
+    def test_directory_ignored(self):
+        self.handler.on_any_event(FakeEvent("sub.md", is_directory=True))
+        self.assertEqual(self.timers, [])
+
+
 if __name__ == "__main__":
     unittest.main()
