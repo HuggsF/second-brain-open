@@ -17,6 +17,7 @@ from core.local_tasks.ollama_client import LocalModelError, OllamaClient
 from core.local_tasks.profile import Profile, ProfileNotFound, load_profile
 from core.local_tasks.providers import build_client, deadline_timeout, is_configured, probe_client
 from core.protocol import registry
+from core.cost import CostRecord
 from core.protocol.envelope import TASKS, make_envelope
 
 # ── Budget guard (T3, onda C) ───────────────────────────────────────
@@ -155,15 +156,15 @@ def _price(ref: dict, key: str) -> float:
 
 
 def _cost(model: str, tier: str, tin: int, tout: int, ms: int, profile: Profile | None,
-          provider_spec=None, actual_usd: float = 0.0) -> dict:
+          provider_spec=None, actual_usd: float = 0.0) -> CostRecord:
     ref = (profile.paid_reference if profile else None) or {}
     usd = (tin * _price(ref, "input") + tout * _price(ref, "output")) / 1e6
-    cost = {"model": model, "tier": tier, "tokens_in": tin, "tokens_out": tout, "ms": ms,
-            "paid_equivalent_usd": usd}
-    if provider_spec is not None:
-        cost["provider"] = provider_spec.name
-        cost["actual_usd"] = actual_usd
-    return cost
+    return CostRecord(
+        model=model, tier=tier, tokens_in=tin, tokens_out=tout, ms=ms,
+        paid_equivalent_usd=usd,
+        provider=provider_spec.name if provider_spec is not None else None,
+        actual_usd=actual_usd if provider_spec is not None else 0.0,
+    )
 
 
 def _errors(schema: dict, obj: dict) -> list[str]:
@@ -354,23 +355,12 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
                 task, text, template, target_words, source, profile, exec_client)
     result = make_envelope("task.result", env_task, sender="router", to="caller", payload=out,
                            template=template, trace_id=trace_id, parent_id=request["id"],
-                           status=status, reason=reason, cost=cost)
+                           status=status, reason=reason, cost=cost.to_dict() if cost is not None else None)
     events.record(result)
     # Record cost in budget tracker (always, including zero)
     if budget_tracker is not None:
-        from core.cost import CostRecord
-        cr = CostRecord(
-            model=cost.get("model", ""),
-            tier=cost.get("tier", "deterministic"),
-            tokens_in=cost.get("tokens_in", 0),
-            tokens_out=cost.get("tokens_out", 0),
-            ms=cost.get("ms", 0),
-            paid_equivalent_usd=cost.get("paid_equivalent_usd", 0.0),
-            provider=cost.get("provider"),
-            actual_usd=cost.get("actual_usd", 0.0),
-        )
         budget_tracker.record(
-            cr, envelope_id=result["id"], trace_id=trace_id,
+            cost, envelope_id=result["id"], trace_id=trace_id,
             task=env_task, sender=sender, ts=result.get("ts"))
     return result
 
