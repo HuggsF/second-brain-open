@@ -25,7 +25,6 @@ from core.gates import (
     CompoundGatePipeline,
     Semaphore,
 )
-from evals.metrics import compute_source_recall, compute_composite_score
 
 
 def load_dataset(dataset_path: Path) -> Dict[str, Any]:
@@ -46,7 +45,7 @@ def run_evals(dataset_path: Path = None, verbose: bool = True) -> Dict[str, Any]
     print(f"Total de casos padrao-ouro carregados: {len(cases)}")
     print("=" * 70 + "\n")
 
-    total_score = 0.0
+    scores: List[float] = []
 
     for idx, case in enumerate(cases, 1):
         case_id = case["id"]
@@ -55,16 +54,14 @@ def run_evals(dataset_path: Path = None, verbose: bool = True) -> Dict[str, Any]
         expected_sources = case.get("expected_sources", [])
         must_pass = case.get("must_pass_gates", [])
 
-        # 1. Simulação determinística de busca no Vault
-        # Procura arquivos do vault que casam com palavras-chave do prompt
+        # 1. Fontes esperadas que existem no Vault (insumo do gate de grounding).
+        # Isto NAO mede recuperacao: o recall vem de `cli.py retrieval-eval`.
         vault_dir = settings.vault_dir
         found_sources = []
         for src_rel in expected_sources:
             target_file = (vault_dir / src_rel).resolve()
             if target_file.is_file():
                 found_sources.append(src_rel)
-
-        recall_metrics = compute_source_recall(found_sources, expected_sources)
 
         # 2. Execução dos Quality Gates aplicáveis
         gate_executions = []
@@ -116,19 +113,21 @@ def run_evals(dataset_path: Path = None, verbose: bool = True) -> Dict[str, Any]
             if g4_res.passed:
                 gates_passed_count += 1
 
-        score = compute_composite_score(
-            recall_metrics["recall"],
-            gates_passed_count,
-            len(must_pass) if must_pass else 1,
-        )
-        total_score += score
+        # Score = taxa de gates aprovados; caso sem gates nao tem score e fica fora da media.
+        score = round(gates_passed_count / len(must_pass) * 100.0, 1) if must_pass else None
+        if score is not None:
+            scores.append(score)
 
-        semaphore_symbol = "🟢" if score >= 85 else ("🟡" if score >= 60 else "🔴")
+        if score is None:
+            semaphore_symbol = "⚪"
+        else:
+            semaphore_symbol = "🟢" if score >= 85 else ("🟡" if score >= 60 else "🔴")
 
         if verbose:
             print(f"[{idx}/{len(cases)}] {semaphore_symbol} {case_id}: {title}")
-            print(f"  ┌── Score Composto: {score}/100 (Recall Fontes: {recall_metrics['recall']*100:.0f}%)")
-            print(f"  ├── Fontes Encontradas: {len(found_sources)}/{len(expected_sources)}")
+            score_text = f"{score}/100" if score is not None else "sem gates (fora da média)"
+            print(f"  ┌── Score (taxa de gates): {score_text}")
+            print(f"  ├── Fontes esperadas presentes no Vault: {len(found_sources)}/{len(expected_sources)}")
             print(f"  └── Gates Aprovados: {gates_passed_count}/{len(must_pass)}")
             for g in gate_executions:
                 sem = "🟢" if g.semaphore == Semaphore.GREEN else ("🟡" if g.semaphore == Semaphore.YELLOW else "🔴")
@@ -139,14 +138,15 @@ def run_evals(dataset_path: Path = None, verbose: bool = True) -> Dict[str, Any]
             "case_id": case_id,
             "title": title,
             "score": score,
-            "recall": recall_metrics["recall"],
+            "recall": None,
             "gates_passed": gates_passed_count,
             "gates_total": len(must_pass),
         })
 
-    avg_score = round(total_score / len(cases), 1) if cases else 0.0
+    avg_score = round(sum(scores) / len(scores), 1) if scores else 0.0
 
     print("=" * 70)
+    print("Recall: não medido aqui (use cli.py retrieval-eval)")
     print(f"🏆 SCORE MÉDIO DO COMPOUND AI: {avg_score}/100.0")
     print(f"Taxa de Aderência ao Golden Standard: {'🟢 EXCELENTE' if avg_score >= 85 else '🟡 ACEITÁVEL'}")
     print("=" * 70 + "\n")

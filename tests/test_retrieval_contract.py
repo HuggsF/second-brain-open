@@ -11,6 +11,7 @@ from qdrant_client.models import PointStruct
 from config import settings
 from core.citations import GAP_EMPTY_INDEX, GAP_NO_EVIDENCE, GAP_STALE
 from core.qdrant_store import QdrantStore
+from evals.retrieval_eval import collect, grid, load_cases, suggest
 
 VECTOR_SIZE = 4
 QUERY_VECTOR = [1.0, 0.0, 0.0, 0.0]
@@ -330,6 +331,166 @@ class TestAskCli(unittest.TestCase):
         self.assertEqual(out.exit_code, 0, out.output)
         self.assertNotIn(REBUILD_HINT, out.output)
         self.assertIn("a.md", out.output)
+
+
+def fake_collected(pos, neg):
+    """`collected` no formato de `collect`: cada positivo tem uma fonte esperada e um hit no score dado."""
+    positives = []
+    for i, (score, is_expected) in enumerate(pos):
+        expected = f"adrs/ADR-{i:03d}.md"
+        hit_file = expected if is_expected else f"adrs/OUTRO-{i:03d}.md"
+        positives.append({"prompt": f"positivo {i}", "expected": [expected],
+                          "hits": [{"file_path": hit_file, "score": score}]})
+    negatives = [{"prompt": f"negativo {i}", "hits": [{"file_path": f"adrs/NEG-{i:03d}.md", "score": score}]}
+                 for i, score in enumerate(neg)]
+    return {"positives": positives, "negatives": negatives}
+
+
+class TestRetrievalEval(unittest.TestCase):
+    def test_grid_and_suggestion(self):  # CA-10
+        collected = fake_collected(pos=[(.79, True), (.74, True)], neg=[.56, .55])
+        rows = grid(collected, [0.55, 0.60, 0.70], [0.10])
+        best = suggest(rows)
+        self.assertEqual((best["min_score"], best["negatives_cleared"], best["recall_at_k"]), (0.60, 1.0, 1.0))
+        by_min = {row["min_score"]: row for row in rows}
+        self.assertEqual(by_min[0.55]["negatives_cleared"], 0.0)
+        self.assertEqual(by_min[0.70]["recall_at_k"], 1.0)  # tambem limpa, mas com piso maior
+        self.assertEqual(set(rows[0]), {"min_score", "max_drop", "recall_at_k", "negatives_cleared"})
+
+    def test_suggest_none_when_no_row_clears_all_negatives(self):
+        rows = grid(fake_collected(pos=[(.79, True)], neg=[.80]), [0.55, 0.60], [0.10])
+        self.assertIsNone(suggest(rows))
+
+    def test_suggest_tie_prefers_lowest_min_then_lowest_drop(self):
+        rows = [
+            {"min_score": 0.70, "max_drop": 0.05, "recall_at_k": 1.0, "negatives_cleared": 1.0},
+            {"min_score": 0.60, "max_drop": 0.10, "recall_at_k": 1.0, "negatives_cleared": 1.0},
+            {"min_score": 0.60, "max_drop": 0.05, "recall_at_k": 1.0, "negatives_cleared": 1.0},
+            {"min_score": 0.50, "max_drop": 0.05, "recall_at_k": 0.5, "negatives_cleared": 1.0},
+            {"min_score": 0.40, "max_drop": 0.05, "recall_at_k": 1.0, "negatives_cleared": 0.5},
+        ]
+        best = suggest(rows)
+        self.assertEqual((best["min_score"], best["max_drop"]), (0.60, 0.05))
+
+    def test_recall_counts_only_expected_sources_among_selected_hits(self):
+        collected = {"positives": [{"prompt": "p", "expected": ["a.md", "b.md"],
+                                    "hits": [{"file_path": "a.md", "score": 0.80},
+                                             {"file_path": "x.md", "score": 0.79},
+                                             {"file_path": "b.md", "score": 0.50}]}],
+                     "negatives": []}
+        rows = grid(collected, [0.55], [0.10])
+        self.assertEqual(rows[0]["recall_at_k"], 0.5)  # b.md cai abaixo do corte de queda
+        self.assertEqual(rows[0]["negatives_cleared"], 1.0)
+
+    def test_dataset_has_enough_cases_and_files_exist(self):
+        pos, neg = load_cases(Path("evals/golden_dataset.yaml"))
+        self.assertGreaterEqual(len(pos), 12)
+        self.assertGreaterEqual(len(neg), 8)
+        for case in pos:
+            self.assertTrue(case["prompt"])
+            self.assertTrue(case["expected_sources"])
+            for src in case["expected_sources"]:
+                self.assertTrue((settings.vault_dir / src).is_file(), src)
+
+    def test_collect_asks_for_raw_hits_with_triple_limit(self):
+        retriever = mock.Mock()
+        retriever.query.return_value = {"sources": [
+            {"file_path": "a.md", "score": 0.8, "section": "S", "sha256": "x"},
+            {"file_path": "b.md", "score": 0.6, "section": "T"}]}
+        positives = [{"prompt": "p1", "expected_sources": ["a.md"]}]
+        out = collect(retriever, positives, ["n1"], k=5)
+        self.assertEqual(retriever.query.call_count, 2)
+        for call in retriever.query.call_args_list:
+            self.assertIs(call.kwargs["apply_floor"], False)
+            self.assertEqual(call.kwargs["limit"], 15)
+        self.assertEqual(out["positives"], [{"prompt": "p1", "expected": ["a.md"],
+                                             "hits": [{"file_path": "a.md", "score": 0.8},
+                                                      {"file_path": "b.md", "score": 0.6}]}])
+        self.assertEqual(out["negatives"][0]["prompt"], "n1")
+        self.assertEqual(len(out["negatives"][0]["hits"]), 2)
+
+    def test_runner_no_longer_claims_recall(self):
+        from evals.runner import run_evals
+        with mock.patch("builtins.print"):
+            report = run_evals(verbose=False)
+        self.assertTrue(report["results"])
+        for result in report["results"]:
+            self.assertIsNone(result["recall"], result["case_id"])
+        # sem recall no composto: caso com todos os gates aprovados vale exatamente 100
+        for result in report["results"]:
+            if result["gates_total"] and result["gates_passed"] == result["gates_total"]:
+                self.assertEqual(result["score"], 100.0)
+        no_gates = [r for r in report["results"] if not r["gates_total"]]
+        self.assertTrue(no_gates)
+        self.assertTrue(all(r["score"] is None for r in no_gates))
+
+
+class TestRetrievalEvalCli(unittest.TestCase):
+    """cli.py retrieval-eval: codigos de saida, sem Qdrant nem Ollama (collect e grid simulados)."""
+
+    COLLECTED = {"positives": [], "negatives": []}
+    SUGGESTED_ROWS = [{"min_score": 0.60, "max_drop": 0.10, "recall_at_k": 0.9, "negatives_cleared": 1.0}]
+
+    def setUp(self):
+        import importlib
+        import importlib.util
+        import sys
+        import types
+
+        import click
+        from click.testing import CliRunner
+
+        modules = mock.patch.dict(sys.modules)
+        modules.start()
+        self.addCleanup(modules.stop)
+        sys.modules.pop("cli", None)
+        try:
+            real_sanitize = importlib.util.find_spec("scripts.sanitize") is not None
+        except ImportError:
+            real_sanitize = False
+        if not real_sanitize:
+            stub = types.ModuleType("scripts.sanitize")
+            stub.sanitize_cmd = click.Command("sanitize", callback=lambda: None)
+            sys.modules["scripts.sanitize"] = stub
+        cli_module = importlib.import_module("cli")
+        self.cli = cli_module.cli
+        self.runner = CliRunner()
+        patcher = mock.patch("core.retriever.BrainRetriever")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.reports_dir = Path(self.tmp.name) / "reports"
+        reports = mock.patch.object(cli_module, "REPORTS_DIR", self.reports_dir)
+        reports.start()
+        self.addCleanup(reports.stop)
+
+    def invoke(self, *args, rows=None):
+        with mock.patch("evals.retrieval_eval.collect", return_value=self.COLLECTED), \
+                mock.patch("evals.retrieval_eval.grid",
+                           return_value=self.SUGGESTED_ROWS if rows is None else rows):
+            return self.runner.invoke(self.cli, ["retrieval-eval", *args])
+
+    def test_suggestion_with_enough_recall_exits_zero_and_writes_report(self):
+        out = self.invoke("--min-recall", "0.8")
+        self.assertEqual(out.exit_code, 0, out.output)
+        self.assertEqual(len(list(self.reports_dir.glob("retrieval-*.json"))), 1)
+
+    def test_suggestion_below_min_recall_exits_one(self):
+        out = self.invoke("--min-recall", "0.95")
+        self.assertEqual(out.exit_code, 1, out.output)
+
+    def test_no_suggestion_exits_one(self):
+        rows = [{"min_score": 0.60, "max_drop": 0.10, "recall_at_k": 1.0, "negatives_cleared": 0.5}]
+        out = self.invoke(rows=rows)
+        self.assertEqual(out.exit_code, 1, out.output)
+
+    def test_connection_error_prints_message_without_traceback(self):
+        with mock.patch("evals.retrieval_eval.collect", side_effect=ConnectionError("recusada")):
+            out = self.runner.invoke(self.cli, ["retrieval-eval"])
+        self.assertEqual(out.exit_code, 1)
+        self.assertIn("Qdrant", out.output)
+        self.assertNotIn("Traceback", out.output)
 
 
 if __name__ == "__main__":

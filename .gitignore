@@ -39,3 +39,4 @@ hub.db
 data/analytics.db
 data/analytics.db-wal
 data/analytics.db-shm
+evals/reports/
