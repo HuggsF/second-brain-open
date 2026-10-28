@@ -55,6 +55,42 @@ class TestManifest(unittest.TestCase):
                 self.mm.save_manifest({"b.md": "2" * 64})
         self.assertEqual(self.mm.load_manifest(), {"a.md": "1" * 64})
 
+    def test_failed_save_leaves_no_tmp(self):  # INV-N03: .tmp orfao nao sobra
+        tmp = self.path.with_name(self.path.name + ".tmp")
+        self.mm.save_manifest({"a.md": "1" * 64})
+        tmp.write_text("sobra de uma gravacao interrompida", encoding="utf-8")
+        with mock.patch("core.hasher.os.replace", side_effect=OSError("queda")):
+            with self.assertRaises(OSError):
+                self.mm.save_manifest({"b.md": "2" * 64})
+        self.assertFalse(tmp.exists())
+        self.assertEqual(self.mm.load_manifest(), {"a.md": "1" * 64})
+
+    def test_failed_fsync_leaves_no_tmp(self):
+        tmp = self.path.with_name(self.path.name + ".tmp")
+        self.mm.save_manifest({"a.md": "1" * 64})
+        with mock.patch("core.hasher.os.fsync", side_effect=OSError("disco")):
+            with self.assertRaises(OSError):
+                self.mm.save_manifest({"b.md": "2" * 64})
+        self.assertFalse(tmp.exists())
+        self.assertEqual(self.mm.load_manifest(), {"a.md": "1" * 64})
+
+    def test_stale_tmp_is_removed_before_write(self):
+        tmp = self.path.with_name(self.path.name + ".tmp")
+        tmp.write_text("sobra", encoding="utf-8")
+        real_open = open
+        seen = []
+
+        def spy_open(path, *args, **kwargs):
+            if Path(path) == tmp:
+                seen.append(tmp.exists())
+            return real_open(path, *args, **kwargs)
+
+        with mock.patch("builtins.open", side_effect=spy_open):
+            self.mm.save_manifest({"a.md": "1" * 64})
+        self.assertEqual(seen, [False])
+        self.assertFalse(tmp.exists())
+        self.assertEqual(self.mm.load_manifest(), {"a.md": "1" * 64})
+
     def test_diff_returns_hashes(self):
         added, modified, deleted, hashes = self.mm.get_diff_with_hashes(self.vault)
         expected = hashlib.sha256((self.vault / "a.md").read_bytes()).hexdigest()

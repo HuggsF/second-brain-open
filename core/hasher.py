@@ -32,13 +32,29 @@ class ManifestManager:
         return data
 
     def save_manifest(self, manifest: Dict[str, str]) -> None:
-        """Grava de forma atomica: arquivo temporario, fsync e os.replace."""
+        """Grava de forma atomica: arquivo temporario, fsync e os.replace.
+
+        Um `.tmp` de gravacao interrompida e removido antes; se a gravacao falhar, o `.tmp` sai
+        e o manifesto anterior fica intacto (INV-N03).
+        """
         tmp_path = self.manifest_path.with_suffix(self.manifest_path.suffix + ".tmp")
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(manifest, f, indent=2, ensure_ascii=False)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp_path, self.manifest_path)
+        self._unlink_quiet(tmp_path)
+        try:
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(manifest, f, indent=2, ensure_ascii=False)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, self.manifest_path)
+        except BaseException:
+            self._unlink_quiet(tmp_path)
+            raise
+
+    @staticmethod
+    def _unlink_quiet(path: Path) -> None:
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            pass
 
     @staticmethod
     def calculate_file_hash(file_path: Path) -> str:
