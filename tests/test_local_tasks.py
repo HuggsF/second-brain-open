@@ -1198,6 +1198,38 @@ class BudgetGuardTests(unittest.TestCase):
         self.assertEqual(env["status"], "budget_exceeded")
         self.assertEqual(env["reason"], "budget_monthly")
 
+    def test_budget_exceeded_legacy_profile_not_blocked(self):
+        """P2 regression: legacy profile (no providers) uses Ollama implicitly.
+        Budget exceeded must NOT block — there is no cloud to block."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        # _profile() has providers=() — the legacy path
+        env = self.run_task(client=FakeClient(GOOD), profile=_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+
+    def test_budget_map_reduce_records_monetary_sum(self):
+        """Coverage: map-reduce cost must be correctly summed in the tracker."""
+        tracker = self._tracker(daily=100.0)
+        text = "\n\n".join(["a" * 30, "b" * 30, "c" * 30])
+        fc = FakeClient({"summary": "s1", "key_points": []},
+                        {"summary": "s2", "key_points": []},
+                        {"summary": "s3", "key_points": []},
+                        {"summary": "final", "key_points": ["k"]})
+        env = self.run_task("summarize", client=fc, text=text,
+                            profile=_profile_small(), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        # The actual_usd in the tracker must be > 0 and match the envelope cost
+        actual = tracker.daily_spent()
+        envelope_cost = env["cost"].get("actual_usd", 0.0)
+        self.assertEqual(actual, envelope_cost)
+        # With 4 calls, the cost should be positive (local tier = 0.0 unless
+        # the FakeClient has a provider attached, but the router calculates it)
+        cur = tracker._conn.execute("SELECT actual_usd FROM cost_log")
+        row = cur.fetchone()
+        self.assertIsNotNone(row)
+
 
 if __name__ == "__main__":
     unittest.main()

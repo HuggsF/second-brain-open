@@ -341,15 +341,20 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
         if budget_tracker is not None:
             budget_st = budget_tracker.status()
             if budget_st.state == "exceeded":
-                local_only = _build_local_only_client(profile)
-                if local_only is not None:
-                    exec_client = local_only
-                elif _needs_model(task, template, source):
-                    # Cloud-only profile, non-deterministic task: block
-                    budget_reason = ("budget_daily" if budget_st.limiting_period == "daily"
-                                     else "budget_monthly")
-                    status, reason, out = "budget_exceeded", budget_reason, {}
-                    cost = _cost(profile.local_model, "deterministic", 0, 0, 0, profile)
+                if not profile.providers:
+                    # Legacy profile (no providers): uses Ollama implicitly,
+                    # so there is no cloud to block — skip the guard.
+                    pass
+                else:
+                    local_only = _build_local_only_client(profile)
+                    if local_only is not None:
+                        exec_client = local_only
+                    elif _needs_model(task, template, source):
+                        # Cloud-only profile, non-deterministic task: block
+                        budget_reason = ("budget_daily" if budget_st.limiting_period == "daily"
+                                         else "budget_monthly")
+                        status, reason, out = "budget_exceeded", budget_reason, {}
+                        cost = _cost(profile.local_model, "deterministic", 0, 0, 0, profile)
         if status is None:
             status, reason, out, cost = _execute(
                 task, text, template, target_words, source, profile, exec_client)
