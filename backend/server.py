@@ -18,6 +18,7 @@ from backend.assessment import build_assessment
 from backend.playbooks_api import PlaybooksApi
 from backend.store import Store
 from backend.workflow_api import MAX_BODY_BYTES, WorkflowApi
+from config import settings
 from core.events import subscribe, unsubscribe
 from mcp_servers.hub_observability_mcp import mcp
 
@@ -104,9 +105,10 @@ def handler_for(store, dashboard, port, workflow=None, playbooks=None, retriever
                 return 500,{'schema_version':1,'error':'INTERNAL','request_id':str(uuid.uuid4())}
 
         def envelope(self,query):
-            # Single-space pilot: any other space is refused. Returns None when denied.
-            if query.get('space',['kiosk']) != ['kiosk']: return None
-            return {'schema_version':1,'space_id':'kiosk','request_id':str(uuid.uuid4())}
+            # Single-space pilot: only the configured space (settings.space_id) is served. None when denied.
+            space = settings.space_id
+            if query.get('space',[space]) != [space]: return None
+            return {'schema_version':1,'space_id':space,'request_id':str(uuid.uuid4())}
 
         def get_retriever(self):
             with retriever_lock:

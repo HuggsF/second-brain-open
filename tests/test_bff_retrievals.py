@@ -139,6 +139,18 @@ class RetrievalsEndpointTests(unittest.TestCase):
         self.assertEqual(request({**json_headers, 'Cookie': self.cookie}, '/v1/retrievals?space=kiosk')[0], 200)
         self.retriever.query.assert_called_once()
 
+    def test_envelope_space_comes_from_settings(self):  # revisao final: sem 'kiosk' fixo
+        from config import settings
+        with mock.patch.object(settings, 'space_id', 'acme'):
+            status, body = self.post({'query': 'x'}, path='/v1/retrievals?space=acme')
+            self.assertEqual((status, body['space_id']), (200, 'acme'))
+            status, body = self.post({'query': 'x'})
+            self.assertEqual((status, body['space_id']), (200, 'acme'))
+            status, body = self.post({'query': 'x'}, path='/v1/retrievals?space=kiosk')
+            self.assertEqual((status, body['error']), (403, 'SPACE_DENIED'))
+            self.assertEqual(self.get('/v1/capabilities?space=acme')['space_id'], 'acme')
+        self.assertEqual(self.retriever.query.call_count, 2)
+
     def test_unavailable_hides_exception(self):  # INV-N07
         self.retriever.query.side_effect = RuntimeError('C:\\segredo\\qdrant down')
         with mock.patch('sys.stderr'):
