@@ -30,7 +30,7 @@ class Citation:
 
 def select_hits(hits: list[dict], *, min_score: float, max_drop: float, max_per_doc: int, limit: int) -> list[dict]:
     """Aplica piso de relevancia, diversidade por documento e corte; `hits` ja vem por score decrescente."""
-    if not hits:
+    if not hits or limit <= 0:
         return []
     top = hits[0]["score"]
     if top < min_score:
@@ -93,5 +93,7 @@ def build_citations(hits: list[dict], vault_dir: Path) -> list[Citation]:
 def gaps_for(citations: list[Citation], top_score: float | None, min_score: float) -> list[str]:
     """Avisos de lacuna: indice vazio, sem evidencia acima do piso, ou citacoes de versao anterior."""
     if not citations:
-        return [GAP_EMPTY_INDEX] if top_score is None else [GAP_NO_EVIDENCE]
+        if top_score is None:
+            return [GAP_EMPTY_INDEX]
+        return [GAP_NO_EVIDENCE] if top_score < min_score else []
     return [GAP_STALE] if any(c.stale for c in citations) else []

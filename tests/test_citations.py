@@ -64,6 +64,14 @@ class SelectHitsTest(unittest.TestCase):
         got = select_hits(hits(0.9, 0.89, 0.88, 0.87), min_score=0.65, max_drop=0.10, max_per_doc=5, limit=2)
         self.assertEqual([h["score"] for h in got], [0.9, 0.89])
 
+    def test_limit_zero_or_negative_returns_nothing(self):
+        for limit in (0, -1):
+            self.assertEqual(select_hits(hits(0.9, 0.8), min_score=0.65, max_drop=0.10, max_per_doc=5, limit=limit), [])
+
+    def test_hit_exactly_at_min_score_is_kept(self):
+        got = select_hits(hits(0.65), min_score=0.65, max_drop=0.10, max_per_doc=5, limit=5)
+        self.assertEqual([h["score"] for h in got], [0.65])
+
     def test_does_not_mutate_input_and_returns_same_dicts(self):
         data = hits(0.9, 0.8, 0.5)
         snapshot = list(data)
@@ -163,6 +171,12 @@ class GapsForTest(unittest.TestCase):
 
     def test_no_evidence(self):
         self.assertEqual(gaps_for([], 0.50, 0.65), [LOW_GAP])
+
+    def test_no_citations_with_top_above_floor_reports_no_evidence_gap(self):
+        self.assertEqual(gaps_for([], 0.90, 0.65), [])
+
+    def test_no_citations_with_top_equal_to_floor_reports_no_gap(self):
+        self.assertEqual(gaps_for([], 0.65, 0.65), [])
 
     def test_stale_gap_once(self):
         got = gaps_for([self._cit(True), self._cit(True)], 0.80, 0.65)
