@@ -1406,6 +1406,135 @@ class BudgetGuardRobustnessTests(unittest.TestCase):
         self.assertIn("[budget] falha ao registrar custo: OperationalError", self.stderr)
 
 
+# ── Alerta de orçamento ao piorar o estado (ADR-008, onda C, Task 4) ──
+
+
+def _bstatus(state, daily_spent=0.0, daily_limit=1.0, monthly_spent=0.0, monthly_limit=20.0,
+             limiting=None):
+    from core.budget import BudgetStatus
+    if limiting is None and state != "normal":
+        limiting = "daily"
+    return BudgetStatus(
+        state=state, daily_spent=daily_spent, daily_limit=daily_limit,
+        daily_remaining=max(0.0, daily_limit - daily_spent),
+        monthly_spent=monthly_spent, monthly_limit=monthly_limit,
+        monthly_remaining=max(0.0, monthly_limit - monthly_spent),
+        limiting_period=limiting)
+
+
+class BudgetAlertTests(unittest.TestCase):
+    """Alerta (stderr + events.publish) quando o estado depois do record piora."""
+
+    setUp = BudgetGuardTests.setUp
+    run_task = BudgetGuardTests.run_task
+
+    def _tracker(self, *statuses):
+        tracker = mock.Mock()
+        tracker.status.side_effect = list(statuses)
+        return tracker
+
+    def _run(self, budget_tracker, publish_side_effect=None, trace_id=None):
+        import contextlib
+        import io
+        from core import events
+        err = io.StringIO()
+        with mock.patch.object(events, "publish",
+                               side_effect=publish_side_effect) as pub, \
+             contextlib.redirect_stderr(err):
+            env = self.run_task(client=FakeClient(GOOD), budget_tracker=budget_tracker,
+                                trace_id=trace_id)
+        self.stderr = err.getvalue()
+        self.alerts = [c.args[0] for c in pub.call_args_list
+                       if c.args and c.args[0].get("type") == "budget.alert"]
+        return env
+
+    def test_normal_to_warning_alerts_once_with_exact_fields(self):
+        tracker = self._tracker(_bstatus("normal", daily_spent=0.5),
+                                _bstatus("warning", daily_spent=0.85))
+        env = self._run(tracker, trace_id="trace-abc")
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [{
+            "type": "budget.alert", "state": "warning", "period": "daily",
+            "spent": 0.85, "limit": 1.0, "trace_id": "trace-abc"}])
+        self.assertEqual(self.stderr,
+                         "[budget] orçamento diário em warning: US$ 0.8500 de US$ 1.00.\n")
+
+    def test_second_call_still_warning_does_not_alert(self):
+        tracker = self._tracker(_bstatus("normal"), _bstatus("warning", daily_spent=0.85),
+                                _bstatus("warning", daily_spent=0.85),
+                                _bstatus("warning", daily_spent=0.86))
+        self._run(tracker)
+        self.assertEqual(len(self.alerts), 1)
+        self._run(tracker)
+        self.assertEqual(self.alerts, [])
+        self.assertEqual(self.stderr, "")
+
+    def test_better_state_does_not_alert(self):
+        tracker = self._tracker(_bstatus("critical", daily_spent=0.96),
+                                _bstatus("warning", daily_spent=0.85))
+        self._run(tracker)
+        self.assertEqual(self.alerts, [])
+        self.assertEqual(self.stderr, "")
+
+    def test_warning_to_critical_alerts(self):
+        tracker = self._tracker(_bstatus("warning", daily_spent=0.85),
+                                _bstatus("critical", daily_spent=0.96))
+        self._run(tracker)
+        self.assertEqual(len(self.alerts), 1)
+        self.assertEqual(self.alerts[0]["state"], "critical")
+        self.assertIn("[budget] orçamento diário em critical: US$ 0.9600 de US$ 1.00.",
+                      self.stderr)
+
+    def test_no_tracker_does_not_alert(self):
+        env = self._run(None)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [])
+        self.assertEqual(self.stderr, "")
+
+    def test_publish_raising_keeps_result_ok(self):
+        tracker = self._tracker(_bstatus("normal"), _bstatus("warning", daily_spent=0.85))
+        env = self._run(tracker, publish_side_effect=RuntimeError("boom"))
+        self.assertEqual(env["status"], "ok")
+        self.assertIn("[budget] orçamento diário em warning", self.stderr)
+
+    def test_status_after_record_raising_no_alert_no_raise(self):
+        import sqlite3
+        tracker = self._tracker(_bstatus("normal"), sqlite3.DatabaseError("malformed"))
+        env = self._run(tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [])
+        self.assertEqual(self.stderr, "")
+
+    def test_record_failure_no_alert(self):
+        import sqlite3
+        tracker = self._tracker(_bstatus("normal"), _bstatus("warning", daily_spent=0.85))
+        tracker.record.side_effect = sqlite3.OperationalError("database is locked")
+        env = self._run(tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [])
+        self.assertNotIn("orçamento diário", self.stderr)
+
+    def test_pre_status_unavailable_no_alert(self):
+        import sqlite3
+        tracker = self._tracker(sqlite3.DatabaseError("malformed"),
+                                _bstatus("exceeded", daily_spent=1.2))
+        env = self._run(tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [])
+        self.assertNotIn("[budget] orçamento", self.stderr)
+
+    def test_monthly_period_when_monthly_drives_state(self):
+        tracker = self._tracker(
+            _bstatus("normal", daily_spent=0.1, monthly_spent=15.0),
+            _bstatus("warning", daily_spent=0.1, monthly_spent=16.5, limiting="monthly"))
+        self._run(tracker, trace_id="t-m")
+        self.assertEqual(self.alerts, [{
+            "type": "budget.alert", "state": "warning", "period": "monthly",
+            "spent": 16.5, "limit": 20.0, "trace_id": "t-m"}])
+        self.assertEqual(self.stderr,
+                         "[budget] orçamento mensal em warning: US$ 16.5000 de US$ 20.00.\n")
+
+
 # ── Gasto que escapava: preco obrigatorio com budget (onda C, correcao) ──
 
 _CLOUD_NO_PRICE = (

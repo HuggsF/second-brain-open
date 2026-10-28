@@ -326,6 +326,7 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
     events.record(request)
 
     status = reason = out = cost = None
+    pre_state = None  # estado do orçamento lido antes da execução; None = indisponível
 
     if profile is None:
         try:
@@ -344,6 +345,7 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
                 budget_st = budget_tracker.status()
                 budget_exceeded = budget_st.state == "exceeded"
                 limiting_period = budget_st.limiting_period
+                pre_state = budget_st.state
             except Exception as exc:
                 # Estado ilegível: mesmo caminho do FailedBudgetTracker (exceeded, diário).
                 print(f"[budget] estado do orçamento indisponível ({type(exc).__name__}); "
@@ -381,7 +383,40 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
             # A resposta (possivelmente paga) volta intacta; o custo já está em events.jsonl.
             print(f"[budget] falha ao registrar custo: {type(exc).__name__}; o custo está em "
                   "events.jsonl e entra no próximo 'cli.py budget --rebuild'.", file=sys.stderr)
+        else:
+            _budget_alert(budget_tracker, pre_state, trace_id)
     return result
+
+
+_BUDGET_STATE_ORDER = {"normal": 0, "warning": 1, "critical": 2, "exceeded": 3}
+_BUDGET_PERIOD_LABEL = {"daily": "diário", "monthly": "mensal"}
+
+
+def _budget_alert(budget_tracker, pre_state, trace_id) -> None:
+    """Alerta (ADR-008) quando o estado do orçamento piorou com esta chamada. Nunca levanta.
+
+    Sem estado anterior (status() falhou antes) não há com o que comparar: nada a alertar.
+    """
+    if pre_state is None:
+        return
+    try:
+        st = budget_tracker.status()
+        new_state = st.state
+        if _BUDGET_STATE_ORDER.get(new_state, -1) <= _BUDGET_STATE_ORDER.get(pre_state, 3):
+            return
+        # status() já escolhe o período limitante (o pior; empate fica com o diário).
+        period = st.limiting_period if st.limiting_period in _BUDGET_PERIOD_LABEL else "daily"
+        spent = float(st.daily_spent if period == "daily" else st.monthly_spent)
+        limit = float(st.daily_limit if period == "daily" else st.monthly_limit)
+        print(f"[budget] orçamento {_BUDGET_PERIOD_LABEL[period]} em {new_state}: "
+              f"US$ {spent:.4f} de US$ {limit:.2f}.", file=sys.stderr)
+    except Exception:
+        return
+    try:
+        events.publish({"type": "budget.alert", "state": new_state, "period": period,
+                        "spent": spent, "limit": limit, "trace_id": trace_id})
+    except Exception:
+        pass
 
 
 def _probe_providers(specs) -> list[dict]:
