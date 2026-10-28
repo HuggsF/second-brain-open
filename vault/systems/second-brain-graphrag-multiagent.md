@@ -181,7 +181,13 @@ Aprovação futura: persistir ação/argumentos redigidos, hash da ação, snaps
 
 ## Ingestão consistente e observabilidade
 
-A sincronização atual apaga vetores antigos antes de gerar novos embeddings. A exclusão no store suprime exceções. O manifest é um arquivo JSON sem lock/transação compartilhada; não oferece coordenação para múltiplos processos. Esses comportamentos precisam ser corrigidos antes de aumentar concorrência ou usuários.
+Comportamento atual do sync (ADR-033):
+
+- **Incremental:** cada arquivo é lido uma vez e o hash vem desses mesmos bytes. Os pontos novos são gravados (upsert) antes de apagar os obsoletos; uma nota modificada nunca fica com zero pontos. Falha de exclusão no store sobe como erro e as falhas entram no resultado do sync.
+- **Manifesto:** gravação atômica (arquivo temporário, `fsync`, `os.replace`). Manifesto existente e ilegível levanta `ManifestError`; o sync para e não reindexa tudo em silêncio. O manifesto é carregado antes de tocar o Qdrant.
+- **Lock:** um lock do SO em `.runtime/sync.lock` impede dois syncs simultâneos (CLI e watcher). O watcher faz debounce pela última edição e tenta de novo quando o lock está ocupado.
+- **Reconciliação automática:** roda quando a coleção acabou de ser criada, ou quando o manifesto não está vazio e a coleção tem zero pontos. `ensure_collection` decide por `collection_exists`, que enxerga aliases (Emenda E1 do ADR-033).
+- **Comandos:** `cli.py sync` (incremental); `cli.py sync --reconcile` (realinha manifesto e índice); `cli.py sync --rebuild [--yes]` (reconstrói numa coleção `{alias}__{AAAAMMDDHHMMSS}` e troca o alias numa chamada). A primeira `--rebuild` migra a coleção real para alias, com uma janela única de busca indisponível, e exige `--yes`. Com manifesto ilegível, `--rebuild` é a saída.
 
 Fluxo proposto: validar fonte → calcular hash/revisão → gerar chunks e embeddings em staging → validar dimensões/contagem → publicar nova versão do índice → tornar a versão ativa → retirar a antiga. Documentos removidos precisam estado auditável e falha de exclusão visível. Não anunciar ingestão concluída quando apenas se detectou uma mudança.
 
