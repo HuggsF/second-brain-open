@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from core.citations import Citation, build_citations, gaps_for, select_hits
+from core.citations import GAP_NO_EVIDENCE, Citation, build_citations, gaps_for, select_hits
 
 EMPTY_GAP = "Índice vazio ou indisponível para este espaço."
 LOW_GAP = "Nenhum trecho atinge a relevância mínima; não há evidência no vault para esta consulta."
@@ -80,6 +80,31 @@ class SelectHitsTest(unittest.TestCase):
         self.assertEqual(len(data), 3)
         self.assertIs(got[0], data[0])
         self.assertIsNot(got, data)
+
+
+class UnknownEntityGateTest(unittest.TestCase):
+    """Gate de entidade desconhecida: so remove trechos e nomeia os termos (spec 2.3, CA-5)."""
+
+    HITS = [{"score": 0.99, "payload": {"file_path": "a.md"}}, {"score": 0.98, "payload": {"file_path": "b.md"}}]
+
+    def test_select_hits_empty_with_unknown(self):
+        self.assertEqual(select_hits(self.HITS, min_score=0.65, max_drop=0.1, max_per_doc=2, limit=4,
+                                     unknown=["Acme"]), [])
+
+    def test_select_hits_without_unknown_is_unchanged(self):
+        self.assertEqual(len(select_hits(self.HITS, min_score=0.65, max_drop=0.1, max_per_doc=2, limit=4,
+                                         unknown=[])), 2)
+
+    def test_gap_names_terms(self):
+        self.assertEqual(
+            gaps_for([], 0.99, 0.65, unknown=["Acme", "Zeta"]),
+            ["Termo(s) sem registro no vault: Acme, Zeta; não há evidência para esta consulta."],
+        )
+
+    def test_unknown_gap_wins_over_no_evidence(self):
+        gaps = gaps_for([], 0.40, 0.65, space_has_points=True, unknown=["Acme"])
+        self.assertEqual(gaps, ["Termo(s) sem registro no vault: Acme; não há evidência para esta consulta."])
+        self.assertNotIn(GAP_NO_EVIDENCE, gaps)
 
 
 class BuildCitationsTest(unittest.TestCase):

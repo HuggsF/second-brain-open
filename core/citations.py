@@ -5,6 +5,7 @@ citacoes verificaveis (documento, linhas, hash, versao desatualizada) e produzem
 lacuna. O vault so e lido para calcular o hash atual de cada documento citado.
 """
 import hashlib
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,6 +16,7 @@ __all__ = ["Citation", "build_citations", "gaps_for", "select_hits"]
 GAP_EMPTY_INDEX = "Índice vazio ou indisponível para este espaço."
 GAP_NO_EVIDENCE = "Nenhum trecho atinge a relevância mínima; não há evidência no vault para esta consulta."
 GAP_STALE = "Há citações de versão anterior do documento; rode o sync."
+GAP_UNKNOWN_ENTITY = "Termo(s) sem registro no vault: {terms}; não há evidência para esta consulta."
 
 
 @dataclass(frozen=True)
@@ -28,9 +30,13 @@ class Citation:
     stale: bool
 
 
-def select_hits(hits: list[dict], *, min_score: float, max_drop: float, max_per_doc: int, limit: int) -> list[dict]:
-    """Aplica piso de relevancia, diversidade por documento e corte; `hits` ja vem por score decrescente."""
-    if not hits or limit <= 0:
+def select_hits(hits: list[dict], *, min_score: float, max_drop: float, max_per_doc: int, limit: int,
+                unknown: Sequence[str] = ()) -> list[dict]:
+    """Aplica piso de relevancia, diversidade por documento e corte; `hits` ja vem por score decrescente.
+
+    `unknown` (termos da pergunta ausentes do vault) nao vazio: nenhum trecho e selecionado.
+    """
+    if unknown or not hits or limit <= 0:
         return []
     top = hits[0]["score"]
     if top < min_score:
@@ -90,12 +96,16 @@ def build_citations(hits: list[dict], vault_dir: Path) -> list[Citation]:
     return citations
 
 
-def gaps_for(citations: list[Citation], top_score: float | None, min_score: float, *, space_has_points: bool = False) -> list[str]:
-    """Avisos de lacuna: indice vazio, sem evidencia acima do piso, ou citacoes de versao anterior.
+def gaps_for(citations: list[Citation], top_score: float | None, min_score: float, *, space_has_points: bool = False,
+             unknown: Sequence[str] = ()) -> list[str]:
+    """Avisos de lacuna: termo sem registro no vault, indice vazio, sem evidencia acima do piso, ou
+    citacoes de versao anterior. O termo sem registro tem precedencia sobre os demais.
 
     `space_has_points` distingue indice realmente vazio (o espaco nao tem nenhum ponto) de busca
     filtrada sem resultado (o espaco tem pontos mas o filtro extra descartou tudo).
     """
+    if unknown:
+        return [GAP_UNKNOWN_ENTITY.format(terms=", ".join(unknown))]
     if not citations:
         if top_score is None:
             return [GAP_NO_EVIDENCE] if space_has_points else [GAP_EMPTY_INDEX]

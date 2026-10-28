@@ -288,6 +288,40 @@ class TestRetriever(unittest.TestCase):
         self.assertIs(r.store, store.return_value)
         self.assertEqual(r.vault_dir, settings.vault_dir)
 
+    # Gate de entidade desconhecida (spec 2.3, CA-5, CA-6).
+    def test_unknown_entity_gives_no_citation_and_named_gap(self):
+        r = self.retriever.query("Como a Acme recebe pedidos?")
+        self.assertEqual((r["citations"], r["sources"], r["context"]), ([], [], ""))
+        self.assertEqual(r["gaps"], ["Termo(s) sem registro no vault: Acme; não há evidência para esta consulta."])
+
+    def test_unknown_entity_answer_skips_model(self):
+        client_cls = self._ollama_ok()
+        with mock.patch("core.retriever.httpx.Client", client_cls):
+            r = self.retriever.answer("Como a Acme recebe pedidos?")
+        self.assertEqual(r["status"], "no_evidence")
+        self.assertEqual(r["gaps"], ["Termo(s) sem registro no vault: Acme; não há evidência para esta consulta."])
+        client_cls.assert_not_called()
+
+    def test_known_capitalized_term_keeps_hits(self):
+        (self.vault / "c.md").write_text("Integração com a Acme.", encoding="utf-8")
+        r = self.retriever.query("Como a Acme recebe pedidos?")
+        self.assertEqual([c["document"] for c in r["citations"]], ["a.md", "a.md", "b.md"])
+
+    def test_entity_gate_false_keeps_hits(self):
+        r = self.retriever.query("Como a Acme recebe pedidos?", entity_gate=False)
+        self.assertEqual(len(r["citations"]), 3)
+
+    def test_apply_floor_false_ignores_gate(self):
+        r = self.retriever.query("Como a Acme recebe pedidos?", limit=5, apply_floor=False)
+        self.assertEqual(len(r["sources"]), 5)
+
+    def test_empty_vault_disables_gate(self):
+        for name in ("a.md", "b.md"):
+            (self.vault / name).unlink()
+        r = self.retriever.query("Como a Acme recebe pedidos?")
+        self.assertEqual(len(r["sources"]), 3)
+        self.assertNotIn("Acme", " ".join(r["gaps"]))
+
 
 class TestAskCli(unittest.TestCase):
     """cli.py ask orienta o rebuild quando o indice do espaco esta vazio (spec 6)."""
