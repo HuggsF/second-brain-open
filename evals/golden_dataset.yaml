@@ -195,3 +195,11 @@ negatives:
   - "Qual é a diferença entre o vinho tinto e o vinho branco na harmonização com carnes?"
   - "Como declarar imposto de renda de pessoa física este ano?"
   - "Qual é a melhor posição de agachamento para ganhar massa muscular?"
+  # Negativos do domínio: engenharia e operação da holding, mas sem nota no vault
+  # (termos-chave conferidos por grep em vault/ em 2026-10-28: nenhuma ocorrência relevante).
+  - "Como é feita a integração com a transportadora Jadlog para cotar frete e emitir etiquetas?"
+  - "Como o pedido de venda é integrado ao ERP TOTVS Protheus e como o faturamento é conciliado nele?"
+  - "Quais monitores do Datadog acionam o plantão no PagerDuty quando a fila de emissão atrasa?"
+  - "Como os pedidos da loja VTEX chegam ao hub e qual webhook a VTEX chama na mudança de status?"
+  - "Como a Intelipost opera a logística reversa dos pedidos e qual é o prazo de coleta?"
+  - "Como os tickets do Zendesk são abertos automaticamente para o atendimento quando um pedido atrasa na transportadora?"
