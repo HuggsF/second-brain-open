@@ -160,7 +160,9 @@ class FakeEmbedder:
         return [0.1] * settings.vector_size
 
 
-class TestIncrementalSync(unittest.TestCase):
+class SyncTestBase(unittest.TestCase):
+    """Qdrant em memoria, vault/manifesto/lock temporarios e embedder falso."""
+
     def setUp(self):
         vault_tmp = tempfile.TemporaryDirectory()
         state_tmp = tempfile.TemporaryDirectory()
@@ -185,6 +187,8 @@ class TestIncrementalSync(unittest.TestCase):
     def manifest(self):
         return json.loads(self.manifest_path.read_text(encoding="utf-8"))
 
+
+class TestIncrementalSync(SyncTestBase):
     def index_initial(self):
         res = self.engine.sync_vault(verbose=False)
         self.assertEqual(res["failed"], 0)
@@ -301,6 +305,97 @@ class TestIncrementalSync(unittest.TestCase):
     def test_second_run_is_noop(self):
         self.engine.sync_vault(verbose=False)
         self.assertEqual(self.engine.sync_vault(verbose=False)["chunks_indexed"], 0)
+
+
+class TestReconcile(SyncTestBase):
+    def setUp(self):
+        super().setUp()
+        (self.vault / "b.md").write_text(ONE_SECTION, encoding="utf-8")
+        res = self.engine.sync_vault(verbose=False)
+        self.assertEqual(res["failed"], 0)
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
+
+    def test_empty_collection_is_refilled(self):  # CA-08
+        self.client.delete_collection("kb")  # manifesto continua cheio
+        self.engine.sync_vault(verbose=False)
+        self.assertEqual(set(self.store.indexed_files()), {"a.md", "b.md"})
+
+    def test_orphan_removed(self):  # CA-08
+        self.store.upsert_chunks(
+            [{"id": "x.md:0", "content": "x", "metadata": {"file_path": "x.md"}}], [[1.0] * 768]
+        )
+        self.assertEqual(self.engine.reconcile(verbose=False)["orphans_removed"], 1)
+        self.assertNotIn("x.md", self.store.indexed_files())
+
+    def test_reconcile_twice_reports_zeros(self):
+        self.engine.reconcile(verbose=False)
+        self.assertEqual(
+            self.engine.reconcile(verbose=False),
+            {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 0},
+        )
+
+    def test_missing_from_index_is_reindexed(self):
+        self.store.delete_by_file_path("b.md")
+        res = self.engine.reconcile(verbose=False)
+        self.assertEqual(
+            res, {"orphans_removed": 0, "missing_reindexed": 1, "untracked_reindexed": 0}
+        )
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
+        self.assertIn("b.md", self.manifest())
+
+    def test_untracked_in_vault_is_reindexed(self):
+        manifest = self.manifest()
+        manifest.pop("b.md")
+        self.engine.manifest_manager.save_manifest(manifest)
+        res = self.engine.reconcile(verbose=False)
+        self.assertEqual(
+            res, {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 1}
+        )
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
+        self.assertIn("b.md", self.manifest())
+
+    def test_orphan_in_vault_is_untracked_not_orphan(self):
+        self.store.upsert_chunks(
+            [{"id": "c.md:0", "content": "c", "metadata": {"file_path": "c.md"}}], [[1.0] * 768]
+        )
+        (self.vault / "c.md").write_text(ONE_SECTION, encoding="utf-8")
+        res = self.engine.reconcile(verbose=False)
+        self.assertEqual(
+            res, {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 1}
+        )
+        self.assertEqual(self.store.indexed_files()["c.md"], 1)
+
+    def test_zero_chunk_file_is_not_reported_as_missing(self):
+        (self.vault / "e.md").write_text("", encoding="utf-8")
+        self.engine.sync_vault(verbose=False)
+        self.assertIn("e.md", self.manifest())
+        self.assertNotIn("e.md", self.store.indexed_files())
+        zeros = {"orphans_removed": 0, "missing_reindexed": 0, "untracked_reindexed": 0}
+        self.assertEqual(self.engine.reconcile(verbose=False), zeros)
+        self.assertEqual(self.engine.reconcile(verbose=False), zeros)
+
+    def test_deleted_file_is_left_to_the_diff(self):
+        (self.vault / "b.md").unlink()
+        self.store.delete_by_file_path("b.md")
+        res = self.engine.reconcile(verbose=False)
+        self.assertEqual(res["missing_reindexed"], 0)
+        self.assertNotIn("b.md", self.manifest())
+        self.assertEqual(set(self.store.indexed_files()), {"a.md"})
+
+    def test_unreadable_manifest_with_missing_collection_does_not_create_it(self):
+        self.client.delete_collection("kb")
+        self.manifest_path.write_text("{", encoding="utf-8")
+        with self.assertRaises(ManifestError):
+            self.engine.sync_vault(verbose=False)
+        self.assertNotIn("kb", [c.name for c in self.client.get_collections().collections])
+        with self.assertRaises(ManifestError):
+            self.engine.reconcile(verbose=False)
+        self.assertNotIn("kb", [c.name for c in self.client.get_collections().collections])
+
+    def test_reconcile_holds_the_lock(self):
+        with sync_lock(self.engine.lock_path):
+            with self.assertRaises(SyncBusy):
+                self.engine.reconcile(verbose=False)
 
 
 if __name__ == "__main__":

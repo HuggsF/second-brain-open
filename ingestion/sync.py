@@ -41,21 +41,87 @@ class SyncEngine:
         with sync_lock(self.lock_path, self.lock_wait):
             return self._sync_unlocked(verbose)
 
+    def reconcile(self, verbose: bool = True) -> Dict[str, int]:
+        """Reconcilia manifesto e índice (spec §2.7) e reindexa o que saiu do manifesto.
+
+        Roda dentro do lock. Devolve `{"orphans_removed", "missing_reindexed", "untracked_reindexed"}`.
+        """
+        with sync_lock(self.lock_path, self.lock_wait):
+            # Manifesto ilegível levanta ManifestError antes de tocar o Qdrant.
+            manifest = self.manifest_manager.load_manifest()
+            self.store.ensure_collection()
+            report = self._reconcile_unlocked(manifest, verbose)
+            self._sync_unlocked(verbose)
+            return report
+
+    def _reconcile_unlocked(self, manifest: Dict[str, str], verbose: bool = True) -> Dict[str, int]:
+        """Corrige índice e manifesto em memória (spec §2.7); nunca indexa.
+
+        Entradas do manifesto que saem daqui são reindexadas pelo diff seguinte. Quem chama já
+        segura o lock. Arquivo no manifesto sem pontos só conta como "ausente" quando o arquivo
+        existe no vault e gera chunks: nota vazia (zero chunks) não tem pontos por definição, e
+        arquivo apagado do vault é trabalho do diff (remoção).
+        """
+        indexed = self.store.indexed_files()
+        vault = {p.relative_to(self.vault_dir).as_posix() for p in self.vault_dir.rglob("*.md")}
+
+        orphans = sorted(f for f in indexed if f not in manifest and f not in vault)
+        orphans_removed = 0
+        for rel_path in orphans:
+            self.store.delete_by_file_path(rel_path)
+            orphans_removed += 1
+            if verbose:
+                console.print(f"  [red][-] Órfão removido do índice:[/red] {rel_path}")
+
+        missing = []
+        for rel_path in sorted(f for f in manifest if f not in indexed):
+            file_path = self.vault_dir / rel_path
+            if not file_path.is_file():
+                continue
+            try:
+                chunks = self.chunker.chunk_bytes(file_path.read_bytes(), rel_path, self.vault_dir)
+            except OSError:
+                chunks = [None]  # ilegível agora: o sync seguinte tenta de novo
+            if chunks:
+                missing.append(rel_path)
+
+        untracked = sorted(f for f in indexed if f in vault and f not in manifest)
+
+        for rel_path in missing:
+            manifest.pop(rel_path, None)
+
+        if missing:
+            self.manifest_manager.save_manifest(manifest)
+
+        if verbose and (missing or untracked):
+            console.print(
+                f"[bold cyan]Reconciliação:[/bold cyan] {len(missing)} ausentes do índice e "
+                f"{len(untracked)} fora do manifesto serão reindexados."
+            )
+        return {
+            "orphans_removed": orphans_removed,
+            "missing_reindexed": len(missing),
+            "untracked_reindexed": len(untracked),
+        }
+
     def _sync_unlocked(self, verbose: bool = True) -> Dict[str, Any]:
         """Sync incremental; quem chama já segura o lock."""
-        # Garantir coleção ativa no Qdrant (True quando acabou de criar).
-        # `created` é o gancho da reconciliação automática (coleção recém-criada).
-        created = self.store.ensure_collection()  # noqa: F841
-
-        # Manifesto lido uma vez por sync; ilegível -> ManifestError antes de tocar o índice.
+        # Manifesto lido uma vez por sync, antes de tocar o Qdrant: ilegível -> ManifestError
+        # sem criar a coleção (e sem gastar o sinal `created`).
         manifest = self.manifest_manager.load_manifest()
+
+        # Garantir coleção ativa no Qdrant (True quando acabou de criar): coleção nova
+        # com manifesto cheio -> reconcilia antes do diff para reindexar o que sumiu.
+        if self.store.ensure_collection():
+            self._reconcile_unlocked(manifest, verbose)
+
         added, modified, deleted, _ = self.manifest_manager.get_diff_with_hashes(self.vault_dir, manifest)
         total_changes = len(added) + len(modified) + len(deleted)
 
         if total_changes == 0:
             if verbose:
                 console.print("[green][OK] Vault já está 100% sincronizado. Nenhuma alteração detectada.[/green]")
-            return {"added": 0, "modified": 0, "deleted": 0, "chunks_indexed": 0, "failed": 0}
+            return {"added": 0, "modified": 0, "deleted": 0, "chunks_indexed": 0, "failed": 0, "failed_files": []}
 
         if verbose:
             console.print(f"[bold cyan]Detectadas alterações:[/bold cyan] {len(added)} novos, {len(modified)} modificados, {len(deleted)} removidos.")

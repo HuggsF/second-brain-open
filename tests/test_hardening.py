@@ -123,6 +123,7 @@ class TestSyncDoesNotLoseKnowledge(unittest.TestCase):
         engine.embedder = mock.Mock()
         engine.embedder.get_embedding.side_effect = RuntimeError("ollama fora do ar")
         engine.store = mock.Mock()
+        engine.store.ensure_collection.return_value = False
         res = engine.sync_vault(verbose=False)
         engine.store.delete_by_file_path.assert_not_called()
         engine.store.delete_stale.assert_not_called()
