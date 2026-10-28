@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict
 
 from config import settings
 from core import evidence
+from core.vault_docs import DocError, resolve_named, resolve_numbered, resolve_relative
 from core.evidence_store import EvidenceStore
 from core.qdrant_store import QdrantStore
 from core.retriever import BrainRetriever
@@ -34,10 +35,15 @@ async def search_knowledge(query: str, category: str = None) -> dict:
 async def get_adr(identifier: str) -> dict:
     """Recupera uma ADR pelo número ou nome."""
     adrs_dir = settings.adrs_dir
-    matches = list(adrs_dir.glob(f"*{identifier}*.md"))
+    try:
+        matches = resolve_numbered(adrs_dir, identifier, prefix="ADR")
+    except DocError:
+        return {"tool": "get_adr", "found": False, "error": "invalid_name"}
     if not matches:
         all_adrs = [f.name for f in adrs_dir.glob("*.md")]
         return {"tool": "get_adr", "found": False, "available": all_adrs}
+    if len(matches) > 1:
+        return {"tool": "get_adr", "found": False, "candidates": [m.name for m in matches]}
     content = matches[0].read_text(encoding="utf-8")
     return {
         "tool": "get_adr",
@@ -77,16 +83,18 @@ async def list_rules_with_evidence() -> dict:
 
 async def get_system_doc(system_name: str) -> dict:
     """Documentação de um sistema."""
-    name = (system_name or "").lower().strip()
-    system_file = settings.systems_dir / f"{name}.md"
-    if not system_file.exists():
+    try:
+        system_file = resolve_named(settings.systems_dir, system_name)
+    except DocError:
+        return {"tool": "get_system_architecture", "found": False, "error": "invalid_name"}
+    if system_file is None:
         available = [f.stem for f in settings.systems_dir.glob("*.md")]
         return {"tool": "get_system_architecture", "found": False, "available": available}
     content = system_file.read_text(encoding="utf-8")
     return {
         "tool": "get_system_architecture",
         "found": True,
-        "system": name,
+        "system": system_file.stem,
         "excerpt": content[:500],
         "total_lines": content.count("\n"),
     }
@@ -94,9 +102,11 @@ async def get_system_doc(system_name: str) -> dict:
 
 async def read_vault_file(path: str) -> dict:
     """Lê um arquivo do vault."""
-    vault = settings.vault_dir
-    target = (vault / path).resolve()
-    if not target.is_relative_to(vault.resolve()) or not target.is_file():
+    try:
+        target = resolve_relative(settings.vault_dir, path)
+    except DocError:
+        return {"tool": "read_vault_file", "found": False, "path": path, "error": "invalid_path"}
+    if target is None:
         return {"tool": "read_vault_file", "found": False, "path": path}
     content = target.read_text(encoding="utf-8")
     return {

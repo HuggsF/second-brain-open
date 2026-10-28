@@ -1,4 +1,3 @@
-import re
 from typing import Optional, Dict, Any, List
 from fastmcp import FastMCP
 import sys
@@ -9,6 +8,7 @@ from config import settings
 from core.retriever import BrainRetriever
 from core.qdrant_store import QdrantStore
 from core import evidence, tracing
+from core.vault_docs import DocError, resolve_named, resolve_numbered
 from core.evidence_store import EvidenceStore, EvidenceStoreError
 from core.ontology import resolve_term, list_bounded_contexts, list_entities
 from core.operational_rules import (
@@ -25,8 +25,6 @@ from core.analytics_etl import (
 
 mcp =FastMCP("KIOSK Second Brain")
 mcp.add_middleware(TraceMiddleware('KIOSK Second Brain'))
-
-_SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,63}$")
 
 @mcp.tool()
 def search_knowledge_base(query: str, category: Optional[str] = None, bounded_context: Optional[str] = None, include_content: bool = False, task_id: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -48,13 +46,15 @@ def get_adr(adr_identifier: str, task_id: Optional[str] = None) -> str:
     task_id: optional label that groups this call with others of the same task
     """
     adrs_dir = settings.adrs_dir
-    if not _SAFE_NAME.match(adr_identifier or "") or ".." in adr_identifier:
+    try:
+        matches = resolve_numbered(adrs_dir, adr_identifier, prefix="ADR")
+    except DocError:
         return "Identificador inválido. Use o número ou parte do nome da ADR (ex: '001' ou 'salesforce')."
-    matches = list(adrs_dir.glob(f"*{adr_identifier}*.md"))
     if not matches:
         all_adrs = [f.name for f in adrs_dir.glob("*.md")]
         return f"ADR não encontrada. ADRs existentes: {', '.join(all_adrs)}"
-    
+    if len(matches) > 1:
+        return "Identificador ambíguo. Candidatas: " + ", ".join(m.name for m in matches)
     return matches[0].read_text(encoding="utf-8")
 
 @mcp.tool()
@@ -66,14 +66,13 @@ def get_system_architecture(system_name: str, task_id: Optional[str] = None) -> 
     'hub-gatilho-nfe-e-politicas-de-emissao', 'protecoes-processamento-emissao-hub'.
     task_id: optional label that groups this call with others of the same task
     """
-    name = (system_name or "").lower().strip()
-    if not _SAFE_NAME.match(name) or ".." in name:
+    try:
+        system_file = resolve_named(settings.systems_dir, system_name)
+    except DocError:
         return "Nome de sistema inválido. Use só o nome (ex: 'sap', 'sults', 'holmes', 'salesforce')."
-    system_file = settings.systems_dir / f"{name}.md"
-    if not system_file.resolve().is_relative_to(settings.systems_dir.resolve()) or not system_file.exists():
+    if system_file is None:
         available = [f.stem for f in settings.systems_dir.glob("*.md")]
         return f"Sistema '{system_name}' não encontrado. Disponíveis: {', '.join(available)}"
-
     return system_file.read_text(encoding="utf-8")
 
 @mcp.tool()

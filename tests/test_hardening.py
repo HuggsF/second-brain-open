@@ -1,8 +1,10 @@
+import asyncio
 import unittest
 from unittest import mock
 
 import mcp_servers.srv_api_gateway_mcp as gw
 import mcp_servers.brain_mcp as brain
+from core.tools import IMPLEMENTATIONS
 from ingestion.sync import SyncEngine
 
 
@@ -40,6 +42,64 @@ class TestBrainMcpPaths(unittest.TestCase):
         for name in ["../../.env", "..\\..\\x", "a/b", "../README"]:
             self.assertIn("inválido", brain.get_system_architecture(name), name)
             self.assertIn("inválido", brain.get_adr(name), name)
+
+    def test_absolute_path_and_wildcard_rejected(self):
+        for name in ["c:/kiosk/x", "*"]:
+            self.assertIn("inválido", brain.get_system_architecture(name), name)
+            self.assertIn("inválido", brain.get_adr(name), name)
+
+    def test_adr_ambiguous_lists_candidates(self):
+        out = brain.get_adr("ddd")
+        self.assertTrue(out.startswith("Identificador ambíguo"), out[:80])
+        self.assertIn("ADR-019", out)
+        self.assertIn("ADR-020", out)
+
+    def test_adr_number_is_exact(self):
+        out = brain.get_adr("1")
+        self.assertFalse(out.startswith("Identificador ambíguo"))
+        self.assertIn("Salesforce", out)
+
+
+class TestBrokerToolPaths(unittest.TestCase):
+    def run_tool(self, name, **kw):
+        return asyncio.run(IMPLEMENTATIONS[name](**kw))
+
+    def test_system_doc_refuses_outside_vault(self):
+        for bad in ["../../readme", "c:/kiosk/hub-logistico/readme", "..\\adrs\\x"]:
+            r = self.run_tool("get_system_architecture", system_name=bad)
+            self.assertEqual((r["found"], r["error"]), (False, "invalid_name"), bad)
+
+    def test_adr_wildcard_refused(self):
+        self.assertEqual(self.run_tool("get_adr", identifier="*")["error"], "invalid_name")
+
+    def test_adr_ambiguous_lists_candidates(self):
+        r = self.run_tool("get_adr", identifier="ddd")
+        self.assertFalse(r["found"])
+        self.assertGreater(len(r["candidates"]), 1)
+
+    def test_adr_by_number(self):
+        self.assertTrue(self.run_tool("get_adr", identifier="ADR-003")["file"].startswith("ADR-003-"))
+
+    def test_adr_not_found_lists_available(self):
+        r = self.run_tool("get_adr", identifier="inexistente-xyz")
+        self.assertEqual(r["found"], False)
+        self.assertTrue(r["available"])
+
+    def test_system_doc_success_keeps_keys(self):
+        from config import settings
+        stem = next(settings.systems_dir.glob("*.md")).stem
+        r = self.run_tool("get_system_architecture", system_name=stem)
+        self.assertTrue(r["found"])
+        self.assertEqual(r["system"], stem)
+
+    def test_read_vault_file_refuses_escape(self):
+        for bad in ["../README.md", "C:/KIOSK/hub-logistico/README.md"]:
+            self.assertEqual(self.run_tool("read_vault_file", path=bad)["error"], "invalid_path")
+
+    def test_read_vault_file_ok_and_missing(self):
+        r = self.run_tool("read_vault_file", path="adrs/ADR-003-politica-git-branches-e-pull-requests.md")
+        self.assertTrue(r["found"])
+        self.assertFalse(self.run_tool("read_vault_file", path="adrs/nao-existe.md")["found"])
 
 
 class TestSyncDoesNotLoseKnowledge(unittest.TestCase):
