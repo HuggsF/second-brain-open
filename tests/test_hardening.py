@@ -147,6 +147,11 @@ class TestSearchContract(unittest.TestCase):
 
         self.with_evidence = build("kb", [(0.95, "A1"), (0.93, "A2")])
         self.without_evidence = build("low", [(0.30, "A1")])
+        empty_store, empty_client = make_store("vazio")  # nenhum ponto do espaco: indice vazio
+        self.addCleanup(empty_client.close)
+        empty_store.ensure_collection(vector_size=VECTOR_SIZE)
+        self.empty_index = BrainRetriever(embedder=FakeEmbedder(), store=empty_store, vault_dir=vault)
+        self.trace_log = Path(tmp.name) / "trace-log.jsonl"
 
     def _use(self, retriever):
         """Faz broker e MCP usarem este recuperador (sem Qdrant/Ollama)."""
@@ -192,6 +197,61 @@ class TestSearchContract(unittest.TestCase):
     def test_mcp_docstring_states_empty_means_no_evidence(self):
         doc = brain.search_knowledge_base.fn.__doc__ if hasattr(brain.search_knowledge_base, "fn")             else brain.search_knowledge_base.__doc__
         self.assertIn("sem evidência", doc)
+        self.assertIn("erro", doc)
+        self.assertIn("--rebuild --yes", doc)
+
+    EMPTY_INDEX_ERROR = "Índice vazio para este espaço; rode 'cli.py sync --rebuild --yes'."
+
+    def test_mcp_raises_on_empty_index(self):  # Important #1 da revisao final
+        from core.citations import GAP_EMPTY_INDEX
+
+        self.assertEqual(self.empty_index.query("x")["gaps"], [GAP_EMPTY_INDEX])
+        self._use(self.empty_index)
+        with self.assertRaises(RuntimeError) as ctx:
+            brain.search_knowledge_base("x")
+        self.assertEqual(str(ctx.exception), self.EMPTY_INDEX_ERROR)
+
+    def test_mcp_no_evidence_gap_still_returns_empty_list(self):
+        from core.citations import GAP_NO_EVIDENCE
+
+        self.assertEqual(self.without_evidence.query("x")["gaps"], [GAP_NO_EVIDENCE])
+        self._use(self.without_evidence)
+        self.assertEqual(brain.search_knowledge_base("x"), [])
+
+    def test_mcp_empty_index_reaches_client_as_tool_error(self):
+        from fastmcp import Client
+        from fastmcp.exceptions import ToolError
+        from core import tracing
+
+        self._use(self.empty_index)
+        patcher = mock.patch.object(tracing, "TRACE_LOG", self.trace_log)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+        async def run():
+            async with Client(brain.mcp) as client:
+                return await client.call_tool("search_knowledge_base", {"query": "x"})
+
+        with self.assertRaises(ToolError) as ctx:
+            asyncio.run(run())
+        self.assertIn(self.EMPTY_INDEX_ERROR, str(ctx.exception))
+
+    def test_brain_status_reports_legacy_points(self):
+        from qdrant_client.models import PointStruct
+        from tests.test_retrieval_contract import VECTOR_SIZE, make_store, vector_for
+
+        store, client = make_store("kb_status")
+        self.addCleanup(client.close)
+        store.ensure_collection(vector_size=VECTOR_SIZE)
+        client.upsert(collection_name="kb_status", points=[
+            PointStruct(id=1, vector=vector_for(0.9), payload={"file_path": "velho.md"}),
+            PointStruct(id=2, vector=vector_for(0.9), payload={"file_path": "a.md", "space_id": "kiosk"}),
+        ])
+        with mock.patch.object(brain, "QdrantStore", return_value=store):
+            status = brain.get_brain_status()
+        self.assertEqual(status["legacy_points"], 1)
+        self.assertIsInstance(status["legacy_points"], int)
+        self.assertEqual(status["points_count"], 2)
 
 
 class TestSyncDoesNotLoseKnowledge(unittest.TestCase):

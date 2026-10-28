@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from core.trace_middleware import TraceMiddleware
 from config import settings
 from core.retriever import BrainRetriever
+from core.citations import GAP_EMPTY_INDEX
 from core.qdrant_store import QdrantStore
 from core import evidence, tracing
 from core.vault_docs import DocError, resolve_named, resolve_numbered
@@ -23,6 +24,8 @@ from core.analytics_etl import (
     get_logistics_health,
 )
 
+EMPTY_INDEX_ERROR = "Índice vazio para este espaço; rode 'cli.py sync --rebuild --yes'."
+
 mcp =FastMCP("KIOSK Second Brain")
 mcp.add_middleware(TraceMiddleware('KIOSK Second Brain'))
 
@@ -35,10 +38,14 @@ def search_knowledge_base(query: str, category: Optional[str] = None, bounded_co
     include_content: se True, inclui o conteúdo completo de cada chunk no resultado.
     Cada item traz sha256, line_start, line_end e stale (citação verificável). Lista vazia significa sem evidência:
     nada acima do piso de relevância no espaço atual; não invente resposta.
+    Um erro (em vez de lista) significa índice vazio ou não reconstruído para este espaço:
+    rode 'cli.py sync --rebuild --yes'; não trate como ausência de evidência.
     task_id: optional label that groups this call with others of the same task
     """
     retriever = BrainRetriever()
     result = retriever.query(query, limit=5, category=category, bounded_context=bounded_context, include_content=include_content)
+    if GAP_EMPTY_INDEX in result.get("gaps", []):
+        raise RuntimeError(EMPTY_INDEX_ERROR)
     return result["sources"]
 
 @mcp.tool()
@@ -81,10 +88,18 @@ def get_system_architecture(system_name: str, task_id: Optional[str] = None) -> 
 def get_brain_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Retorna o status do Qdrant e a quantidade de vetores indexados no Second Brain.
+    legacy_points: pontos sem space_id (anteriores à onda B); acima de 0, rode 'cli.py sync --rebuild --yes'.
     task_id: optional label that groups this call with others of the same task
     """
     store = QdrantStore()
-    return store.get_stats()
+    stats = store.get_stats()
+    if "error" in stats:
+        return stats
+    try:
+        stats["legacy_points"] = store.legacy_points_count()
+    except Exception as e:
+        return {"error": str(e)}
+    return stats
 
 @mcp.tool()
 def list_rules(task_id: Optional[str] = None) -> List[Dict[str, Any]]:
