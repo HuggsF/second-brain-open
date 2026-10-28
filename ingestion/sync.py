@@ -7,6 +7,7 @@ if sys.platform == "win32":
         pass
 
 import hashlib
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any
 from rich.console import Console
@@ -21,6 +22,15 @@ from core.sync_lock import sync_lock
 console = Console(force_terminal=True)
 
 DEFAULT_LOCK_PATH = settings.base_dir / ".runtime" / "sync.lock"
+
+
+class MigrationNeedsConfirmation(RuntimeError):
+    """O alias ainda é uma coleção real: a primeira reconstrução precisa de confirmação."""
+
+
+def _utc_stamp() -> str:
+    """Carimbo AAAAMMDDHHMMSS em UTC para o nome da coleção versionada."""
+    return datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
 
 
 class SyncEngine:
@@ -57,6 +67,127 @@ class SyncEngine:
             report["failed"] = sync_result["failed"]
             report["failed_files"] = list(sync_result["failed_files"])
             return report
+
+    def rebuild(self, verbose: bool = True, confirm_migration: bool = False) -> Dict[str, Any]:
+        """Reindexa o vault inteiro numa coleção versionada e troca o alias (spec §2.8).
+
+        Roda dentro do lock. O alias é `self.store.collection_name`. Qualquer falha antes da troca
+        apaga a coleção nova e deixa alias, coleção anterior e manifesto como estavam (INV-N07).
+        Se o alias ainda é uma coleção real (primeira vez), exige `confirm_migration=True`:
+        a troca apaga a coleção real e cria o alias (a busca falha entre as duas chamadas).
+        Devolve `{"collection", "files", "chunks", "migrated"}`.
+        """
+        with sync_lock(self.lock_path, self.lock_wait):
+            return self._rebuild_unlocked(verbose, confirm_migration)
+
+    def _rebuild_unlocked(self, verbose: bool, confirm_migration: bool) -> Dict[str, Any]:
+        alias = self.store.collection_name
+
+        # 0. Migração exige confirmação antes de criar ou indexar qualquer coisa.
+        migrating = self.store.is_real_collection(alias)
+        if migrating and not confirm_migration:
+            raise MigrationNeedsConfirmation(
+                f"'{alias}' é uma coleção real; a primeira reconstrução a apaga e cria o alias "
+                "(a busca falha por um instante). Confirme para migrar."
+            )
+
+        # 0b. Sobras de reconstruções interrompidas (spec §6.2): tudo `{alias}__*` fora do alias.
+        old_target = self.store.alias_target(alias)
+        for name in self.store.collections_with_prefix(f"{alias}__"):
+            if name != old_target:
+                self.store.drop_collection(name)
+                if verbose:
+                    console.print(f"  [red][-] Coleção órfã de reconstrução anterior removida:[/red] {name}")
+
+        # 1. Coleção nova versionada (UTC); duas reconstruções no mesmo segundo ganham sufixo.
+        base = f"{alias}__{_utc_stamp()}"
+        new = base
+        suffix = 0
+        while self.store.is_real_collection(new):
+            suffix += 1
+            new = f"{base}_{suffix}"
+        self.store.create_named_collection(new, settings.vector_size)
+
+        try:
+            new_store = QdrantStore(url=self.store.url, collection_name=new)
+            # 2. Indexa o vault inteiro na coleção nova; manifesto novo construído do zero.
+            new_manifest: Dict[str, str] = {}
+            failed = []
+            files = 0
+            total_chunks = 0
+            for file_path in sorted(self.vault_dir.rglob("*.md")):
+                rel_path = file_path.relative_to(self.vault_dir).as_posix()
+                try:
+                    sha, chunks = self._read_and_chunk(file_path, rel_path)
+                except OSError as e:
+                    failed.append(rel_path)
+                    console.print(f"[bold red]Erro ao ler {rel_path}:[/bold red] {e}")
+                    continue
+                vectors = self._embed_chunks(chunks, rel_path)
+                if vectors is None:
+                    failed.append(rel_path)
+                    continue
+                if chunks:
+                    new_store.upsert_chunks(chunks, vectors)
+                new_manifest[rel_path] = sha
+                files += 1
+                total_chunks += len(chunks)
+                if verbose:
+                    console.print(f"  [green][+] Indexado:[/green] {rel_path} ({len(chunks)} blocos)")
+
+            # 3. Valida: nenhum arquivo falhou e a coleção nova não está vazia (INV-N07).
+            if failed:
+                raise RuntimeError(
+                    f"Reconstrução abortada: {len(failed)} arquivo(s) falharam: {', '.join(failed)}"
+                )
+            if new_store.points_count() == 0:
+                raise RuntimeError("Reconstrução abortada: a coleção nova ficou sem pontos.")
+        except BaseException:
+            try:
+                self.store.drop_collection(new)
+            except Exception as e:
+                console.print(f"[bold red]Erro ao apagar a coleção nova {new}:[/bold red] {e}")
+            raise
+
+        # 4. Troca o alias. Migração: apaga a coleção real homônima e cria o alias.
+        if migrating:
+            self.store.drop_collection(alias)
+            self.store.swap_alias(alias, new, has_old_alias=False)
+        else:
+            self.store.swap_alias(alias, new, has_old_alias=old_target is not None)
+
+        # 5. Manifesto novo (escrita atômica), sem ler o antigo (pode estar ilegível).
+        self.manifest_manager.save_manifest(new_manifest)
+
+        # 6. Apaga a coleção que o alias apontava antes.
+        if old_target is not None and old_target != new:
+            self.store.drop_collection(old_target)
+
+        if verbose:
+            console.print(
+                f"[green][OK] Reconstrução concluída:[/green] {files} arquivos, {total_chunks} blocos "
+                f"em {new}" + (" (migração do alias)" if migrating else "")
+            )
+        return {"collection": new, "files": files, "chunks": total_chunks, "migrated": migrating}
+
+    def _read_and_chunk(self, file_path: Path, rel_path: str):
+        """Leitura única: o hash devolvido é o dos mesmos bytes que geram os chunks (INV-N05).
+
+        Devolve `(sha256, chunks)`; erro de leitura levanta `OSError`.
+        """
+        raw = file_path.read_bytes()
+        return hashlib.sha256(raw).hexdigest(), self.chunker.chunk_bytes(raw, rel_path, self.vault_dir)
+
+    def _embed_chunks(self, chunks, rel_path: str):
+        """Embeddings de todos os chunks, ou `None` se algum falhou (o arquivo inteiro é ignorado)."""
+        vectors = []
+        for chunk in chunks:
+            try:
+                vectors.append(self.embedder.get_embedding(chunk["content"]))
+            except Exception as e:
+                console.print(f"[bold red]Erro ao gerar embedding para {rel_path}:[/bold red] {e}")
+                return None
+        return vectors
 
     def _reconcile_unlocked(self, manifest: Dict[str, str], verbose: bool = True) -> Dict[str, int]:
         """Corrige índice e manifesto em memória (spec §2.7); nunca indexa.
@@ -155,15 +286,12 @@ class SyncEngine:
         for file_path in added + modified:
             rel_path = file_path.relative_to(self.vault_dir).as_posix()
 
-            # Leitura única: o hash gravado é o dos mesmos bytes que geram os chunks.
             try:
-                raw = file_path.read_bytes()
+                sha, chunks = self._read_and_chunk(file_path, rel_path)
             except OSError as e:
                 failed.append(rel_path)
                 console.print(f"[bold red]Erro ao ler {rel_path}:[/bold red] {e}")
                 continue
-            sha = hashlib.sha256(raw).hexdigest()
-            chunks = self.chunker.chunk_bytes(raw, rel_path, self.vault_dir)
 
             if not chunks:
                 if file_path in modified_set:
@@ -177,16 +305,8 @@ class SyncEngine:
                 self.manifest_manager.save_manifest(manifest)
                 continue
 
-            vectors = []
-            for chunk in chunks:
-                try:
-                    vec = self.embedder.get_embedding(chunk["content"])
-                    vectors.append(vec)
-                except Exception as e:
-                    console.print(f"[bold red]Erro ao gerar embedding para {rel_path}:[/bold red] {e}")
-                    break
-
-            if len(vectors) != len(chunks):
+            vectors = self._embed_chunks(chunks, rel_path)
+            if vectors is None:
                 # Nada foi tocado: o índice mantém os vetores antigos e o manifesto não avança.
                 failed.append(rel_path)
                 continue

@@ -7,14 +7,14 @@ from pathlib import Path
 from unittest import mock
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams
+from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from config import settings
 from core.chunker import MarkdownChunker
 from core.hasher import ManifestError, ManifestManager
 from core.qdrant_store import QdrantStore
 from core.sync_lock import SyncBusy, sync_lock
-from ingestion.sync import SyncEngine
+from ingestion.sync import MigrationNeedsConfirmation, SyncEngine
 
 
 def sha256(raw: bytes) -> str:
@@ -437,6 +437,132 @@ class TestReconcile(SyncTestBase):
         with sync_lock(self.engine.lock_path):
             with self.assertRaises(SyncBusy):
                 self.engine.reconcile(verbose=False)
+
+
+class FailingOnCallEmbedder:
+    """Embedder falso que levanta RuntimeError("ollama") na N-esima chamada."""
+
+    def __init__(self, fail_on_call):
+        self.fail_on_call = fail_on_call
+        self.calls = 0
+
+    def get_embedding(self, text):
+        self.calls += 1
+        if self.calls == self.fail_on_call:
+            raise RuntimeError("ollama")
+        return [0.1] * settings.vector_size
+
+
+class TestRebuild(SyncTestBase):
+    """Estado inicial: alias "kb" -> colecao real "kb__old" com pontos."""
+
+    def setUp(self):
+        super().setUp()
+        (self.vault / "b.md").write_text(ONE_SECTION, encoding="utf-8")
+        self.mm = self.engine.manifest_manager
+        self.store.create_named_collection("kb__old", settings.vector_size)
+        self.client.upsert(
+            "kb__old",
+            points=[PointStruct(id=1, vector=[0.2] * settings.vector_size, payload={"file_path": "velho.md"})],
+        )
+        self.store.swap_alias("kb", "kb__old", has_old_alias=False)
+        # Escritas da reconstrucao criam um QdrantStore novo: precisa ver o mesmo cliente em memoria.
+        patcher = mock.patch("core.qdrant_store.QdrantClient", return_value=self.client)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def make_kb_real_collection(self):
+        self.store.drop_collection("kb__old")  # o alias cai junto com a colecao
+        self.assertIsNone(self.store.alias_target("kb"))
+        self.store.create_named_collection("kb", settings.vector_size)
+        self.client.upsert(
+            "kb",
+            points=[PointStruct(id=1, vector=[0.2] * settings.vector_size, payload={"file_path": "velho.md"})],
+        )
+
+    def test_failed_rebuild_keeps_alias(self):  # CA-09 / INV-N07
+        self.engine.embedder = FailingOnCallEmbedder(fail_on_call=2)
+        with self.assertRaises(RuntimeError):
+            self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.alias_target("kb"), "kb__old")
+        self.assertEqual(self.store.collections_with_prefix("kb__"), ["kb__old"])
+        self.assertEqual(self.store.indexed_files(), {"velho.md": 1})
+        self.assertFalse(self.manifest_path.exists())
+
+    def test_successful_rebuild_swaps_and_drops_old(self):  # CA-09
+        r = self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.alias_target("kb"), r["collection"])
+        self.assertEqual(self.store.collections_with_prefix("kb__"), [r["collection"]])
+        self.assertRegex(r["collection"], r"^kb__\d{14}$")
+        self.assertEqual((r["files"], r["chunks"], r["migrated"]), (2, 4, False))
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
+        self.assertEqual(
+            self.manifest(),
+            {name: sha256((self.vault / name).read_bytes()) for name in ("a.md", "b.md")},
+        )
+
+    def test_migration_requires_confirmation(self):  # CA-10
+        self.make_kb_real_collection()
+        with self.assertRaises(MigrationNeedsConfirmation):
+            self.engine.rebuild(verbose=False)
+        # nada foi criado nem indexado antes da confirmacao
+        self.assertTrue(self.store.is_real_collection("kb"))
+        self.assertEqual(self.store.collections_with_prefix("kb__"), [])
+        r = self.engine.rebuild(verbose=False, confirm_migration=True)
+        self.assertTrue(r["migrated"])
+        self.assertFalse(self.store.is_real_collection("kb"))
+        self.assertEqual(self.store.alias_target("kb"), r["collection"])
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
+
+    def test_failed_migration_keeps_real_collection(self):  # INV-N07
+        self.make_kb_real_collection()
+        self.engine.embedder = FailingOnCallEmbedder(fail_on_call=1)
+        with self.assertRaises(RuntimeError):
+            self.engine.rebuild(verbose=False, confirm_migration=True)
+        self.assertTrue(self.store.is_real_collection("kb"))
+        self.assertEqual(self.store.collections_with_prefix("kb__"), [])
+        self.assertEqual(self.store.indexed_files(), {"velho.md": 1})
+
+    def test_rebuild_ignores_corrupt_manifest(self):
+        self.manifest_path.write_text("{", encoding="utf-8")
+        self.engine.rebuild(verbose=False, confirm_migration=True)
+        self.assertEqual(set(self.mm.load_manifest()), {"a.md", "b.md"})
+
+    def test_empty_vault_never_swaps(self):  # INV-N07: colecao vazia
+        for p in self.vault.glob("*.md"):
+            p.unlink()
+        with self.assertRaises(RuntimeError):
+            self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.alias_target("kb"), "kb__old")
+        self.assertEqual(self.store.collections_with_prefix("kb__"), ["kb__old"])
+
+    def test_leftover_collection_from_crashed_rebuild_is_dropped(self):  # spec 6.2
+        self.store.create_named_collection("kb__20260101000000", settings.vector_size)
+        r = self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.collections_with_prefix("kb__"), [r["collection"]])
+        self.assertEqual(self.store.alias_target("kb"), r["collection"])
+
+    def test_same_second_rebuild_gets_suffix(self):
+        with mock.patch("ingestion.sync._utc_stamp", return_value="20261027120000"):
+            first = self.engine.rebuild(verbose=False)
+            second = self.engine.rebuild(verbose=False)
+        self.assertEqual(first["collection"], "kb__20261027120000")
+        self.assertEqual(second["collection"], "kb__20261027120000_1")
+        self.assertEqual(self.store.alias_target("kb"), second["collection"])
+        self.assertEqual(self.store.collections_with_prefix("kb__"), [second["collection"]])
+        self.assertEqual(self.store.indexed_files(), {"a.md": 3, "b.md": 1})
+
+    def test_rebuild_holds_the_lock(self):
+        with sync_lock(self.engine.lock_path):
+            with self.assertRaises(SyncBusy):
+                self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.alias_target("kb"), "kb__old")
+        self.assertEqual(self.store.collections_with_prefix("kb__"), ["kb__old"])
+
+    def test_incremental_sync_after_rebuild_is_noop(self):
+        self.engine.rebuild(verbose=False)
+        res = self.engine.sync_vault(verbose=False)
+        self.assertEqual((res["added"], res["modified"], res["deleted"]), (0, 0, 0))
 
 
 if __name__ == "__main__":
