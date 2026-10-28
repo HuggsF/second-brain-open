@@ -107,6 +107,11 @@ class TestChunkLines(unittest.TestCase):
         self.assertEqual(self.lines_of(raw, c), ["A\rB", "C"])
 
     def test_content_and_ids_unchanged_on_real_vault(self):
+        """Guarda de migração única da onda B contra o chunker de `55d4b93` (BASE_COMMIT).
+
+        Prova que registrar linhas não mudou `content` nem `id` de nenhum chunk do vault real.
+        Aposente este teste quando o chunker mudar de propósito: a diferença passa a ser esperada.
+        """
         import importlib.util
         import subprocess
         import tempfile
