@@ -39,6 +39,34 @@ def _trace_id(task_id: Optional[str]) -> Optional[str]:
     return state.trace_id if state is not None else None
 
 
+
+
+# ── Budget tracker lazy singleton (T7, onda C) ─────────────────────
+_budget_tracker = None
+_budget_tracker_init = False
+
+
+def _get_budget_tracker():
+    """Create the BudgetTracker once on first call.  Returns None when
+    the active profile has no budget config."""
+    global _budget_tracker, _budget_tracker_init
+    if _budget_tracker_init:
+        return _budget_tracker
+    _budget_tracker_init = True
+    try:
+        from core.local_tasks.profile import load_profile
+        profile = load_profile()
+        if profile.budget is None:
+            return None
+        from core.budget import BudgetTracker
+        db_path = settings.base_dir / ".runtime" / "budget.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        _budget_tracker = BudgetTracker(db_path, profile.budget)
+    except Exception:
+        pass
+    return _budget_tracker
+
+
 @mcp.tool()
 def classify(text: str, ctx: Context, task_id: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -47,7 +75,8 @@ def classify(text: str, ctx: Context, task_id: Optional[str] = None) -> Dict[str
     se status == 'escalate', faça a tarefa você mesmo.
     task_id: optional label that groups this call with others of the same task
     """
-    return router.run_task("classify", text=text, sender=_sender(ctx), trace_id=_trace_id(task_id))
+    return router.run_task("classify", text=text, sender=_sender(ctx), trace_id=_trace_id(task_id),
+                           budget_tracker=_get_budget_tracker())
 
 
 @mcp.tool()
@@ -60,7 +89,8 @@ def extract(text: str, template: str, ctx: Context, task_id: Optional[str] = Non
     task_id: optional label that groups this call with others of the same task
     """
     return router.run_task("extract", text=text, template=template, sender=_sender(ctx),
-                           trace_id=_trace_id(task_id))
+                           trace_id=_trace_id(task_id),
+                           budget_tracker=_get_budget_tracker())
 
 
 @mcp.tool()
@@ -73,7 +103,8 @@ def summarize(text: str, ctx: Context, target_words: int = 120,
     task_id: optional label that groups this call with others of the same task
     """
     return router.run_task("summarize", text=text, target_words=target_words,
-                           sender=_sender(ctx), trace_id=_trace_id(task_id))
+                           sender=_sender(ctx), trace_id=_trace_id(task_id),
+                           budget_tracker=_get_budget_tracker())
 
 
 @mcp.tool()
@@ -86,7 +117,8 @@ def validate(document: str, template: str, ctx: Context, source: Optional[str] =
     task_id: optional label that groups this call with others of the same task
     """
     return router.run_task("validate", text=document, template=template, source=source,
-                           sender=_sender(ctx), trace_id=_trace_id(task_id))
+                           sender=_sender(ctx), trace_id=_trace_id(task_id),
+                           budget_tracker=_get_budget_tracker())
 
 
 @mcp.tool()
@@ -97,7 +129,36 @@ def local_tasks_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     event_write_failures conta só as falhas deste processo do servidor, desde que ele iniciou.
     task_id: optional label that groups this call with others of the same task
     """
-    return router.status()
+    info = router.status()
+    tracker = _get_budget_tracker()
+    if tracker is not None:
+        bst = tracker.status()
+        info["budget"] = {"state": bst.state, "daily_spent": bst.daily_spent,
+                          "daily_limit": bst.daily_limit, "daily_remaining": bst.daily_remaining,
+                          "monthly_spent": bst.monthly_spent, "monthly_limit": bst.monthly_limit,
+                          "monthly_remaining": bst.monthly_remaining,
+                          "limiting_period": bst.limiting_period}
+    return info
+
+
+
+@mcp.tool()
+def get_budget_status(task_id: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Mostra o orcamento de chamadas pagas: gasto, limite, estado (normal/warning/critical/exceeded).
+    Quando exceeded e sem provedor local, as ferramentas classify/extract/summarize/validate
+    recusam chamadas ao modelo pago. Com provedor local, a execucao continua via Ollama.
+    task_id: optional label that groups this call with others of the same task
+    """
+    tracker = _get_budget_tracker()
+    if tracker is None:
+        return {"state": "unconfigured"}
+    bst = tracker.status()
+    return {"state": bst.state, "daily_spent": bst.daily_spent,
+            "daily_limit": bst.daily_limit, "daily_remaining": bst.daily_remaining,
+            "monthly_spent": bst.monthly_spent, "monthly_limit": bst.monthly_limit,
+            "monthly_remaining": bst.monthly_remaining,
+            "limiting_period": bst.limiting_period}
 
 
 if __name__ == "__main__":

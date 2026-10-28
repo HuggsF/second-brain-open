@@ -14,6 +14,7 @@ KINDS = ("task.request", "task.result", "task.event")
 REASONS = frozenset({
     "local_unavailable", "schema_invalid", "input_too_large", "unknown_template",
     "unknown_task", "no_valid_label", "profile_not_found", "timeout",
+    "budget_daily", "budget_monthly",
 })
 
 _SCHEMA_PATH = Path(__file__).parent / "schemas" / "envelope.schema.json"

@@ -43,8 +43,8 @@ class TestEnvelope(unittest.TestCase):
         req = envelope.make_envelope("task.request", "translate", sender="cli", to="local", payload={})
         self.assertNotEqual(envelope.validate_envelope(req), [])
 
-    def test_reasons_are_the_eight_codes(self):
-        self.assertEqual(len(envelope.REASONS), 8)
+    def test_reasons_include_budget_codes(self):
+        self.assertEqual(len(envelope.REASONS), 10)
         self.assertEqual(envelope.TASKS, ("classify", "extract", "summarize", "validate"))
 
 
