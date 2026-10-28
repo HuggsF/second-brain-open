@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TERMS = r"kiosk|touti|amavia|yes!\s*cosm|hub[\s_-]?log|bling|sults|holmes|srv[\s_-]?api|salesforce|\bsap\b|j&t|openrouter"
 SCOPES = ("core/protocol", "core/local_tasks", "profiles/example")
-FILES = ("core/events.py", "mcp_servers/local_tasks_mcp.py", "core/vault_docs.py", "core/sync_lock.py")
+FILES = ("core/events.py", "mcp_servers/local_tasks_mcp.py", "core/vault_docs.py", "core/sync_lock.py", "core/citations.py")
 
 
 class TestAgnosticCore(unittest.TestCase):
