@@ -32,4 +32,10 @@ class Settings(BaseModel):
     chunk_size: int = 800
     chunk_overlap: int = 150
 
+    # Retrieval scope and selection
+    space_id: str = os.getenv("BRAIN_SPACE", "kiosk")
+    retrieval_min_score: float = float(os.getenv("RETRIEVAL_MIN_SCORE", "0.65"))
+    retrieval_max_drop: float = float(os.getenv("RETRIEVAL_MAX_DROP", "0.10"))
+    retrieval_max_per_doc: int = int(os.getenv("RETRIEVAL_MAX_PER_DOC", "2"))
+
 settings = Settings()
