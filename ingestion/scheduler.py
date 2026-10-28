@@ -57,13 +57,19 @@ class VaultChangeHandler(FileSystemEventHandler):
         console.print(f"[bold cyan]🔄 Mudança detectada no Vault ({Path(event.src_path).name}). Sincronizando após {self.debounce_seconds:g}s sem novas edições...[/bold cyan]")
         self._arm()
 
-def run_watcher():
+def run_watcher(timer_factory: Callable[[float, Callable], object] = threading.Timer):
     """Inicia o daemon de monitoramento contínuo do Vault."""
     engine = SyncEngine(lock_wait=30.0)
-    # Sincronização inicial ao iniciar
-    engine.sync_vault(verbose=True)
+    event_handler = VaultChangeHandler(lambda: engine.sync_vault(verbose=True), timer_factory=timer_factory)
 
-    event_handler = VaultChangeHandler(lambda: engine.sync_vault(verbose=True))
+    # Sincronização inicial ao iniciar. Lock ocupado por outro sync (ex.: --rebuild) depois da
+    # espera de 30 s: o watcher não cai, arma o debounce e tenta de novo (spec 6.1, ADR-033 D2).
+    try:
+        event_handler.sync_fn()
+    except SyncBusy:
+        console.print("[yellow]Sync inicial ocupado (outro processo segura o lock). Nova tentativa pelo timer.[/yellow]")
+        event_handler._arm()
+
     observer = Observer()
     observer.schedule(event_handler, path=str(settings.vault_dir), recursive=True)
     observer.start()

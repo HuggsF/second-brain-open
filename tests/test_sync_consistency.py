@@ -650,6 +650,64 @@ class TestWatcher(unittest.TestCase):
         self.assertEqual(self.timers, [])
 
 
+class TestRunWatcher(unittest.TestCase):
+    """run_watcher: sync inicial, lock ocupado no inicio e ligacao do observer (spec 6.1, ADR-033 D2)."""
+
+    def setUp(self):
+        from ingestion import scheduler
+
+        self.scheduler = scheduler
+        self.timers = []
+        self.cancelled = 0
+        engine_patch = mock.patch.object(scheduler, "SyncEngine")
+        observer_patch = mock.patch.object(scheduler, "Observer")
+        # o laco `while True: time.sleep(1)` termina como num Ctrl+C, sem dormir
+        sleep_patch = mock.patch.object(scheduler.time, "sleep", side_effect=KeyboardInterrupt)
+        self.engine_cls = engine_patch.start()
+        self.observer = observer_patch.start().return_value
+        sleep_patch.start()
+        for p in (engine_patch, observer_patch, sleep_patch):
+            self.addCleanup(p.stop)
+        self.engine = self.engine_cls.return_value
+
+    def factory(self, interval, fn):
+        t = FakeTimer(interval, fn, self)
+        self.timers.append(t)
+        return t
+
+    def test_busy_first_sync_still_starts_and_arms_retry(self):
+        self.engine.sync_vault.side_effect = [SyncBusy(), {"failed": 0}]
+        self.scheduler.run_watcher(timer_factory=self.factory)
+        self.observer.schedule.assert_called_once()
+        self.observer.start.assert_called_once()
+        self.observer.stop.assert_called_once()
+        self.observer.join.assert_called_once()
+        self.assertEqual(len(self.timers), 1)
+        self.assertTrue(self.timers[0].started)
+        self.assertTrue(self.timers[0].daemon)
+        self.timers[0].fire()
+        self.assertEqual(self.engine.sync_vault.call_count, 2)
+        self.engine.sync_vault.assert_called_with(verbose=True)
+
+    def test_first_sync_ok_schedules_observer_on_vault(self):
+        self.engine.sync_vault.return_value = {"failed": 0}
+        self.scheduler.run_watcher(timer_factory=self.factory)
+        self.engine_cls.assert_called_once_with(lock_wait=30.0)
+        self.engine.sync_vault.assert_called_once_with(verbose=True)
+        self.assertEqual(self.timers, [])
+        args, kwargs = self.observer.schedule.call_args
+        handler = args[0]
+        self.assertEqual(kwargs, {"path": str(settings.vault_dir), "recursive": True})
+        self.assertIsInstance(handler, self.scheduler.VaultChangeHandler)
+        self.observer.start.assert_called_once()
+        handler.sync_fn()
+        self.assertEqual(self.engine.sync_vault.call_count, 2)
+        self.engine.sync_vault.assert_called_with(verbose=True)
+        # o handler usa a fabrica de timer recebida
+        handler.on_any_event(FakeEvent("a.md"))
+        self.assertEqual(len(self.timers), 1)
+
+
 class TestCli(unittest.TestCase):
     """cli.py sync --reconcile/--rebuild/--yes e mensagens de erro (spec 2.7, 2.8)."""
 
