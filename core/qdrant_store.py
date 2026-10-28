@@ -83,6 +83,10 @@ class QdrantStore:
                 return item.collection_name
         return None
 
+    def index_version(self) -> str:
+        """Colecao real atras do alias (ou o proprio nome, se nao for alias)."""
+        return self.alias_target(self.collection_name) or self.collection_name
+
     def is_real_collection(self, name: str) -> bool:
         return name in [c.name for c in self.client.get_collections().collections]
 
@@ -146,9 +150,12 @@ class QdrantStore:
         query_vector: List[float], 
         limit: int = 4, 
         category: Optional[str] = None,
-        bounded_context: Optional[str] = None
+        bounded_context: Optional[str] = None,
+        space_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         conditions = []
+        if space_id is not None:
+            conditions.append(FieldCondition(key="space_id", match=MatchValue(value=space_id)))
         if category:
             conditions.append(FieldCondition(key="category", match=MatchValue(value=category)))
         if bounded_context:
