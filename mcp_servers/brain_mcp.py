@@ -33,6 +33,8 @@ def search_knowledge_base(query: str, category: Optional[str] = None, bounded_co
     Categorias válidas: 'adrs', 'systems', 'domain', 'daily'.
     bounded_context: filtra por bounded context DDD (ex: 'Fiscal', 'Expedição e Remessas').
     include_content: se True, inclui o conteúdo completo de cada chunk no resultado.
+    Cada item traz sha256, line_start, line_end e stale (citação verificável). Lista vazia significa sem evidência:
+    nada acima do piso de relevância no espaço atual; não invente resposta.
     task_id: optional label that groups this call with others of the same task
     """
     retriever = BrainRetriever()
