@@ -56,10 +56,11 @@ Follow every numbered item; do not paraphrase a subset.
   New modules (Phase 6): `tests.test_evidence_lights tests.test_domain_observation tests.test_bff_phase6`.
   New modules (onda A, ingestion/paths): `tests.test_vault_docs tests.test_sync_lock tests.test_sync_consistency`.
   New modules (onda B, citations/scope): `tests.test_citations tests.test_retrieval_contract tests.test_bff_retrievals`.
-  New modules (onda C, cost/budget): `tests.test_cost tests.test_budget`.
+  New modules (onda C, cost/budget): `tests.test_cost tests.test_budget tests.test_budget_wiring`.
 - Full gate: `.\.venv\Scripts\python.exe -m pytest -q`; `node --test dashboard/tests/*.test.cjs`; `cd jev-app && npm test`.
 - JEV front-end (React 19 + Tailwind 4) lives in `jev-app/`; its build is committed to `dashboard/jev/` (no CI), so after any change in `jev-app/src` run `cd jev-app && npm test && npm run build` and commit the output.
 - Budget guard (ADR-035): when `BudgetTracker.status().state == "exceeded"`, `run_task` executes exclusively via local providers (zero cloud calls). If no local provider exists and the task needs a model, it returns `status="budget_exceeded"`. Deterministic tasks (unknown_task, validate-without-source) always pass. CLI exit code for `budget_exceeded` is 3.
+- Budget limits and alerts (ADR-036): a limit of 0 (`daily_usd` or `monthly_usd`) blocks paid spend; when the budget state worsens after a call, an alert goes to stderr and to the `budget.alert` event.
 - Lights (ADR-023): the test light (evidence) and the health light (observation) are separate signals; a rule's light comes from `evidence.list_rules`, health, for the JEV, from `core/domain/observation` (the Observability page still computes health in JS with `dashboard/hub-topology.js`).
 - `dashboard/hub-topology.js` `project()` is the source of truth for the Python port: when you change it, regenerate the golden with `node scripts/generate_observation_golden.js` and make `core/domain/observation/projection.py` match (`--check` runs in the Node suite).
 - Dashboard JS: `node --test dashboard/tests/*.test.cjs` (Node 24)
