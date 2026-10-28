@@ -175,7 +175,7 @@ Aprovação futura: persistir ação/argumentos redigidos, hash da ação, snaps
 - Manter credenciais, tokens e chaves no backend. Browser e planos exportados recebem IDs de conexões, nunca valores secretos.
 - Não expor `srv_api_run_safe_command` ao sistema web. Uma blocklist de strings de shell não limita adequadamente um agente com comando arbitrário. Preferir ferramentas operacionais específicas com parâmetros tipados, isolamento, allowlist e aprovação apropriada.
 - Revisar `AutoAddPolicy` do SSH e usar identidade de host confiável antes de ampliar a superfície operacional.
-- Validar leitura documental com resolução de caminho e contenção no diretório permitido. `get_system_architecture()` atualmente compõe um caminho sem a checagem de contenção usada pelo builder.
+- Validar leitura documental com resolução de caminho e contenção no diretório permitido. Resolvido (ADR-033 D4): as ferramentas de leitura do MCP e do broker (`get_adr`, `get_system_architecture`, `read_vault_file`) passam por `core/vault_docs.py`, que rejeita caminho absoluto, letra de unidade e `..`, restringe nomes a um padrão fixo (sem curingas) e confere a contenção no diretório permitido.
 - Conteúdo de fontes é dado não confiável. Documentos não podem conceder ferramentas, alterar política de aprovação ou instruir agentes a divulgar credenciais.
 - O bundle estático contém documentos integrais. Hospedá-lo publicamente entrega esse conteúdo; para a versão web, entregar somente dados autorizados por usuário/espaço.
 
