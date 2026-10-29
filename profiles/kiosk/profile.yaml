@@ -25,10 +25,7 @@ providers:
     price:                            # lista pública do provedor, USD por 1M tokens
       input: 0.016
       output: 0.64
-  - kind: ollama
-    model: llama3.2:3b
-    timeout_seconds: 120
-    keep_alive: 30m
+  # Sem Ollama na geração (ADR-040): sem GPU, ele estoura o prazo. O Ollama segue só nos embeddings.
 budget:
   daily_usd: 0.50
   monthly_usd: 10.0
