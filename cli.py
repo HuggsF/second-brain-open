@@ -149,9 +149,14 @@ def ask(question: str, category: str):
             border_style="cyan"
         ))
 
-        from core.citations import GAP_EMPTY_INDEX
+        from core.citations import GAP_EMPTY_INDEX, GAP_UNKNOWN_ENTITY
         if GAP_EMPTY_INDEX in result.get("gaps", []):
             click.echo("Rode 'cli.py sync --rebuild' para reconstruir o índice deste espaço.")
+        # Termo recusado pelo gate: quem pergunta precisa ver qual foi para reformular.
+        unknown_prefix = GAP_UNKNOWN_ENTITY.split("{terms}")[0]
+        for gap in result.get("gaps", []):
+            if gap.startswith(unknown_prefix):
+                click.echo(gap)
 
         # Exibir fontes citadas
         if result["sources"]:
@@ -690,31 +695,56 @@ def retrieval_eval_cmd(min_recall, dataset_path, k):
     from datetime import datetime
     from evals import retrieval_eval as ev
 
+    import hashlib
+    from core.embeddings import current_embed_scheme
+    from ingestion.sync import LEGACY_INDEX_MESSAGE
+
     dataset = dataset_path or Path(__file__).resolve().parent / "evals" / "golden_dataset.yaml"
     positives, negatives = ev.load_cases(dataset)
-    click.echo(f"Avaliando {len(positives)} consultas positivas e {len(negatives)} negativas (k={k})...")
+    known_limits = ev.load_known_limits(dataset)
+    click.echo(f"Avaliando {len(positives)} consultas positivas, {len(negatives)} negativas e "
+               f"{len(known_limits)} de limite conhecido (k={k})...")
     from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
     try:
         from core.retriever import BrainRetriever
-        collected = ev.collect(BrainRetriever(), positives, negatives, k=k)
+        retriever = BrainRetriever()
+        # Esquema misto mede vetores incomparáveis e sugeriria um piso falso.
+        if retriever.store.legacy_points_count() > 0:
+            click.echo(LEGACY_INDEX_MESSAGE, err=True)
+            raise SystemExit(1)
+        collected = ev.collect(retriever, positives, negatives, k=k, known_limits=known_limits)
     except (httpx.HTTPError, ResponseHandlingException, UnexpectedResponse, RuntimeError, OSError) as exc:
         click.echo(f"Erro ao consultar o Qdrant/Ollama: {exc}. Confira se os serviços estão no ar e rode de novo.", err=True)
         raise SystemExit(1)
-    rows = ev.grid(collected, ev.DEFAULT_MINS, ev.DEFAULT_DROPS, k=k)
-    best = ev.suggest(rows)
+    rows = ev.grid(collected, ev.DEFAULT_MINS, ev.DEFAULT_DROPS, k=k, gate=False)
+    gate_rows = ev.grid(collected, ev.DEFAULT_MINS, ev.DEFAULT_DROPS, k=k, gate=True)
+    best = ev.suggest(gate_rows)
 
-    table = Table(title="Grade de pisos", show_header=True, header_style="bold magenta")
-    for column in ("min_score", "max_drop", f"recall@{k}", "negativos sem fonte"):
-        table.add_column(column, justify="right")
-    for row in rows:
-        mark = "  <-" if best is not None and row == best else ""
-        table.add_row(f"{row['min_score']:.2f}", f"{row['max_drop']:.2f}",
-                      f"{row['recall_at_k']:.0%}", f"{row['negatives_cleared']:.0%}{mark}")
-    console.print(table)
+    for title, table_rows, marked in (("Grade sem gate", rows, None), ("Grade com gate", gate_rows, best)):
+        table = Table(title=title, show_header=True, header_style="bold magenta")
+        for column in ("min_score", "max_drop", f"recall@{k}", "negativos sem fonte"):
+            table.add_column(column, justify="right")
+        for row in table_rows:
+            mark = "  <-" if marked is not None and row == marked else ""
+            table.add_row(f"{row['min_score']:.2f}", f"{row['max_drop']:.2f}",
+                          f"{row['recall_at_k']:.0%}", f"{row['negatives_cleared']:.0%}{mark}")
+        console.print(table)
+
+    if best is not None:
+        known = ev.known_limits_metric(collected, min_score=best["min_score"], max_drop=best["max_drop"], k=k,
+                                       basis="suggested")
+    else:
+        known = ev.known_limits_metric(collected, min_score=settings.retrieval_min_score,
+                                       max_drop=settings.retrieval_max_drop, k=k, basis="provisional")
+    click.echo(f"Limite conhecido (nomes em minúsculas): {known['without_sources']}/{known['count']} sem fonte "
+               f"no par {known['min_score']:.2f}/{known['max_drop']:.2f} ({known['basis']}).")
 
     report = {"generated_at": datetime.now().isoformat(timespec="seconds"), "k": k, "min_recall": min_recall,
-              "dataset": str(dataset), "positives": len(positives), "negatives": len(negatives),
-              "rows": rows, "suggestion": best, "collected": collected}
+              "dataset": str(dataset), "dataset_sha256": hashlib.sha256(Path(dataset).read_bytes()).hexdigest(),
+              "embed_scheme": current_embed_scheme(),
+              "positives": len(positives), "negatives": len(negatives),
+              "rows": rows, "gate_rows": gate_rows, "suggestion": best, "known_limits": known,
+              "collected": collected}
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     report_path = REPORTS_DIR / f"retrieval-{datetime.now():%Y%m%d-%H%M}.json"
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

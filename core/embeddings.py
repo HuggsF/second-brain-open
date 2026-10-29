@@ -1,11 +1,36 @@
+import hashlib
+import json
 import httpx
-from typing import List
+from typing import List, Optional
 from config import settings
 
+
+def embed_scheme_id(model: str, query_prefix: str, document_prefix: str) -> str:
+    """Identificador estavel do esquema de embedding (12 hex): muda com o modelo ou qualquer prefixo."""
+    raw = json.dumps([model, query_prefix, document_prefix], ensure_ascii=False)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
+def current_embed_scheme() -> str:
+    """Esquema da configuracao atual; e o que o sync grava e o que o indice precisa ter."""
+    return embed_scheme_id(settings.embedding_model, settings.embed_query_prefix, settings.embed_document_prefix)
+
+
 class OllamaEmbeddingClient:
-    def __init__(self, base_url: str = settings.ollama_url, model: str = settings.embedding_model):
+    def __init__(self, base_url: str = settings.ollama_url, model: str = settings.embedding_model,
+                 query_prefix: Optional[str] = None, document_prefix: Optional[str] = None):
         self.base_url = base_url.rstrip("/")
         self.model = model
+        self.query_prefix = settings.embed_query_prefix if query_prefix is None else query_prefix
+        self.document_prefix = settings.embed_document_prefix if document_prefix is None else document_prefix
+
+    def embed_query(self, text: str) -> List[float]:
+        """Vetor de uma pergunta (prefixo de busca)."""
+        return self.get_embedding(self.query_prefix + text)
+
+    def embed_document(self, text: str) -> List[float]:
+        """Vetor de um trecho do vault (prefixo de documento)."""
+        return self.get_embedding(self.document_prefix + text)
 
     def get_embedding(self, text: str) -> List[float]:
         """

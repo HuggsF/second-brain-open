@@ -11,6 +11,7 @@ from qdrant_client.models import (
 )
 from qdrant_client import models
 from config import settings
+from core.embeddings import current_embed_scheme
 
 class QdrantStore:
     def __init__(self, url: str = settings.qdrant_url, collection_name: str = settings.qdrant_collection):
@@ -77,13 +78,20 @@ class QdrantStore:
         """Total exato de pontos da coleção (sem scroll)."""
         return self.client.count(collection_name=self.collection_name, exact=True).count
 
-    def legacy_points_count(self) -> int:
-        """Total exato de pontos sem `space_id` no payload (gravados antes da onda B).
+    def legacy_points_count(self, expected_scheme: Optional[str] = None) -> int:
+        """Total exato de pontos sem `space_id` (anteriores à onda B) ou de outro esquema de embedding.
 
-        IsEmptyCondition casa chave ausente, null ou lista vazia; a busca escopada não os vê.
+        IsEmptyCondition casa chave ausente, null ou lista vazia; o `must_not` do esquema também
+        casa pontos sem `embed_scheme`. `expected_scheme` ausente: o esquema da configuração atual.
         """
+        scheme = expected_scheme if expected_scheme is not None else current_embed_scheme()
         legacy = models.Filter(
-            must=[models.IsEmptyCondition(is_empty=models.PayloadField(key="space_id"))]
+            should=[
+                models.IsEmptyCondition(is_empty=models.PayloadField(key="space_id")),
+                models.Filter(must_not=[
+                    models.FieldCondition(key="embed_scheme", match=models.MatchValue(value=scheme))
+                ]),
+            ]
         )
         return self.client.count(
             collection_name=self.collection_name, count_filter=legacy, exact=True

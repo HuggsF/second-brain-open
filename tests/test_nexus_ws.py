@@ -187,7 +187,7 @@ class TestHostCommandsNeedHumanApproval(unittest.TestCase):
 
 
 class _FakeEmbedder:
-    def get_embedding(self, text):
+    def embed_query(self, text):
         return [0.0]
 
 

@@ -15,6 +15,7 @@ from core.chunker import MarkdownChunker
 from core.hasher import ManifestError, ManifestManager
 from core.qdrant_store import QdrantStore
 from core.sync_lock import SyncBusy, sync_lock
+from core.embeddings import current_embed_scheme
 from ingestion.sync import LegacyIndexError, MigrationNeedsConfirmation, SyncEngine
 
 
@@ -24,13 +25,23 @@ def sha256(raw: bytes) -> str:
 
 THREE_SECTIONS = "## S1\n\ntexto um\n\n## S2\n\ntexto dois\n\n## S3\n\ntexto tres\n"
 ONE_SECTION = "## S1\n\ntexto novo\n"
-LEGACY_MESSAGE = "Índice anterior à onda B; rode 'cli.py sync --rebuild --yes'."
+LEGACY_MESSAGE = "Índice com esquema anterior; rode 'cli.py sync --rebuild --yes'."
+OTHER_SCHEME = "000000000000"
 
 
 def add_legacy_point(store, rel_path):
     """Ponto gravado antes da onda B: payload sem space_id."""
     store.upsert_chunks(
         [{"id": f"{rel_path}:0", "content": "velho", "metadata": {"file_path": rel_path}}],
+        [[1.0] * settings.vector_size],
+    )
+
+
+def add_other_scheme_point(store, rel_path):
+    """Ponto do espaco atual gravado com outro esquema de embedding (outro modelo ou prefixo)."""
+    store.upsert_chunks(
+        [{"id": f"{rel_path}:0", "content": "velho",
+          "metadata": {"file_path": rel_path, "space_id": settings.space_id, "embed_scheme": OTHER_SCHEME}}],
         [[1.0] * settings.vector_size],
     )
 
@@ -171,12 +182,26 @@ class TestStore(unittest.TestCase):
         self.assertEqual(self.store.legacy_points_count(), 0)
         self._load("velho.md", 3)  # sem space_id: anterior a onda B
         self.store.upsert_chunks(
-            [{"id": "novo.md:0", "content": "n", "metadata": {"file_path": "novo.md", "space_id": "kiosk"}},
-             {"id": "outro.md:0", "content": "o", "metadata": {"file_path": "outro.md", "space_id": "s2"}}],
+            [{"id": "novo.md:0", "content": "n",
+              "metadata": {"file_path": "novo.md", "space_id": "kiosk", "embed_scheme": current_embed_scheme()}},
+             {"id": "outro.md:0", "content": "o",
+              "metadata": {"file_path": "outro.md", "space_id": "s2", "embed_scheme": current_embed_scheme()}}],
             [[1.0, 0.0, 0.0, 0.0]] * 2,
         )
         self.assertEqual(self.store.points_count(), 5)
         self.assertEqual(self.store.legacy_points_count(), 3)
+
+    def test_legacy_points_count_counts_missing_or_other_scheme(self):
+        self.store.ensure_collection(4)
+        meta = {"space_id": "kiosk"}
+        self.store.upsert_chunks(
+            [{"id": "atual.md:0", "content": "a", "metadata": {**meta, "file_path": "atual.md", "embed_scheme": "s-atual"}},
+             {"id": "sem.md:0", "content": "s", "metadata": {**meta, "file_path": "sem.md"}},
+             {"id": "outro.md:0", "content": "o", "metadata": {**meta, "file_path": "outro.md", "embed_scheme": "s-velho"}}],
+            [[1.0, 0.0, 0.0, 0.0]] * 3,
+        )
+        self.assertEqual(self.store.legacy_points_count("s-atual"), 2)
+        self.assertEqual(self.store.legacy_points_count("s-velho"), 2)
 
     def test_alias_helpers(self):
         self.assertIsNone(self.store.alias_target("kb"))
@@ -214,7 +239,11 @@ class TestChunkBytes(unittest.TestCase):
 
 
 class FakeEmbedder:
-    def get_embedding(self, text):
+    def __init__(self):
+        self.methods = []
+
+    def embed_document(self, text):
+        self.methods.append("embed_document")
         return [0.1] * settings.vector_size
 
 
@@ -386,6 +415,29 @@ class TestIncrementalSync(SyncTestBase):
         self.assertEqual(self.store.legacy_points_count(), 1)
         self.assertEqual(self.manifest_path.read_bytes(), manifest_before)
 
+    def test_other_scheme_refuses_sync_and_touch_nothing(self):
+        self.index_initial()
+        add_other_scheme_point(self.store, "velho.md")
+        (self.vault / "novo.md").write_text(ONE_SECTION, encoding="utf-8")
+        files_before = self.store.indexed_files()
+        manifest_before = self.manifest_path.read_bytes()
+        with self.assertRaises(LegacyIndexError) as ctx:
+            self.engine.sync_vault(verbose=False)
+        self.assertEqual(str(ctx.exception), LEGACY_MESSAGE)
+        self.assertEqual(self.store.indexed_files(), files_before)
+        self.assertEqual(self.manifest_path.read_bytes(), manifest_before)
+
+    def test_points_carry_embed_scheme(self):
+        self.index_initial()
+        points, _ = self.client.scroll("kb", limit=100, with_payload=True)
+        self.assertTrue(points)
+        self.assertEqual({p.payload["embed_scheme"] for p in points}, {current_embed_scheme()})
+        self.assertEqual(self.store.legacy_points_count(), 0)
+
+    def test_sync_embeds_with_document_prefix_method(self):
+        self.index_initial()
+        self.assertEqual(set(self.engine.embedder.methods), {"embed_document"})
+
     def test_missing_collection_is_not_legacy(self):
         res = self.engine.sync_vault(verbose=False)  # colecao criada agora: nada anterior a onda B
         self.assertEqual(res["failed"], 0)
@@ -407,7 +459,8 @@ class TestReconcile(SyncTestBase):
 
     def test_orphan_removed(self):  # CA-08
         self.store.upsert_chunks(
-            [{"id": "x.md:0", "content": "x", "metadata": {"file_path": "x.md", "space_id": settings.space_id}}],
+            [{"id": "x.md:0", "content": "x", "metadata": {"file_path": "x.md", "space_id": settings.space_id,
+                                                              "embed_scheme": current_embed_scheme()}}],
             [[1.0] * 768],
         )
         self.assertEqual(self.engine.reconcile(verbose=False)["orphans_removed"], 1)
@@ -449,7 +502,8 @@ class TestReconcile(SyncTestBase):
 
     def test_orphan_in_vault_is_untracked_not_orphan(self):
         self.store.upsert_chunks(
-            [{"id": "c.md:0", "content": "c", "metadata": {"file_path": "c.md", "space_id": settings.space_id}}],
+            [{"id": "c.md:0", "content": "c", "metadata": {"file_path": "c.md", "space_id": settings.space_id,
+                                                              "embed_scheme": current_embed_scheme()}}],
             [[1.0] * 768],
         )
         (self.vault / "c.md").write_text(ONE_SECTION, encoding="utf-8")
@@ -514,7 +568,7 @@ class TestReconcile(SyncTestBase):
 
     def test_reconcile_reports_sync_failures(self):
         self.store.delete_by_file_path("b.md")
-        with mock.patch.object(self.engine.embedder, "get_embedding", side_effect=RuntimeError("ollama fora")):
+        with mock.patch.object(self.engine.embedder, "embed_document", side_effect=RuntimeError("ollama fora")):
             res = self.engine.reconcile(verbose=False)
         self.assertEqual(res["missing_reindexed"], 1)
         self.assertEqual((res["failed"], res["failed_files"]), (1, ["b.md"]))
@@ -536,6 +590,17 @@ class TestReconcile(SyncTestBase):
         self.assertEqual(self.store.indexed_files(), files_before)
         self.assertEqual(self.manifest_path.read_bytes(), manifest_before)
 
+    def test_other_scheme_refuses_reconcile_and_touch_nothing(self):
+        add_other_scheme_point(self.store, "orfao.md")
+        self.store.delete_by_file_path("b.md")
+        files_before = self.store.indexed_files()
+        manifest_before = self.manifest_path.read_bytes()
+        with self.assertRaises(LegacyIndexError) as ctx:
+            self.engine.reconcile(verbose=False)
+        self.assertEqual(str(ctx.exception), LEGACY_MESSAGE)
+        self.assertEqual(self.store.indexed_files(), files_before)
+        self.assertEqual(self.manifest_path.read_bytes(), manifest_before)
+
 
 class FailingOnCallEmbedder:
     """Embedder falso que levanta RuntimeError("ollama") na N-esima chamada."""
@@ -544,7 +609,7 @@ class FailingOnCallEmbedder:
         self.fail_on_call = fail_on_call
         self.calls = 0
 
-    def get_embedding(self, text):
+    def embed_document(self, text):
         self.calls += 1
         if self.calls == self.fail_on_call:
             raise RuntimeError("ollama")
@@ -698,6 +763,15 @@ class TestRebuild(SyncTestBase):
         self.assertEqual(self.store.legacy_points_count(), 0)
         res = self.engine.sync_vault(verbose=False)
         self.assertEqual((res["added"], res["modified"], res["deleted"], res["failed"]), (0, 0, 0, 0))
+
+    def test_rebuild_rewrites_other_scheme(self):
+        self.engine.rebuild(verbose=False)
+        add_other_scheme_point(self.store, "velho.md")
+        self.assertEqual(self.store.legacy_points_count(), 1)
+        with self.assertRaises(LegacyIndexError):
+            self.engine.sync_vault(verbose=False)
+        self.engine.rebuild(verbose=False)
+        self.assertEqual(self.store.legacy_points_count(), 0)
 
 
 class FakeEvent:

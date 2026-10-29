@@ -6,6 +6,7 @@ from config import settings
 from core.citations import build_citations, gaps_for, select_hits
 from core.embeddings import OllamaEmbeddingClient
 from core.qdrant_store import QdrantStore
+from core.vault_vocab import unknown_entities, vault_vocabulary
 
 NO_EVIDENCE_ANSWER = "Nenhum documento relevante encontrado na sua base de conhecimento para essa pergunta."
 
@@ -23,13 +24,18 @@ class BrainRetriever:
         category: Optional[str] = None,
         bounded_context: Optional[str] = None,
         include_content: bool = False,
-        apply_floor: bool = True
+        apply_floor: bool = True,
+        entity_gate: bool = True
     ) -> Dict[str, Any]:
         """Recupera os blocos relevantes do espaco atual, com piso, diversidade e citacoes.
 
-        `apply_floor=False` devolve os `limit` primeiros hits brutos (so para a avaliacao).
+        `apply_floor=False` devolve os `limit` primeiros hits brutos (so para a avaliacao) e tambem
+        desliga o gate de entidade. Com `entity_gate`, nome proprio da pergunta ausente do vault zera
+        a selecao e vira aviso em `gaps`.
         """
-        query_vector = self.embedder.get_embedding(user_question)
+        unknown = (unknown_entities(user_question, vault_vocabulary(self.vault_dir))
+                   if apply_floor and entity_gate else [])
+        query_vector = self.embedder.embed_query(user_question)
         raw_hits = self.store.search(
             query_vector=query_vector,
             limit=limit * 3,
@@ -48,6 +54,7 @@ class BrainRetriever:
                 max_drop=settings.retrieval_max_drop,
                 max_per_doc=settings.retrieval_max_per_doc,
                 limit=limit,
+                unknown=unknown,
             )
         else:
             hits = raw_hits[:limit]
@@ -85,7 +92,7 @@ class BrainRetriever:
             "sources": sources,
             "citations": [asdict(citation) for citation in citations],
             "gaps": gaps_for(citations, top_score, settings.retrieval_min_score,
-                            space_has_points=space_has_points),
+                            space_has_points=space_has_points, unknown=unknown),
             "index_version": self.store.index_version(),
         }
 

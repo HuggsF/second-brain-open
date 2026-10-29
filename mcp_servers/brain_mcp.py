@@ -39,6 +39,9 @@ def search_knowledge_base(query: str, category: Optional[str] = None, bounded_co
     Cada item traz sha256, line_start, line_end e stale (citação verificável). Lista vazia significa sem evidência:
     nada acima do piso de relevância no espaço atual (inclusive quando um filtro de category ou
     bounded_context descarta todos os candidatos); não invente resposta.
+    Lista vazia também vem quando a pergunta tem um nome próprio (sigla ou palavra com maiúscula fora
+    do início da frase) sem registro em nenhuma nota do vault: reformule sem esse nome, ou em
+    minúsculas, antes de concluir que não há evidência.
     Um erro (em vez de lista) significa que o espaço não tem nenhum ponto indexado (índice vazio
     ou não reconstruído após a onda B): rode 'cli.py sync --rebuild --yes'; não trate como
     ausência de evidência.
@@ -90,7 +93,7 @@ def get_system_architecture(system_name: str, task_id: Optional[str] = None) -> 
 def get_brain_status(task_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Retorna o status do Qdrant e a quantidade de vetores indexados no Second Brain.
-    legacy_points: pontos sem space_id (anteriores à onda B); acima de 0, rode 'cli.py sync --rebuild --yes'.
+    legacy_points: pontos sem space_id (anteriores à onda B) ou de outro esquema de embedding; acima de 0, rode 'cli.py sync --rebuild --yes'.
     task_id: optional label that groups this call with others of the same task
     """
     store = QdrantStore()
