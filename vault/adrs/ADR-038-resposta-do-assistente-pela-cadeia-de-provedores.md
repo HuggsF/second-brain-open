@@ -37,7 +37,7 @@ Custo estimado com o provedor atual do perfil `kiosk` (`deepseek/deepseek-v4-fla
 6. **D6, prazos.** Vale o `timeout_seconds` de cada provedor do perfil (hoje 20 s na nuvem e 120 s no Ollama), em vez do 120 s fixo no código.
 
 ## Consequências
-- **Latência:** com a nuvem disponível, a resposta deve cair de minutos para poucos segundos. Confirmar no chat e registrar a medição nesta ADR antes de mudar o status para Aceito.
+- **Latência e custo medidos (2026-10-28, branch `feat/resposta-pela-cadeia`, evidência em `.superpowers/runs/2026-10-28-segundo-sinal/chat-evidence/adr038-prova-real.txt`):** duas respostas pelo OpenRouter em 4,4 s e 4,8 s, com custo real de US$ 0,000128 e US$ 0,000342 (abaixo da estimativa acima). Uma pergunta recusada pelo gate da ADR-037 voltou em 0,6 s, sem chamar provedor e com custo zero. Na mesma máquina, o Ollama sozinho estourava os 120 s.
 - **Dados:** a pergunta e os trechos do vault citados saem da máquina, só para provedores da cadeia com retenção zero e sem uso para treino. Quem precisar de resposta 100 % local usa um perfil cuja cadeia só tem o Ollama.
 - **Custo:** passa a existir gasto por pergunta, limitado pelo orçamento do perfil. O teto diário e mensal precisa caber no uso esperado do assistente além das tarefas.
 - **Núcleo agnóstico:** o código novo em `core/` não cita a instância; o provedor e o modelo vêm do perfil (`tests/test_agnostic_core.py`).
