@@ -169,7 +169,7 @@ class TestRetrievalSettings(unittest.TestCase):
         s = self._load_config({})
         self.assertEqual(
             (s.space_id, s.retrieval_min_score, s.retrieval_max_drop, s.retrieval_max_per_doc),
-            ("kiosk", 0.65, 0.10, 2),
+            ("kiosk", 0.70, 0.10, 1),
         )
 
     def test_env_overrides(self):

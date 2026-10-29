@@ -37,8 +37,10 @@ class Settings(BaseModel):
 
     # Retrieval scope and selection
     space_id: str = os.getenv("BRAIN_SPACE", "kiosk")
-    retrieval_min_score: float = float(os.getenv("RETRIEVAL_MIN_SCORE", "0.65"))
+    # Piso medido no retrieval-eval de 2026-10-29 (ADR-039): recall@5 89%, 97% dos negativos sem fonte.
+    retrieval_min_score: float = float(os.getenv("RETRIEVAL_MIN_SCORE", "0.70"))
     retrieval_max_drop: float = float(os.getenv("RETRIEVAL_MAX_DROP", "0.10"))
-    retrieval_max_per_doc: int = int(os.getenv("RETRIEVAL_MAX_PER_DOC", "2"))
+    # Um trecho por nota, aplicado na busca: com 2, uma nota longa ocupa o top 5 (ADR-039).
+    retrieval_max_per_doc: int = int(os.getenv("RETRIEVAL_MAX_PER_DOC", "1"))
 
 settings = Settings()
