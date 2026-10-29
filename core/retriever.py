@@ -44,8 +44,8 @@ class BrainRetriever:
     ) -> Dict[str, Any]:
         """Recupera os blocos relevantes do espaco atual, com piso, diversidade e citacoes.
 
-        `apply_floor=False` devolve os `limit` primeiros hits brutos (so para a avaliacao) e tambem
-        desliga o gate de entidade. Com `entity_gate`, nome proprio da pergunta ausente do vault zera
+        `apply_floor=False` devolve os `limit` primeiros hits sem piso (so para a avaliacao), ja com o
+        limite de trechos por documento da busca, e tambem desliga o gate de entidade. Com `entity_gate`, nome proprio da pergunta ausente do vault zera
         a selecao e vira aviso em `gaps`.
         """
         unknown = (unknown_entities(user_question, vault_vocabulary(self.vault_dir))
@@ -57,6 +57,7 @@ class BrainRetriever:
             category=category,
             bounded_context=bounded_context,
             space_id=settings.space_id,
+            per_doc=settings.retrieval_max_per_doc,
         )
         top_score = raw_hits[0]["score"] if raw_hits else None
         space_has_points = bool(raw_hits) or bool(
