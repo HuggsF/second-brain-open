@@ -19,4 +19,4 @@ Toda nova emissão exige NF com número positivo, série, chave de 44 dígitos n
 
 ## Playbooks que a validam
 
-PB-001 (suíte automatizada do Hub) e PB-002 (emissão bloqueada sem NF real). Os protocolos gerais PB-004 (resiliência), PB-005 (carga e estresse), PB-006 (sagas e outbox) e PB-007 (disaster recovery) também declaram validá-la. As execuções ficam no registro local e se consultam com `cli.py evidence RULE-001` ou pela ferramenta MCP `get_rule_evidence`.
+PB-001 (suíte automatizada do Hub) e PB-002 (emissão bloqueada sem NF real). PB-007 (disaster recovery) também declara validá-la. PB-004 e PB-006 foram aposentados e PB-005 voltou a rascunho em 29/10/2026 ([[ADR-043-modelo-de-governanca-tipos-e-relacoes]]). As execuções ficam no registro local e se consultam com `cli.py evidence RULE-001` ou pela ferramenta MCP `get_rule_evidence`.

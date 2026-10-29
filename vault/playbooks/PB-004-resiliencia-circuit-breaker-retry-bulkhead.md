@@ -1,13 +1,17 @@
 ---
 id: PB-004
 title: "Protocolo de Resiliência: Circuit Breaker, Exponential Backoff e Bulkheads"
-status: active
+status: retired
 validates: [RULE-001, RULE-002]
 environment: hml
+aposentado_em: 2026-10-29
+destino: "padrão em vault/padroes/ (ADR-043), a criar"
 targets: [Hub Logístico, Bling ERP Integrations, Webhook Engine]
 ---
 
 # PB-004: Protocolo de Resiliência: Circuit Breaker, Exponential Backoff e Bulkheads
+
+> **Aposentado em 29/10/2026 ([[ADR-043-modelo-de-governanca-tipos-e-relacoes]]).** Diretriz, não procedimento: a `main` do hub-logistico não implementa circuit breaker, retry com jitter nem bulkhead (busca em 29/10/2026). Vira padrão em `vault/padroes/` quando o catálogo existir; não registrar execução aqui.
 
 ## Cenário
 - **Dado** uma chamada de integração crítica com terceiros (ex: Bling ERP v3, J&T Express, SEFAZ, Salesforce, SAP).

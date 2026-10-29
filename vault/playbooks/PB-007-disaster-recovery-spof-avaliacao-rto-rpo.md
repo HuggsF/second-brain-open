@@ -4,6 +4,7 @@ title: Auditoria de SPOFs e Plano de Disaster Recovery (RTO / RPO)
 status: active
 validates: [RULE-001, RULE-002]
 environment: production
+kind: runbook
 targets: [Hub Produção, Srv-API, Bancos de Dados, Redis]
 ---
 

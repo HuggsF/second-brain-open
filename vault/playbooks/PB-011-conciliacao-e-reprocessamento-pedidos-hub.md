@@ -4,6 +4,7 @@ title: "Conciliação e Reprocessamento Seguro de Pedidos na Fila do Hub"
 status: active
 validates: [RULE-001, RULE-002]
 environment: hml
+kind: runbook
 targets: [Hub Logístico, J&T Express API, Bling API v3]
 params:
   - name: erp_id

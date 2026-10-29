@@ -4,6 +4,7 @@ title: "Diagnóstico e Recuperação de Falhas OAuth no Hub Logístico"
 status: active
 validates: [RULE-001, RULE-002]
 environment: production
+kind: runbook
 targets: [Hub Logístico, Bling OAuth, J&T Adapter]
 severity: P1
 trigger: "Pedidos entrando em 'failed' com erros 404/FORBIDDEN na API do Bling"

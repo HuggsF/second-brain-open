@@ -19,4 +19,4 @@ Em homologação o motor mantém os jobs pendentes sem chamar ERP, J&T ou WMS, e
 
 ## Playbooks que a validam
 
-PB-001 (suíte automatizada do Hub) e PB-003 (homologação sem chamada externa). Os protocolos gerais PB-004 (resiliência), PB-005 (carga e estresse) e PB-007 (disaster recovery) também declaram validá-la. As execuções se consultam com `cli.py evidence RULE-002` ou pela ferramenta MCP `get_rule_evidence`.
+PB-001 (suíte automatizada do Hub) e PB-003 (homologação sem chamada externa). PB-007 (disaster recovery) também declara validá-la. PB-004 foi aposentado e PB-005 voltou a rascunho em 29/10/2026 ([[ADR-043-modelo-de-governanca-tipos-e-relacoes]]). As execuções se consultam com `cli.py evidence RULE-002` ou pela ferramenta MCP `get_rule_evidence`.

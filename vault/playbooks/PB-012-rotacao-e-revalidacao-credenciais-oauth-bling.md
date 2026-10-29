@@ -4,6 +4,7 @@ title: "Diagnóstico e Rotação a Quente de Tokens OAuth Bling v3"
 status: active
 validates: [RULE-001]
 environment: production
+kind: runbook
 targets: [Hub Logístico, Bling API v3]
 params:
   - name: environment
