@@ -60,8 +60,9 @@ Follow every numbered item; do not paraphrase a subset.
   New modules (segundo sinal, ADR-037): `tests.test_vault_vocab tests.test_golden_dataset tests.test_embeddings`.
   New modules (resposta pela cadeia, ADR-038): `tests.test_answer_generation`.
 - Assistant answer (ADR-038): `BrainRetriever.answer()` (and `cli.py ask`) generates through the active
-  profile's provider chain (cloud first, Ollama as reserve) with the profile budget; retrieval stays
-  local. With the profile chain's cloud key set, each answer is a real, paid call (cost in `cost_usd`).
+  profile's provider chain with the profile budget; retrieval stays local. The `kiosk` chain is
+  cloud only (ADR-040): Ollama serves embeddings, never generation, so without the key, credit or
+  budget the answer fails at once (`model_error`). Each answer is a real, paid call (cost in `cost_usd`).
 - Full gate: `.\.venv\Scripts\python.exe -m pytest -q`; `node --test dashboard/tests/*.test.cjs`; `cd jev-app && npm test`.
 - JEV front-end (React 19 + Tailwind 4) lives in `jev-app/`; its build is committed to `dashboard/jev/` (no CI), so after any change in `jev-app/src` run `cd jev-app && npm test && npm run build` and commit the output.
 - Budget guard (ADR-035): when `BudgetTracker.status().state == "exceeded"`, `run_task` executes exclusively via local providers (zero cloud calls). If no local provider exists and the task needs a model, it returns `status="budget_exceeded"`. Deterministic tasks (unknown_task, validate-without-source) always pass. CLI exit code for `budget_exceeded` is 3.
@@ -74,10 +75,10 @@ Follow every numbered item; do not paraphrase a subset.
   edit, run `.\.venv\Scripts\python.exe dashboard\build_graph.py` first or that test fails.
 - Task quality (not part of the gate above): `.\.venv\Scripts\python.exe cli.py task-eval
   [--profile NAME]` runs `tests/golden_dataset_local_tasks.json` through the profile's provider
-  chain (cloud first, Ollama as reserve) and exits 1 when overall accuracy is below
+  chain (cloud only in `kiosk`, ADR-040) and exits 1 when overall accuracy is below
   `--min-accuracy` (default 0.6); it prints accuracy, average latency and the tier that answered,
-  per task. It makes real, paid cloud calls when the key is set (about US$ 0.0003 per call with
-  the kiosk model) and needs Ollama already running for the reserve. From a worktree, pass the
+  per task. It makes real, paid cloud calls (about US$ 0.0003 per call with the kiosk model) and
+  needs the key set. From a worktree, pass the
   key file by path only: `BRAIN_ENV_FILE=C:/KIOSK/second-brain/.env`.
 - Retrieval quality (not part of the gate above): `.\.venv\Scripts\python.exe cli.py retrieval-eval
   [--min-recall 0.8] [--dataset PATH] [--k 5]` runs the golden dataset (30 positives, 30 negatives,
