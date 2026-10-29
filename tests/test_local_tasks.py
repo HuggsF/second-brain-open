@@ -1593,6 +1593,15 @@ class BudgetSpendAccountingTests(unittest.TestCase):
         for spec in cloud:
             self.assertTrue(spec.price["input"] > 0 or spec.price["output"] > 0)
 
+    def test_real_kiosk_profile_has_no_local_generation(self):
+        """ADR-040: no perfil kiosk a geracao e so de nuvem; o Ollama fica so para embeddings."""
+        p = load_profile("kiosk")
+        self.assertTrue(p.providers)
+        self.assertEqual({s.kind for s in p.providers}, {"openai_compatible"})
+        for spec in p.providers:
+            self.assertEqual((spec.extra["provider"]["zdr"], spec.extra["provider"]["data_collection"]),
+                             (True, "deny"))
+
 
 if __name__ == "__main__":
     unittest.main()
