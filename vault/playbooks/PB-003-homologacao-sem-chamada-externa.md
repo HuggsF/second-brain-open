@@ -4,6 +4,7 @@ title: Homologação não faz chamada externa
 status: active
 validates: [RULE-002]
 environment: hml
+kind: runbook
 targets: [Hub Logístico, ERP, J&T, WMS]
 ---
 

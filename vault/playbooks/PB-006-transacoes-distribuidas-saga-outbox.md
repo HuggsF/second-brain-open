@@ -1,13 +1,17 @@
 ---
 id: PB-006
 title: Orquestração de Sagas e Padrão Transacional Outbox
-status: active
+status: retired
 validates: [RULE-001]
 environment: hml
+aposentado_em: 2026-10-29
+destino: "padrão em vault/padroes/ (ADR-043), a criar"
 targets: [Hub Logístico, Integracoes Bling Touti, SAP, Salesforce]
 ---
 
 # PB-006: Orquestração de Sagas e Padrão Transacional Outbox
+
+> **Aposentado em 29/10/2026 ([[ADR-043-modelo-de-governanca-tipos-e-relacoes]]).** Diretriz, não procedimento: a `main` do hub-logistico não implementa outbox nem `Idempotency-Key`, e usa SQLite, não PostgreSQL ou Redis. A proteção real contra duplicidade é a intenção durável ([[ADR-027-recuperacao-logistica-bling-com-intencao-duravel]]) e a [[RULE-004-emissao-protegida-race-condition]]. Vira padrão em `vault/padroes/`; não registrar execução aqui.
 
 ## Cenário
 - **Dado** uma operação de negócio que atravessa fronteiras de múltiplos sistemas autônomos (ex: Recebimento de Webhook -> Emissão Fiscal no Hub -> Reserva no Bling ERP -> Atualização no Salesforce).

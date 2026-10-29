@@ -1,13 +1,16 @@
 ---
 id: PB-005
 title: Protocolo de Testes de Carga, Estresse e Ponto de Ruptura (QA)
-status: active
+status: draft
 validates: [RULE-001, RULE-002]
 environment: hml
+kind: test
 targets: [Hub Homologação, Srv-API, Webhooks]
 ---
 
 # PB-005: Protocolo de Testes de Carga, Estresse e Ponto de Ruptura (QA)
+
+> **Rascunho desde 29/10/2026 ([[ADR-043-modelo-de-governanca-tipos-e-relacoes]]).** Teste sem runner: o hub-logistico não tem script k6 ou Locust. O texto cita PostgreSQL, mas o Hub usa SQLite. Volta a `active` quando o script existir e os limiares forem revistos.
 
 ## Cenário
 - **Dado** o ambiente de Homologação sanitizado (sem chamadas a emissores reais, conforme [[RULE-002-homologacao-sem-chamadas-externas]]).

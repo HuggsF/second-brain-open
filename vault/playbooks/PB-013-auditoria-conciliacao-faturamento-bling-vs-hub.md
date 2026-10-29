@@ -4,6 +4,7 @@ title: "Auditoria Analítica de Faturamento e SLA Logístico (Bling vs J&T)"
 status: active
 validates: [RULE-001, RULE-002]
 environment: production
+kind: runbook
 targets: [Hub Logístico, Bling API v3, J&T Express]
 params:
   - name: start_date
