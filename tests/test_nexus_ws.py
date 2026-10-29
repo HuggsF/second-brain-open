@@ -192,7 +192,7 @@ class _FakeEmbedder:
 
 
 class _FakeStore:
-    def search(self, query_vector, limit, category=None, bounded_context=None, space_id=None):
+    def search(self, query_vector, limit, category=None, bounded_context=None, space_id=None, per_doc=None):
         return [{"score": 0.8, "payload": {"file_path": "systems/hub.md", "doc_title": "Hub", "section": "OAuth",
                                            "category": "systems", "content": "Conteúdo da seção OAuth do Hub."}}]
 

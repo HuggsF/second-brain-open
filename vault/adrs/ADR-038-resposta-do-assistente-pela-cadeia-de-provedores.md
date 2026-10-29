@@ -1,7 +1,7 @@
 ---
 type: adr
 scope: second-brain
-status: Proposto
+status: Aceito
 date: 2026-10-28
 related: [ADR-017, ADR-018, ADR-035, ADR-036, ADR-037]
 ---

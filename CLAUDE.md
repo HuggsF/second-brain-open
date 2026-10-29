@@ -87,7 +87,8 @@ Follow every numbered item; do not paraphrase a subset.
   suggested pair's recall is below `--min-recall`, when the index holds points of an older embedding
   scheme, or on a Qdrant/Ollama error. It makes real calls to the local Qdrant and Ollama (nothing is
   paid) and needs the index rebuilt first with `cli.py sync --rebuild --yes` from the canonical
-  checkout (ADR-034). The floor in `config.py` stays provisional until it runs.
+  checkout (ADR-034). The floor in `config.py` (`0.70` / `0.10`, one chunk per note, applied in the
+  Qdrant search) was measured on 2026-10-29 (ADR-039); change it only with a new eval report.
 - Embedding scheme (ADR-037): after changing the embedding model or the query/document prefixes
   (`OLLAMA_EMBED_*`), run `cli.py sync --rebuild --yes` from the canonical checkout before restarting
   the `second-brain` MCP and the BFF, and open no new Claude Code session in between (each one starts

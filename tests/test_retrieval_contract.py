@@ -84,6 +84,21 @@ class TestStoreScope(unittest.TestCase):
         hits = self.store.search([1.0, 0, 0, 0], limit=10, category="x", space_id="s1")
         self.assertEqual([h["payload"]["file_path"] for h in hits], ["a.md"])
 
+    def test_per_doc_keeps_large_note_from_filling_the_pool(self):
+        crowded, client = make_store("crowded")
+        self.addCleanup(client.close)
+        crowded.ensure_collection(vector_size=VECTOR_SIZE)
+        client.upsert(collection_name="crowded", points=[
+            *(PointStruct(id=i, vector=vector_for(0.95 - i / 1000), payload={"space_id": "s1", "file_path": "big.md"})
+              for i in range(1, 7)),
+            PointStruct(id=10, vector=vector_for(0.80), payload={"space_id": "s1", "file_path": "rule.md"}),
+        ])
+        plain = crowded.search(QUERY_VECTOR, limit=3, space_id="s1")
+        self.assertEqual({h["payload"]["file_path"] for h in plain}, {"big.md"})
+        grouped = crowded.search(QUERY_VECTOR, limit=3, space_id="s1", per_doc=2)
+        self.assertEqual([h["payload"]["file_path"] for h in grouped], ["big.md", "big.md", "rule.md"])
+        self.assertEqual([h["score"] for h in grouped], sorted((h["score"] for h in grouped), reverse=True))
+
     def test_index_version_follows_alias(self):
         self.assertEqual(self.store.index_version(), "kb")  # colecao real
         self.store.create_named_collection("kb__1", VECTOR_SIZE)
@@ -213,7 +228,22 @@ class TestRetriever(unittest.TestCase):
         with mock.patch.object(self.store, "search", wraps=self.store.search) as search:
             self.retriever.query("x", limit=2, category="systems")
         kwargs = search.call_args.kwargs
-        self.assertEqual((kwargs["space_id"], kwargs["limit"], kwargs["category"]), ("kiosk", 6, "systems"))
+        self.assertEqual((kwargs["space_id"], kwargs["limit"], kwargs["category"], kwargs["per_doc"]),
+                         ("kiosk", 6, "systems", 2))
+
+    def test_large_note_does_not_hide_other_notes(self):
+        crowded, client = make_store("crowded")
+        self.addCleanup(client.close)
+        crowded.ensure_collection(vector_size=VECTOR_SIZE)
+        client.upsert(collection_name="crowded", points=[
+            *(PointStruct(id=i, vector=vector_for(0.95 - i / 1000),
+                          payload={"space_id": "kiosk", "file_path": "a.md", "section": f"A{i}"})
+              for i in range(1, 17)),
+            PointStruct(id=20, vector=vector_for(0.90), payload={"space_id": "kiosk", "file_path": "b.md", "section": "B1"}),
+        ])
+        from core.retriever import BrainRetriever
+        retriever = BrainRetriever(embedder=FakeEmbedder(), store=crowded, vault_dir=self.vault, generator=self.generator)
+        self.assertIn("b.md", [s["file_path"] for s in retriever.query("x", limit=4)["sources"]])
 
     def test_include_content_adds_chunk_text(self):
         sources = self.retriever.query("x", include_content=True)["sources"]
@@ -324,7 +354,8 @@ class TestRetriever(unittest.TestCase):
 
     def test_apply_floor_false_ignores_gate(self):
         r = self.retriever.query("Como a Acme recebe pedidos?", limit=5, apply_floor=False)
-        self.assertEqual(len(r["sources"]), 5)
+        # Sem piso nem gate, mas com a diversidade da busca: a.md tem 3 trechos e entra com 2.
+        self.assertEqual([s["section"] for s in r["sources"]], ["A1", "A2", "B1", "C1"])
 
     def test_empty_vault_disables_gate(self):
         for name in ("a.md", "b.md"):

@@ -180,8 +180,11 @@ class QdrantStore:
         limit: int = 4, 
         category: Optional[str] = None,
         bounded_context: Optional[str] = None,
-        space_id: Optional[str] = None
+        space_id: Optional[str] = None,
+        per_doc: Optional[int] = None
     ) -> List[Dict[str, Any]]:
+        """Hits por score decrescente; com `per_doc`, ate `limit` documentos com no maximo `per_doc`
+        trechos cada, para que uma nota com muitos trechos nao ocupe todos os candidatos."""
         conditions = []
         if space_id is not None:
             conditions.append(FieldCondition(key="space_id", match=MatchValue(value=space_id)))
@@ -190,6 +193,20 @@ class QdrantStore:
         if bounded_context:
             conditions.append(FieldCondition(key="bounded_context", match=MatchValue(value=bounded_context)))
         query_filter = Filter(must=conditions) if conditions else None
+
+        if per_doc:
+            grouped = self.client.query_points_groups(
+                collection_name=self.collection_name,
+                query=query_vector,
+                query_filter=query_filter,
+                group_by="file_path",
+                group_size=per_doc,
+                limit=limit,
+                with_payload=True
+            )
+            hits = [{"score": point.score, "payload": point.payload}
+                    for group in grouped.groups for point in group.hits]
+            return sorted(hits, key=lambda hit: hit["score"], reverse=True)
 
         results = self.client.query_points(
             collection_name=self.collection_name,
