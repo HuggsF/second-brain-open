@@ -10,6 +10,8 @@ from qdrant_client.models import PointStruct
 
 from config import settings
 from core.citations import GAP_EMPTY_INDEX, GAP_NO_EVIDENCE, GAP_STALE
+from core.cost import CostRecord
+from core.local_tasks.answer import AnswerResult
 from core.qdrant_store import QdrantStore
 from evals.retrieval_eval import collect, grid, known_limits_metric, load_cases, load_known_limits, suggest
 
@@ -104,6 +106,20 @@ class FakeEmbedder:
         return list(QUERY_VECTOR)
 
 
+class FakeGenerator:
+    """Gerador de resposta falso (ADR-038): guarda (system, user) e devolve `result`."""
+
+    def __init__(self):
+        self.calls = []
+        self.result = AnswerResult(status="ok", text="resposta do modelo", reason=None, provider="nuvem",
+                                   cost=CostRecord(model="m", tier="cloud", tokens_in=1, tokens_out=1, ms=1, paid_equivalent_usd=0.0,
+                                                   provider="nuvem", actual_usd=0.0004))
+
+    def __call__(self, system, user):
+        self.calls.append((system, user))
+        return self.result
+
+
 class TestRetriever(unittest.TestCase):
     """BrainRetriever.query()/answer() com escopo, piso, diversidade e citacoes (spec 2.3, 2.5, 6)."""
 
@@ -119,6 +135,7 @@ class TestRetriever(unittest.TestCase):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         self.vault = Path(tmp.name)
+        self.generator = FakeGenerator()
         (self.vault / "a.md").write_text("conteudo a", encoding="utf-8")
         (self.vault / "b.md").write_text("conteudo b", encoding="utf-8")
         sha = {name: hashlib.sha256((self.vault / name).read_bytes()).hexdigest() for name in ("a.md", "b.md")}
@@ -140,7 +157,8 @@ class TestRetriever(unittest.TestCase):
                 PointStruct(id=i, vector=vector_for(score), payload=data)
                 for i, (score, data) in enumerate(points, start=1)
             ])
-            return BrainRetriever(embedder=FakeEmbedder(), store=store, vault_dir=self.vault), store
+            return BrainRetriever(embedder=FakeEmbedder(), store=store, vault_dir=self.vault,
+                                  generator=self.generator), store
 
         # Melhor 0.95 -> piso 0.85: a.md tem 3 trechos acima (diversidade corta em 2), c.md fica abaixo.
         self.retriever, self.store = build("kb", [
@@ -162,14 +180,6 @@ class TestRetriever(unittest.TestCase):
             (0.95, payload("a.md", "A1", space=None)),
             (0.90, payload("b.md", "B1", space=None)),
         ])
-
-    @staticmethod
-    def _ollama_ok(text=" resposta do modelo "):
-        client_cls = mock.MagicMock()
-        response = client_cls.return_value.__enter__.return_value.post.return_value
-        response.status_code = 200
-        response.json.return_value = {"response": text}
-        return client_cls
 
     def test_query_keeps_old_keys_and_adds_new(self):  # CA-07 / INV-N05
         r = self.retriever.query("x")
@@ -215,35 +225,37 @@ class TestRetriever(unittest.TestCase):
         self.assertEqual(r["gaps"], [GAP_NO_EVIDENCE])
 
     def test_no_evidence_answer_skips_model(self):  # CA-08 / INV-N06
-        with mock.patch("core.retriever.httpx.Client") as client:
-            r = self.retriever_low_scores.answer("x")
-        client.assert_not_called()
+        r = self.retriever_low_scores.answer("x")
+        self.assertEqual(self.generator.calls, [])
         self.assertEqual(r["status"], "no_evidence")
         self.assertEqual(r["citations"], [])
         self.assertEqual((r["answer"], r["sources"], r["gaps"]), (NO_DOC_TEXT, [], [GAP_NO_EVIDENCE]))
 
-    def test_model_error_is_typed(self):  # CA-08
-        with mock.patch("core.retriever.httpx.Client", side_effect=RuntimeError("down")):
-            r = self.retriever.answer("x")
+    def test_model_error_is_typed(self):  # CA-08 / ADR-038 D5
+        self.generator.result = AnswerResult(status="model_error", text=None, reason="timeout", provider=None,
+                                             cost=CostRecord(model="m", tier="local", tokens_in=0, tokens_out=0, ms=0,
+                                                             paid_equivalent_usd=0.0))
+        r = self.retriever.answer("x")
         self.assertEqual(r["status"], "model_error")
-        self.assertTrue(r["answer"].startswith(
-            "Contexto recuperado com sucesso do Qdrant, porém não foi possível conectar ao chat do Ollama: down"))
+        self.assertTrue(r["answer"].startswith("Contexto recuperado, mas nenhum provedor de resposta respondeu (timeout)."))
+        self.assertIn("Trecho relevante mais próximo", r["answer"])
+        self.assertEqual((r["provider"], r["cost_usd"]), (None, 0.0))
         self.assertEqual(len(r["citations"]), 3)
 
-    def test_model_non_200_is_model_error(self):
-        client_cls = self._ollama_ok()
-        client_cls.return_value.__enter__.return_value.post.return_value.status_code = 500
-        with mock.patch("core.retriever.httpx.Client", client_cls):
-            r = self.retriever.answer("x")
-        self.assertEqual(r["status"], "model_error")
-        self.assertEqual(r["answer"], "Contexto recuperado com sucesso, mas o modelo local retornou código 500.")
+    def test_answer_sends_context_and_question_to_generator(self):  # ADR-038 D2
+        self.retriever.answer("qual a regra?")
+        system, user = self.generator.calls[0]
+        self.assertIn("texto a.md A1", user)
+        self.assertIn("qual a regra?", user)
+        self.assertNotIn("texto c.md C1", user)
+        self.assertTrue(system)
 
-    def test_answer_ok_keeps_old_keys_and_adds_new(self):  # CA-07
-        with mock.patch("core.retriever.httpx.Client", self._ollama_ok()):
-            r = self.retriever.answer("x")
+    def test_answer_ok_keeps_old_keys_and_adds_new(self):  # CA-07 / ADR-038 D5
+        r = self.retriever.answer("x")
         self.assertEqual(r["status"], "ok")
         self.assertEqual(r["answer"], "resposta do modelo")
-        self.assertTrue({"answer", "sources", "status", "citations", "gaps"} <= set(r))
+        self.assertEqual((r["provider"], r["cost_usd"]), ("nuvem", 0.0004))
+        self.assertTrue({"answer", "sources", "status", "citations", "gaps", "provider", "cost_usd"} <= set(r))
         self.assertEqual([s["file_path"] for s in r["sources"]], [c["document"] for c in r["citations"]])
         self.assertEqual(r["gaps"], [])
 
@@ -287,6 +299,7 @@ class TestRetriever(unittest.TestCase):
         self.assertIs(r.embedder, embedder.return_value)
         self.assertIs(r.store, store.return_value)
         self.assertEqual(r.vault_dir, settings.vault_dir)
+        self.assertTrue(callable(r.generator))
 
     # Gate de entidade desconhecida (spec 2.3, CA-5, CA-6).
     def test_unknown_entity_gives_no_citation_and_named_gap(self):
@@ -295,12 +308,10 @@ class TestRetriever(unittest.TestCase):
         self.assertEqual(r["gaps"], ["Termo(s) sem registro no vault: Acme; não há evidência para esta consulta."])
 
     def test_unknown_entity_answer_skips_model(self):
-        client_cls = self._ollama_ok()
-        with mock.patch("core.retriever.httpx.Client", client_cls):
-            r = self.retriever.answer("Como a Acme recebe pedidos?")
+        r = self.retriever.answer("Como a Acme recebe pedidos?")
         self.assertEqual(r["status"], "no_evidence")
         self.assertEqual(r["gaps"], ["Termo(s) sem registro no vault: Acme; não há evidência para esta consulta."])
-        client_cls.assert_not_called()
+        self.assertEqual(self.generator.calls, [])
 
     def test_known_capitalized_term_keeps_hits(self):
         (self.vault / "c.md").write_text("Integração com a Acme.", encoding="utf-8")

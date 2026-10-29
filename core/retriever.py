@@ -1,21 +1,36 @@
-import httpx
 from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from config import settings
 from core.citations import build_citations, gaps_for, select_hits
 from core.embeddings import OllamaEmbeddingClient
+from core.local_tasks.answer import AnswerResult, default_budget_tracker, generate_answer
 from core.qdrant_store import QdrantStore
 from core.vault_vocab import unknown_entities, vault_vocabulary
 
 NO_EVIDENCE_ANSWER = "Nenhum documento relevante encontrado na sua base de conhecimento para essa pergunta."
 
 
+def _profile_generator(system: str, user: str) -> AnswerResult:
+    """Gera pela cadeia do perfil ativo, com o orcamento dele; perfil ilegivel vira `model_error`."""
+    from core.local_tasks.profile import load_profile
+    try:
+        profile = load_profile()
+    except Exception:
+        from core.cost import CostRecord
+        return AnswerResult("model_error", None, "profile_not_found", None,
+                            CostRecord(model=settings.chat_model, tier="deterministic", tokens_in=0,
+                                       tokens_out=0, ms=0, paid_equivalent_usd=0.0))
+    return generate_answer(system, user, profile=profile, budget_tracker=default_budget_tracker(profile))
+
+
 class BrainRetriever:
-    def __init__(self, *, embedder=None, store=None, vault_dir: Optional[Path] = None):
+    def __init__(self, *, embedder=None, store=None, vault_dir: Optional[Path] = None, generator=None):
         self.embedder = embedder if embedder is not None else OllamaEmbeddingClient()
         self.store = store if store is not None else QdrantStore()
         self.vault_dir = Path(vault_dir) if vault_dir is not None else settings.vault_dir
+        # generator(system, user) -> AnswerResult; padrao: cadeia de provedores do perfil (ADR-038).
+        self.generator = generator if generator is not None else _profile_generator
 
     def query(
         self,
@@ -102,9 +117,10 @@ class BrainRetriever:
         limit: int = 4,
         category: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Gera resposta via Ollama local com contexto recuperado do Qdrant (RAG).
+        """Gera a resposta pela cadeia de provedores do perfil, com o contexto recuperado (RAG, ADR-038).
 
-        `status`: `ok`, `no_evidence` (sem citacao; o modelo nao e chamado) ou `model_error`.
+        `status`: `ok`, `no_evidence` (sem citacao; nenhum provedor e chamado) ou `model_error`
+        (todos os provedores da cadeia falharam). `provider` e `cost_usd` dizem quem respondeu e o custo.
         """
         retrieved = self.query(user_question, limit=limit, category=category)
 
@@ -115,45 +131,36 @@ class BrainRetriever:
                 "status": "no_evidence",
                 "citations": [],
                 "gaps": retrieved["gaps"],
+                "provider": None,
+                "cost_usd": 0.0,
             }
 
-        prompt = (
+        system = (
             "Você é o assistente técnico corporativo da holding KIOSK Brands (segundo cérebro local).\n"
-            "Responda à pergunta do usuário baseando-se estritamente no contexto técnico fornecido abaixo.\n"
+            "Responda à pergunta do usuário baseando-se estritamente no contexto técnico fornecido.\n"
             "Se a informação não estiver clara no contexto, indique honestamente o que falta.\n"
-            "Mantenha um tom profissional, técnico e objetivo (nível desenvolvedor pleno).\n\n"
-            f"### CONTEXTO RECUPERADO:\n{retrieved['context']}\n\n"
-            f"### PERGUNTA DO USUÁRIO:\n{user_question}\n\n"
-            "### RESPOSTA TÉCNICA:"
+            "Mantenha um tom profissional, técnico e objetivo (nível desenvolvedor pleno).\n"
+            'Devolva JSON no formato {"answer": "<resposta em português>"}.'
         )
-
-        try:
-            with httpx.Client(timeout=120.0) as client:
-                resp = client.post(
-                    f"{settings.ollama_url}/api/generate",
-                    json={
-                        "model": settings.chat_model,
-                        "prompt": prompt,
-                        "stream": False
-                    }
-                )
-                if resp.status_code == 200:
-                    answer_text = resp.json().get("response", "").strip()
-                    status = "ok"
-                else:
-                    answer_text = f"Contexto recuperado com sucesso, mas o modelo local retornou código {resp.status_code}."
-                    status = "model_error"
-        except Exception as e:
+        user = (
+            f"### CONTEXTO RECUPERADO:\n{retrieved['context']}\n\n"
+            f"### PERGUNTA DO USUÁRIO:\n{user_question}"
+        )
+        generated = self.generator(system, user)
+        if generated.status == "ok":
+            answer_text = generated.text
+        else:
             answer_text = (
-                f"Contexto recuperado com sucesso do Qdrant, porém não foi possível conectar ao chat do Ollama: {e}\n\n"
+                f"Contexto recuperado, mas nenhum provedor de resposta respondeu ({generated.reason}).\n\n"
                 f"**Trecho relevante mais próximo:**\n{retrieved['context'][:400]}..."
             )
-            status = "model_error"
 
         return {
             "answer": answer_text,
             "sources": retrieved["sources"],
-            "status": status,
+            "status": generated.status,
             "citations": retrieved["citations"],
             "gaps": retrieved["gaps"],
+            "provider": generated.provider,
+            "cost_usd": generated.cost.actual_usd,
         }
