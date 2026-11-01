@@ -38,6 +38,12 @@ AGENT_ROLES: Dict[str, Dict] = {
         "color":  "#ffe600",
         "room":   "meeting",
     },
+    "diagnostician": {
+        "label":  "Diagnosticador",
+        "name":   "Rex",
+        "color":  "#ff6b35",
+        "room":   "operations",
+    },
 }
 
 # Frozen set for fast membership checks (DagGate, tests)
@@ -76,6 +82,12 @@ ROOMS: Dict[str, Dict] = {
         "size":     [5, 0.2, 3],
         "colorKey": "amber",
     },
+    "operations": {
+        "label":    "Operações",
+        "position": [-5.5, 0,  3],
+        "size":     [5, 0.2, 3],
+        "colorKey": "orange",
+    },
 }
 
 # ── Tool registry (per role) ──────────────────────────────────────────────────
@@ -112,6 +124,14 @@ TOOL_REGISTRY: Dict[str, List[str]] = {
         "get_adr",
         "list_rules",
         "get_rule_evidence",
+    ],
+    "diagnostician": [
+        "search_knowledge_base",
+        "get_brain_status",
+        "get_system_architecture",
+        "list_rules",
+        "get_rule_evidence",
+        "run_safe_command",
     ],
 }
 

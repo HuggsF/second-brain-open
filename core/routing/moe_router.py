@@ -96,6 +96,18 @@ PERSONA_PROFILES: Dict[str, PersonaProfile] = {
         fallback_persona="manager",
         max_hops=5,
     ),
+    "diagnostician": PersonaProfile(
+        role="diagnostician",
+        label="Diagnosticador & SRE",
+        embedding_tags=[
+            "diagnóstico", "saúde", "health", "observabilidade",
+            "alerta", "falha", "erro", "incidente", "monitoring",
+            "hub", "pm2", "deploy", "rate limit", "oauth", "token",
+        ],
+        confidence_threshold=0.15,
+        fallback_persona="researcher",
+        max_hops=5,
+    ),
 }
 
 
