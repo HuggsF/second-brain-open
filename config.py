@@ -12,6 +12,7 @@ class Settings(BaseModel):
     systems_dir: Path = BASE_DIR / "vault" / "systems"
     domain_dir: Path = BASE_DIR / "vault" / "domain"
     daily_dir: Path = BASE_DIR / "vault" / "daily"
+    fichas_dir: Path = BASE_DIR / "fichas"
     hash_manifest_path: Path = BASE_DIR / ".brain_hashes.json"
 
     # Qdrant Config
