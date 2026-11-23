@@ -1,8 +1,8 @@
 """Ficha de projeto: uma pasta de Markdown por projeto, com documentação mínima, registros de
 auditoria por etapa e processos humanos. Este módulo lê, valida e cria fichas; nunca reescreve uma.
 """
+import json
 import re
-import shutil
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
@@ -294,3 +294,30 @@ def validar_todas(fichas_dir: Path, raiz: Path) -> List[FichaResultado]:
         return []
     pastas = sorted(p for p in fichas_dir.iterdir() if p.is_dir() and not p.name.startswith(("_", ".")))
     return [validar(p, raiz) for p in pastas]
+
+
+def criar(fichas_dir: Path, slug: str, nome: str, porte: str, hoje: date) -> Path:
+    """Cria `fichas_dir/slug` com os modelos das seções obrigatórias para o porte."""
+    if not isinstance(slug, str) or not _SLUG.match(slug):
+        raise FichaRecusada("slug inválido: use letras minúsculas, números e hífen, começando por letra ou número")
+    if porte not in PORTES:
+        raise FichaRecusada(f"porte inválido: aceitos {', '.join(PORTES)}")
+    modelos = fichas_dir / "_modelos"
+    origens = [modelos / ARQUIVOS[n] / "_secao.md" if n in _PASTAS else modelos / ARQUIVOS[n] for n in OBRIGATORIAS[porte]]
+    faltando = [o.name for o in origens if not o.is_file()]
+    if faltando:
+        raise FichaRecusada(f"modelos ausentes em {modelos}: {', '.join(faltando)}")
+    destino = fichas_dir / slug
+    if destino.exists():
+        raise FichaRecusada(f"já existe uma ficha em {destino}")
+    # json.dumps gera um texto entre aspas que também é YAML válido, mesmo com ':' ou aspas no nome
+    trocas = {"{{slug}}": slug, "{{nome}}": json.dumps(nome, ensure_ascii=False), "{{titulo}}": nome,
+              "{{porte}}": porte, "{{data}}": hoje.isoformat()}
+    for origem in origens:
+        texto = origem.read_text(encoding="utf-8")
+        for marca, valor in trocas.items():
+            texto = texto.replace(marca, valor)
+        alvo = destino / origem.relative_to(modelos)
+        alvo.parent.mkdir(parents=True, exist_ok=True)
+        alvo.write_text(texto, encoding="utf-8", newline="\n")
+    return destino

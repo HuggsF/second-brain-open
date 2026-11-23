@@ -394,5 +394,115 @@ class TestFicha(unittest.TestCase):
         self.assertEqual([r.slug for r in resultados], ["a-demo", "b-demo"])
 
 
+class TestCriar(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.raiz = Path(tmp.name)
+        self.fichas = self.raiz / "fichas"
+        shutil.copytree(ROOT / "fichas" / "_modelos", self.fichas / "_modelos")
+
+    def criar(self, slug="novo", nome="Projeto Novo", porte="pequeno"):
+        return ficha.criar(self.fichas, slug, nome, porte, date(2026, 11, 23))
+
+    def test_criar_pequeno_gera_so_as_secoes_do_porte(self):
+        pasta = self.criar()
+        for nome in ("ficha.md", "01-visao.md", "03-arquitetura.md", "04-decisoes/_secao.md"):
+            self.assertTrue((pasta / nome).is_file(), nome)
+        self.assertFalse((pasta / "05-prontidao.md").exists())
+        self.assertFalse((pasta / "_itens").exists())
+
+    def test_criar_grande_gera_as_onze(self):
+        pasta = self.criar(porte="grande")
+        for numero, nome in ficha.ARQUIVOS.items():
+            self.assertTrue((pasta / nome).exists(), nome)
+
+    def test_ficha_recem_criada_tem_campos_e_pede_preenchimento(self):
+        pasta = self.criar(porte="grande", nome='Projeto: o "novo"')
+        dados, _ = ler(pasta / "ficha.md")
+        self.assertEqual((dados["slug"], dados["nome"], dados["porte"]), ("novo", 'Projeto: o "novo"', "grande"))
+        self.assertEqual(str(dados["data"]), "2026-11-23")
+        r = ficha.validar(pasta, self.raiz)
+        self.assertFalse(r.valida)
+        todos = [p for s in r.secoes for p in s.problemas]
+        self.assertTrue(any("preench" in p for p in todos))
+        self.assertFalse(any("obrigatória" in p or "malformado" in p or "'origem'" in p or "'secao'" in p for p in todos), todos)
+
+    def test_modelos_declaram_as_dez_categorias(self):
+        pasta = self.criar(porte="medio")
+        dados, _ = ler(pasta / "05-prontidao.md")
+        self.assertEqual(tuple(dados["categorias"]), ficha.CATEGORIAS_PRONTIDAO)
+
+    def test_criar_recusa_pasta_existente(self):
+        self.criar()
+        with self.assertRaises(ficha.FichaRecusada):
+            self.criar()
+
+    def test_criar_recusa_slug_invalido(self):
+        for slug in ("../x", "a/b", "a\b", "Abc", "", "_modelos", ".git", "a b"):
+            with self.assertRaises(ficha.FichaRecusada, msg=slug):
+                self.criar(slug=slug)
+        self.assertEqual(sorted(p.name for p in self.fichas.iterdir()), ["_modelos"])
+        self.assertEqual(sorted(p.name for p in self.raiz.iterdir()), ["fichas"])
+
+    def test_criar_recusa_porte_invalido(self):
+        with self.assertRaises(ficha.FichaRecusada):
+            self.criar(porte="enorme")
+
+    def test_criar_recusa_sem_modelos(self):
+        shutil.rmtree(self.fichas / "_modelos")
+        with self.assertRaises(ficha.FichaRecusada):
+            self.criar()
+        self.assertFalse((self.fichas / "novo").exists())
+
+
+class TestComandos(unittest.TestCase):
+    def setUp(self):
+        from click.testing import CliRunner
+        from unittest import mock
+        import cli as modulo
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.raiz = Path(tmp.name)
+        shutil.copytree(ROOT / "fichas" / "_modelos", self.raiz / "fichas" / "_modelos")
+        for campo, valor in (("fichas_dir", self.raiz / "fichas"), ("base_dir", self.raiz)):
+            troca = mock.patch.object(modulo.settings, campo, valor)
+            troca.start()
+            self.addCleanup(troca.stop)
+        self.rodar = lambda *args: CliRunner().invoke(modulo.cli, ["ficha", *args])
+
+    def test_cli_validar_sai_0_sem_problema(self):
+        escrever_ficha(self.raiz, slug="demo")
+        r = self.rodar("validar")
+        self.assertEqual(r.exit_code, 0, r.output)
+        self.assertIn("demo", r.output)
+        self.assertIn("verde", r.output)
+
+    def test_cli_validar_sai_1_com_problema(self):
+        pasta = escrever_ficha(self.raiz, slug="demo")
+        (pasta / "05-prontidao.md").unlink()
+        r = self.rodar("validar", "demo")
+        self.assertEqual(r.exit_code, 1, r.output)
+        self.assertIn("05-prontidao.md", r.output)
+
+    def test_cli_validar_slug_inexistente_sai_1(self):
+        r = self.rodar("validar", "nao-existe")
+        self.assertEqual(r.exit_code, 1, r.output)
+
+    def test_cli_validar_sem_fichas_sai_0(self):
+        r = self.rodar("validar")
+        self.assertEqual(r.exit_code, 0, r.output)
+
+    def test_cli_nova_cria_e_avisa(self):
+        r = self.rodar("nova", "meu-projeto", "--nome", "Meu Projeto", "--porte", "pequeno")
+        self.assertEqual(r.exit_code, 0, r.output)
+        self.assertTrue((self.raiz / "fichas" / "meu-projeto" / "ficha.md").is_file())
+
+    def test_cli_nova_recusada_sai_1(self):
+        r = self.rodar("nova", "../fora", "--nome", "X", "--porte", "pequeno")
+        self.assertEqual(r.exit_code, 1, r.output)
+        self.assertFalse((self.raiz / "fora").exists())
+
+
 if __name__ == "__main__":
     unittest.main()
