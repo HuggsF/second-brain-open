@@ -14,7 +14,7 @@ a etapa seguinte existe.
 ## Apetite
 
 Seis espirais, e não mais. O repositório não registra prazo; o limite é de escopo: cada espiral é um pacote
-que cabe em uma leitura e tem sua própria suíte de testes.
+independente, com sua própria suíte de testes.
 
 ## Solução
 

@@ -30,5 +30,6 @@ As dez categorias são as do checklist de lançamento do livro de SRE do Google.
 repositório e cinco não se aplicam a um motor que roda na máquina de uma pessoa; o motivo de cada uma está
 nos campos acima.
 
-Ter evidência não quer dizer estar pronto: a categoria de confiabilidade aponta o disjuntor, e parte dos
-testes de resiliência falha hoje. O veredito está na auditoria de construção.
+Ter evidência não quer dizer estar pronto: os testes do disjuntor passam, mas os dois testes de tempo
+limite de ferramenta (`tests/test_broker_timeout.py`) estão entre os que não rodam hoje. O veredito está
+na auditoria de construção.

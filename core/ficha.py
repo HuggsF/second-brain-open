@@ -4,7 +4,7 @@ auditoria por etapa e processos humanos. Este módulo lê, valida e cria fichas;
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -69,7 +69,7 @@ def _ler(caminho: Path) -> Tuple[Optional[Dict[str, Any]], str, Optional[str]]:
         return None, texto, "sem bloco de campos (--- no começo do arquivo)"
     try:
         dados = yaml.safe_load(achado.group(1))
-    except yaml.YAMLError as erro:
+    except (yaml.YAMLError, ValueError, RecursionError) as erro:
         return None, texto, f"bloco de campos malformado ({type(erro).__name__})"
     if not isinstance(dados, dict):
         return None, texto, "bloco de campos não é um mapa de chave e valor"
@@ -81,6 +81,8 @@ def _texto(valor: Any) -> str:
 
 
 def _como_data(valor: Any) -> Optional[date]:
+    if isinstance(valor, datetime):
+        return valor.date()
     if isinstance(valor, date):
         return valor
     if isinstance(valor, str):
@@ -277,7 +279,8 @@ def validar(pasta: Path, raiz: Path) -> FichaResultado:
     if dados.get("slug") is not None and dados.get("slug") != pasta.name:
         problemas.append(f"ficha.md: campo 'slug' vale '{dados.get('slug')}', mas a pasta é '{pasta.name}'")
     resultado.secoes.append(SecaoResultado(0, "problema" if problemas else "ok", problemas))
-    obrigatorias = OBRIGATORIAS.get(dados.get("porte"), (0,))
+    porte = dados.get("porte")
+    obrigatorias = OBRIGATORIAS.get(porte, (0,)) if isinstance(porte, str) else (0,)
     auditorias: List[Tuple[str, date, str]] = []
     for numero in range(1, 11):
         if (pasta / ARQUIVOS[numero]).exists():

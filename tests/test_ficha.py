@@ -378,6 +378,29 @@ class TestFicha(unittest.TestCase):
         trocar(pasta / "08-processos" / "runbook-subir.md", revisado_em="amanhã")
         self.assertProblema(pasta, 8, "revisado_em")
 
+    def test_data_impossivel_vira_problema(self):
+        pasta = self.ficha()
+        alvo = self.aud(pasta)
+        alvo.write_text(alvo.read_text(encoding="utf-8").replace("data: '2026-11-10'", "data: 2026-02-30"), encoding="utf-8")
+        self.assertIn("data: 2026-02-30", alvo.read_text(encoding="utf-8"))
+        self.assertProblema(pasta, 6, "2026-11-10-construcao.md")
+
+    def test_datas_de_tipos_mistos_na_mesma_etapa(self):
+        from datetime import datetime
+        pasta = self.ficha()
+        gravar(pasta / "06-auditorias" / "2026-11-12-construcao.md",
+               auditoria(data=datetime(2026, 11, 12, 10, 0), veredito="vermelho", pendencia="p", prazo="2026-12-01", dono="mantenedor"))
+        r = self.validar(pasta)
+        self.assertTrue(r.valida, [s.problemas for s in r.secoes])
+        self.assertEqual(r.situacao, "vermelho")
+
+    def test_porte_que_nao_e_texto_vira_problema(self):
+        for valor in (["medio"], {"a": 1}):
+            pasta = self.ficha()
+            trocar(pasta / "ficha.md", porte=valor)
+            self.assertProblema(pasta, 0, "porte")
+            shutil.rmtree(pasta)
+
     def test_arquivo_com_bom_e_crlf(self):
         pasta = self.ficha()
         alvo = pasta / "01-visao.md"

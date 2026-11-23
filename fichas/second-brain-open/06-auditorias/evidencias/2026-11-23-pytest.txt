@@ -1,10 +1,10 @@
 ......................................................FF................ [  6%]
 ........................................................................ [ 13%]
-............................................................... [ 20%]
-........................................................................ [ 27%]
-..................................................................FFFFFF [ 33%]
-.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF...FFF................FFFFFFFF [ 40%]
-FFFFFFFFFFFFFFFF.........................FFFFFFFFFFFFFFF.F.............. [ 47%]
+............................................................... [ 19%]
+........................................................................ [ 26%]
+.....................................................................FFF [ 33%]
+FFF.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF...FFF................FFFFF [ 40%]
+FFFFFFFFFFFFFFFFFFF.........................FFFFFFFFFFFFFFF.F........... [ 47%]
 ........................................................................ [ 54%]
 .................................................................. [ 61%]
 ........................................................... [ 66%]
@@ -12,7 +12,8 @@ FFFFFFFFFFFFFFFF.........................FFFFFFFFFFFFFFF.F.............. [ 47%]
 ........................................................................ [ 80%]
 ........................................................................ [ 87%]
 ........................................................................ [ 94%]
-..................................................... [100%]
+..................................................... [ 99%]
+...                                                                      [100%]
 ================================== FAILURES ===================================
 _______________________ test_tool_timeout_returns_error _______________________
 async def functions are not natively supported.
@@ -1140,7 +1141,6 @@ tests\test_graph_ws_smoke.py:291
 
 tests/test_integration.py::TestBrokerIntegration::test_call_without_persona_works_unchanged
 tests/test_sprint8_moe_wiring.py::TestFullMissionFlowWithMoERouting::test_full_mission_flow_without_rerouting
-tests/test_ws_server.py::TestOrchestrator::test_run_mission_executes_pattern_and_finishes_with_all_agents
 tests/test_ws_server.py::TestOrchestrator::test_run_mission_respects_custom_mission_id
   .\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
     show_warning(
@@ -1244,4 +1244,4 @@ FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionHITL::test_hitl_missing_
 FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionErrorHandling::test_exception_sends_error_event
 FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionErrorHandling::test_cancellation_cleans_up
 FAILED tests/test_graph_ws_smoke.py::TestGraphApprovalEvents::test_approval_event_signal_and_cleanup
-92 failed, 941 passed, 113 warnings, 47 subtests passed in 35.68s
+92 failed, 944 passed, 112 warnings, 47 subtests passed in 35.86s

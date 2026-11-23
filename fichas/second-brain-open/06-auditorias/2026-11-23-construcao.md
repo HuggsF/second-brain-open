@@ -22,7 +22,7 @@ A suíte de testes passa.
 
 ## Resultado
 
-Âmbar: 941 testes passam e 92 falham.
+Âmbar: 944 testes passam e 92 falham.
 
 As 92 falhas têm a mesma mensagem, "async def functions are not natively supported". O `pytest.ini` define
 `asyncio_mode = strict`, mas o `requirements.txt` não lista o `pytest-asyncio`, então os testes
