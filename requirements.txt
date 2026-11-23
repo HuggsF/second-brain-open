@@ -14,6 +14,7 @@ jsonschema>=4.0
 
 # Tests (tests/test_liquid_engine.py uses pytest; the rest uses unittest)
 pytest>=8.0
+pytest-asyncio>=0.23
 
 # WebSocket server — Nexus Agent Office integration
 websockets>=12.0
