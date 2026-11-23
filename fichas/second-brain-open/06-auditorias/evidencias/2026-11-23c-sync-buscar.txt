@@ -1,0 +1,30 @@
+$ cli.py sync
+[*] Sincronizando o Vault...
+Índice ausente ou de outro esquema: reconstruindo.
+[OK] Reconstrução concluída: 3 arquivos, 6 blocos
+┌────────────────────────── Sincronização Concluída ──────────────────────────┐
+│ Status da Sincronização:                                                    │
+│ • Arquivos Novos: 3                                                         │
+│ • Arquivos Modificados: 0                                                   │
+│ • Arquivos Removidos: 0                                                     │
+│ • Blocos Indexados: 6                                                       │
+│ • Falhas: 0                                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+saída: 0
+
+$ cli.py buscar "reserva de estoque"
+relevância  arquivo  |  seção  |  linhas
+    2.96  systems/estoque.md  |  Reserva  |  linhas 5-5
+saída: 0
+
+$ cli.py buscar "quando vence a fatura"
+relevância  arquivo  |  seção  |  linhas
+    2.15  domain/fatura.md  |  Fechamento  |  linhas 5-5
+saída: 0
+
+$ cli.py status
+Diagnóstico do Second Brain
+Índice de busca: Pronto — 6 trechos em 3 notas, esquema 8d518ab87dcf, construído em 2026-11-23T22:59:20+00:00
+Vault Markdown: Ativo — 3 documentos em <pasta temporária>\vault
+Servidor de modelos (opcional, só para ask): configurado em http://localhost:11434, não verificado
+saída: 0
