@@ -221,7 +221,7 @@ def _marcadores(arquivos: List[Path], problemas: List[str]) -> None:
 def _situacao(auditorias: List[Tuple[str, date, str]]) -> str:
     ultima: Dict[str, Tuple[date, str]] = {}
     for etapa, quando, veredito in auditorias:
-        if etapa not in ultima or quando > ultima[etapa][0]:
+        if etapa not in ultima or quando >= ultima[etapa][0]:
             ultima[etapa] = (quando, veredito)
     if not ultima:
         return "sem auditoria"
