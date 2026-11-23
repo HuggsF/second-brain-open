@@ -4,13 +4,8 @@ Sprint 2 (Gap G4 — Plano de Convergência AI-OS + MoE):
 Implementa uma Gating Network que roteia missões para a persona mais adequada
 com base em similaridade semântica (embedding tags) e confidence_threshold.
 
-Funciona em dois modos:
-  1. **Com Qdrant**: usa a coleção `persona_routing` para busca vetorial
-     real dos embedding_tags de cada persona.
-  2. **Sem Qdrant (fallback)**: usa keyword matching determinístico contra as
-     tags de cada persona — sem dependência de infra vetorial.
-
-Zero dependências extras — reutiliza QdrantStore e OllamaEmbeddingClient existentes.
+Usa keyword matching determinístico contra as tags de cada persona, sem infraestrutura
+vetorial. O roteamento por busca vetorial previsto no desenho original nunca foi ligado.
 """
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
@@ -30,7 +25,7 @@ class PersonaProfile:
     max_hops: int = 5
 
     def matches_keywords(self, text: str) -> Tuple[float, List[str]]:
-        """Score de matching determinístico por keywords (fallback sem Qdrant)."""
+        """Score de matching determinístico por keywords."""
         text_lower = text.lower()
         matched = [tag for tag in self.embedding_tags if tag.lower() in text_lower]
         score = len(matched) / max(len(self.embedding_tags), 1)
@@ -133,8 +128,8 @@ class MoERouter:
 
     Args:
         profiles: Dicionário de PersonaProfiles. Default: PERSONA_PROFILES.
-        use_qdrant: Se True, tenta usar Qdrant para busca vetorial.
-            Se False ou Qdrant indisponível, usa keyword matching.
+        use_qdrant: Sem efeito; mantido para não quebrar chamadas existentes. O roteamento
+            é sempre por keyword matching.
     """
 
     def __init__(

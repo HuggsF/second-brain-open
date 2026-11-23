@@ -31,12 +31,6 @@ class Settings(BaseModel):
     retrieval_max_drop: float = Field(default_factory=lambda: float(os.getenv("RETRIEVAL_MAX_DROP", "0.50")), validate_default=True)
     retrieval_max_per_doc: int = Field(default_factory=lambda: int(os.getenv("RETRIEVAL_MAX_PER_DOC", "1")))
 
-    # Banco vetorial: campos mantidos só até a remoção do motor vetorial, no fim desta mudança.
-    qdrant_url: str = os.getenv("QDRANT_URL", "http://localhost:6333")
-    qdrant_collection: str = os.getenv("QDRANT_COLLECTION", "second_brain")
-    vector_size: int = 768
-    embedding_model: str = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
-
     # Servidor local de modelos: opcional, usado só para gerar a resposta do `ask`.
     ollama_url: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
     chat_model: str = os.getenv("OLLAMA_CHAT_MODEL", "llama3.2:3b")

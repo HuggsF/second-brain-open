@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import json
+import sqlite3
 from pathlib import Path
 
 if sys.platform == "win32":
@@ -29,6 +30,7 @@ import httpx
 from core import tracing
 from core import evidence as evidence_core
 from core import ficha as ficha_core
+from core.indice_texto import IndiceTexto
 from core.evidence_store import EvidenceStore, EvidenceStoreError
 
 console = Console(force_terminal=True)
@@ -95,95 +97,140 @@ def sync(do_rebuild, assume_yes):
         console.print(f"[bold red]Erro ao sincronizar:[/bold red] {e}")
         raise SystemExit(1)
 
+def _vault_ou_sai() -> None:
+    if not settings.vault_dir.is_dir():
+        click.echo(f"Pasta do vault não encontrada: {settings.vault_dir}")
+        click.echo("Crie a pasta ou aponte outra com a variável BRAIN_VAULT_DIR.")
+        raise SystemExit(1)
+
+
+def _indice_ou_sai() -> IndiceTexto:
+    """Índice pronto para leitura, ou mensagem do que fazer e saída 1."""
+    indice = IndiceTexto()
+    if not indice.caminho.exists():
+        click.echo(f"Índice de busca não encontrado em {indice.caminho}. Rode 'cli.py sync'.")
+        raise SystemExit(1)
+    try:
+        integro = indice.verificar()
+    except Exception:
+        click.echo(f"Não foi possível abrir o índice de busca em {indice.caminho}.")
+        click.echo("Confira o caminho (variável BRAIN_INDEX_PATH) e rode 'cli.py sync --rebuild'.")
+        raise SystemExit(1)
+    if not integro:
+        click.echo(f"Índice de busca em {indice.caminho}: Corrompido. Rode 'cli.py sync --rebuild'.")
+        raise SystemExit(1)
+    return indice
+
+
+def _mostrar_lacunas(gaps) -> None:
+    from core.citations import GAP_EMPTY_INDEX
+    for gap in gaps:
+        click.echo(gap)
+        if gap == GAP_EMPTY_INDEX:
+            click.echo("Rode 'cli.py sync' para indexar o vault.")
+
+
+def _mostrar_fontes(sources) -> None:
+    for src in sources:
+        click.echo(f"{src['score']:8.2f}  {src['file_path']}  |  {src['section']}  |  linhas {src['line_start']}-{src['line_end']}")
+
+
 @cli.command()
-@click.argument("question")
-@click.option("--category", default=None, help="Filtrar por categoria (adrs, systems, domain, daily)")
-def ask(question: str, category: str):
-    """Consulta a base de conhecimento técnica e responde com RAG local."""
-    console.print(f"[bold cyan]🔍 Consultando Second Brain:[/bold cyan] '{question}'\n")
+@click.argument("pergunta")
+@click.option("--category", default=None, help="Filtrar por categoria (a pasta da nota dentro do vault)")
+@click.option("--limite", default=5, type=click.IntRange(1, 50), show_default=True, help="Quantos trechos devolver")
+def buscar(pergunta: str, category: str, limite: int):
+    """Busca trechos do vault no índice de texto, sem chamar modelo nenhum."""
+    _vault_ou_sai()
+    indice = _indice_ou_sai()
     try:
         from core.retriever import BrainRetriever
-        retriever = BrainRetriever()
-        result = retriever.answer(question, category=category)
-
-        # Exibir resposta
-        console.print(Panel(
-            result["answer"],
-            title="[bold green]Resposta do Assistente Técnico[/bold green]",
-            border_style="cyan"
-        ))
-
-        # Exibir fontes citadas
-        if result["sources"]:
-            table = Table(title="Fontes Consultadas", show_header=True, header_style="bold magenta")
-            table.add_column("Arquivo", style="dim")
-            table.add_column("Seção")
-            table.add_column("Relevância")
-
-            for src in result["sources"]:
-                table.add_row(src["file_path"], src["section"], f"{src['score']:.2f}")
-
-            console.print(table)
+        result = BrainRetriever(store=indice).query(pergunta, limit=limite, category=category)
     except Exception as e:
-        console.print(f"[bold red]Erro na consulta:[/bold red] {e}")
+        click.echo(f"Erro na busca: {e}")
+        raise SystemExit(1)
+    if result["sources"]:
+        click.echo("relevância  arquivo  |  seção  |  linhas")
+        _mostrar_fontes(result["sources"])
+    else:
+        click.echo("Nada encontrado.")
+    _mostrar_lacunas(result["gaps"])
+
+
+@cli.command()
+@click.argument("question")
+@click.option("--category", default=None, help="Filtrar por categoria (a pasta da nota dentro do vault)")
+def ask(question: str, category: str):
+    """Busca no índice de texto e gera a resposta com o servidor local de modelos."""
+    _vault_ou_sai()
+    indice = _indice_ou_sai()
+    try:
+        from core.retriever import BrainRetriever
+        result = BrainRetriever(store=indice).answer(question, category=category)
+    except Exception as e:
+        click.echo(f"Erro na consulta: {e}")
+        raise SystemExit(1)
+    if result["status"] == "ok":
+        console.print(Panel(result["answer"], title="[bold green]Resposta[/bold green]", border_style="cyan"))
+    else:
+        click.echo(result["answer"])
+    _mostrar_lacunas(result["gaps"])
+    if result["sources"]:
+        click.echo("Fontes: relevância  arquivo  |  seção  |  linhas")
+        _mostrar_fontes(result["sources"])
+    if result["status"] == "sem_gerador":
+        click.echo("Para gerar a resposta, suba um servidor local de modelos e confira OLLAMA_URL. 'cli.py buscar' não precisa dele.")
+        raise SystemExit(1)
+
 
 @cli.command()
 def status():
-    """Exibe o status dos serviços locais (Qdrant, Ollama, Vault)."""
-    console.print("[bold]Diagnóstico do Second Brain[/bold]\n")
-
-    # 1. Checar Qdrant
-    from core.qdrant_store import QdrantStore  # sai junto com o motor vetorial
-    qdrant = QdrantStore()
-    stats = qdrant.get_stats()
-    
-    table = Table(title="Serviços Locais", show_header=True, header_style="bold blue")
-    table.add_column("Serviço")
-    table.add_column("Status")
-    table.add_column("Detalhes")
-
-    if "error" not in stats:
-        table.add_row("Qdrant Vector DB", "[green]Online[/green]", f"Coleção '{stats['collection']}': {stats['points_count']} vetores")
-    else:
-        table.add_row("Qdrant Vector DB", "[red]Offline[/red]", stats["error"])
-
-    # 2. Checar Ollama
+    """Exibe o estado do índice de busca e do vault (sem consultar a rede)."""
+    click.echo("Diagnóstico do Second Brain")
+    if sqlite3.sqlite_version_info < (3, 43, 0):
+        click.echo(f"SQLite: {sqlite3.sqlite_version} (o índice de busca pede 3.43 ou mais novo)")
     try:
-        with httpx.Client(timeout=3.0) as client:
-            resp = client.get(f"{settings.ollama_url}/api/tags")
-            if resp.status_code == 200:
-                models = [m["name"] for m in resp.json().get("models", [])]
-                table.add_row("Ollama Engine", "[green]Online[/green]", f"Modelos disponíveis: {', '.join(models) if models else 'Nenhum'}")
-            else:
-                table.add_row("Ollama Engine", "[yellow]Degradado[/yellow]", f"Status HTTP {resp.status_code}")
+        indice = IndiceTexto()
+        integro = indice.verificar()
+        stats = indice.estatisticas() if integro else {}
     except Exception as e:
-        table.add_row("Ollama Engine", "[red]Offline[/red]", f"Não foi possível conectar: {e}")
+        click.echo(f"Índice de busca: Erro — não foi possível ler o índice: {e}")
+    else:
+        if not integro:
+            click.echo("Índice de busca: Corrompido — rode 'cli.py sync'")
+        elif stats.get("points_count"):
+            click.echo(
+                f"Índice de busca: Pronto — {stats['points_count']} trechos em {stats['arquivos']} notas, "
+                f"esquema {stats['esquema']}, construído em {stats['construido_em']}"
+            )
+        else:
+            click.echo("Índice de busca: Vazio — rode 'cli.py sync'")
+    if settings.vault_dir.is_dir():
+        total_md = len(list(settings.vault_dir.rglob("*.md")))
+        click.echo(f"Vault Markdown: Ativo — {total_md} documentos em {settings.vault_dir}")
+    else:
+        click.echo(f"Vault Markdown: Ausente — {settings.vault_dir} (aponte outro com BRAIN_VAULT_DIR)")
+    click.echo(f"Servidor de modelos (opcional, só para ask): configurado em {settings.ollama_url}, não verificado")
 
-    # 3. Vault
-    total_md = len(list(settings.vault_dir.rglob("*.md")))
-    table.add_row("Vault Markdown", "[green]Ativo[/green]", f"{total_md} documentos em {settings.vault_dir}")
-
-    console.print(table)
 
 @cli.command()
-@click.option("--embed-model", default=settings.embedding_model, help="Modelo de embedding a ser baixado")
-@click.option("--chat-model", default=settings.chat_model, help="Modelo de chat/raciocínio a ser baixado")
-def pull_models(embed_model: str, chat_model: str):
-    """Baixa os modelos necessários (embeddings e chat) diretamente no Ollama."""
-    for model_name in [embed_model, chat_model]:
-        console.print(f"[bold cyan]📥 Solicitando download do modelo '{model_name}' no Ollama...[/bold cyan]")
-        try:
-            with httpx.Client(timeout=600.0) as client:
-                with client.stream("POST", f"{settings.ollama_url}/api/pull", json={"name": model_name}) as resp:
-                    if resp.status_code == 200:
-                        for line in resp.iter_lines():
-                            if line:
-                                console.print(f"[dim]{line}[/dim]")
-                        console.print(f"[bold green]✔ Modelo '{model_name}' pronto para uso![/bold green]")
-                    else:
-                        console.print(f"[bold red]Falha ao baixar modelo {model_name}: HTTP {resp.status_code}[/bold red]")
-        except Exception as e:
-            console.print(f"[bold red]Erro ao conectar ao Ollama:[/bold red] {e}")
+@click.option("--chat-model", default=settings.chat_model, help="Modelo de conversa a ser baixado")
+def pull_models(chat_model: str):
+    """Baixa o modelo de conversa no servidor local de modelos (usado só pelo ask)."""
+    console.print(f"[bold cyan]Solicitando o modelo '{chat_model}' ao servidor local de modelos...[/bold cyan]")
+    try:
+        with httpx.Client(timeout=600.0) as client:
+            with client.stream("POST", f"{settings.ollama_url}/api/pull", json={"name": chat_model}) as resp:
+                if resp.status_code == 200:
+                    for line in resp.iter_lines():
+                        if line:
+                            console.print(f"[dim]{line}[/dim]")
+                    console.print(f"[bold green]Modelo '{chat_model}' pronto para uso.[/bold green]")
+                else:
+                    console.print(f"[bold red]Falha ao baixar o modelo {chat_model}: HTTP {resp.status_code}[/bold red]")
+    except Exception as e:
+        console.print(f"[bold red]Erro ao conectar ao servidor local de modelos:[/bold red] {e}")
+
 
 def _trace_log_path():
     return tracing.TRACE_LOG

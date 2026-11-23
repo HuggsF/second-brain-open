@@ -20,7 +20,7 @@ categorias:
   crescimento:
     motivo: "Não há plano de crescimento: o motor atende uma pessoa ou um time pequeno."
   dependencias:
-    evidencia: docker-compose.yml
+    evidencia: requirements.txt
   lancamento:
     motivo: "Não há versão publicada nem plano de lançamento; o repositório é uma referência."
 ---

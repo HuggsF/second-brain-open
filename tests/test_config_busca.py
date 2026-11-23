@@ -1,5 +1,4 @@
 """Configuração da busca textual: caminhos por variável de ambiente e limites do piso."""
-import importlib
 import os
 import unittest
 from unittest import mock
@@ -15,10 +14,7 @@ class TestConfigBusca(unittest.TestCase):
         limpo = {k: v for k, v in os.environ.items() if k not in VARIAVEIS}
         limpo.update(ambiente)
         with mock.patch.dict(os.environ, limpo, clear=True):
-            return importlib.reload(config).Settings()
-
-    def tearDown(self):
-        importlib.reload(config)
+            return config.Settings()
 
     def test_padroes(self):
         s = self.carregar()
@@ -48,7 +44,6 @@ class TestConfigBusca(unittest.TestCase):
             with self.assertRaises(ValueError, msg=valor):
                 self.carregar(RETRIEVAL_MAX_DROP=valor)
 
-    @unittest.expectedFailure  # sai quando o motor vetorial for removido, na última etapa desta mudança
     def test_campos_do_banco_vetorial_sairam(self):
         s = self.carregar()
         for campo in ("qdrant_url", "qdrant_collection", "vector_size", "embedding_model", "hash_manifest_path"):
