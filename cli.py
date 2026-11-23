@@ -28,6 +28,7 @@ import httpx
 
 from core import tracing
 from core import evidence as evidence_core
+from core import ficha as ficha_core
 from core.evidence_store import EvidenceStore, EvidenceStoreError
 from core.qdrant_store import QdrantStore
 
@@ -427,6 +428,50 @@ def task_eval(min_accuracy, profile_name):
     click.echo(f"Acerto geral: {accuracy:.0%} (mínimo {min_accuracy:.0%})")
     if accuracy < min_accuracy:
         raise SystemExit(1)
+
+
+@cli.group("ficha")
+def ficha_grupo():
+    """Fichas de projeto: documentação mínima, auditorias por etapa e processos."""
+
+
+@ficha_grupo.command("nova")
+@click.argument("slug")
+@click.option("--nome", required=True, help="Nome do projeto, como aparece no resumo")
+@click.option("--porte", required=True, type=click.Choice(ficha_core.PORTES), help="Define quais seções são obrigatórias")
+def ficha_nova(slug, nome, porte):
+    """Cria fichas/SLUG com os modelos das seções obrigatórias para o porte."""
+    from datetime import date
+    try:
+        destino = ficha_core.criar(settings.fichas_dir, slug, nome, porte, date.today())
+    except ficha_core.FichaRecusada as recusa:
+        click.echo(f"Recusado: {recusa}")
+        raise SystemExit(1)
+    click.echo(f"Ficha criada em {destino}. Preencha as seções e rode: cli.py ficha validar {slug}")
+
+
+@ficha_grupo.command("validar")
+@click.argument("slug", required=False)
+def ficha_validar(slug):
+    """Valida uma ficha (ou todas); sai com 1 se houver problema."""
+    if slug:
+        pasta = settings.fichas_dir / slug
+        if not re.match(r"^[a-z0-9][a-z0-9-]*$", slug) or not pasta.is_dir():
+            click.echo(f"Ficha não encontrada: {slug}")
+            raise SystemExit(1)
+        resultados = [ficha_core.validar(pasta, settings.base_dir)]
+    else:
+        resultados = ficha_core.validar_todas(settings.fichas_dir, settings.base_dir)
+        if not resultados:
+            click.echo("Nenhuma ficha encontrada.")
+    rotulos = {"ok": "ok", "nao_se_aplica": "não se aplica", "problema": "problema"}
+    for r in resultados:
+        click.echo(f"{r.slug}: {'válida' if r.valida else 'com problemas'}, situação {r.situacao}")
+        for s in r.secoes:
+            click.echo(f"  {s.numero:>2}  {ficha_core.ARQUIVOS[s.numero]:<22} {rotulos[s.situacao]}")
+        for problema in r.problemas + [p for s in r.secoes for p in s.problemas]:
+            click.echo(f"  - {problema}")
+    raise SystemExit(0 if all(r.valida for r in resultados) else 1)
 
 
 if __name__ == "__main__":

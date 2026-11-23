@@ -1,0 +1,1247 @@
+......................................................FF................ [  6%]
+........................................................................ [ 13%]
+............................................................... [ 19%]
+........................................................................ [ 26%]
+.....................................................................FFF [ 33%]
+FFF.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF...FFF................FFFFF [ 40%]
+FFFFFFFFFFFFFFFFFFF.........................FFFFFFFFFFFFFFF.F........... [ 47%]
+........................................................................ [ 54%]
+.................................................................. [ 61%]
+........................................................... [ 66%]
+........................................................................ [ 73%]
+........................................................................ [ 80%]
+........................................................................ [ 87%]
+........................................................................ [ 94%]
+..................................................... [ 99%]
+...                                                                      [100%]
+================================== FAILURES ===================================
+_______________________ test_tool_timeout_returns_error _______________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________________ test_tool_within_timeout_succeeds ______________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________ TestHappyPath.test_happy_path_returns_completed _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestHappyPath.test_metadata_has_task_and_mission _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestGateBlocked.test_gate_blocked_returns_failed _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________ TestCustomMaxAttempts.test_custom_max_attempts ________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________ TestOnEventCallback.test_on_event_callback_receives_events __________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______ TestContainerForwarding.test_container_forwarded_to_instrumented _______
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________ TestExceptionLogging.test_exception_logging_and_reraise ___________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________ TestExceptionLogging.test_exception_from_runner_propagates __________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________________ TestLogging.test_entry_and_exit_logs _____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestHappyPath.test_single_step_completes ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________________ TestHappyPath.test_metadata_populated ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________________ TestHappyPath.test_node_history_order ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestHappyPath.test_event_callback_receives_events ______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestGateBlocked.test_red_semaphore_blocks __________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________ TestGateBlocked.test_gate_result_stored ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________ TestHITL.test_yellow_semaphore_suspends ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+________________ TestHITL.test_resume_after_approval_completes ________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______ TestCorrectionLoop.test_transient_failure_retried_and_recovers ________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____________ TestCircuitBreaker.test_persistent_failure_trips_cb _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________________ TestCircuitBreaker.test_cb_preserves_errors _________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________________ TestMultiStep.test_three_steps_all_execute __________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________ TestPostGateWarning.test_failed_post_gate_still_completes __________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____ TestInstrumentedIntegration.test_instrumented_run_graph_happy_path ______
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______ TestNodeStartTranslation.test_plan_node_produces_thinking_status _______
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______ TestNodeStartTranslation.test_gate_node_produces_working_status _______
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______ TestNodeStartTranslation.test_route_node_produces_collaboration _______
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______ TestNodeStartTranslation.test_execute_node_resolves_step_agent ________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____ TestNodeStartTranslation.test_execute_node_second_step_resolves_coder ____
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________ TestNodeEndTranslation.test_execute_node_end_produces_done __________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+________ TestNodeEndTranslation.test_plan_node_end_produces_no_events _________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________ TestGraphEndTranslation.test_completed_produces_completion __________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________ TestGraphEndTranslation.test_failed_produces_message _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+________ TestGraphEndTranslation.test_circuit_broken_produces_message _________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________ TestGraphSuspended.test_suspended_produces_approval_request _________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________ TestNodeError.test_node_error_produces_error_message _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________ TestProtocolCompliance.test_schema_version_is_1 _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestProtocolCompliance.test_mission_id_propagated ______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________ TestProtocolCompliance.test_sequence_monotonic ________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________ TestProtocolCompliance.test_has_required_fields _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________________ TestProtocolCompliance.test_event_id_format _________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestProtocolCompliance.test_timestamp_is_ms_epoch ______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____________ TestEdgeCases.test_unknown_node_defaults_to_manager _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestEdgeCases.test_edge_taken_produces_no_events _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________ TestEdgeCases.test_send_failure_does_not_crash_adapter ____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestEdgeCases.test_custom_node_agent_map ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestEdgeCases.test_no_state_execute_node_fallback ______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________ TestEdgeCases.test_step_index_out_of_bounds_fallback _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____________ TestAutoStateSync.test_state_auto_synced_from_event _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________ TestAutoStateSync.test_state_auto_synced_on_node_end _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________ TestAutoStateSync.test_no_state_field_keeps_previous_state __________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________ TestRunner.test_happy_path_single_node ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________________ TestRunner.test_multi_node_chain _______________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________________ TestRunner.test_conditional_edges ______________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________ TestRunner.test_global_circuit_breaker ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestRunner.test_per_step_circuit_breaker ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________________ TestRunner.test_node_exception_caught ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________ TestRunner.test_hitl_suspend_and_resume ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________________ TestRunner.test_event_callback_called ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestRunner.test_event_callback_failure_swallowed _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____________________ TestRunner.test_empty_graph_raises ______________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________ TestRunner.test_resume_from_invalid_node_raises _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________ TestRunner.test_no_matching_edge_raises ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________________ TestNodes.test_validate_success _______________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____________________ TestNodes.test_validate_error_true ______________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________________ TestNodes.test_validate_refused _______________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestNodes.test_validate_approval_required __________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________ TestNodes.test_validate_unbound_skipped ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________________ TestNodes.test_validate_empty_results ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestNodes.test_correct_increments_attempt __________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+________________ TestNodes.test_correct_rolls_back_step_index _________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________________ TestNodes.test_correct_circuit_broken ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________________ TestNodes.test_plan_node_creates_steps ____________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestNodes.test_execute_node_unbound_tool ___________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestNodes.test_execute_node_out_of_bounds __________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+________ TestTelemetryInstrumented.test_happy_path_writes_two_records _________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+________ TestTelemetryInstrumented.test_error_path_writes_error_record ________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________ TestTelemetryInstrumented.test_token_delta_detection _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_________ TestTelemetryInstrumented.test_no_container_does_not_crash __________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________ TestTelemetryInstrumented.test_obs_ctx_records_visit _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_____________ TestTelemetryInstrumented.test_trace_record_fields ______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______________ TestTelemetryRunGraph.test_instruments_all_nodes _______________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______________ TestTelemetryRunGraph.test_idempotent_wrapping ________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________ TestRunGraphMissionHappyPath.test_happy_path_sends_events __________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______ TestRunGraphMissionHappyPath.test_state_seeded_with_task_metadata ______
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+____________ TestRunGraphMissionHITL.test_hitl_suspend_and_resume _____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________________ TestRunGraphMissionHITL.test_hitl_timeout __________________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+___________ TestRunGraphMissionHITL.test_hitl_missing_suspended_at ____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+______ TestRunGraphMissionErrorHandling.test_exception_sends_error_event ______
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+________ TestRunGraphMissionErrorHandling.test_cancellation_cleans_up _________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+_______ TestGraphApprovalEvents.test_approval_event_signal_and_cleanup ________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+============================== warnings summary ===============================
+.venv\Lib\site-packages\_pytest\config\__init__.py:1636
+  .\.venv\Lib\site-packages\_pytest\config\__init__.py:1636: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+tests\test_broker_timeout.py:9
+  .\tests\test_broker_timeout.py:9: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_broker_timeout.py:32
+  .\tests\test_broker_timeout.py:32: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:238
+tests\test_graph_integration.py:238
+  .\tests\test_graph_integration.py:238: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:253
+tests\test_graph_integration.py:253
+  .\tests\test_graph_integration.py:253: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:271
+tests\test_graph_integration.py:271
+  .\tests\test_graph_integration.py:271: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:289
+tests\test_graph_integration.py:289
+  .\tests\test_graph_integration.py:289: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:312
+tests\test_graph_integration.py:312
+  .\tests\test_graph_integration.py:312: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:327
+tests\test_graph_integration.py:327
+  .\tests\test_graph_integration.py:327: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:343
+tests\test_graph_integration.py:343
+  .\tests\test_graph_integration.py:343: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:355
+tests\test_graph_integration.py:355
+  .\tests\test_graph_integration.py:355: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:395
+tests\test_graph_integration.py:395
+  .\tests\test_graph_integration.py:395: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:414
+tests\test_graph_integration.py:414
+  .\tests\test_graph_integration.py:414: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:428
+tests\test_graph_integration.py:428
+  .\tests\test_graph_integration.py:428: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:445
+tests\test_graph_integration.py:445
+  .\tests\test_graph_integration.py:445: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:486
+tests\test_graph_integration.py:486
+  .\tests\test_graph_integration.py:486: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_integration.py:504
+tests\test_graph_integration.py:504
+  .\tests\test_graph_integration.py:504: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:62
+  .\tests\test_graph_entrypoint.py:62: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:75
+  .\tests\test_graph_entrypoint.py:75: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:91
+  .\tests\test_graph_entrypoint.py:91: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:109
+  .\tests\test_graph_entrypoint.py:109: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:125
+  .\tests\test_graph_entrypoint.py:125: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:150
+  .\tests\test_graph_entrypoint.py:150: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:184
+  .\tests\test_graph_entrypoint.py:184: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:207
+  .\tests\test_graph_entrypoint.py:207: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_entrypoint.py:229
+  .\tests\test_graph_entrypoint.py:229: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:81
+  .\tests\test_graph_nexus_adapter.py:81: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:94
+  .\tests\test_graph_nexus_adapter.py:94: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:107
+  .\tests\test_graph_nexus_adapter.py:107: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:122
+  .\tests\test_graph_nexus_adapter.py:122: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:138
+  .\tests\test_graph_nexus_adapter.py:138: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:155
+  .\tests\test_graph_nexus_adapter.py:155: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:169
+  .\tests\test_graph_nexus_adapter.py:169: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:183
+  .\tests\test_graph_nexus_adapter.py:183: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:196
+  .\tests\test_graph_nexus_adapter.py:196: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:208
+  .\tests\test_graph_nexus_adapter.py:208: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:224
+  .\tests\test_graph_nexus_adapter.py:224: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:240
+  .\tests\test_graph_nexus_adapter.py:240: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:260
+  .\tests\test_graph_nexus_adapter.py:260: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:270
+  .\tests\test_graph_nexus_adapter.py:270: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:280
+  .\tests\test_graph_nexus_adapter.py:280: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:293
+  .\tests\test_graph_nexus_adapter.py:293: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:304
+  .\tests\test_graph_nexus_adapter.py:304: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:314
+  .\tests\test_graph_nexus_adapter.py:314: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:331
+  .\tests\test_graph_nexus_adapter.py:331: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:341
+  .\tests\test_graph_nexus_adapter.py:341: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:351
+  .\tests\test_graph_nexus_adapter.py:351: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:362
+  .\tests\test_graph_nexus_adapter.py:362: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:373
+  .\tests\test_graph_nexus_adapter.py:373: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:384
+  .\tests\test_graph_nexus_adapter.py:384: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:417
+  .\tests\test_graph_nexus_adapter.py:417: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:434
+  .\tests\test_graph_nexus_adapter.py:434: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_nexus_adapter.py:450
+  .\tests\test_graph_nexus_adapter.py:450: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:203
+  .\tests\test_graph_unit.py:203: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:220
+  .\tests\test_graph_unit.py:220: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:240
+  .\tests\test_graph_unit.py:240: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:265
+  .\tests\test_graph_unit.py:265: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:283
+  .\tests\test_graph_unit.py:283: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:299
+  .\tests\test_graph_unit.py:299: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:311
+  .\tests\test_graph_unit.py:311: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:332
+  .\tests\test_graph_unit.py:332: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:350
+  .\tests\test_graph_unit.py:350: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:364
+  .\tests\test_graph_unit.py:364: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:372
+  .\tests\test_graph_unit.py:372: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:383
+  .\tests\test_graph_unit.py:383: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:410
+  .\tests\test_graph_unit.py:410: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:421
+  .\tests\test_graph_unit.py:421: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:436
+  .\tests\test_graph_unit.py:436: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:451
+  .\tests\test_graph_unit.py:451: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:466
+  .\tests\test_graph_unit.py:466: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:477
+  .\tests\test_graph_unit.py:477: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:488
+  .\tests\test_graph_unit.py:488: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:500
+  .\tests\test_graph_unit.py:500: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:512
+  .\tests\test_graph_unit.py:512: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:528
+  .\tests\test_graph_unit.py:528: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:566
+  .\tests\test_graph_unit.py:566: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:584
+  .\tests\test_graph_unit.py:584: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:805
+  .\tests\test_graph_unit.py:805: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:826
+  .\tests\test_graph_unit.py:826: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:845
+  .\tests\test_graph_unit.py:845: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:864
+  .\tests\test_graph_unit.py:864: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:873
+  .\tests\test_graph_unit.py:873: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:890
+  .\tests\test_graph_unit.py:890: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:914
+  .\tests\test_graph_unit.py:914: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_unit.py:935
+  .\tests\test_graph_unit.py:935: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_ws_smoke.py:78
+  .\tests\test_graph_ws_smoke.py:78: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_ws_smoke.py:103
+  .\tests\test_graph_ws_smoke.py:103: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_ws_smoke.py:135
+  .\tests\test_graph_ws_smoke.py:135: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_ws_smoke.py:174
+  .\tests\test_graph_ws_smoke.py:174: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_ws_smoke.py:199
+  .\tests\test_graph_ws_smoke.py:199: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_ws_smoke.py:239
+  .\tests\test_graph_ws_smoke.py:239: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_ws_smoke.py:264
+  .\tests\test_graph_ws_smoke.py:264: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests\test_graph_ws_smoke.py:291
+  .\tests\test_graph_ws_smoke.py:291: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests/test_integration.py::TestBrokerIntegration::test_call_without_persona_works_unchanged
+tests/test_sprint8_moe_wiring.py::TestFullMissionFlowWithMoERouting::test_full_mission_flow_without_rerouting
+tests/test_ws_server.py::TestOrchestrator::test_run_mission_respects_custom_mission_id
+  .\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+tests/test_nexus_ws.py::TestWsServerProtocol::test_ws_connect_with_expired_cookie_gets_4001
+tests/test_nexus_ws.py::TestWsServerProtocol::test_ws_connect_without_cookie_gets_4001
+  .\.venv\Lib\site-packages\websockets\exceptions.py:139: DeprecationWarning: ConnectionClosed.code is deprecated; use Protocol.close_code or ConnectionClosed.rcvd.code
+    warnings.warn(  # deprecated in 13.1 - 2024-09-21
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_broker_timeout.py::test_tool_timeout_returns_error - Failed...
+FAILED tests/test_broker_timeout.py::test_tool_within_timeout_succeeds - Fail...
+FAILED tests/test_graph_entrypoint.py::TestHappyPath::test_happy_path_returns_completed
+FAILED tests/test_graph_entrypoint.py::TestHappyPath::test_metadata_has_task_and_mission
+FAILED tests/test_graph_entrypoint.py::TestGateBlocked::test_gate_blocked_returns_failed
+FAILED tests/test_graph_entrypoint.py::TestCustomMaxAttempts::test_custom_max_attempts
+FAILED tests/test_graph_entrypoint.py::TestOnEventCallback::test_on_event_callback_receives_events
+FAILED tests/test_graph_entrypoint.py::TestContainerForwarding::test_container_forwarded_to_instrumented
+FAILED tests/test_graph_entrypoint.py::TestExceptionLogging::test_exception_logging_and_reraise
+FAILED tests/test_graph_entrypoint.py::TestExceptionLogging::test_exception_from_runner_propagates
+FAILED tests/test_graph_entrypoint.py::TestLogging::test_entry_and_exit_logs
+FAILED tests/test_graph_integration.py::TestHappyPath::test_single_step_completes
+FAILED tests/test_graph_integration.py::TestHappyPath::test_metadata_populated
+FAILED tests/test_graph_integration.py::TestHappyPath::test_node_history_order
+FAILED tests/test_graph_integration.py::TestHappyPath::test_event_callback_receives_events
+FAILED tests/test_graph_integration.py::TestGateBlocked::test_red_semaphore_blocks
+FAILED tests/test_graph_integration.py::TestGateBlocked::test_gate_result_stored
+FAILED tests/test_graph_integration.py::TestHITL::test_yellow_semaphore_suspends
+FAILED tests/test_graph_integration.py::TestHITL::test_resume_after_approval_completes
+FAILED tests/test_graph_integration.py::TestCorrectionLoop::test_transient_failure_retried_and_recovers
+FAILED tests/test_graph_integration.py::TestCircuitBreaker::test_persistent_failure_trips_cb
+FAILED tests/test_graph_integration.py::TestCircuitBreaker::test_cb_preserves_errors
+FAILED tests/test_graph_integration.py::TestMultiStep::test_three_steps_all_execute
+FAILED tests/test_graph_integration.py::TestPostGateWarning::test_failed_post_gate_still_completes
+FAILED tests/test_graph_integration.py::TestInstrumentedIntegration::test_instrumented_run_graph_happy_path
+FAILED tests/test_graph_nexus_adapter.py::TestNodeStartTranslation::test_plan_node_produces_thinking_status
+FAILED tests/test_graph_nexus_adapter.py::TestNodeStartTranslation::test_gate_node_produces_working_status
+FAILED tests/test_graph_nexus_adapter.py::TestNodeStartTranslation::test_route_node_produces_collaboration
+FAILED tests/test_graph_nexus_adapter.py::TestNodeStartTranslation::test_execute_node_resolves_step_agent
+FAILED tests/test_graph_nexus_adapter.py::TestNodeStartTranslation::test_execute_node_second_step_resolves_coder
+FAILED tests/test_graph_nexus_adapter.py::TestNodeEndTranslation::test_execute_node_end_produces_done
+FAILED tests/test_graph_nexus_adapter.py::TestNodeEndTranslation::test_plan_node_end_produces_no_events
+FAILED tests/test_graph_nexus_adapter.py::TestGraphEndTranslation::test_completed_produces_completion
+FAILED tests/test_graph_nexus_adapter.py::TestGraphEndTranslation::test_failed_produces_message
+FAILED tests/test_graph_nexus_adapter.py::TestGraphEndTranslation::test_circuit_broken_produces_message
+FAILED tests/test_graph_nexus_adapter.py::TestGraphSuspended::test_suspended_produces_approval_request
+FAILED tests/test_graph_nexus_adapter.py::TestNodeError::test_node_error_produces_error_message
+FAILED tests/test_graph_nexus_adapter.py::TestProtocolCompliance::test_schema_version_is_1
+FAILED tests/test_graph_nexus_adapter.py::TestProtocolCompliance::test_mission_id_propagated
+FAILED tests/test_graph_nexus_adapter.py::TestProtocolCompliance::test_sequence_monotonic
+FAILED tests/test_graph_nexus_adapter.py::TestProtocolCompliance::test_has_required_fields
+FAILED tests/test_graph_nexus_adapter.py::TestProtocolCompliance::test_event_id_format
+FAILED tests/test_graph_nexus_adapter.py::TestProtocolCompliance::test_timestamp_is_ms_epoch
+FAILED tests/test_graph_nexus_adapter.py::TestEdgeCases::test_unknown_node_defaults_to_manager
+FAILED tests/test_graph_nexus_adapter.py::TestEdgeCases::test_edge_taken_produces_no_events
+FAILED tests/test_graph_nexus_adapter.py::TestEdgeCases::test_send_failure_does_not_crash_adapter
+FAILED tests/test_graph_nexus_adapter.py::TestEdgeCases::test_custom_node_agent_map
+FAILED tests/test_graph_nexus_adapter.py::TestEdgeCases::test_no_state_execute_node_fallback
+FAILED tests/test_graph_nexus_adapter.py::TestEdgeCases::test_step_index_out_of_bounds_fallback
+FAILED tests/test_graph_nexus_adapter.py::TestAutoStateSync::test_state_auto_synced_from_event
+FAILED tests/test_graph_nexus_adapter.py::TestAutoStateSync::test_state_auto_synced_on_node_end
+FAILED tests/test_graph_nexus_adapter.py::TestAutoStateSync::test_no_state_field_keeps_previous_state
+FAILED tests/test_graph_unit.py::TestRunner::test_happy_path_single_node - Fa...
+FAILED tests/test_graph_unit.py::TestRunner::test_multi_node_chain - Failed: ...
+FAILED tests/test_graph_unit.py::TestRunner::test_conditional_edges - Failed:...
+FAILED tests/test_graph_unit.py::TestRunner::test_global_circuit_breaker - Fa...
+FAILED tests/test_graph_unit.py::TestRunner::test_per_step_circuit_breaker - ...
+FAILED tests/test_graph_unit.py::TestRunner::test_node_exception_caught - Fai...
+FAILED tests/test_graph_unit.py::TestRunner::test_hitl_suspend_and_resume - F...
+FAILED tests/test_graph_unit.py::TestRunner::test_event_callback_called - Fai...
+FAILED tests/test_graph_unit.py::TestRunner::test_event_callback_failure_swallowed
+FAILED tests/test_graph_unit.py::TestRunner::test_empty_graph_raises - Failed...
+FAILED tests/test_graph_unit.py::TestRunner::test_resume_from_invalid_node_raises
+FAILED tests/test_graph_unit.py::TestRunner::test_no_matching_edge_raises - F...
+FAILED tests/test_graph_unit.py::TestNodes::test_validate_success - Failed: a...
+FAILED tests/test_graph_unit.py::TestNodes::test_validate_error_true - Failed...
+FAILED tests/test_graph_unit.py::TestNodes::test_validate_refused - Failed: a...
+FAILED tests/test_graph_unit.py::TestNodes::test_validate_approval_required
+FAILED tests/test_graph_unit.py::TestNodes::test_validate_unbound_skipped - F...
+FAILED tests/test_graph_unit.py::TestNodes::test_validate_empty_results - Fai...
+FAILED tests/test_graph_unit.py::TestNodes::test_correct_increments_attempt
+FAILED tests/test_graph_unit.py::TestNodes::test_correct_rolls_back_step_index
+FAILED tests/test_graph_unit.py::TestNodes::test_correct_circuit_broken - Fai...
+FAILED tests/test_graph_unit.py::TestNodes::test_plan_node_creates_steps - Fa...
+FAILED tests/test_graph_unit.py::TestNodes::test_execute_node_unbound_tool - ...
+FAILED tests/test_graph_unit.py::TestNodes::test_execute_node_out_of_bounds
+FAILED tests/test_graph_unit.py::TestTelemetryInstrumented::test_happy_path_writes_two_records
+FAILED tests/test_graph_unit.py::TestTelemetryInstrumented::test_error_path_writes_error_record
+FAILED tests/test_graph_unit.py::TestTelemetryInstrumented::test_token_delta_detection
+FAILED tests/test_graph_unit.py::TestTelemetryInstrumented::test_no_container_does_not_crash
+FAILED tests/test_graph_unit.py::TestTelemetryInstrumented::test_obs_ctx_records_visit
+FAILED tests/test_graph_unit.py::TestTelemetryInstrumented::test_trace_record_fields
+FAILED tests/test_graph_unit.py::TestTelemetryRunGraph::test_instruments_all_nodes
+FAILED tests/test_graph_unit.py::TestTelemetryRunGraph::test_idempotent_wrapping
+FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionHappyPath::test_happy_path_sends_events
+FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionHappyPath::test_state_seeded_with_task_metadata
+FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionHITL::test_hitl_suspend_and_resume
+FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionHITL::test_hitl_timeout
+FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionHITL::test_hitl_missing_suspended_at
+FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionErrorHandling::test_exception_sends_error_event
+FAILED tests/test_graph_ws_smoke.py::TestRunGraphMissionErrorHandling::test_cancellation_cleans_up
+FAILED tests/test_graph_ws_smoke.py::TestGraphApprovalEvents::test_approval_event_signal_and_cleanup
+92 failed, 944 passed, 112 warnings, 47 subtests passed in 35.86s
