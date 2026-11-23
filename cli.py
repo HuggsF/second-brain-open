@@ -30,7 +30,6 @@ from core import tracing
 from core import evidence as evidence_core
 from core import ficha as ficha_core
 from core.evidence_store import EvidenceStore, EvidenceStoreError
-from core.qdrant_store import QdrantStore
 
 console = Console(force_terminal=True)
 
@@ -39,21 +38,32 @@ def cli():
     """Second Brain CLI para Desenvolvedores"""
     pass
 
-@cli.command("drive-sync")
-@click.option("--folder-id", default=None, help="ID da pasta do Google Drive (opcional)")
-def drive_sync_cmd(folder_id: str):
-    """Sincroniza documentos do Google Drive com o Vault, extrai texto e atualiza o grafo."""
-    from ingestion.drive_sync import DriveSyncEngine
-    engine = DriveSyncEngine(folder_id=folder_id)
-    engine.run()
-
 @cli.command()
-def sync():
-    """Executa a sincronização diferencial do Vault com o Qdrant."""
-    console.print("[bold yellow][*] Iniciando sincronização diferencial do Vault...[/bold yellow]")
+@click.option("--rebuild", "do_rebuild", is_flag=True, help="Reconstrói o índice inteiro do Vault")
+@click.option("--yes", "assume_yes", is_flag=True, help="Aceito e ignorado (compatibilidade com chamadas antigas)")
+def sync(do_rebuild, assume_yes):
+    """Sincroniza o Vault com o índice de busca."""
+    banner = "Reconstruindo o índice do Vault..." if do_rebuild else "Sincronizando o Vault..."
+    console.print(f"[bold yellow][*] {banner}[/bold yellow]")
     try:
-        from ingestion.sync import SyncEngine
+        from core.sync_lock import SyncBusy
+        from ingestion.sync import ReconstrucaoAbortada, SyncEngine
+    except Exception as e:
+        console.print(f"[bold red]Erro ao sincronizar:[/bold red] {e}")
+        raise SystemExit(1)
+    try:
         engine = SyncEngine()
+        if do_rebuild:
+            result = engine.rebuild(verbose=True)
+            console.print(Panel(
+                f"[bold green]Status da Reconstrução:[/bold green]\n"
+                f"• Arquivos: {result['files']}\n"
+                f"• Blocos: {result['chunks']}\n"
+                f"• Esquema: {result['esquema']}",
+                title="Reconstrução Concluída",
+                border_style="green"
+            ))
+            return
         result = engine.sync_vault(verbose=True)
         console.print(Panel(
             f"[bold green]Status da Sincronização:[/bold green]\n"
@@ -69,6 +79,18 @@ def sync():
             raise SystemExit(1)
     except SystemExit:
         raise
+    except SyncBusy:
+        click.echo("Outro sync está em andamento.")
+        raise SystemExit(1)
+    except ReconstrucaoAbortada as e:
+        click.echo("Reconstrução abortada; o índice ficou como estava. Notas ilegíveis:")
+        for arquivo in e.arquivos:
+            click.echo(f"  {arquivo}")
+        raise SystemExit(1)
+    except FileNotFoundError as e:
+        click.echo(f"{e}")
+        click.echo("Crie a pasta ou aponte outra com a variável BRAIN_VAULT_DIR.")
+        raise SystemExit(1)
     except Exception as e:
         console.print(f"[bold red]Erro ao sincronizar:[/bold red] {e}")
         raise SystemExit(1)
@@ -111,6 +133,7 @@ def status():
     console.print("[bold]Diagnóstico do Second Brain[/bold]\n")
 
     # 1. Checar Qdrant
+    from core.qdrant_store import QdrantStore  # sai junto com o motor vetorial
     qdrant = QdrantStore()
     stats = qdrant.get_stats()
     
