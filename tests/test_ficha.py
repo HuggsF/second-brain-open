@@ -504,5 +504,13 @@ class TestComandos(unittest.TestCase):
         self.assertFalse((self.raiz / "fora").exists())
 
 
+class TestFichasDoRepositorio(unittest.TestCase):
+    def test_fichas_do_repositorio_sao_validas(self):
+        resultados = ficha.validar_todas(ROOT / "fichas", ROOT)
+        invalidas = [(r.slug, r.problemas, [s.problemas for s in r.secoes]) for r in resultados if not r.valida]
+        self.assertEqual(invalidas, [])
+        self.assertIn("rag-dojo", [r.slug for r in resultados])
+
+
 if __name__ == "__main__":
     unittest.main()
