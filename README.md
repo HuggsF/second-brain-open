@@ -22,6 +22,20 @@ para o seu.
 | Nexus | `nexus/` | Interface React + Vite que mostra as missões dos agentes |
 | Avaliação | `evals/` | Casos de referência (exemplo fictício) e métricas |
 
+## Fichas de projeto
+
+Uma ficha é uma pasta de Markdown por projeto, em `fichas/`: visão, especificação, arquitetura, decisões,
+prontidão, auditorias por etapa e processos humanos. Cada seção declara o padrão de onde veio, e a ficha
+encolhe conforme o porte do projeto.
+
+- [`fichas/second-brain-open/`](fichas/second-brain-open/ficha.md): este repositório, descrito como está.
+- [`fichas/rag-dojo/`](fichas/rag-dojo/ficha.md): um projeto de estudo de RAG.
+
+```bash
+.venv/Scripts/python cli.py ficha nova meu-projeto --nome "Meu Projeto" --porte pequeno
+.venv/Scripts/python cli.py ficha validar      # sai com 1 se alguma ficha tiver problema
+```
+
 ## Instalação
 
 Requer Python 3.14+ e Node.js 22.12+ (para o Nexus).

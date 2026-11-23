@@ -510,6 +510,7 @@ class TestFichasDoRepositorio(unittest.TestCase):
         invalidas = [(r.slug, r.problemas, [s.problemas for s in r.secoes]) for r in resultados if not r.valida]
         self.assertEqual(invalidas, [])
         self.assertIn("rag-dojo", [r.slug for r in resultados])
+        self.assertIn("second-brain-open", [r.slug for r in resultados])
 
 
 if __name__ == "__main__":
