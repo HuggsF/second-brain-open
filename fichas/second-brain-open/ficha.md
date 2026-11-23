@@ -10,7 +10,7 @@ origem: Canvas de uma página do arc42
 # Second Brain (versão aberta)
 
 Motor local de conhecimento e orquestração de agentes. Esta ficha descreve o repositório como ele está
-hoje, inclusive o que ainda não funciona: a situação da ficha vem da auditoria, não deste texto.
+hoje, inclusive os limites: a situação da ficha vem da auditoria, não deste texto.
 
 ## O que é
 

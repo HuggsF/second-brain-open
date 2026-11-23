@@ -33,7 +33,5 @@ Cada critério é um comportamento que um arquivo de teste do repositório exerc
 | 7 | `tests/test_tracing.py`, `tests/test_trace_middleware.py` |
 | 8 | `tests/test_agnostic_core.py` |
 
-Os doze arquivos desta tabela passam hoje. As 92 falhas da suíte estão em outros seis arquivos, que cobrem
-o grafo de missão, o servidor WebSocket e o tempo limite de ferramenta: esses comportamentos ficam fora da
-tabela até que os testes rodem. O detalhe está na
-[auditoria de construção](06-auditorias/2026-11-23-construcao.md).
+Os doze arquivos desta tabela passam, assim como o resto da suíte. O resultado está na
+[auditoria de construção mais recente](06-auditorias/2026-11-23b-construcao.md).

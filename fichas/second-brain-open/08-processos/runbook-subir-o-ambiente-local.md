@@ -19,5 +19,4 @@ Na primeira instalação, e antes de registrar uma auditoria de construção.
 ## Como saber que deu certo
 
 - O passo 4 sai com código 0.
-- O passo 3 não mostra falha nova em relação à última auditoria de construção. As falhas já conhecidas
-  estão listadas na evidência dessa auditoria.
+- O passo 3 termina sem falha. Se houver falha, registre uma auditoria de construção com a saída.
