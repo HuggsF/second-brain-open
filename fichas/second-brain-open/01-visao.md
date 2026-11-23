@@ -31,8 +31,6 @@ para ficar de pé.
 - A busca depende de dois serviços locais (banco vetorial e servidor de modelos). Sem eles, `sync` e `ask`
   não funcionam.
 - O repositório não traz vault nem adaptadores de infraestrutura: quem instala precisa trazer os seus.
-- Os testes assíncronos (grafo de missão e WebSocket) não rodam neste estado do repositório; a auditoria de
-  construção registra o motivo.
 - A interface de agentes é um protótipo com dados simulados.
 
 ## Fora de escopo

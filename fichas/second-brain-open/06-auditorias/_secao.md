@@ -12,3 +12,4 @@ recentes de cada etapa.
 | Data | Etapa | Veredito |
 |---|---|---|
 | 2026-11-23 | [construção](2026-11-23-construcao.md) | âmbar |
+| 2026-11-23 | [construção, segunda do dia](2026-11-23b-construcao.md) | verde |

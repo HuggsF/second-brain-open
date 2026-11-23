@@ -1,0 +1,41 @@
+.\.venv\Lib\site-packages\pytest_asyncio\plugin.py:306: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to "function" scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session". Set it to "fixture-scope" to keep the current behavior.
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+........................................................................ [  6%]
+........................................................................ [ 13%]
+............................................................... [ 19%]
+........................................................................ [ 26%]
+........................................................................ [ 33%]
+........................................................................ [ 40%]
+........................................................................ [ 47%]
+........................................................................ [ 54%]
+.................................................................. [ 61%]
+........................................................... [ 66%]
+........................................................................ [ 73%]
+........................................................................ [ 80%]
+........................................................................ [ 87%]
+........................................................................ [ 94%]
+..................................................... [ 99%]
+....                                                                     [100%]
+============================== warnings summary ===============================
+tests/test_integration.py::TestBrokerIntegration::test_call_without_persona_works_unchanged
+tests/test_sprint8_moe_wiring.py::TestFullMissionFlowWithMoERouting::test_full_mission_flow_without_rerouting
+tests/test_ws_server.py::TestOrchestrator::test_run_mission_executes_pattern_and_finishes_with_all_agents
+tests/test_ws_server.py::TestOrchestrator::test_run_mission_respects_custom_mission_id
+  .\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+tests/test_nexus_ws.py::TestWsServerProtocol::test_ws_connect_with_expired_cookie_gets_4001
+tests/test_nexus_ws.py::TestWsServerProtocol::test_ws_connect_without_cookie_gets_4001
+  .\.venv\Lib\site-packages\websockets\exceptions.py:139: DeprecationWarning: ConnectionClosed.code is deprecated; use Protocol.close_code or ConnectionClosed.rcvd.code
+    warnings.warn(  # deprecated in 13.1 - 2024-09-21
+
+tests/test_trace_middleware.py::TestTraceMiddleware::test_unwritable_log_does_not_break_call
+  .\.venv\Lib\site-packages\pydantic\main.py:270: RuntimeWarning: coroutine 'Event.wait' was never awaited
+    def __init__(self, /, **data: Any) -> None:
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1037 passed, 7 warnings, 47 subtests passed in 34.08s

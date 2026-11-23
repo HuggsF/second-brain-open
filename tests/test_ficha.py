@@ -326,6 +326,14 @@ class TestFicha(unittest.TestCase):
         self.assertTrue(r.valida, [s.problemas for s in r.secoes])
         self.assertEqual(r.situacao, "ambar")
 
+    def test_duas_auditorias_no_mesmo_dia_vale_a_de_nome_posterior(self):
+        pasta = self.ficha()
+        trocar(self.aud(pasta), veredito="ambar", pendencia="p", prazo="2026-12-01", dono="mantenedor")
+        gravar(pasta / "06-auditorias" / "2026-11-10b-construcao.md", auditoria())
+        r = self.validar(pasta)
+        self.assertTrue(r.valida, [s.problemas for s in r.secoes])
+        self.assertEqual(r.situacao, "verde")
+
     def test_situacao_vermelha_quando_a_mais_recente_e_vermelha(self):
         pasta = self.ficha()
         gravar(pasta / "06-auditorias" / "2026-11-20-construcao.md",
