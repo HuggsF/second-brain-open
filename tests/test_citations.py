@@ -39,10 +39,10 @@ def sha(data: bytes) -> str:
 
 
 class SelectHitsTest(unittest.TestCase):
-    def test_floor_cuts_everything_when_top_is_low(self):  # CA-04 / INV-N02
+    def test_floor_cuts_everything_when_top_is_low(self):
         self.assertEqual(select_hits(hits(12.0, 11.0), min_score=13.79, max_drop=0.5, max_per_doc=2, limit=5), [])
 
-    def test_queda_relativa_ao_topo(self):  # CA-04
+    def test_queda_relativa_ao_topo(self):
         data = [_hit("a", 20.0), _hit("b", 12.0), _hit("c", 9.9)]
         got = select_hits(data, min_score=5.0, max_drop=0.5, max_per_doc=1, limit=5)
         self.assertEqual([h["payload"]["file_path"] for h in got], ["a", "b"])
@@ -66,7 +66,7 @@ class SelectHitsTest(unittest.TestCase):
     def test_empty_input(self):
         self.assertEqual(select_hits([], min_score=13.79, max_drop=0.5, max_per_doc=2, limit=5), [])
 
-    def test_max_per_doc_frees_slots_for_other_docs(self):  # CA-05
+    def test_max_per_doc_frees_slots_for_other_docs(self):
         got = select_hits(
             hits_docs(("a", 20.0), ("a", 19.0), ("a", 18.0), ("b", 17.0)),
             min_score=13.79, max_drop=0.5, max_per_doc=2, limit=3,
@@ -96,7 +96,7 @@ class SelectHitsTest(unittest.TestCase):
 
 
 class UnknownEntityGateTest(unittest.TestCase):
-    """Gate de entidade desconhecida: so remove trechos e nomeia os termos (spec 2.3, CA-5)."""
+    """Gate de entidade desconhecida: so remove trechos e nomeia os termos."""
 
     HITS = [{"score": 0.99, "payload": {"file_path": "a.md"}}, {"score": 0.98, "payload": {"file_path": "b.md"}}]
 

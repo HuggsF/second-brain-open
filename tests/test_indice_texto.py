@@ -416,10 +416,10 @@ def _nota(rel, titulo, secao, trechos, **meta):
 def ix(tmp_path):
     ix = IndiceTexto(tmp_path / "busca.db")
     notas = {
-        "rules/RULE-006.md": _nota(
-            "rules/RULE-006.md", "Regra de conciliacao", "Corpo",
-            ["A reconciliação de emissão incerta exige conferir o registro antes de repetir."],
-            category="rules", bounded_context="faturamento",
+        "rules/regra-006.md": _nota(
+            "rules/regra-006.md", "Regra de devolucao", "Corpo",
+            ["A devolução de reserva vencida exige conferir o registro antes de repetir."],
+            category="rules", bounded_context="atendimento",
         ),
         "systems/central-pedidos-verificacao.md": _nota(
             "systems/central-pedidos-verificacao.md", "Verificacao previa", "Visao geral",
@@ -435,8 +435,8 @@ def ix(tmp_path):
             ["A fila de pedidos aparece só aqui, no corpo."], category="systems",
         ),
         "domain/gama.md": _nota(
-            "domain/gama.md", "Emissor de etiquetas", "Resumo",
-            ["O emissor gera a etiqueta do volume."], category="domain", space_id="outro",
+            "domain/gama.md", "Reservador de salas", "Resumo",
+            ["O reservador marca a sala do evento."], category="domain", space_id="outro",
         ),
         "domain/multi.md": _nota(
             "domain/multi.md", "Notas de lote", "Resumo",
@@ -451,8 +451,8 @@ def ix(tmp_path):
 
 
 def test_busca_acha_pelo_corpo_e_devolve_o_payload(ix):
-    hits = ix.buscar("reconciliação de emissão incerta", limit=3)
-    assert hits[0]["payload"]["file_path"] == "rules/RULE-006.md"
+    hits = ix.buscar("devolução de reserva vencida", limit=3)
+    assert hits[0]["payload"]["file_path"] == "rules/regra-006.md"
     assert set(hits[0]["payload"]) >= {
         "chunk_id", "content", "doc_title", "section", "category",
         "line_start", "line_end", "doc_sha256", "space_id",
@@ -472,12 +472,12 @@ def test_caminho_e_pesquisavel(ix):
 
 
 def test_acento_e_caixa_nao_importam(ix):
-    hits = ix.buscar("EMISSAO", limit=5)
-    assert "rules/RULE-006.md" in [h["payload"]["file_path"] for h in hits]
+    hits = ix.buscar("DEVOLUCAO", limit=5)
+    assert "rules/regra-006.md" in [h["payload"]["file_path"] for h in hits]
 
 
 def test_radical_casa_variacoes(ix):
-    hits = ix.buscar("emissões", limit=5)
+    hits = ix.buscar("reservas", limit=5)
     assert "domain/gama.md" in [h["payload"]["file_path"] for h in hits]
 
 
@@ -503,12 +503,12 @@ def test_sem_per_doc_devolve_trechos_da_mesma_nota(ix):
 
 def test_filtro_de_espaco_categoria_e_contexto(ix):
     def caminhos(**filtros):
-        return {h["payload"]["file_path"] for h in ix.buscar("emissor emissão", limit=10, **filtros)}
+        return {h["payload"]["file_path"] for h in ix.buscar("reservador reserva", limit=10, **filtros)}
 
     assert caminhos(space_id="outro") == {"domain/gama.md"}
-    assert caminhos(category="rules") == {"rules/RULE-006.md"}
-    assert caminhos(bounded_context="faturamento") == {"rules/RULE-006.md"}
-    assert caminhos(space_id="principal", category="rules") == {"rules/RULE-006.md"}
+    assert caminhos(category="rules") == {"rules/regra-006.md"}
+    assert caminhos(bounded_context="atendimento") == {"rules/regra-006.md"}
+    assert caminhos(space_id="principal", category="rules") == {"rules/regra-006.md"}
     assert caminhos(space_id="outro", category="rules") == set()
 
 
@@ -521,18 +521,18 @@ def test_pergunta_sem_termos_devolve_vazio_sem_consultar(ix, monkeypatch):
 
 
 def test_indice_ausente_devolve_vazio(tmp_path):
-    assert IndiceTexto(tmp_path / "nao-existe.db").buscar("hub") == []
+    assert IndiceTexto(tmp_path / "nao-existe.db").buscar("nota") == []
 
 
 def test_sintaxe_do_fts_na_pergunta_nao_levanta(ix):
-    for entrada in ['"', '*', 'NEAR(hub fila)', 'titulo:hub', '-hub', '(hub OR', 'hub OR', "hub'; drop table trechos;--"]:
+    for entrada in ['"', '*', 'NEAR(nota fila)', 'titulo:nota', '-nota', '(nota OR', 'nota OR', "nota'; drop table trechos;--"]:
         ix.buscar(entrada)
     assert ix.total_trechos() > 0
 
 
 def test_campo_opcional_nulo_nao_entra_no_payload(ix):
-    por_caminho = {h["payload"]["file_path"]: h["payload"] for h in ix.buscar("reconciliação emissor", limit=5)}
-    assert por_caminho["rules/RULE-006.md"]["bounded_context"] == "faturamento"
+    por_caminho = {h["payload"]["file_path"]: h["payload"] for h in ix.buscar("devolução reservador", limit=5)}
+    assert por_caminho["rules/regra-006.md"]["bounded_context"] == "atendimento"
     assert "bounded_context" not in por_caminho["domain/gama.md"]
     assert "related" not in por_caminho["domain/gama.md"]
 
@@ -543,4 +543,4 @@ def test_erro_que_nao_e_de_corrupcao_propaga_na_busca(ix, monkeypatch):
 
     monkeypatch.setattr(IndiceTexto, "_conectar", bloqueado)
     with pytest.raises(sqlite3.OperationalError):
-        ix.buscar("hub")
+        ix.buscar("nota")

@@ -85,9 +85,10 @@ def sync(do_rebuild, assume_yes):
         click.echo("Outro sync está em andamento.")
         raise SystemExit(1)
     except ReconstrucaoAbortada as e:
-        click.echo("Reconstrução abortada; o índice ficou como estava. Notas ilegíveis:")
+        click.echo("Reconstrução abortada: nenhum índice foi gravado ou alterado. Notas ilegíveis:")
         for arquivo in e.arquivos:
             click.echo(f"  {arquivo}")
+        click.echo("Corrija ou remova essas notas (precisam ser texto UTF-8) e rode o sync de novo.")
         raise SystemExit(1)
     except FileNotFoundError as e:
         click.echo(f"{e}")
@@ -545,4 +546,5 @@ def ficha_validar(slug):
 
 
 if __name__ == "__main__":
-    cli()
+    # No Windows o click expande curingas dos argumentos; uma pergunta com "*" viraria lista de arquivos.
+    cli(windows_expand_args=False)

@@ -26,7 +26,7 @@ foi alterado.
 
 ## Resultado
 
-Verde: 1262 testes passam e nenhum falha. O `sync` indexou as três notas, e cada pergunta devolveu a nota
+Verde: 1266 testes passam e nenhum falha. O `sync` indexou as três notas, e cada pergunta devolveu a nota
 esperada.
 
 Em relação à auditoria anterior, três testes mudaram: os dois que montavam o recuperador com um banco

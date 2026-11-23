@@ -1,5 +1,8 @@
 """Comandos de busca do cli sobre um vault temporário: sync, buscar, ask e status, sem serviço nenhum."""
+import os
 import re
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -16,6 +19,7 @@ NOTAS = {
     "systems/estoque.md": "# Estoque\n\n## Reserva\n\nA reserva de estoque expira depois de quinze minutos sem pagamento.\n",
     "domain/fatura.md": "# Fatura\n\n## Fechamento\n\nA fatura mensal fecha no dia dez e vence no dia vinte.\n",
 }
+RAIZ = Path(__file__).resolve().parent.parent
 SINTAXE_FTS = ('"', "*", "(", ")", "AND OR NOT", "NEAR(a b)", "a:b", "", "   ", '"aberta', "col:*", "-", "^")
 
 
@@ -40,6 +44,9 @@ class Ambiente(unittest.TestCase):
 
     def rodar(self, *args):
         resultado = CliRunner().invoke(cli.cli, list(args))
+        # exceção que não é SystemExit também dá saída 1 no CliRunner: sem isto, um defeito passaria por recusa
+        self.assertTrue(resultado.exception is None or isinstance(resultado.exception, SystemExit),
+                        repr(resultado.exception))
         resultado.texto = " ".join(re.sub(r"\x1b\[[0-9;]*m", "", resultado.output).split())
         return resultado
 
@@ -133,6 +140,47 @@ class TestBuscar(Ambiente):
         self.assertEqual(r.exit_code, 1, r.output)
         self.assertIn("sync --rebuild", r.texto)
         self.assertNotIn("Traceback", r.output)
+
+
+class TestPrimeiroSync(Ambiente):
+    def test_primeiro_sync_com_nota_ilegivel_aborta_e_diz_o_que_fazer(self):
+        (self.vault / "systems" / "ruim.md").write_bytes(b"## S1\n\ntexto \xff\xfe invalido\n")
+        r = self.rodar("sync")
+        self.assertEqual(r.exit_code, 1, r.output)
+        self.assertIn("ruim.md", r.texto)
+        self.assertIn("nenhum índice foi gravado ou alterado", r.texto)
+        self.assertIn("Corrija ou remova", r.texto)
+        self.assertNotIn("ficou como estava", r.texto)
+        self.assertEqual(self.rodar("buscar", "reserva de estoque").exit_code, 1)
+
+    def test_nota_ilegivel_depois_do_primeiro_sync_falha_sozinha(self):
+        self.sincronizar()
+        (self.vault / "systems" / "ruim.md").write_bytes(b"## S1\n\ntexto \xff\xfe invalido\n")
+        r = self.rodar("sync")
+        self.assertEqual(r.exit_code, 1, r.output)
+        self.assertIn("Sincronização com falhas", r.texto)
+        r = self.rodar("buscar", "reserva de estoque")
+        self.assertEqual(r.exit_code, 0, r.output)
+        self.assertIn("systems/estoque.md", r.texto)
+
+
+class TestLinhaDeComandoReal(Ambiente):
+    """Pelo processo de verdade: o CliRunner não passa pela expansão de curingas do Windows."""
+
+    def processo(self, *args):
+        ambiente = dict(os.environ, BRAIN_VAULT_DIR=str(self.vault), BRAIN_INDEX_PATH=str(self.indice),
+                        PYTHONIOENCODING="utf-8", NO_COLOR="1")
+        return subprocess.run([sys.executable, "cli.py", *args], cwd=str(RAIZ), env=ambiente,
+                              capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+
+    def test_curinga_na_pergunta_nao_vira_lista_de_arquivos(self):
+        self.assertEqual(self.processo("sync").returncode, 0)
+        for pergunta in ("*", "c*", "?"):
+            with self.subTest(pergunta=pergunta):
+                r = self.processo("buscar", pergunta)
+                self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+                self.assertNotIn("unexpected extra arguments", r.stdout + r.stderr)
+                self.assertIn("Nada encontrado", r.stdout)
 
 
 class TestVault(Ambiente):

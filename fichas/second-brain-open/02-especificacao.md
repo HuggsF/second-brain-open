@@ -19,7 +19,9 @@ aplica: sim
 7. Cada chamada ao servidor MCP gera um registro de rastreio com os campos sensíveis mascarados.
 8. O núcleo novo não cita o nome da organização que o usa.
 9. `sync` indexa o vault em um arquivo SQLite e `buscar` devolve os trechos relevantes sem serviço
-   nenhum; nota ilegível falha sozinha, sem derrubar as outras.
+   nenhum. Com o índice já construído, nota ilegível falha sozinha e as outras são atualizadas. Na
+   primeira indexação e na reconstrução, uma nota ilegível aborta tudo: o `sync` lista as notas e não
+   grava índice parcial.
 10. Sem servidor de modelos, `ask` mostra as fontes, diz que a resposta não foi gerada e sai com 1.
 
 ## Critérios de aceite

@@ -39,6 +39,12 @@ class TestConfigBusca(unittest.TestCase):
         alvo = str(config.BASE_DIR.parent / "outro-vault")
         self.assertEqual(str(self.carregar(BRAIN_VAULT_DIR=alvo).vault_dir), alvo)
 
+    def test_variavel_vazia_vale_o_padrao(self):
+        s = self.carregar(BRAIN_VAULT_DIR="", BRAIN_INDEX_PATH="", BRAIN_SPACE_ID="")
+        self.assertEqual(s.vault_dir, config.BASE_DIR / "vault")
+        self.assertEqual(s.index_path, config.BASE_DIR / ".runtime" / "indice-busca.db")
+        self.assertEqual(s.space_id, "principal")
+
     def test_max_drop_fora_da_faixa_e_erro(self):
         for valor in ("1.5", "-0.1"):
             with self.assertRaises(ValueError, msg=valor):

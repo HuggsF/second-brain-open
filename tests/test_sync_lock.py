@@ -19,7 +19,7 @@ class TestSyncLock(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
         self.path = self.tmp / "sub" / "sync.lock"
 
-    def test_second_holder_gets_busy(self):  # CA-05
+    def test_second_holder_gets_busy(self):
         with sync_lock(self.path):
             with self.assertRaises(SyncBusy):
                 with sync_lock(self.path):

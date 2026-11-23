@@ -1,4 +1,4 @@
-"""Vocabulario do vault e termos desconhecidos da pergunta (spec 2.3, CA-4, CA-6)."""
+"""Vocabulario do vault e termos desconhecidos da pergunta."""
 import os
 import tempfile
 import unittest

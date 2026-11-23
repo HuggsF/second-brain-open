@@ -228,7 +228,7 @@ def test_vault_sem_mudanca_e_lixo_nas_ultimas_paginas_reconstroi_uma_vez(ambient
     }
 
 
-def test_edicao_entre_diferenca_e_leitura_grava_os_bytes_novos(ambiente):  # INV-N05
+def test_edicao_entre_diferenca_e_leitura_grava_os_bytes_novos(ambiente):
     vault, ix, motor = ambiente
     motor.sync_vault(verbose=False)
     (vault / "a.md").write_text("## S1\n\nprimeira edicao\n", encoding="utf-8")
@@ -246,7 +246,7 @@ def test_edicao_entre_diferenca_e_leitura_grava_os_bytes_novos(ambiente):  # INV
     assert motor.sync_vault(verbose=False)["modified"] == 0
 
 
-def test_hash_do_manifesto_e_o_dos_bytes_fatiados(ambiente):  # INV-N05
+def test_hash_do_manifesto_e_o_dos_bytes_fatiados(ambiente):
     vault, ix, motor = ambiente
     motor.sync_vault(verbose=False)
     lidos = {}

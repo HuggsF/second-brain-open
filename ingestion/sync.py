@@ -100,7 +100,7 @@ class SyncEngine:
         return {"files": contagem["files"], "chunks": contagem["chunks"], "esquema": esquema_indice()}
 
     def _read_and_chunk(self, file_path: Path, rel_path: str):
-        """Leitura única: o hash devolvido é o dos mesmos bytes que geram os chunks (INV-N05).
+        """Leitura única: o hash devolvido é o dos mesmos bytes que geram os chunks.
 
         Devolve `(sha256, chunks)`; erro de leitura levanta `OSError`, bytes fora de UTF-8
         levantam `UnicodeDecodeError`.

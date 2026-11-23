@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 def _caminho(variavel: str, padrao: Path) -> Path:
     """Caminho vindo do ambiente; relativo resolve contra a raiz do repositório, não contra o diretório atual."""
-    caminho = Path(os.getenv(variavel, str(padrao)))
+    caminho = Path(os.getenv(variavel) or str(padrao))  # variável vazia vale o padrão
     return caminho if caminho.is_absolute() else BASE_DIR / caminho
 
 
@@ -23,7 +23,7 @@ class Settings(BaseModel):
 
     # Índice de busca: um arquivo SQLite derivado do vault, reconstruível, nunca commitado.
     index_path: Path = Field(default_factory=lambda: _caminho("BRAIN_INDEX_PATH", BASE_DIR / ".runtime" / "indice-busca.db"))
-    space_id: str = Field(default_factory=lambda: os.getenv("BRAIN_SPACE_ID", "principal"))
+    space_id: str = Field(default_factory=lambda: os.getenv("BRAIN_SPACE_ID") or "principal")
 
     # Piso da busca. O score é BM25 (sem teto). Sem piso absoluto por padrão: ele depende do vault e
     # não foi medido neste repositório. `max_drop` é a queda tolerada em relação ao melhor resultado.
