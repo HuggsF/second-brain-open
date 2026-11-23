@@ -400,7 +400,7 @@ class Orchestrator:
             return "\n".join(lines)
 
         if tool == "get_brain_status":
-            return f"Qdrant: {result.get('total_vectors', '?')} vetores, {result.get('collections', '?')} coleções."
+            return f"Índice de busca: {result.get('notas', '?')} notas, {result.get('trechos', '?')} trechos."
 
         if tool == "list_rules":
             rules = result.get("rules", [])
@@ -447,7 +447,7 @@ class Orchestrator:
             n = len(result.get("sources", []))
             return f"Encontrei {n} fontes relevantes" if n else "Sem resultados"
         if tool == "get_brain_status":
-            return f"Qdrant OK — {result.get('total_vectors', '?')} vetores"
+            return f"Índice de busca: {result.get('trechos', '?')} trechos"
         if tool == "list_rules":
             return f"{result.get('total', 0)} regras verificadas"
         if tool == "get_system_architecture":

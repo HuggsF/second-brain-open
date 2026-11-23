@@ -5,12 +5,12 @@ from typing import Any, Callable, Dict
 from config import settings
 from core import evidence
 from core.evidence_store import EvidenceStore
-from core.qdrant_store import QdrantStore
+from core.indice_texto import IndiceTexto
 from core.retriever import BrainRetriever
 
 
 async def search_knowledge(query: str, category: str = None) -> dict:
-    """Busca vetorial no Qdrant."""
+    """Busca no índice de texto do vault."""
     retriever = BrainRetriever()
     result = retriever.query(query, limit=5, category=category, include_content=True)
     sources = result.get("sources", [])
@@ -49,10 +49,17 @@ async def get_adr(identifier: str) -> dict:
 
 
 async def get_brain_status() -> dict:
-    """Status do Qdrant."""
-    store = QdrantStore()
-    stats = store.get_stats()
-    return {"tool": "get_brain_status", **stats}
+    """Estado do índice de busca e do vault."""
+    stats = IndiceTexto().estatisticas()
+    vault = settings.vault_dir
+    return {
+        "tool": "get_brain_status",
+        "indice": str(settings.index_path),
+        "notas": stats.get("arquivos", 0),
+        "trechos": stats.get("points_count", 0),
+        "esquema": stats.get("esquema"),
+        "notas_no_vault": len(list(vault.rglob("*.md"))) if vault.is_dir() else 0,
+    }
 
 
 async def list_rules_with_evidence() -> dict:
