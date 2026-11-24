@@ -5,6 +5,7 @@ import json
 import math
 import os
 import re
+import sys
 import threading
 import time
 
@@ -17,7 +18,40 @@ from core.local_tasks.ollama_client import LocalModelError, OllamaClient
 from core.local_tasks.profile import Profile, ProfileNotFound, load_profile
 from core.local_tasks.providers import build_client, deadline_timeout, is_configured, probe_client
 from core.protocol import registry
+from core.cost import CostRecord
 from core.protocol.envelope import TASKS, make_envelope
+
+# ── Budget guard ───────────────────────────────────────
+
+
+def _build_local_only_client(profile):
+    """Build a FallbackClient with only local (non-cloud) providers.
+
+    Filters out ``openai_compatible`` providers so that only Ollama (or
+    other local providers) remain.  Returns ``None`` when no local
+    provider exists.  Uses :func:`build_client` indirectly so that mocks
+    on :class:`providers.OllamaClient` are respected.
+    """
+    from core.local_tasks.providers import FallbackClient
+    local_specs = [s for s in (profile.providers or ()) if s.kind != "openai_compatible"]
+    if not local_specs:
+        return None
+    # Import OllamaClient from providers so tests can mock it there
+    from core.local_tasks import providers as _prov
+    entries = []
+    for spec in local_specs:
+        if spec.kind == "ollama":
+            client = _prov.OllamaClient(
+                base_url=spec.base_url,
+                timeout=spec.timeout_seconds,
+                keep_alive=spec.keep_alive,
+            )
+        else:
+            continue
+        entries.append((spec, client))
+    if not entries:
+        return None
+    return FallbackClient(entries)
 
 _clock = time.monotonic
 STATUS_TIMEOUT_SECONDS = 5  # prazo total da sonda de cada provedor, independente do timeout do perfil
@@ -123,15 +157,15 @@ def _price(ref: dict, key: str) -> float:
 
 
 def _cost(model: str, tier: str, tin: int, tout: int, ms: int, profile: Profile | None,
-          provider_spec=None, actual_usd: float = 0.0) -> dict:
+          provider_spec=None, actual_usd: float = 0.0) -> CostRecord:
     ref = (profile.paid_reference if profile else None) or {}
     usd = (tin * _price(ref, "input") + tout * _price(ref, "output")) / 1e6
-    cost = {"model": model, "tier": tier, "tokens_in": tin, "tokens_out": tout, "ms": ms,
-            "paid_equivalent_usd": usd}
-    if provider_spec is not None:
-        cost["provider"] = provider_spec.name
-        cost["actual_usd"] = actual_usd
-    return cost
+    return CostRecord(
+        model=model, tier=tier, tokens_in=tin, tokens_out=tout, ms=ms,
+        paid_equivalent_usd=usd,
+        provider=provider_spec.name if provider_spec is not None else None,
+        actual_usd=actual_usd if provider_spec is not None else 0.0,
+    )
 
 
 def _errors(schema: dict, obj: dict) -> list[str]:
@@ -256,9 +290,28 @@ def _execute(task, text, template, target_words, source, profile, client):
     return status, reason, payload, _cost(model, "local", *used, profile)
 
 
+
+def _needs_model(task: str, template: str | None, source: str | None) -> bool:
+    """Return True when the task will call the model (non-deterministic).
+
+    Deterministic paths: unknown_task, unknown_template, validate-without-source.
+    Those never call the model, so the budget guard should let them through.
+    """
+    if task not in TASKS:
+        return False  # unknown_task → deterministic
+    if task in ("extract", "validate"):
+        try:
+            registry.load_schema(template)
+        except registry.UnknownTemplate:
+            return False  # unknown_template → deterministic
+    if task == "validate" and not source:
+        return False  # validate without source → deterministic
+    return True
+
 def run_task(task: str, *, text: str, template: str | None = None, target_words: int = 120,
              source: str | None = None, sender: str = "cli", trace_id: str | None = None,
-             profile: Profile | None = None, client: OllamaClient | None = None) -> dict:
+             profile: Profile | None = None, client: OllamaClient | None = None,
+             budget_tracker=None) -> dict:
     trace_id = trace_id or tracing.new_trace_id()
     env_task = task if task in TASKS else _safe_task_name(task)
     payload = {"text": text}
@@ -272,6 +325,9 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
                             template=template, trace_id=trace_id)
     events.record(request)
 
+    status = reason = out = cost = None
+    pre_state = None  # estado do orçamento lido antes da execução; None = indisponível
+
     if profile is None:
         try:
             profile = load_profile()
@@ -281,13 +337,86 @@ def run_task(task: str, *, text: str, template: str | None = None, target_words:
         except Exception:
             status, reason, out = "error", None, {}
             cost = _cost(settings.chat_model, "deterministic", 0, 0, 0, None)
-    if profile is not None:
-        status, reason, out, cost = _execute(task, text, template, target_words, source, profile, client)
+    if profile is not None and status is None:
+        # Budget guard: when exceeded, use only local providers
+        exec_client = client
+        if budget_tracker is not None:
+            try:
+                budget_st = budget_tracker.status()
+                budget_exceeded = budget_st.state == "exceeded"
+                limiting_period = budget_st.limiting_period
+                pre_state = budget_st.state
+            except Exception as exc:
+                # Estado ilegível: mesmo caminho do FailedBudgetTracker (exceeded, diário).
+                print(f"[budget] estado do orçamento indisponível ({type(exc).__name__}); "
+                      "nuvem bloqueada nesta chamada.", file=sys.stderr)
+                budget_exceeded, limiting_period = True, "daily"
+            if budget_exceeded:
+                if not profile.providers:
+                    # Legacy profile (no providers): uses Ollama implicitly,
+                    # so there is no cloud to block — skip the guard.
+                    pass
+                else:
+                    local_only = _build_local_only_client(profile)
+                    if local_only is not None:
+                        exec_client = local_only
+                    elif _needs_model(task, template, source):
+                        # Cloud-only profile, non-deterministic task: block
+                        budget_reason = ("budget_daily" if limiting_period == "daily"
+                                         else "budget_monthly")
+                        status, reason, out = "budget_exceeded", budget_reason, {}
+                        cost = _cost(profile.local_model, "deterministic", 0, 0, 0, profile)
+        if status is None:
+            status, reason, out, cost = _execute(
+                task, text, template, target_words, source, profile, exec_client)
     result = make_envelope("task.result", env_task, sender="router", to="caller", payload=out,
                            template=template, trace_id=trace_id, parent_id=request["id"],
-                           status=status, reason=reason, cost=cost)
+                           status=status, reason=reason, cost=cost.to_dict() if cost is not None else None)
     events.record(result)
+    # Record cost in budget tracker (always, including zero)
+    if budget_tracker is not None:
+        try:
+            budget_tracker.record(
+                cost, envelope_id=result["id"], trace_id=trace_id,
+                task=env_task, sender=sender, ts=result.get("ts"))
+        except Exception as exc:
+            # A resposta (possivelmente paga) volta intacta; o custo já está em events.jsonl.
+            print(f"[budget] falha ao registrar custo: {type(exc).__name__}; o custo está em "
+                  "events.jsonl e entra no próximo 'cli.py budget --rebuild'.", file=sys.stderr)
+        else:
+            _budget_alert(budget_tracker, pre_state, trace_id)
     return result
+
+
+_BUDGET_STATE_ORDER = {"normal": 0, "warning": 1, "critical": 2, "exceeded": 3}
+_BUDGET_PERIOD_LABEL = {"daily": "diário", "monthly": "mensal"}
+
+
+def _budget_alert(budget_tracker, pre_state, trace_id) -> None:
+    """Alerta quando o estado do orçamento piorou com esta chamada. Nunca levanta.
+
+    Sem estado anterior (status() falhou antes) não há com o que comparar: nada a alertar.
+    """
+    if pre_state is None:
+        return
+    try:
+        st = budget_tracker.status()
+        new_state = st.state
+        if _BUDGET_STATE_ORDER.get(new_state, -1) <= _BUDGET_STATE_ORDER.get(pre_state, 3):
+            return
+        # status() já escolhe o período limitante (o pior; empate fica com o diário).
+        period = st.limiting_period if st.limiting_period in _BUDGET_PERIOD_LABEL else "daily"
+        spent = float(st.daily_spent if period == "daily" else st.monthly_spent)
+        limit = float(st.daily_limit if period == "daily" else st.monthly_limit)
+        print(f"[budget] orçamento {_BUDGET_PERIOD_LABEL[period]} em {new_state}: "
+              f"US$ {spent:.4f} de US$ {limit:.2f}.", file=sys.stderr)
+    except Exception:
+        return
+    try:
+        events.publish({"type": "budget.alert", "state": new_state, "period": period,
+                        "spent": spent, "limit": limit, "trace_id": trace_id})
+    except Exception:
+        pass
 
 
 def _probe_providers(specs) -> list[dict]:

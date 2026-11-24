@@ -12,7 +12,8 @@ from click.testing import CliRunner
 
 import cli
 from config import settings
-from core.retriever import GeradorIndisponivel
+from core.cost import CostRecord
+from core.local_tasks.answer import AnswerResult
 
 NOTAS = {
     "systems/portal.md": "# Portal\n\n## Autenticação\n\nO portal autentica clientes com token de sessão renovado a cada hora.\n",
@@ -55,7 +56,7 @@ class Ambiente(unittest.TestCase):
         self.assertEqual(r.exit_code, 0, r.output)
 
     def gerador(self, funcao):
-        troca = mock.patch("core.retriever.gerador_local", funcao)
+        troca = mock.patch("core.retriever._profile_generator", funcao)
         troca.start()
         self.addCleanup(troca.stop)
 
@@ -238,40 +239,86 @@ class TestStatus(Ambiente):
         self.assertIn("3.40.0", r.texto)
 
 
+def resposta(texto="A reserva expira em quinze minutos.", provedor="nuvem-a", modelo="m1", usd=0.0012):
+    custo = CostRecord(model=modelo, tier="cloud" if provedor else "local", tokens_in=100, tokens_out=20, ms=5,
+                       paid_equivalent_usd=0.002, provider=provedor, actual_usd=usd)
+    return AnswerResult("ok", texto, None, provedor, custo)
+
+
+def falha(motivo):
+    custo = CostRecord(model="m1", tier="local", tokens_in=0, tokens_out=0, ms=0, paid_equivalent_usd=0.0)
+    return AnswerResult("model_error", None, motivo, None, custo)
+
+
 class TestAsk(Ambiente):
-    def test_ask_ok(self):
+    def test_ask_ok_mostra_provedor_e_custo(self):
         self.sincronizar()
-        self.gerador(lambda sistema, usuario: "A reserva expira em quinze minutos.")
+        self.gerador(lambda sistema, usuario: resposta())
         r = self.rodar("ask", "reserva de estoque")
         self.assertEqual(r.exit_code, 0, r.output)
         self.assertIn("A reserva expira em quinze minutos.", r.texto)
         self.assertIn("systems/estoque.md", r.texto)
+        self.assertIn("Gerado por: nuvem-a · custo US$ 0.0012", r.texto)
 
-    def test_ask_sem_servidor_de_modelos(self):
+    def test_ask_do_servidor_local_nao_mostra_none(self):
         self.sincronizar()
-
-        def fora_do_ar(sistema, usuario):
-            raise GeradorIndisponivel("ConnectError: conexao recusada")
-        self.gerador(fora_do_ar)
+        self.gerador(lambda s, u: resposta(provedor=None, modelo="m-local", usd=0.0))
         r = self.rodar("ask", "reserva de estoque")
+        self.assertEqual(r.exit_code, 0, r.output)
+        self.assertIn("Gerado por: servidor local (m-local) · custo US$ 0.0000", r.texto)
+        self.assertNotIn("None", r.texto)
+
+    def test_ask_sem_gerador_diz_o_motivo_mostra_as_fontes_e_sai_1(self):
+        self.sincronizar()
+        for motivo, frase in (
+            ("budget_daily", "Resposta não gerada: orçamento do dia esgotado."),
+            ("budget_monthly", "Resposta não gerada: orçamento do mês esgotado."),
+            ("profile_not_found", "Resposta não gerada: perfil não encontrado ou inválido."),
+            ("timeout", "Resposta não gerada: nenhum provedor respondeu (timeout)."),
+            ("local_unavailable", "Resposta não gerada: o servidor local de modelos não respondeu."),
+            ("empty_answer", "Resposta não gerada: nenhum provedor respondeu (empty_answer)."),
+        ):
+            with self.subTest(motivo=motivo):
+                self.gerador(lambda s, u, motivo=motivo: falha(motivo))
+                r = self.rodar("ask", "reserva de estoque")
+                self.assertEqual(r.exit_code, 1, r.output)
+                self.assertIn(frase, r.texto)
+                self.assertIn("systems/estoque.md", r.texto)
+                self.assertIn("cli.py budget", r.texto)
+                self.assertIn("OLLAMA_URL", r.texto)
+                self.assertNotIn("Gerado por", r.texto)
+                for proibido in ("Traceback", "None"):
+                    self.assertNotIn(proibido, r.output)
+
+    def test_perfil_inexistente_nao_atrapalha_a_busca(self):
+        self.sincronizar()
+        with mock.patch.dict(os.environ, {"BRAIN_PROFILE": "perfil-que-nao-existe"}):
+            r = self.rodar("buscar", "reserva de estoque")
+            self.assertEqual(r.exit_code, 0, r.output)
+            self.assertIn("systems/estoque.md", r.texto)
+            r = self.rodar("ask", "reserva de estoque")
         self.assertEqual(r.exit_code, 1, r.output)
+        self.assertIn("perfil não encontrado ou inválido", r.texto)
         self.assertIn("systems/estoque.md", r.texto)
-        self.assertIn("não pôde ser gerada", r.texto)
-        for proibido in ("Traceback", "ConnectError"):
-            self.assertNotIn(proibido, r.output)
 
     def test_ask_sem_fontes_sai_0_e_nao_chama_o_gerador(self):
         self.sincronizar()
         chamadas = []
-        self.gerador(lambda s, u: chamadas.append(1) or "x")
+        self.gerador(lambda s, u: chamadas.append(1) or resposta())
         r = self.rodar("ask", "zzqx wwyk")
         self.assertEqual(r.exit_code, 0, r.output)
         self.assertEqual(chamadas, [])
+        self.assertNotIn("Gerado por", r.texto)
 
     def test_ask_sem_indice_sai_1(self):
         r = self.rodar("ask", "reserva de estoque")
         self.assertEqual(r.exit_code, 1, r.output)
         self.assertIn("cli.py sync", r.texto)
+
+    def test_status_nao_diz_mais_que_o_modelo_e_so_para_o_ask_local(self):
+        r = self.rodar("status")
+        self.assertEqual(r.exit_code, 0, r.output)
+        self.assertIn("cli.py budget", r.texto)
 
 
 class TestComandosRemovidos(unittest.TestCase):

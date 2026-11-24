@@ -43,8 +43,8 @@ class TestEnvelope(unittest.TestCase):
         req = envelope.make_envelope("task.request", "translate", sender="cli", to="local", payload={})
         self.assertNotEqual(envelope.validate_envelope(req), [])
 
-    def test_reasons_are_the_eight_codes(self):
-        self.assertEqual(len(envelope.REASONS), 8)
+    def test_reasons_include_budget_codes(self):
+        self.assertEqual(len(envelope.REASONS), 10)
         self.assertEqual(envelope.TASKS, ("classify", "extract", "summarize", "validate"))
 
 
@@ -55,8 +55,6 @@ class TestRegistry(unittest.TestCase):
             registry.load_schema("adr@9")
         with self.assertRaises(registry.UnknownTemplate):
             registry.load_schema("../adr@1")
-
-
     def test_output_schemas_validate(self):
         ok = {"labels": {"type": "adr", "team": "t", "tags": []}, "confidence": 0.5}
         self.assertEqual(registry.validate("classification@1", ok), [])

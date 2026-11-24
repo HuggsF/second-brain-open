@@ -952,3 +952,637 @@ class ProvidersStatusTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+
+class ProfileBudgetTests(unittest.TestCase):
+    def test_profile_with_budget_parses_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "b", "labels:\n  type: [a]\nbudget:\n  daily_usd: 1.0\n  monthly_usd: 20.0\n")
+            p = load_profile("b", root=root)
+        self.assertIsNotNone(p.budget)
+        self.assertEqual(p.budget.daily_usd, 1.0)
+        self.assertEqual(p.budget.monthly_usd, 20.0)
+        self.assertEqual(p.budget.warn_pct, 0.80)
+        self.assertEqual(p.budget.critical_pct, 0.95)
+
+    def test_profile_without_budget_is_none(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "nb", "labels:\n  type: [a]\n")
+            p = load_profile("nb", root=root)
+        self.assertIsNone(p.budget)
+
+    def test_profile_budget_invalid_negative_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "bad", "labels:\n  type: [a]\nbudget:\n  daily_usd: -1\n")
+            with self.assertRaises(ValueError):
+                load_profile("bad", root=root)
+
+    def test_profile_budget_warn_above_1_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, "bad", "labels:\n  type: [a]\nbudget:\n  warn_pct: 1.5\n")
+            with self.assertRaises(ValueError):
+                load_profile("bad", root=root)
+
+    def test_perfil_de_exemplo_tem_orcamento(self):
+        p = load_profile("example")
+        self.assertIsNotNone(p.budget)
+        self.assertEqual(p.budget.daily_usd, 0.50)
+        self.assertEqual(p.budget.monthly_usd, 10.0)
+
+# ── Budget guard tests ─────────────────────────────────
+
+import pytest
+
+
+def _budget_tracker(db_path, daily=0.50, monthly=10.0):
+    from core.budget import BudgetConfig, BudgetTracker
+    cfg = BudgetConfig(daily_usd=daily, monthly_usd=monthly)
+    return BudgetTracker(db_path, cfg)
+
+
+def _exhaust_budget(tracker, amount=0.01):
+    from core.cost import CostRecord
+    import uuid
+    cr = CostRecord(model="m", tier="cloud", tokens_in=0, tokens_out=0,
+                     ms=0, paid_equivalent_usd=0.0, provider="cloud",
+                     actual_usd=amount)
+    tracker.record(cr, envelope_id=str(uuid.uuid4()), task="warmup")
+
+
+def _cloud_only_profile():
+    from core.local_tasks.providers import ProviderSpec
+    return Profile(
+        name="t", labels={"type": ["adr", "system"], "team": ["logistics", "platform"]},
+        local_model="m", timeout_seconds=5, max_input_tokens=6000, retries=1,
+        paid_reference={"model": "ref", "input": 1.0, "output": 2.0},
+        providers=(
+            ProviderSpec(kind="openai_compatible", name="cloud", model="cloud-m",
+                         base_url="https://api.test/v1", timeout_seconds=20,
+                         price={"input": 0.5, "output": 1.0}),
+        ),
+    )
+
+
+def _mixed_profile():
+    from core.local_tasks.providers import ProviderSpec
+    return Profile(
+        name="t", labels={"type": ["adr", "system"], "team": ["logistics", "platform"]},
+        local_model="m", timeout_seconds=5, max_input_tokens=6000, retries=1,
+        paid_reference={"model": "ref", "input": 1.0, "output": 2.0},
+        providers=(
+            ProviderSpec(kind="openai_compatible", name="cloud", model="cloud-m",
+                         base_url="https://api.test/v1", timeout_seconds=20,
+                         api_key_env="CLOUD_KEY_TEST",
+                         price={"input": 0.5, "output": 1.0}),
+            ProviderSpec(kind="ollama", name="local", model="m",
+                         base_url="http://localhost:11434", timeout_seconds=120),
+        ),
+    )
+
+
+class BudgetGuardTests(unittest.TestCase):
+    def setUp(self):
+        from core import events
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.tmpdir = Path(self.tmp.name)
+        self.log = self.tmpdir / "events.jsonl"
+        patcher = mock.patch.object(events, "EVENTS_LOG", self.log)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self._trackers = []
+
+    def _tracker(self, daily=0.01, monthly=10.0):
+        t = _budget_tracker(self.tmpdir / f"budget_{len(self._trackers)}.db",
+                            daily=daily, monthly=monthly)
+        self._trackers.append(t)
+        self.addCleanup(t.close)
+        return t
+
+    def run_task(self, task="classify", client=None, profile=None, **kw):
+        from core.local_tasks import router
+        kw.setdefault("text", "some text")
+        return router.run_task(task, profile=profile or _profile(), client=client, **kw)
+
+    def test_budget_exceeded_blocks_cloud_only_task(self):
+        """budget exceeded + only cloud providers -> budget_exceeded status."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        fc = FakeClient(GOOD)
+        env = self.run_task(client=fc, profile=_cloud_only_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "budget_exceeded")
+        self.assertEqual(env["reason"], "budget_daily")
+        self.assertEqual(fc.calls, 0)
+
+    def test_budget_exceeded_mixed_profile_uses_local(self):
+        """budget exceeded + mixed profile -> executes via local only."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        from core.local_tasks import providers
+        local_fc = FakeClient(GOOD)
+        cloud_fc = FakeClient(GOOD)
+        with mock.patch.dict(os.environ, {"CLOUD_KEY_TEST": "x"}), \
+             mock.patch.object(providers, "OllamaClient", return_value=local_fc), \
+             mock.patch.object(providers, "OpenAICompatClient", return_value=cloud_fc):
+            env = self.run_task(profile=_mixed_profile(), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(local_fc.calls, 1)
+        self.assertEqual(cloud_fc.calls, 0)
+
+    def test_budget_exceeded_mixed_profile_no_cloud_attempt(self):
+        """budget exceeded + mixed profile -> zero cloud calls."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        from core.local_tasks import providers
+        cloud_mock = mock.Mock()
+        local_fc = FakeClient(GOOD)
+        with mock.patch.dict(os.environ, {"CLOUD_KEY_TEST": "x"}), \
+             mock.patch.object(providers, "OllamaClient", return_value=local_fc), \
+             mock.patch.object(providers, "OpenAICompatClient", return_value=cloud_mock):
+            env = self.run_task(profile=_mixed_profile(), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        cloud_mock.chat.assert_not_called()
+
+    def test_budget_exceeded_allows_deterministic_validate(self):
+        """budget exceeded + validate without source -> deterministic, ok."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        fc = FakeClient(GOOD)
+        env = self.run_task("validate", client=fc, profile=_cloud_only_profile(),
+                            template="adr@1",
+                            text="---\ntype: adr\nstatus: accepted\ndate: 2026-01-01\n---\n# T\n",
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(env["cost"]["tier"], "deterministic")
+        self.assertEqual(fc.calls, 0)
+
+    def test_budget_exceeded_allows_unknown_task(self):
+        """budget exceeded + unknown task -> invalid status, not budget_exceeded."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        fc = FakeClient(GOOD)
+        env = self.run_task("frobnicate", client=fc, profile=_cloud_only_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "invalid")
+        self.assertEqual(env["reason"], "unknown_task")
+        self.assertEqual(fc.calls, 0)
+
+    def test_budget_records_after_execute(self):
+        """task with real cost -> tracker receives record."""
+        tracker = self._tracker(daily=100.0)
+        env = self.run_task(client=FakeClient(GOOD), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        cur = tracker._conn.execute("SELECT COUNT(*) FROM cost_log")
+        self.assertEqual(cur.fetchone()[0], 1)
+
+    def test_budget_records_zero_for_deterministic(self):
+        """deterministic task -> tracker receives record with actual_usd=0."""
+        tracker = self._tracker(daily=100.0)
+        fc = FakeClient(GOOD)
+        env = self.run_task("frobnicate", client=fc, budget_tracker=tracker)
+        self.assertEqual(env["status"], "invalid")
+        self.assertEqual(env["reason"], "unknown_task")
+        self.assertEqual(tracker.daily_spent(), 0.0)
+        cur = tracker._conn.execute("SELECT COUNT(*) FROM cost_log")
+        self.assertEqual(cur.fetchone()[0], 1)
+
+    def test_budget_records_map_reduce_total(self):
+        """summarize with map-reduce -> tracker receives accumulated cost."""
+        tracker = self._tracker(daily=100.0)
+        text = "\n\n".join(["a" * 30, "b" * 30, "c" * 30])
+        fc = FakeClient({"summary": "s1", "key_points": []},
+                        {"summary": "s2", "key_points": []},
+                        {"summary": "s3", "key_points": []},
+                        {"summary": "final", "key_points": ["k"]})
+        env = self.run_task("summarize", client=fc, text=text,
+                            profile=_profile_small(), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(fc.calls, 4)
+        cur = tracker._conn.execute("SELECT COUNT(*) FROM cost_log")
+        self.assertEqual(cur.fetchone()[0], 1)
+
+    def test_no_tracker_no_change(self):
+        """Backward compat: without budget tracker -> identical behaviour."""
+        env = self.run_task(client=FakeClient(GOOD))
+        self.assertEqual(env["status"], "ok")
+
+    def test_envelope_accepts_budget_exceeded_status(self):
+        """schema validates budget_exceeded + budget_daily/budget_monthly."""
+        from core.protocol.envelope import validate_envelope
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        env = self.run_task(client=FakeClient(GOOD),
+                            profile=_cloud_only_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "budget_exceeded")
+        errors = validate_envelope(env)
+        self.assertEqual(errors, [])
+
+    def test_budget_monthly_reason_when_monthly_exceeded(self):
+        """Budget monthly exceeded -> reason is budget_monthly."""
+        tracker = self._tracker(daily=100.0, monthly=0.01)
+        _exhaust_budget(tracker)
+
+        env = self.run_task(client=FakeClient(GOOD),
+                            profile=_cloud_only_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "budget_exceeded")
+        self.assertEqual(env["reason"], "budget_monthly")
+
+    def test_budget_exceeded_legacy_profile_not_blocked(self):
+        """P2 regression: legacy profile (no providers) uses Ollama implicitly.
+        Budget exceeded must NOT block — there is no cloud to block."""
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+
+        # _profile() has providers=() — the legacy path
+        env = self.run_task(client=FakeClient(GOOD), profile=_profile(),
+                            budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+
+    def test_budget_map_reduce_records_monetary_sum(self):
+        """Coverage: map-reduce with priced provider — verify monetary sum.
+
+        Uses a FakeClient subclass that re-sets ``last_provider`` on each
+        ``chat()`` call, mimicking ``FallbackClient`` behaviour.  Without
+        this, ``_Deadline.__init__`` resets ``last_provider = None`` and
+        the router never sees a provider.
+        """
+        from core.local_tasks.providers import ProviderSpec
+        tracker = self._tracker(daily=100.0)
+        text = "\n\n".join(["a" * 30, "b" * 30, "c" * 30])
+        spec = ProviderSpec(
+            kind="openai_compatible", name="priced", model="m",
+            base_url="https://api.test/v1", timeout_seconds=20,
+            price={"input": 1.0, "output": 2.0})
+
+        class PricedFakeClient(FakeClient):
+            """FakeClient that sets last_provider on each chat() call."""
+            def chat(self, model, system, user, schema):
+                result = super().chat(model, system, user, schema)
+                self.last_provider = spec
+                return result
+
+        fc = PricedFakeClient(
+            {"summary": "s1", "key_points": []},
+            {"summary": "s2", "key_points": []},
+            {"summary": "s3", "key_points": []},
+            {"summary": "final", "key_points": ["k"]})
+        env = self.run_task("summarize", client=fc, text=text,
+                            profile=_profile_small(), budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(fc.calls, 4)
+        # Each call: tokens_in=10, tokens_out=5
+        # Per call: (10 * 1.0 + 5 * 2.0) / 1e6 = 0.00002
+        # 4 calls accumulated by _Deadline: 4 * 0.00002 = 0.00008
+        expected_usd = 4 * (10 * 1.0 + 5 * 2.0) / 1e6
+        self.assertAlmostEqual(env["cost"]["actual_usd"], expected_usd, places=10)
+        self.assertAlmostEqual(tracker.daily_spent(), expected_usd, places=10)
+        self.assertGreater(expected_usd, 0.0)
+        self.assertEqual(env["cost"]["tier"], "cloud")
+        self.assertEqual(env["cost"]["provider"], "priced")
+
+    def test_failed_tracker_blocks_cloud_only(self):
+        """P1 regression: FailedBudgetTracker + cloud-only -> budget_exceeded."""
+        from core.budget import FailedBudgetTracker, BudgetConfig
+        sentinel = FailedBudgetTracker(BudgetConfig())
+
+        fc = FakeClient(GOOD)
+        env = self.run_task(client=fc, profile=_cloud_only_profile(),
+                            budget_tracker=sentinel)
+        self.assertEqual(env["status"], "budget_exceeded")
+        self.assertEqual(fc.calls, 0)
+
+    def test_failed_tracker_allows_local_in_mixed(self):
+        """P1 regression: FailedBudgetTracker + mixed profile -> local exec."""
+        from core.budget import FailedBudgetTracker, BudgetConfig
+        from core.local_tasks import providers
+        sentinel = FailedBudgetTracker(BudgetConfig())
+
+        local_fc = FakeClient(GOOD)
+        cloud_fc = FakeClient(GOOD)
+        with mock.patch.dict(os.environ, {"CLOUD_KEY_TEST": "x"}), \
+             mock.patch.object(providers, "OllamaClient", return_value=local_fc), \
+             mock.patch.object(providers, "OpenAICompatClient", return_value=cloud_fc):
+            env = self.run_task(profile=_mixed_profile(),
+                                budget_tracker=sentinel)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(local_fc.calls, 1)
+        self.assertEqual(cloud_fc.calls, 0)
+
+    def test_failed_tracker_allows_legacy_profile(self):
+        """P1 regression: FailedBudgetTracker + legacy (no providers) -> ok."""
+        from core.budget import FailedBudgetTracker, BudgetConfig
+        sentinel = FailedBudgetTracker(BudgetConfig())
+
+        env = self.run_task(client=FakeClient(GOOD), profile=_profile(),
+                            budget_tracker=sentinel)
+        self.assertEqual(env["status"], "ok")
+
+
+class BudgetGuardRobustnessTests(unittest.TestCase):
+    """Guard de orçamento: falha do banco não levanta nem perde resposta paga.
+
+    A nuvem é um cliente falso contado (``self.cloud_calls``); a chave do provedor
+    de nuvem recebe um valor fictício, então o FallbackClient a chamaria se o guard
+    não bloqueasse. Nenhum HTTP real.
+    """
+
+    setUp = BudgetGuardTests.setUp
+    _tracker = BudgetGuardTests._tracker
+    run_task = BudgetGuardTests.run_task
+
+    def _run(self, budget_tracker, profile=None):
+        import contextlib
+        import io
+        from core.local_tasks import providers
+        self.cloud_fc = FakeClient(GOOD)
+        self.local_fc = FakeClient(GOOD)
+        err = io.StringIO()
+        with mock.patch.dict(os.environ, {"CLOUD_KEY_TEST": "x"}), \
+             mock.patch.object(providers, "OllamaClient", return_value=self.local_fc), \
+             mock.patch.object(providers, "OpenAICompatClient", return_value=self.cloud_fc), \
+             contextlib.redirect_stderr(err):
+            env = self.run_task(profile=profile or _mixed_profile(),
+                                budget_tracker=budget_tracker)
+        self.stderr = err.getvalue()
+        return env
+
+    @property
+    def cloud_calls(self):
+        return self.cloud_fc.calls
+
+    def test_control_without_guard_calls_cloud(self):
+        """Controle: sem guard, o mesmo cenário chama a nuvem uma vez."""
+        env = self._run(budget_tracker=None)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.cloud_calls, 1)
+        self.assertEqual(self.local_fc.calls, 0)
+        self.assertEqual(env["cost"]["tier"], "cloud")
+
+    def test_exceeded_mixed_profile_makes_zero_cloud_calls(self):
+        tracker = self._tracker(daily=0.01)
+        _exhaust_budget(tracker)
+        env = self._run(budget_tracker=tracker)
+        self.assertEqual((self.cloud_calls, env["status"]), (0, "ok"))
+        self.assertEqual(self.local_fc.calls, 1)
+        self.assertEqual(env["cost"]["tier"], "local")
+
+    def test_record_failure_keeps_paid_result(self):
+        """Review Focus 2: banco travado só na gravação não perde a resposta paga."""
+        import sqlite3
+        tracker = self._tracker(daily=10.0)
+        with mock.patch.object(tracker, "record",
+                               side_effect=sqlite3.OperationalError("database is locked")):
+            env = self._run(budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.cloud_calls, 1)
+        self.assertEqual(env["cost"]["tier"], "cloud")
+        self.assertGreater(env["cost"]["actual_usd"], 0.0)
+        self.assertEqual(env["payload"]["labels"]["type"], "adr")
+        self.assertIn(
+            "[budget] falha ao registrar custo: OperationalError; o custo está em "
+            "events.jsonl e entra no próximo 'cli.py budget --rebuild'.", self.stderr)
+        # O custo não some: o task.result com o custo está em events.jsonl.
+        rows = [json.loads(line) for line in self.log.read_text(encoding="utf-8").splitlines()]
+        results = [r for r in rows if r.get("id") == env["id"]]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["cost"], env["cost"])
+
+    def test_record_failure_returns_same_envelope_as_success(self):
+        import sqlite3
+        ok_tracker = self._tracker(daily=10.0)
+        ok_env = self._run(budget_tracker=ok_tracker)
+        bad_tracker = self._tracker(daily=10.0)
+        with mock.patch.object(bad_tracker, "record",
+                               side_effect=sqlite3.OperationalError("database is locked")):
+            bad_env = self._run(budget_tracker=bad_tracker)
+        for key in ("status", "reason", "payload", "cost"):
+            self.assertEqual(bad_env.get(key), ok_env.get(key), key)
+
+    def test_status_failure_blocks_cloud_without_raising(self):
+        import sqlite3
+        tracker = mock.Mock()
+        tracker.status.side_effect = sqlite3.DatabaseError("malformed")
+        env = self._run(budget_tracker=tracker)
+        self.assertEqual(self.cloud_calls, 0)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.local_fc.calls, 1)
+        self.assertIn(
+            "[budget] estado do orçamento indisponível (DatabaseError); "
+            "nuvem bloqueada nesta chamada.", self.stderr)
+
+    def test_status_failure_cloud_only_reports_budget_daily(self):
+        import sqlite3
+        tracker = mock.Mock()
+        tracker.status.side_effect = sqlite3.DatabaseError("malformed")
+        env = self._run(budget_tracker=tracker, profile=_cloud_only_profile())
+        self.assertEqual(self.cloud_calls, 0)
+        self.assertEqual(env["status"], "budget_exceeded")
+        self.assertEqual(env["reason"], "budget_daily")
+
+    def test_status_and_record_failure_together_do_not_raise(self):
+        import sqlite3
+        tracker = mock.Mock()
+        tracker.status.side_effect = sqlite3.DatabaseError("malformed")
+        tracker.record.side_effect = sqlite3.OperationalError("database is locked")
+        env = self._run(budget_tracker=tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertIn("estado do orçamento indisponível (DatabaseError)", self.stderr)
+        self.assertIn("[budget] falha ao registrar custo: OperationalError", self.stderr)
+
+
+# ── Alerta de orçamento ao piorar o estado ──
+
+
+def _bstatus(state, daily_spent=0.0, daily_limit=1.0, monthly_spent=0.0, monthly_limit=20.0,
+             limiting=None):
+    from core.budget import BudgetStatus
+    if limiting is None and state != "normal":
+        limiting = "daily"
+    return BudgetStatus(
+        state=state, daily_spent=daily_spent, daily_limit=daily_limit,
+        daily_remaining=max(0.0, daily_limit - daily_spent),
+        monthly_spent=monthly_spent, monthly_limit=monthly_limit,
+        monthly_remaining=max(0.0, monthly_limit - monthly_spent),
+        limiting_period=limiting)
+
+
+class BudgetAlertTests(unittest.TestCase):
+    """Alerta (stderr + events.publish) quando o estado depois do record piora."""
+
+    setUp = BudgetGuardTests.setUp
+    run_task = BudgetGuardTests.run_task
+
+    def _tracker(self, *statuses):
+        tracker = mock.Mock()
+        tracker.status.side_effect = list(statuses)
+        return tracker
+
+    def _run(self, budget_tracker, publish_side_effect=None, trace_id=None):
+        import contextlib
+        import io
+        from core import events
+        err = io.StringIO()
+        with mock.patch.object(events, "publish",
+                               side_effect=publish_side_effect) as pub, \
+             contextlib.redirect_stderr(err):
+            env = self.run_task(client=FakeClient(GOOD), budget_tracker=budget_tracker,
+                                trace_id=trace_id)
+        self.stderr = err.getvalue()
+        self.alerts = [c.args[0] for c in pub.call_args_list
+                       if c.args and c.args[0].get("type") == "budget.alert"]
+        return env
+
+    def test_normal_to_warning_alerts_once_with_exact_fields(self):
+        tracker = self._tracker(_bstatus("normal", daily_spent=0.5),
+                                _bstatus("warning", daily_spent=0.85))
+        env = self._run(tracker, trace_id="trace-abc")
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [{
+            "type": "budget.alert", "state": "warning", "period": "daily",
+            "spent": 0.85, "limit": 1.0, "trace_id": "trace-abc"}])
+        self.assertEqual(self.stderr,
+                         "[budget] orçamento diário em warning: US$ 0.8500 de US$ 1.00.\n")
+
+    def test_second_call_still_warning_does_not_alert(self):
+        tracker = self._tracker(_bstatus("normal"), _bstatus("warning", daily_spent=0.85),
+                                _bstatus("warning", daily_spent=0.85),
+                                _bstatus("warning", daily_spent=0.86))
+        self._run(tracker)
+        self.assertEqual(len(self.alerts), 1)
+        self._run(tracker)
+        self.assertEqual(self.alerts, [])
+        self.assertEqual(self.stderr, "")
+
+    def test_better_state_does_not_alert(self):
+        tracker = self._tracker(_bstatus("critical", daily_spent=0.96),
+                                _bstatus("warning", daily_spent=0.85))
+        self._run(tracker)
+        self.assertEqual(self.alerts, [])
+        self.assertEqual(self.stderr, "")
+
+    def test_warning_to_critical_alerts(self):
+        tracker = self._tracker(_bstatus("warning", daily_spent=0.85),
+                                _bstatus("critical", daily_spent=0.96))
+        self._run(tracker)
+        self.assertEqual(len(self.alerts), 1)
+        self.assertEqual(self.alerts[0]["state"], "critical")
+        self.assertIn("[budget] orçamento diário em critical: US$ 0.9600 de US$ 1.00.",
+                      self.stderr)
+
+    def test_no_tracker_does_not_alert(self):
+        env = self._run(None)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [])
+        self.assertEqual(self.stderr, "")
+
+    def test_publish_raising_keeps_result_ok(self):
+        tracker = self._tracker(_bstatus("normal"), _bstatus("warning", daily_spent=0.85))
+        env = self._run(tracker, publish_side_effect=RuntimeError("boom"))
+        self.assertEqual(env["status"], "ok")
+        self.assertIn("[budget] orçamento diário em warning", self.stderr)
+
+    def test_status_after_record_raising_no_alert_no_raise(self):
+        import sqlite3
+        tracker = self._tracker(_bstatus("normal"), sqlite3.DatabaseError("malformed"))
+        env = self._run(tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [])
+        self.assertEqual(self.stderr, "")
+
+    def test_record_failure_no_alert(self):
+        import sqlite3
+        tracker = self._tracker(_bstatus("normal"), _bstatus("warning", daily_spent=0.85))
+        tracker.record.side_effect = sqlite3.OperationalError("database is locked")
+        env = self._run(tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [])
+        self.assertNotIn("orçamento diário", self.stderr)
+
+    def test_pre_status_unavailable_no_alert(self):
+        import sqlite3
+        tracker = self._tracker(sqlite3.DatabaseError("malformed"),
+                                _bstatus("exceeded", daily_spent=1.2))
+        env = self._run(tracker)
+        self.assertEqual(env["status"], "ok")
+        self.assertEqual(self.alerts, [])
+        self.assertNotIn("[budget] orçamento", self.stderr)
+
+    def test_monthly_period_when_monthly_drives_state(self):
+        tracker = self._tracker(
+            _bstatus("normal", daily_spent=0.1, monthly_spent=15.0),
+            _bstatus("warning", daily_spent=0.1, monthly_spent=16.5, limiting="monthly"))
+        self._run(tracker, trace_id="t-m")
+        self.assertEqual(self.alerts, [{
+            "type": "budget.alert", "state": "warning", "period": "monthly",
+            "spent": 16.5, "limit": 20.0, "trace_id": "t-m"}])
+        self.assertEqual(self.stderr,
+                         "[budget] orçamento mensal em warning: US$ 16.5000 de US$ 20.00.\n")
+
+
+# ── Gasto que escapava: preco obrigatorio com budget ──
+
+_CLOUD_NO_PRICE = (
+    "providers:\n"
+    "  - kind: ollama\n"
+    "    model: local-m\n"
+    "  - kind: openai_compatible\n"
+    "    name: cloud\n"
+    "    model: cloud-m\n"
+    "    base_url: https://api.test/v1\n"
+    "    api_key_env: CLOUD_KEY_TEST\n"
+)
+_BUDGET = "budget:\n  daily_usd: 1.0\n  monthly_usd: 20.0\n"
+
+
+class BudgetSpendAccountingTests(unittest.TestCase):
+    def _load(self, name, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write(root, name, "labels:\n  type: [a]\n" + text)
+            return load_profile(name, root=root)
+
+    def test_budget_with_unpriced_cloud_provider_raises(self):
+        with self.assertRaises(ValueError) as cm:
+            self._load("pb", _CLOUD_NO_PRICE + _BUDGET)
+        self.assertEqual(
+            str(cm.exception),
+            "profile pb: providers[1].price é obrigatório quando o perfil tem budget")
+
+    def test_budget_with_explicit_zero_price_raises(self):
+        text = _CLOUD_NO_PRICE + "    price:\n      input: 0\n      output: 0\n" + _BUDGET
+        with self.assertRaises(ValueError) as cm:
+            self._load("pz", text)
+        self.assertIn("providers[1].price é obrigatório", str(cm.exception))
+
+    def test_budget_with_priced_cloud_provider_loads(self):
+        text = _CLOUD_NO_PRICE + "    price:\n      input: 0.1\n      output: 0\n" + _BUDGET
+        p = self._load("pp", text)
+        self.assertIsNotNone(p.budget)
+        self.assertEqual(p.providers[1].price, {"input": 0.1, "output": 0.0})
+
+    def test_budget_with_unpriced_local_provider_loads(self):
+        p = self._load("pl", "providers:\n  - kind: ollama\n    model: local-m\n" + _BUDGET)
+        self.assertIsNotNone(p.budget)
+
+    def test_no_budget_accepts_zero_price(self):
+        p = self._load("nb", _CLOUD_NO_PRICE)
+        self.assertIsNone(p.budget)
+        self.assertEqual(p.providers[1].price, {"input": 0.0, "output": 0.0})
+
+if __name__ == "__main__":
+    unittest.main()

@@ -2,7 +2,7 @@ name: example
 labels:
   type: [adr, system, architecture, product, reference, team, domain, daily, rule, playbook, demand]
   team: [engineering, product, operations]
-timeout_seconds: 30
+timeout_seconds: 120
 max_input_tokens: 6000
 retries: 1
 max_blocks: 4
@@ -10,3 +10,25 @@ paid_reference:
   model: reference-small
   input: 0.15
   output: 0.60
+# Orçamento de chamadas pagas. Sem provedor de nuvem na cadeia, o gasto registrado é zero.
+budget:
+  daily_usd: 0.50
+  monthly_usd: 10.0
+  warn_pct: 0.80
+  critical_pct: 0.95
+# Cadeia de provedores (opcional). Sem ela, a geração usa o servidor local de modelos.
+# Conteúdo de tarefa só deve ir a provedor de nuvem que declare as duas garantias em
+# `extra.provider`: retenção zero (zdr) e recusa de coleta ou treino (data_collection: deny).
+# O motor repassa esse bloco ao provedor; ele não confere se o provedor cumpre.
+# Com `budget` declarado, todo provedor de nuvem precisa de `price`.
+# providers:
+#   - kind: openai_compatible
+#     name: nuvem
+#     model: modelo-pequeno
+#     base_url: https://provedor.example/v1
+#     api_key_env: PROVEDOR_API_KEY
+#     price: {input: 0.15, output: 0.60}
+#     extra:
+#       provider: {zdr: true, data_collection: deny}
+#   - kind: ollama
+#     model: llama3.2:3b

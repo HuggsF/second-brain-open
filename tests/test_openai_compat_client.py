@@ -1,5 +1,6 @@
 """Testes para core/local_tasks/openai_compat_client — cliente OpenAI-compativel."""
 import json
+import math
 import os
 import time
 import unittest
@@ -143,22 +144,45 @@ class OpenAICompatClientTests(unittest.TestCase):
             c.chat("m", "s", "u", {})
         self.assertEqual(cm.exception.reason, "local_unavailable")
 
-    def test_missing_usage_counts_zero(self):
-        body = {"choices": [{"message": {"content": "{}"}}]}
-        c = self._client(_handler_200(body))
-        out = c.chat("m", "s", "u", {})
-        self.assertEqual(out.tokens_in, 0)
-        self.assertEqual(out.tokens_out, 0)
+    def test_missing_usage_estimates_tokens_from_text(self):
+        system, user, text = "s" * 10, "u" * 11, "t" * 9
+        body = {"choices": [{"message": {"content": text}}]}
+        out = self._client(_handler_200(body)).chat("m", system, user, {})
+        self.assertEqual(out.tokens_in, math.ceil(len(system + user) / 4))  # 6
+        self.assertEqual(out.tokens_out, math.ceil(len(text) / 4))          # 3
+        self.assertEqual((out.tokens_in, out.tokens_out), (6, 3))
 
-    def test_malformed_usage_counts_zero_without_raising(self):
+    def test_missing_usage_estimate_has_minimum_one(self):
+        body = {"choices": [{"message": {"content": ""}}]}
+        out = self._client(_handler_200(body)).chat("m", "", "", {})
+        self.assertEqual((out.tokens_in, out.tokens_out), (1, 1))
+
+    def test_partial_usage_estimates_only_missing_field(self):
+        system, user, text = "abcd", "efgh", "x" * 13
+        body = {"choices": [{"message": {"content": text}}], "usage": {"prompt_tokens": 50}}
+        out = self._client(_handler_200(body)).chat("m", system, user, {})
+        self.assertEqual((out.tokens_in, out.tokens_out), (50, 4))
+        body = {"choices": [{"message": {"content": text}}], "usage": {"completion_tokens": 7}}
+        out = self._client(_handler_200(body)).chat("m", system, user, {})
+        self.assertEqual((out.tokens_in, out.tokens_out), (2, 7))
+
+    def test_present_usage_is_used_unchanged(self):
+        body = {"choices": [{"message": {"content": "x" * 400}}],
+                "usage": {"prompt_tokens": 3, "completion_tokens": 0}}
+        out = self._client(_handler_200(body)).chat("m", "s" * 400, "u", {})
+        self.assertEqual((out.tokens_in, out.tokens_out), (3, 0))
+
+    def test_malformed_usage_is_estimated_without_raising(self):
+        system, user, text = "s" * 8, "u" * 8, "{}"
         for usage in ("abc", [1, 2], 7,
                       {"prompt_tokens": "x", "completion_tokens": None},
                       {"prompt_tokens": [1], "completion_tokens": {"a": 1}},
                       {"prompt_tokens": True, "completion_tokens": float("nan")},
                       {"prompt_tokens": -3, "completion_tokens": float("inf")}):
-            raw = json.dumps({"choices": [{"message": {"content": "{}"}}], "usage": usage})
-            out = self._client(lambda r, raw=raw: httpx.Response(200, content=raw)).chat("m", "s", "u", {})
-            self.assertEqual((out.tokens_in, out.tokens_out), (0, 0), usage)
+            raw = json.dumps({"choices": [{"message": {"content": text}}], "usage": usage})
+            out = self._client(lambda r, raw=raw: httpx.Response(200, content=raw)).chat(
+                "m", system, user, {})
+            self.assertEqual((out.tokens_in, out.tokens_out), (4, 1), usage)
         body = {"choices": [{"message": {"content": "{}"}}],
                 "usage": {"prompt_tokens": 12.0, "completion_tokens": 3}}
         out = self._client(_handler_200(body)).chat("m", "s", "u", {})
@@ -220,6 +244,45 @@ class OpenAICompatClientTests(unittest.TestCase):
         with self.assertRaises(LocalModelError) as cm:
             c.chat("m", "s", "u", {})
         self.assertEqual(cm.exception.reason, "local_unavailable")
+
+
+class PrazoTotalTests(unittest.TestCase):
+    """O timeout do httpx vale por leitura: bytes de espera do provedor nunca o disparam."""
+
+    def _client_gotejando(self, segundos_por_byte, prazo, final=b""):
+        from core.local_tasks import openai_compat_client as mod
+        agora = [0.0]
+
+        def gotejar():
+            for _ in range(50):
+                agora[0] += segundos_por_byte
+                yield b" "
+            yield final
+
+        def handler(request):
+            return httpx.Response(200, content=gotejar())
+
+        cliente = mod.OpenAICompatClient(base_url="https://api.test/v1", deadline=prazo,
+                                         transport=httpx.MockTransport(handler))
+        return cliente, mock.patch.object(mod, "_relogio", lambda: agora[0])
+
+    def test_bytes_de_espera_sem_fim_estouram_o_prazo(self):
+        cliente, relogio = self._client_gotejando(50.0, prazo=120.0)
+        with relogio, self.assertRaises(LocalModelError) as cm:
+            cliente.chat("m", "s", "u", {})
+        self.assertEqual(cm.exception.reason, "timeout")
+        self.assertIn("prazo total", str(cm.exception))
+
+    def test_resposta_dentro_do_prazo_passa(self):
+        corpo = json.dumps(_ok_response('{"a": 1}')).encode()
+        cliente, relogio = self._client_gotejando(0.1, prazo=120.0, final=corpo)
+        with relogio:
+            r = cliente.chat("m", "s", "u", {})
+        self.assertEqual(r.text, '{"a": 1}')
+
+    def test_prazo_padrao_e_180_segundos(self):
+        from core.local_tasks.openai_compat_client import OpenAICompatClient
+        self.assertEqual(OpenAICompatClient(base_url="https://x/v1").deadline, 180.0)
 
 
 if __name__ == "__main__":

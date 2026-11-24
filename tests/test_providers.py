@@ -45,6 +45,29 @@ class ProviderSpecTests(unittest.TestCase):
         self.assertEqual(s.timeout_seconds, 20)
         self.assertEqual(s.structured, "json_schema")
         self.assertEqual(s.extra, {})
+        self.assertEqual(s.deadline_seconds, 180)
+
+    def test_deadline_do_perfil_e_do_provedor(self):
+        from core.local_tasks.providers import build_client, parse_providers
+        raw = [{"kind": "openai_compatible", "model": "a", "base_url": "https://x/v1"},
+               {"kind": "openai_compatible", "model": "b", "base_url": "https://x/v1", "deadline_seconds": 45}]
+        a, b = parse_providers("t", raw, {"timeout_seconds": 20, "keep_alive": "30m", "deadline_seconds": 90})
+        self.assertEqual((a.deadline_seconds, b.deadline_seconds), (90, 45))
+        for ruim in (0, -1, "x", True):
+            with self.assertRaises(ValueError):
+                parse_providers("t", [{**raw[0], "deadline_seconds": ruim}], {"timeout_seconds": 20})
+
+    def test_build_client_passa_o_prazo_ao_cliente(self):
+        from core.local_tasks.profile import load_profile
+        from core.local_tasks.providers import build_client
+        corpo = ("labels:\n  type: [a]\nproviders:\n"
+                 "  - kind: openai_compatible\n    model: m1\n    base_url: https://provedor.example/v1\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(Path(tmp), "nuvem", corpo)
+            cliente = build_client(load_profile("nuvem", root=Path(tmp)))
+        prazos = [c.deadline for _, c in cliente.entries if hasattr(c, "deadline")]
+        self.assertTrue(prazos)
+        self.assertTrue(all(p == 180 for p in prazos))
 
     def test_rejects_bad_items(self):
         from core.local_tasks.providers import parse_providers
@@ -71,13 +94,29 @@ class ProviderSpecTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_providers("t", [{"kind": "ollama", "model": "m", "price": {"input": "abc"}}], defaults)
 
+    def test_rejects_negative_or_non_finite_price(self):
+        """Preco negativo reduziria o gasto; NaN/inf corrompem a soma. Vale com ou sem budget."""
+        from core.local_tasks.providers import parse_providers
+        defaults = {"timeout_seconds": 30, "keep_alive": "30m"}
+        base = {"kind": "openai_compatible", "model": "m", "base_url": "https://api.test/v1"}
+        for campo in ("input", "output"):
+            for bad in (-1, -0.5, "-1", "nan", "inf", "-inf", float("nan"), float("inf")):
+                item = dict(base, price={campo: bad})
+                with self.subTest(campo=campo, valor=bad):
+                    with self.assertRaises(ValueError) as ctx:
+                        parse_providers("t", [dict(base), item], defaults)
+                    self.assertIn(f"providers[1].price.{campo} deve ser finito e >= 0",
+                                  str(ctx.exception))
+        # zero continua aceito
+        specs = parse_providers("t", [dict(base, price={"input": 0, "output": "0.0"})], defaults)
+        self.assertEqual(specs[0].price, {"input": 0.0, "output": 0.0})
+
     def test_profile_without_providers_is_empty_tuple(self):
         from core.local_tasks.profile import Profile
         with tempfile.TemporaryDirectory() as tmp:
             _write(Path(tmp), "mini", "labels:\n  type: [a]\n")
             p = load_profile("mini", root=Path(tmp))
         self.assertEqual(p.providers, ())
-
 
     def test_profile_with_providers_parses(self):
         yaml_text = (

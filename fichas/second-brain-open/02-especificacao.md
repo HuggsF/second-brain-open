@@ -22,7 +22,12 @@ aplica: sim
    nenhum. Com o índice já construído, nota ilegível falha sozinha e as outras são atualizadas. Na
    primeira indexação e na reconstrução, uma nota ilegível aborta tudo: o `sync` lista as notas e não
    grava índice parcial.
-10. Sem servidor de modelos, `ask` mostra as fontes, diz que a resposta não foi gerada e sai com 1.
+10. `ask` gera a resposta pela cadeia de provedores do perfil e diz quem respondeu e quanto custou.
+    Quando nenhum provedor responde, o perfil não carrega ou o orçamento está esgotado, `ask` mostra as
+    fontes, diz o motivo e sai com 1.
+11. Cada chamada de modelo registra o custo. Com o orçamento do dia ou do mês esgotado, nenhuma
+    chamada vai a provedor de nuvem: a cadeia usa só provedores locais ou devolve `budget_exceeded`
+    (saída 3 em `cli.py task`). `cli.py budget` mostra gasto, limite e estado.
 
 ## Critérios de aceite
 
@@ -38,7 +43,8 @@ Cada critério é um comportamento que um arquivo de teste do repositório exerc
 | 7 | `tests/test_tracing.py`, `tests/test_trace_middleware.py` |
 | 8 | `tests/test_agnostic_core.py` |
 | 9 | `tests/test_indice_texto.py`, `tests/test_sync_consistency.py`, `tests/test_busca_cli.py`, `tests/test_sem_motor_vetorial.py` |
-| 10 | `tests/test_retrieval_contract.py`, `tests/test_busca_cli.py` |
+| 10 | `tests/test_retrieval_contract.py`, `tests/test_answer_generation.py`, `tests/test_busca_cli.py` |
+| 11 | `tests/test_cost.py`, `tests/test_budget.py`, `tests/test_budget_wiring.py`, `tests/test_local_tasks.py`, `tests/test_local_tasks_cli.py` |
 
 Os arquivos desta tabela passam, assim como o resto da suíte. O resultado está na
-[auditoria de construção mais recente](06-auditorias/2026-11-23c-construcao.md).
+[auditoria de construção mais recente](06-auditorias/2026-11-24-construcao.md).

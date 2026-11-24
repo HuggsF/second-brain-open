@@ -54,11 +54,31 @@ export BRAIN_VAULT_DIR=/caminho/do/seu/vault      # o repositório não traz um
 .venv/Scripts/python cli.py sync                 # indexa o vault em .runtime/indice-busca.db
 .venv/Scripts/python cli.py buscar "uma pergunta"  # trechos encontrados, sem chamar modelo
 .venv/Scripts/python cli.py status               # estado do índice e do vault
-.venv/Scripts/python cli.py ask "uma pergunta"     # gera a resposta; pede um servidor local de modelos
+.venv/Scripts/python cli.py ask "uma pergunta"     # gera a resposta pela cadeia de provedores do perfil
 ```
 
 `BRAIN_INDEX_PATH` muda o arquivo do índice. Caminho relativo, nas duas variáveis, resolve contra a raiz do
 repositório.
+
+## Resposta, custo e orçamento
+
+`ask` e `task` geram pela cadeia de provedores do perfil ativo (`profiles/example/profile.yaml`, ou o que
+`BRAIN_PROFILE` apontar). Sem cadeia declarada, a geração usa um servidor local de modelos (`OLLAMA_URL`)
+e o gasto registrado é zero.
+
+```bash
+.venv/Scripts/python cli.py budget               # estado, gasto e limite do dia e do mês
+.venv/Scripts/python cli.py budget --history 7   # gasto por dia
+.venv/Scripts/python cli.py budget --rebuild     # refaz o banco de orçamento a partir do log de eventos
+```
+
+Cada resposta diz quem gerou e quanto custou. Com o orçamento esgotado, nenhuma chamada vai à nuvem: a
+cadeia usa só provedores locais, ou o `ask` mostra as fontes e sai com 1, e `task` sai com 3.
+
+Para usar um provedor de nuvem compatível com a API da OpenAI, descomente o bloco `providers` do perfil de
+exemplo. A chave fica em uma variável de ambiente, nunca no perfil. Conteúdo de tarefa só deve ir a
+provedor que declare retenção zero e recusa de coleta ou treino; o motor repassa essa declaração ao
+provedor, mas não confere se ele a cumpre.
 
 ## Testes
 
@@ -71,8 +91,11 @@ repositório.
 - Sem vault: `sync`, `buscar` e `ask` precisam de um vault seu.
 - A busca é por palavras, e o piso de relevância não foi medido neste repositório: o padrão é só um corte
   relativo ao melhor resultado (`RETRIEVAL_MIN_SCORE` e `RETRIEVAL_MAX_DROP` ajustam).
-- `ask` gera a resposta em um servidor local de modelos (`OLLAMA_URL`), que você sobe por conta própria.
-  Sem ele, `ask` mostra as fontes e sai com 1; `buscar` não precisa dele.
+- `ask` e `task` precisam de um modelo: um servidor local (`OLLAMA_URL`), que você sobe por conta própria,
+  ou um provedor de nuvem declarado no perfil. Sem nenhum, `ask` mostra as fontes e sai com 1; `buscar`
+  não precisa de modelo.
+- A geração nunca foi testada aqui contra modelo real nem provedor de nuvem: os testes usam clientes
+  falsos. O prazo de 120 segundos do perfil de exemplo é uma estimativa.
 - Sem adaptadores de infraestrutura: `core/tools.py` e `core/bootstrap.py` aceitam um executor de comandos
   e um coletor de observações, mas nenhum vem implementado.
 - O dashboard estático do projeto original não foi incluído.

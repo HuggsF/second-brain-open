@@ -1,0 +1,24 @@
+Perfil de exemplo, banco de orçamento em uma pasta temporária, sem provedor de nuvem.
+
+$ python cli.py budget
+Orçamento: normal
+Dia: US$ 0.00 de 0.50 (0%), saldo US$ 0.50
+Mês: US$ 0.00 de 10.00 (0%), saldo US$ 10.00
+[saída 0]
+
+$ python cli.py budget --history 3
+  2026-11-22  US$ 0.0000
+  2026-11-23  US$ 0.0000
+  2026-11-24  US$ 0.0000
+[saída 0]
+
+$ python cli.py budget --rebuild
+⚠ A reconstrução cobre apenas o histórico disponível nos arquivos de eventos.
+Reconstruído: 0 registros, ignoradas: 0, US$ 0.0000 acumulado.
+[saída 0]
+
+$ python cli.py budget
+Orçamento: normal
+Dia: US$ 0.00 de 0.50 (0%), saldo US$ 0.50
+Mês: US$ 0.00 de 10.00 (0%), saldo US$ 10.00
+[saída 0]
