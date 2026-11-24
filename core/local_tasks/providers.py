@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import dataclasses
+import math
 import os
 import time
 from dataclasses import dataclass, field
@@ -24,25 +25,37 @@ class ProviderSpec:
     base_url: str
     api_key_env: str | None = None
     timeout_seconds: int = 30
+    deadline_seconds: int = 180
     keep_alive: str | int = "30m"
     structured: str = "json_schema"
     extra: dict = field(default_factory=dict)
     price: dict = field(default_factory=lambda: {"input": 0.0, "output": 0.0})
 
 
-def _price_value(name: str, key: str, value) -> float:
+def _price_value(name: str, i: int, key: str, value) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float, str)):
         raise ValueError(f"profile {name}: providers[].price.{key} is not a number")
     try:
-        return float(value)
+        result = float(value)
     except (TypeError, ValueError):
         raise ValueError(f"profile {name}: providers[].price.{key} is not a number") from None
+    # Preco negativo reduziria o gasto acumulado; NaN/inf corrompem a soma do orcamento.
+    if not math.isfinite(result) or result < 0:
+        raise ValueError(f"profile {name}: providers[{i}].price.{key} deve ser finito e >= 0")
+    return result
+
+
+def _deadline(name: str, i: int, value) -> int:
+    """Prazo total de uma chamada, em segundos inteiros positivos."""
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError(f"profile {name}: providers[{i}].deadline_seconds deve ser um inteiro > 0")
+    return value
 
 
 def parse_providers(name: str, raw, defaults: dict) -> tuple[ProviderSpec, ...]:
     """Converte a lista de dicionarios em tupla de ProviderSpec.
 
-    ``defaults`` traz ``timeout_seconds`` e ``keep_alive`` do perfil.
+    ``defaults`` traz ``timeout_seconds``, ``deadline_seconds`` e ``keep_alive`` do perfil.
     Levanta ``ValueError`` em caso de configuracao invalida.
     """
     if raw is None:
@@ -68,8 +81,8 @@ def parse_providers(name: str, raw, defaults: dict) -> tuple[ProviderSpec, ...]:
         if not isinstance(price_raw, dict):
             raise ValueError(f"profile {name}: providers[{i}].price must be a mapping")
         price = {
-            "input": _price_value(name, "input", price_raw.get("input", 0.0)),
-            "output": _price_value(name, "output", price_raw.get("output", 0.0)),
+            "input": _price_value(name, i, "input", price_raw.get("input", 0.0)),
+            "output": _price_value(name, i, "output", price_raw.get("output", 0.0)),
         }
         base_url = item.get("base_url") or (settings.ollama_url if kind == "ollama" else "")
         specs.append(ProviderSpec(
@@ -79,6 +92,8 @@ def parse_providers(name: str, raw, defaults: dict) -> tuple[ProviderSpec, ...]:
             base_url=base_url,
             api_key_env=item.get("api_key_env") or None,
             timeout_seconds=int(item.get("timeout_seconds", defaults.get("timeout_seconds", 30))),
+            deadline_seconds=_deadline(name, i, item.get("deadline_seconds",
+                                                         defaults.get("deadline_seconds", 180))),
             keep_alive=item.get("keep_alive", defaults.get("keep_alive", "30m")),
             structured=structured,
             extra=dict(item.get("extra") or {}),
@@ -158,6 +173,7 @@ def build_client(profile):
                 api_key_env=spec.api_key_env,
                 timeout=spec.timeout_seconds,
                 structured=spec.structured,
+                deadline=spec.deadline_seconds,
                 extra=spec.extra,
             )
         entries.append((spec, client))

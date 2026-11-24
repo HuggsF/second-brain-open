@@ -67,6 +67,7 @@
         "invalid",
         "escalate",
         "error",
+        "budget_exceeded",
         null
       ]
     },
@@ -80,6 +81,8 @@
         "no_valid_label",
         "profile_not_found",
         "timeout",
+        "budget_daily",
+        "budget_monthly",
         null
       ]
     },

@@ -1,6 +1,7 @@
 """Cliente para APIs compativeis com OpenAI (chat/completions)."""
 from __future__ import annotations
 
+import json
 import math
 import os
 import time
@@ -11,15 +12,26 @@ import httpx
 from core.local_tasks.ollama_client import Completion, LocalModelError
 
 PROBE_TIMEOUT_SECONDS = 5.0  # teto da sonda de disponibilidade
+DEADLINE_SECONDS = 180.0     # prazo total de uma chamada (o timeout do httpx vale por leitura)
+_relogio = time.perf_counter
 
 
-def _token_count(usage, key: str) -> int:
-    """Contador de tokens do bloco usage; ausente, nao numerico, negativo ou nao finito vale 0."""
+def _estimate_tokens(text: str) -> int:
+    """Estimativa de tokens quando o provedor nao informa: ceil(caracteres / 4), minimo 1."""
+    return max(1, math.ceil(len(text) / 4))
+
+
+def _token_count(usage, key: str, fallback_text: str) -> int:
+    """Contador de tokens do bloco usage.
+
+    Ausente, nao numerico, negativo ou nao finito: estimado a partir de ``fallback_text``,
+    para que uma resposta paga sem ``usage`` nao seja contada como gasto zero.
+    """
     value = usage.get(key) if isinstance(usage, dict) else None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return 0
+        return _estimate_tokens(fallback_text)
     if not math.isfinite(value) or value < 0:
-        return 0
+        return _estimate_tokens(fallback_text)
     return int(value)
 
 
@@ -34,10 +46,12 @@ class OpenAICompatClient:
         structured: str = "json_schema",
         extra: dict | None = None,
         transport: Optional[httpx.BaseTransport] = None,
+        deadline: float = DEADLINE_SECONDS,
     ):
         self.base_url = base_url.rstrip("/")
         self.api_key_env = api_key_env
         self.timeout = timeout
+        self.deadline = float(deadline)
         self.structured = structured
         self.extra = dict(extra or {})
         self._transport = transport
@@ -75,21 +89,23 @@ class OpenAICompatClient:
             body["response_format"] = {"type": "json_object"}
         # "none" -> no response_format
 
-        t0 = time.perf_counter()
+        t0 = _relogio()
         try:
             with self._http() as client:
-                resp = client.post("/chat/completions", json=body)
+                with client.stream("POST", "/chat/completions", json=body) as resp:
+                    status = resp.status_code
+                    corpo = self._ler_no_prazo(resp, t0)
         except httpx.TimeoutException as exc:
             raise LocalModelError("timeout", type(exc).__name__) from None
         except httpx.TransportError as exc:
             raise LocalModelError("local_unavailable", type(exc).__name__) from None
-        ms = int((time.perf_counter() - t0) * 1000)
+        ms = int((_relogio() - t0) * 1000)
 
-        if resp.status_code >= 400:
-            raise LocalModelError("local_unavailable", f"http {resp.status_code}")
+        if status >= 400:
+            raise LocalModelError("local_unavailable", f"http {status}")
 
         try:
-            data = resp.json()
+            data = json.loads(corpo)
             text = data["choices"][0]["message"]["content"]
             if not isinstance(text, str):
                 raise TypeError("content is not a string")
@@ -99,11 +115,24 @@ class OpenAICompatClient:
         usage = data.get("usage")
         return Completion(
             text=text,
-            tokens_in=_token_count(usage, "prompt_tokens"),
-            tokens_out=_token_count(usage, "completion_tokens"),
+            tokens_in=_token_count(usage, "prompt_tokens", system + user),
+            tokens_out=_token_count(usage, "completion_tokens", text),
             ms=ms,
             model=model,
         )
+
+    def _ler_no_prazo(self, resp: httpx.Response, t0: float) -> bytes:
+        """Corpo inteiro, ou ``timeout`` quando passa do prazo total.
+
+        Provedores que enfileiram mandam bytes de espera enquanto aguardam o modelo; cada
+        leitura chega antes do timeout do httpx e a chamada não terminaria nunca.
+        """
+        partes = []
+        for parte in resp.iter_bytes():
+            partes.append(parte)
+            if _relogio() - t0 > self.deadline:
+                raise LocalModelError("timeout", f"prazo total de {self.deadline:g} s")
+        return b"".join(partes)
 
     def available(self) -> bool:
         """GET {base_url}/models com o timeout do cliente, no maximo 5 s. Nunca levanta."""
