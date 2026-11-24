@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import json
+import math
 import sqlite3
 from pathlib import Path
 
@@ -123,6 +124,13 @@ def _indice_ou_sai() -> IndiceTexto:
     return indice
 
 
+_MOTIVO_SEM_GERADOR = {
+    "budget_daily": "orçamento do dia esgotado",
+    "budget_monthly": "orçamento do mês esgotado",
+    "profile_not_found": "perfil não encontrado ou inválido",
+}
+
+
 def _mostrar_lacunas(gaps) -> None:
     from core.citations import GAP_EMPTY_INDEX
     for gap in gaps:
@@ -162,7 +170,7 @@ def buscar(pergunta: str, category: str, limite: int):
 @click.argument("question")
 @click.option("--category", default=None, help="Filtrar por categoria (a pasta da nota dentro do vault)")
 def ask(question: str, category: str):
-    """Busca no índice de texto e gera a resposta com o servidor local de modelos."""
+    """Busca no índice de texto e gera a resposta pela cadeia de provedores do perfil."""
     _vault_ou_sai()
     indice = _indice_ou_sai()
     try:
@@ -173,14 +181,19 @@ def ask(question: str, category: str):
         raise SystemExit(1)
     if result["status"] == "ok":
         console.print(Panel(result["answer"], title="[bold green]Resposta[/bold green]", border_style="cyan"))
+        quem = result["provider"] or f"servidor local ({result['model']})"
+        click.echo(f"Gerado por: {quem} · custo US$ {result['cost_usd']:.4f}")
     else:
         click.echo(result["answer"])
+    if result["status"] == "sem_gerador":
+        motivo = result["motivo"]
+        click.echo(f"Resposta não gerada: {_MOTIVO_SEM_GERADOR.get(motivo) or f'nenhum provedor respondeu ({motivo})'}.")
     _mostrar_lacunas(result["gaps"])
     if result["sources"]:
         click.echo("Fontes: relevância  arquivo  |  seção  |  linhas")
         _mostrar_fontes(result["sources"])
     if result["status"] == "sem_gerador":
-        click.echo("Para gerar a resposta, suba um servidor local de modelos e confira OLLAMA_URL. 'cli.py buscar' não precisa dele.")
+        click.echo("Confira o perfil e o orçamento com 'cli.py budget'. 'cli.py buscar' não precisa de modelo.")
         raise SystemExit(1)
 
 
@@ -211,7 +224,8 @@ def status():
         click.echo(f"Vault Markdown: Ativo — {total_md} documentos em {settings.vault_dir}")
     else:
         click.echo(f"Vault Markdown: Ausente — {settings.vault_dir} (aponte outro com BRAIN_VAULT_DIR)")
-    click.echo(f"Servidor de modelos (opcional, só para ask): configurado em {settings.ollama_url}, não verificado")
+    click.echo(f"Servidor de modelos local (opcional, para ask e task): configurado em {settings.ollama_url}, não verificado")
+    click.echo("Cadeia de provedores e orçamento: veja 'cli.py budget'")
 
 
 @cli.command()
@@ -350,7 +364,7 @@ def evidence(rule_id, do_lint, do_import):
         raise SystemExit(1)
 
 
-_TASK_EXIT = {"ok": 0, "escalate": 2}
+_TASK_EXIT = {"ok": 0, "escalate": 2, "budget_exceeded": 3}
 _GOLDEN_LOCAL_TASKS = Path(__file__).parent / "tests" / "golden_dataset_local_tasks.json"
 
 
@@ -367,11 +381,193 @@ def _task_text(text, file_path):
     return text if text is not None else _read_text_file(file_path)
 
 
+_budget_tracker_singleton = None
+_budget_tracker_no_config = False  # True only when profile has no budget block
+
+
+def _get_tracker():
+    """Lazy singleton: creates BudgetTracker once from the active profile.
+
+    If the SQLite open fails, returns a :class:`FailedBudgetTracker`
+    sentinel that reports ``exceeded`` — blocking cloud calls on this
+    invocation.  The real tracker is retried on the next call.
+    """
+    global _budget_tracker_singleton, _budget_tracker_no_config
+    if _budget_tracker_singleton is not None:
+        return _budget_tracker_singleton
+    if _budget_tracker_no_config:
+        return None
+    budget_config = None
+    try:
+        from core.local_tasks.profile import load_profile
+        profile = load_profile()
+        if profile.budget is None:
+            _budget_tracker_no_config = True
+            return None
+        budget_config = profile.budget
+        from core.budget import BudgetTracker
+        from config import settings
+        db_path = settings.base_dir / ".runtime" / "budget.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        _budget_tracker_singleton = BudgetTracker(db_path, profile.budget)
+        return _budget_tracker_singleton
+    except Exception:
+        import logging
+        logging.getLogger(__name__).warning("BudgetTracker init failed; will retry", exc_info=True)
+        if budget_config is not None:
+            from core.budget import FailedBudgetTracker
+            return FailedBudgetTracker(budget_config)
+        return None
+
+
 def _emit_task(task: str, **kwargs):
     from core.local_tasks import router
-    envelope = router.run_task(task, sender="cli", **kwargs)
+    tracker = _get_tracker()
+    envelope = router.run_task(task, sender="cli", budget_tracker=tracker, **kwargs)
     click.echo(json.dumps(envelope, ensure_ascii=False, indent=2))
     raise SystemExit(_TASK_EXIT.get(envelope.get("status"), 1))
+
+
+def _emit_task(task: str, **kwargs):
+    from core.local_tasks import router
+    envelope = router.run_task(task, sender="cli", budget_tracker=_get_tracker(), **kwargs)
+    click.echo(json.dumps(envelope, ensure_ascii=False, indent=2))
+    raise SystemExit(_TASK_EXIT.get(envelope.get("status"), 1))
+
+
+_ESTADO_ORCAMENTO = {"normal": "normal", "warning": "atenção", "critical": "crítico", "exceeded": "esgotado"}
+
+
+@cli.command("budget")
+@click.option("--history", "history_days", type=click.IntRange(1, 365), default=None, help="Mostra gasto por dia, últimos N dias")
+@click.option("--rebuild", "do_rebuild", is_flag=True, help="Reconstrói budget.db a partir dos eventos")
+def budget_cmd(history_days, do_rebuild):
+    """Orçamento de chamadas pagas: gasto, limite, estado."""
+    from core.local_tasks.profile import load_profile
+    try:
+        profile = load_profile()
+    except Exception as exc:
+        click.echo(f"Erro ao carregar o perfil: {exc}")
+        raise SystemExit(1)
+    if profile.budget is None:
+        click.echo("Orçamento não configurado no perfil.")
+        raise SystemExit(0)
+    from core.budget import BudgetTracker
+    from config import settings
+    db_path = settings.base_dir / ".runtime" / "budget.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        tracker = BudgetTracker(db_path, profile.budget)
+        if do_rebuild:
+            _rebuild_budget(tracker, settings.base_dir)
+            return
+        if history_days is not None:
+            for row in tracker.history(history_days):
+                click.echo(f"  {row['date']}  US$ {row['actual_usd']:.4f}")
+            return
+        st = tracker.status()
+    except sqlite3.Error:
+        click.echo(f"Não foi possível ler o banco de orçamento em {db_path}.")
+        click.echo("Apague esse arquivo e rode 'cli.py budget --rebuild' para refazê-lo a partir do log de eventos.")
+        raise SystemExit(1)
+    click.echo(f"Orçamento: {_ESTADO_ORCAMENTO.get(st.state, st.state)}")
+    for rotulo, gasto, limite, saldo in (("Dia", st.daily_spent, st.daily_limit, st.daily_remaining),
+                                         ("Mês", st.monthly_spent, st.monthly_limit, st.monthly_remaining)):
+        pct = (gasto / limite * 100) if limite > 0 else 0
+        click.echo(f"{rotulo}: US$ {gasto:.2f} de {limite:.2f} ({pct:.0f}%), saldo US$ {saldo:.2f}")
+
+
+def _cost_number(value):
+    """Valor de custo do evento para o rebuild: ausente ou ``null`` vale 0.0 (como o antigo
+    ``or 0.0``); número finito que não seja bool vira ``float``; qualquer outro valor (texto,
+    bool, NaN, inf) devolve ``None`` e a linha é pulada."""
+    if value is None:
+        return 0.0
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    value = float(value)
+    return value if math.isfinite(value) else None
+
+
+def _rebuild_budget(tracker, base_dir):
+    """Rebuild budget.db from all available events files."""
+    from core.budget import _to_utc_iso
+    events_log = base_dir / ".runtime" / "events.jsonl"
+    # Read all rotated + current event files (oldest to newest)
+    sources = []
+    for i in range(3, 0, -1):
+        rotated = events_log.with_name(f"{events_log.stem}.{i}{events_log.suffix}")
+        if rotated.exists():
+            sources.append(rotated)
+    if events_log.exists():
+        sources.append(events_log)
+    # Phase 1: populate staging table (outside exclusive transaction)
+    tracker.create_staging_table()
+    count = 0
+    ignored = 0  # linhas com JSON inválido, sem envelope_id ou sem ts válido: puladas
+    totals = {}  # envelope_id -> actual_usd (o primeiro vence, como o INSERT OR IGNORE)
+    for source_path in sources:
+        try:
+            text = source_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for line in text.split("\n"):
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except ValueError:
+                ignored += 1
+                continue
+            if not isinstance(record, dict):
+                ignored += 1
+                continue
+            if record.get("kind") != "task.result":
+                continue
+            cost = record.get("cost")
+            if cost is None:
+                continue
+            envelope_id = record.get("id")
+            ts = record.get("ts")
+            if not isinstance(cost, dict) or not envelope_id or not isinstance(ts, str):
+                ignored += 1
+                continue
+            try:
+                _to_utc_iso(ts)
+            except ValueError:
+                ignored += 1
+                continue
+            actual_usd = _cost_number(cost.get("actual_usd"))
+            paid_equivalent_usd = _cost_number(cost.get("paid_equivalent_usd"))
+            if actual_usd is None or paid_equivalent_usd is None:
+                ignored += 1
+                continue
+            tracker.insert_staging(
+                envelope_id=envelope_id,
+                ts=ts,
+                trace_id=record.get("trace_id"),
+                task=record.get("task"),
+                sender=record.get("from"),
+                provider=cost.get("provider"),
+                model=cost.get("model"),
+                tier=cost.get("tier"),
+                tokens_in=cost.get("tokens_in", 0),
+                tokens_out=cost.get("tokens_out", 0),
+                actual_usd=actual_usd,
+                paid_equivalent_usd=paid_equivalent_usd,
+            )
+            if envelope_id not in totals:
+                totals[envelope_id] = actual_usd
+                count += 1
+    tracker.commit_staging()
+    # Phase 2: reconcile and swap (exclusive transaction)
+    tracker.rebuild_reconcile()
+    click.echo("\u26a0 A reconstru\u00e7\u00e3o cobre apenas o hist\u00f3rico "
+               "dispon\u00edvel nos arquivos de eventos.")
+    # Final report: soma do actual_usd dos registros reconstru\u00eddos (todos os per\u00edodos).
+    total_usd = sum(totals.values())
+    click.echo(f"Reconstru\u00eddo: {count} registros, ignoradas: {ignored}, "
+               f"US$ {total_usd:.4f} acumulado.")
 
 
 @cli.group()
@@ -462,10 +658,16 @@ def _no_provider_message(info: dict) -> str:
 def task_eval(min_accuracy, profile_name):
     """Avalia as tarefas locais contra tests/golden_dataset_local_tasks.json."""
     from core.local_tasks import router
+    eval_tracker = None
     try:
         profile = router.load_profile(profile_name)
         client = router.build_client(profile)
         info = router.status(profile)  # sondagem curta
+        if profile.budget is not None:
+            from core.budget import BudgetTracker
+            db_path = settings.base_dir / ".runtime" / "budget.db"
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            eval_tracker = BudgetTracker(db_path, profile.budget)
     except Exception as exc:
         click.echo(f"Erro ao preparar a avaliação: {exc}")
         raise SystemExit(1)
@@ -479,6 +681,7 @@ def task_eval(min_accuracy, profile_name):
             case["task"], text=case["text"], template=case.get("template"),
             target_words=case.get("target_words", 120), source=case.get("source"),
             sender="task-eval", profile=profile, client=client,
+            budget_tracker=eval_tracker,
         )
         row = stats.setdefault(case["task"], {"cases": 0, "passed": 0, "escalate": 0,
                                                 "ms_total": 0, "tiers": {}})
