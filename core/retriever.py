@@ -1,58 +1,45 @@
-"""Recuperação no índice de texto e resposta gerada por um gerador injetável."""
+"""Recuperação no índice de texto e resposta gerada pela cadeia de provedores do perfil."""
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
-import httpx
-
 from config import settings
 from core.citations import build_citations, gaps_for, select_hits
+from core.cost import CostRecord
 from core.indice_texto import IndiceTexto
+from core.local_tasks.answer import AnswerResult, default_budget_tracker, generate_answer
 from core.vault_vocab import unknown_entities, vault_vocabulary
 
 NO_EVIDENCE_ANSWER = "Nenhum documento relevante encontrado na sua base de conhecimento para essa pergunta."
-SEM_GERADOR_ANSWER = ("As fontes foram encontradas, mas a resposta não pôde ser gerada: "
-                      "o servidor local de modelos não respondeu.")
+SEM_GERADOR_ANSWER = "As fontes foram encontradas, mas a resposta não pôde ser gerada."
 SISTEMA = (
     "Você é o assistente técnico da organização (segundo cérebro local).\n"
     "Responda à pergunta do usuário baseando-se estritamente no contexto técnico fornecido.\n"
     "Se a informação não estiver clara no contexto, indique honestamente o que falta.\n"
-    "Mantenha um tom profissional, técnico e objetivo."
+    "Mantenha um tom profissional, técnico e objetivo.\n"
+    'Devolva JSON no formato {"answer": "<resposta em português>"}.'
 )
 
 
-class GeradorIndisponivel(RuntimeError):
-    """O gerador de resposta não pôde produzir texto (servidor fora do ar, erro ou resposta vazia)."""
-
-
-def gerador_local(sistema: str, usuario: str) -> str:
-    """Gera a resposta no servidor local de modelos; toda falha vira GeradorIndisponivel, sem o erro cru."""
+def _profile_generator(system: str, user: str) -> AnswerResult:
+    """Gera pela cadeia do perfil ativo, com o orçamento dele; perfil ilegível vira `model_error`."""
+    from core.local_tasks.profile import load_profile
     try:
-        with httpx.Client(timeout=120.0) as client:
-            resp = client.post(
-                f"{settings.ollama_url}/api/generate",
-                json={"model": settings.chat_model, "system": sistema, "prompt": usuario, "stream": False},
-            )
-    except httpx.HTTPError as exc:
-        raise GeradorIndisponivel("servidor local de modelos inacessível") from exc
-    if resp.status_code != 200:
-        raise GeradorIndisponivel(f"servidor local de modelos devolveu o código {resp.status_code}")
-    try:
-        texto = resp.json().get("response")
-    except (ValueError, AttributeError) as exc:
-        raise GeradorIndisponivel("servidor local de modelos devolveu uma resposta ilegível") from exc
-    if not isinstance(texto, str) or not texto.strip():
-        raise GeradorIndisponivel("servidor local de modelos devolveu uma resposta vazia")
-    return texto.strip()
+        profile = load_profile()
+    except Exception:
+        return AnswerResult("model_error", None, "profile_not_found", None,
+                            CostRecord(model=settings.chat_model, tier="deterministic", tokens_in=0,
+                                       tokens_out=0, ms=0, paid_equivalent_usd=0.0))
+    return generate_answer(system, user, profile=profile, budget_tracker=default_budget_tracker(profile))
 
 
 class BrainRetriever:
     def __init__(self, *, store: Optional[IndiceTexto] = None, vault_dir: Optional[Path] = None,
-                 generator: Optional[Callable[[str, str], str]] = None):
+                 generator: Optional[Callable[[str, str], AnswerResult]] = None):
         self.store = store if store is not None else IndiceTexto()
         self.vault_dir = Path(vault_dir) if vault_dir is not None else settings.vault_dir
-        # generator(sistema, usuario) -> texto; levanta GeradorIndisponivel quando não consegue gerar.
-        self.generator = generator if generator is not None else gerador_local
+        # generator(sistema, usuario) -> AnswerResult; padrão: cadeia de provedores do perfil ativo.
+        self.generator = generator if generator is not None else _profile_generator
 
     def query(
         self,
@@ -136,7 +123,8 @@ class BrainRetriever:
     def answer(self, user_question: str, limit: int = 4, category: Optional[str] = None) -> Dict[str, Any]:
         """Responde com base no que a busca achou. `status`: ok, sem_fontes ou sem_gerador."""
         achado = self.query(user_question, limit=limit, category=category)
-        base = {"sources": achado["sources"], "citations": achado["citations"], "gaps": achado["gaps"]}
+        base = {"sources": achado["sources"], "citations": achado["citations"], "gaps": achado["gaps"],
+                "provider": None, "model": None, "cost_usd": 0.0, "motivo": None}
         if not achado["sources"]:
             return {"answer": NO_EVIDENCE_ANSWER, "status": "sem_fontes", **base}
         usuario = (
@@ -144,8 +132,8 @@ class BrainRetriever:
             f"### PERGUNTA DO USUÁRIO:\n{user_question}\n\n"
             "### RESPOSTA TÉCNICA:"
         )
-        try:
-            texto = self.generator(SISTEMA, usuario)
-        except GeradorIndisponivel:
-            return {"answer": SEM_GERADOR_ANSWER, "status": "sem_gerador", **base}
-        return {"answer": texto, "status": "ok", **base}
+        gerado = self.generator(SISTEMA, usuario)
+        base.update(model=gerado.cost.model, cost_usd=gerado.cost.actual_usd)
+        if gerado.status != "ok":
+            return {"answer": SEM_GERADOR_ANSWER, "status": "sem_gerador", **base, "motivo": gerado.reason}
+        return {"answer": gerado.text, "status": "ok", **base, "provider": gerado.provider}

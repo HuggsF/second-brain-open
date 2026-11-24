@@ -4,12 +4,12 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import httpx
-
 from config import settings
 from core.chunker import MarkdownChunker
 from core.citations import GAP_EMPTY_INDEX, GAP_NO_EVIDENCE, GAP_STALE
+from core.cost import CostRecord
 from core.indice_texto import IndiceTexto
+from core.local_tasks.answer import AnswerResult
 
 NO_DOC_TEXT = "Nenhum documento relevante encontrado na sua base de conhecimento para essa pergunta."
 REBUILD_HINT = "Rode 'cli.py sync --rebuild' para reconstruir o índice deste espaço."
@@ -52,19 +52,27 @@ def indexar_vault(vault: Path, arquivo_db: Path, notas: dict) -> IndiceTexto:
     return indice
 
 
+def custo(modelo="m1", provedor="nuvem-a", usd=0.0012):
+    return CostRecord(model=modelo, tier="cloud" if provedor else "local", tokens_in=100, tokens_out=20, ms=5,
+                      paid_equivalent_usd=0.002, provider=provedor, actual_usd=usd)
+
+
 class FakeGenerator:
-    """Gerador de resposta falso: guarda (sistema, usuario) e devolve `texto`, ou levanta `erro`."""
+    """Gerador de resposta falso: guarda (sistema, usuario) e devolve `resultado`, ou levanta `erro`."""
 
     def __init__(self):
         self.calls = []
-        self.texto = "resposta do modelo"
+        self.resultado = AnswerResult("ok", "resposta do modelo", None, "nuvem-a", custo())
         self.erro = None
 
     def __call__(self, sistema, usuario):
         self.calls.append((sistema, usuario))
         if self.erro is not None:
             raise self.erro
-        return self.texto
+        return self.resultado
+
+    def falha(self, motivo):
+        self.resultado = AnswerResult("model_error", None, motivo, None, custo("m1", None, 0.0))
 
 
 class TestRetriever(unittest.TestCase):
@@ -229,7 +237,9 @@ class TestRetriever(unittest.TestCase):
         r = self.retriever.answer(CONSULTA)
         self.assertEqual((r["status"], r["answer"]), ("ok", "resposta do modelo"))
         self.assertEqual([s["file_path"] for s in r["sources"]], ["systems/beta.md", "systems/alfa.md"])
-        self.assertTrue({"answer", "sources", "citations", "gaps", "status"} <= set(r))
+        self.assertEqual(set(r), {"answer", "sources", "citations", "gaps", "status", "provider", "model",
+                                  "cost_usd", "motivo"})
+        self.assertEqual((r["provider"], r["model"], r["cost_usd"], r["motivo"]), ("nuvem-a", "m1", 0.0012, None))
         (sistema, usuario), = self.generator.calls
         self.assertIn(CONSULTA, usuario)
         self.assertIn("Pedidos chegam por webhook", usuario)
@@ -241,6 +251,7 @@ class TestRetriever(unittest.TestCase):
         self.assertEqual(r["sources"], [])
         self.assertEqual(r["answer"], NO_DOC_TEXT)
         self.assertEqual(self.generator.calls, [])
+        self.assertEqual((r["provider"], r["model"], r["cost_usd"], r["motivo"]), (None, None, 0.0, None))
 
     def test_answer_com_indice_vazio_e_sem_fontes(self):
         r = self.vazio().answer(CONSULTA)
@@ -248,14 +259,44 @@ class TestRetriever(unittest.TestCase):
         self.assertIn(GAP_EMPTY_INDEX, r["gaps"])
         self.assertEqual(self.generator.calls, [])
 
-    def test_answer_sem_gerador(self):
-        from core.retriever import GeradorIndisponivel
-        self.generator.erro = GeradorIndisponivel("servidor de modelos fora do ar")
+    def test_answer_do_servidor_local_sem_cadeia_tem_provider_none(self):
+        self.generator.resultado = AnswerResult("ok", "resposta local", None, None, custo("m-local", None, 0.0))
         r = self.retriever.answer(CONSULTA)
-        self.assertEqual(r["status"], "sem_gerador")
+        self.assertEqual((r["status"], r["provider"], r["model"], r["cost_usd"]), ("ok", None, "m-local", 0.0))
+
+    def test_answer_sem_gerador_traz_o_motivo_e_as_fontes(self):
+        for motivo in ("budget_daily", "budget_monthly", "timeout", "empty_answer", "profile_not_found"):
+            with self.subTest(motivo=motivo):
+                self.generator.falha(motivo)
+                r = self.retriever.answer(CONSULTA)
+                self.assertEqual((r["status"], r["motivo"], r["provider"]), ("sem_gerador", motivo, None))
+                self.assertTrue(r["sources"])
+                self.assertTrue(r["answer"].strip())
+                self.assertNotIn("Pedidos chegam por webhook", r["answer"])  # não cola trecho do contexto
+                for proibido in ("Traceback", "ConnectError", "httpx", "None"):
+                    self.assertNotIn(proibido, r["answer"])
+
+    def test_texto_de_sistema_e_generico_e_pede_json(self):
+        self.retriever.answer(CONSULTA)
+        (sistema, _), = self.generator.calls
+        self.assertIn('{"answer"', sistema)
+        self.assertIn("contexto", sistema)
+        self.assertIn("português", sistema)
+
+    def test_perfil_inexistente_vira_sem_gerador_e_a_busca_segue(self):
+        import os
+        retriever = self.BrainRetriever(store=self.store, vault_dir=self.vault)  # gerador padrão
+        with mock.patch.dict(os.environ, {"BRAIN_PROFILE": "perfil-que-nao-existe"}):
+            self.assertTrue(retriever.query(CONSULTA)["sources"])
+            r = retriever.answer(CONSULTA)
+        self.assertEqual((r["status"], r["motivo"]), ("sem_gerador", "profile_not_found"))
         self.assertTrue(r["sources"])
-        for proibido in ("Traceback", "ConnectError", "httpx"):
-            self.assertNotIn(proibido, r["answer"])
+
+    def test_nao_existe_mais_gerador_local(self):
+        from core import retriever
+        self.assertFalse(hasattr(retriever, "gerador_local"))
+        self.assertFalse(hasattr(retriever, "GeradorIndisponivel"))
+        self.assertFalse(hasattr(retriever, "httpx"))
 
     def test_answer_nao_engole_erro_que_nao_e_do_gerador(self):
         self.generator.erro = KeyError("defeito de programa")
@@ -280,66 +321,3 @@ class TestRetriever(unittest.TestCase):
         self.assertEqual(r.vault_dir, settings.vault_dir)
         self.assertTrue(callable(r.generator))
         self.assertFalse(hasattr(r, "embedder"))
-
-
-class RespostaFalsa:
-    def __init__(self, status_code, corpo=None):
-        self.status_code = status_code
-        self._corpo = corpo or {}
-
-    def json(self):
-        return self._corpo
-
-
-class ClienteFalso:
-    """Substitui httpx.Client: devolve `resposta` ou levanta `erro` no post."""
-
-    resposta = None
-    erro = None
-
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc):
-        return False
-
-    def post(self, url, json=None):
-        if ClienteFalso.erro is not None:
-            raise ClienteFalso.erro
-        return ClienteFalso.resposta
-
-
-class TestGeradorLocal(unittest.TestCase):
-    """gerador_local: fala com o servidor local de modelos e converte toda falha em GeradorIndisponivel."""
-
-    def setUp(self):
-        from core import retriever
-        self.retriever = retriever
-        ClienteFalso.resposta, ClienteFalso.erro = None, None
-        troca = mock.patch.object(retriever.httpx, "Client", ClienteFalso)
-        troca.start()
-        self.addCleanup(troca.stop)
-
-    def test_resposta_200_devolve_o_texto(self):
-        ClienteFalso.resposta = RespostaFalsa(200, {"response": "  texto gerado  "})
-        self.assertEqual(self.retriever.gerador_local("sistema", "usuario"), "texto gerado")
-
-    def test_gerador_local_converte_falha_de_rede(self):
-        ClienteFalso.erro = httpx.ConnectError("conexao recusada")
-        with self.assertRaises(self.retriever.GeradorIndisponivel) as ctx:
-            self.retriever.gerador_local("sistema", "usuario")
-        self.assertNotIn("conexao recusada", str(ctx.exception))
-
-    def test_gerador_local_converte_resposta_500(self):
-        ClienteFalso.resposta = RespostaFalsa(500)
-        with self.assertRaises(self.retriever.GeradorIndisponivel):
-            self.retriever.gerador_local("sistema", "usuario")
-
-    def test_gerador_local_converte_resposta_vazia_ou_malformada(self):
-        for corpo in ({"response": "   "}, {}, {"response": None}):
-            ClienteFalso.resposta = RespostaFalsa(200, corpo)
-            with self.assertRaises(self.retriever.GeradorIndisponivel):
-                self.retriever.gerador_local("sistema", "usuario")
