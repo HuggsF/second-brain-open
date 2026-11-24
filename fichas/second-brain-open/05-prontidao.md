@@ -31,5 +31,6 @@ repositório e cinco não se aplicam a um motor que roda na máquina de uma pess
 nos campos acima.
 
 Ter evidência não quer dizer estar pronto para produção: metade das categorias não se aplica a um motor
-que roda em uma máquina. As dependências externas são só os pacotes de `requirements.txt`; não há mais
-serviço para subir. O que a suíte prova está na auditoria de construção.
+que roda em uma máquina. As dependências externas são só os pacotes de `requirements.txt`; não há
+serviço obrigatório para subir. Provedor de nuvem é opcional e, quando declarado no perfil, fica sob o
+orçamento. O que a suíte prova está na auditoria de construção.

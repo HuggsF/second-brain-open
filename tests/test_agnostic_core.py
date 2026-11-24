@@ -13,7 +13,11 @@ FILES = ("core/events.py", "mcp_servers/local_tasks_mcp.py", "core/ficha.py", "t
          "tests/test_indice_texto.py", "tests/test_consulta_texto.py", "tests/test_vault_docs.py", "tests/test_sync_lock.py",
          "tests/test_vault_vocab.py", "tests/test_citations.py", "tests/test_sync_consistency.py",
          "tests/test_retrieval_contract.py", "tests/test_sem_motor_vetorial.py", "tests/test_busca_cli.py",
-         "tests/test_config_busca.py")
+         "tests/test_config_busca.py",
+         "core/cost.py", "core/budget.py", "tests/test_cost.py", "tests/test_budget.py", "tests/test_budget_wiring.py",
+         "tests/test_answer_generation.py", "tests/test_providers.py", "tests/test_local_tasks.py",
+         "tests/test_local_tasks_cli.py", "tests/test_local_tasks_mcp.py", "tests/test_openai_compat_client.py",
+         "tests/test_protocol.py")
 
 
 class TestAgnosticCore(unittest.TestCase):

@@ -1,7 +1,7 @@
 ---
 tipo: runbook
 dono: mantenedor
-revisado_em: 2026-11-23
+revisado_em: 2026-11-24
 ---
 # Subir o ambiente local e rodar a suíte
 
@@ -16,6 +16,9 @@ Na primeira instalação, e antes de registrar uma auditoria de construção.
    `cli.py buscar "uma pergunta"`. Nenhum serviço é necessário.
 3. Rodar a suíte: `.venv/Scripts/python -m pytest -q`.
 4. Validar as fichas: `.venv/Scripts/python cli.py ficha validar`.
+5. Conferir o orçamento: `.venv/Scripts/python cli.py budget`. Se o estado for `esgotado`, nenhuma chamada vai
+   à nuvem até o dia ou o mês virar, ou até o limite do perfil ser revisto. Se o banco de orçamento estiver
+   ilegível, apague `.runtime/budget.db` e rode `cli.py budget --rebuild`.
 
 ## Como saber que deu certo
 
