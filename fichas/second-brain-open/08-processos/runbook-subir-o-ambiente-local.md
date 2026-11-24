@@ -18,7 +18,8 @@ Na primeira instalação, e antes de registrar uma auditoria de construção.
 4. Validar as fichas: `.venv/Scripts/python cli.py ficha validar`.
 5. Conferir o orçamento: `.venv/Scripts/python cli.py budget`. Se o estado for `esgotado`, nenhuma chamada vai
    à nuvem até o dia ou o mês virar, ou até o limite do perfil ser revisto. Se o banco de orçamento estiver
-   ilegível, apague `.runtime/budget.db` e rode `cli.py budget --rebuild`.
+   ilegível, apague `.runtime/budget.db` e rode `cli.py budget --rebuild`. Isso recupera o gasto das tarefas,
+   que fica no log de eventos; o gasto do `ask` não fica no log e se perde, então o período recomeça sem ele.
 
 ## Como saber que deu certo
 

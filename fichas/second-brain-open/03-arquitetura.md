@@ -68,6 +68,7 @@ flowchart TB
 | Busca por palavras | Pergunta com vocabulário diferente da nota não acha nada | Aceito; a busca devolve a lacuna |
 | Geração com modelo real sem cobertura de teste | `ask` e tarefas só são verificados com clientes falsos | Em aberto |
 | Garantias de privacidade do provedor de nuvem só declaradas | O motor repassa a declaração e não confere se o provedor a cumpre | Aceito e declarado no perfil de exemplo |
+| Gasto do `ask` só no banco de orçamento | Se o banco se perder, a reconstrução não traz esse gasto e a nuvem volta a ser liberada | Em aberto |
 | Prazo de 120 s do perfil de exemplo não medido | Pode sobrar ou faltar para um modelo local | Em aberto |
 | Sem adaptadores de infraestrutura | Ferramentas de comando não executam nada | Aceito e declarado no README |
 | Sem integração contínua | Regressão só aparece quando alguém roda a suíte | Em aberto |

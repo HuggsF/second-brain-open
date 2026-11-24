@@ -275,6 +275,7 @@ class TestAsk(Ambiente):
             ("budget_monthly", "Resposta não gerada: orçamento do mês esgotado."),
             ("profile_not_found", "Resposta não gerada: perfil não encontrado ou inválido."),
             ("timeout", "Resposta não gerada: nenhum provedor respondeu (timeout)."),
+            ("local_unavailable", "Resposta não gerada: o servidor local de modelos não respondeu."),
             ("empty_answer", "Resposta não gerada: nenhum provedor respondeu (empty_answer)."),
         ):
             with self.subTest(motivo=motivo):
@@ -284,6 +285,7 @@ class TestAsk(Ambiente):
                 self.assertIn(frase, r.texto)
                 self.assertIn("systems/estoque.md", r.texto)
                 self.assertIn("cli.py budget", r.texto)
+                self.assertIn("OLLAMA_URL", r.texto)
                 self.assertNotIn("Gerado por", r.texto)
                 for proibido in ("Traceback", "None"):
                     self.assertNotIn(proibido, r.output)

@@ -186,6 +186,8 @@ class CliBudgetBordasTests(_CliBase):
                 self.sem_defeito(result)
                 self.assertEqual(result.exit_code, 1, result.output)
                 self.assertIn("Não foi possível ler o banco de orçamento", result.output)
+                # o rebuild não recupera tudo: o gasto do ask não fica no log de eventos
+                self.assertIn("gasto do ask não fica no log", " ".join(result.output.split()))
                 self.assertNotIn("Traceback", result.output)
 
     def test_history_recusa_zero_e_negativo(self):

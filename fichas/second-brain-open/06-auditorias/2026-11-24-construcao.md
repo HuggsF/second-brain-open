@@ -22,7 +22,7 @@ Depois de o `ask` passar a gerar pela cadeia de provedores, com custo e orçamen
    `cli.py budget --history 3`, `cli.py budget --rebuild` e `cli.py budget` de novo. Saída em
    [evidencias/2026-11-24-budget.txt](evidencias/2026-11-24-budget.txt).
 
-Nos dois arquivos, o caminho local da máquina foi trocado por `.`, `~` ou `<pasta temporária>`; nada mais
+Nos dois arquivos, o caminho local da máquina foi trocado por `.`, `~`, `<python>` ou `<pasta temporária>`; nada mais
 foi alterado.
 
 ## Resultado

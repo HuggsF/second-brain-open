@@ -45,5 +45,8 @@ gerador local isolado.
 - Conteúdo de tarefa só deve ir a provedor de nuvem que declare retenção zero e recusa de coleta ou
   treino. O perfil de exemplo mostra onde declarar. O motor repassa essa declaração ao provedor e não
   confere se ele a cumpre.
+- O gasto das tarefas também fica no log de eventos, de onde `budget --rebuild` o refaz. O gasto do
+  `ask` fica só no banco de orçamento: se o banco se perder, esse gasto se perde e o período recomeça
+  sem ele.
 - A geração por provedor de nuvem e por modelo local real não tem teste automático: os testes usam
   clientes falsos e não fazem chamada de rede.

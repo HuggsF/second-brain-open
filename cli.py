@@ -128,6 +128,7 @@ _MOTIVO_SEM_GERADOR = {
     "budget_daily": "orçamento do dia esgotado",
     "budget_monthly": "orçamento do mês esgotado",
     "profile_not_found": "perfil não encontrado ou inválido",
+    "local_unavailable": "o servidor local de modelos não respondeu",
 }
 
 
@@ -193,7 +194,8 @@ def ask(question: str, category: str):
         click.echo("Fontes: relevância  arquivo  |  seção  |  linhas")
         _mostrar_fontes(result["sources"])
     if result["status"] == "sem_gerador":
-        click.echo("Confira o perfil e o orçamento com 'cli.py budget'. 'cli.py buscar' não precisa de modelo.")
+        click.echo("Confira o perfil e o orçamento com 'cli.py budget' e, se usa o servidor local de modelos, "
+                   "o endereço em OLLAMA_URL. 'cli.py buscar' não precisa de modelo.")
         raise SystemExit(1)
 
 
@@ -422,14 +424,6 @@ def _get_tracker():
 
 def _emit_task(task: str, **kwargs):
     from core.local_tasks import router
-    tracker = _get_tracker()
-    envelope = router.run_task(task, sender="cli", budget_tracker=tracker, **kwargs)
-    click.echo(json.dumps(envelope, ensure_ascii=False, indent=2))
-    raise SystemExit(_TASK_EXIT.get(envelope.get("status"), 1))
-
-
-def _emit_task(task: str, **kwargs):
-    from core.local_tasks import router
     envelope = router.run_task(task, sender="cli", budget_tracker=_get_tracker(), **kwargs)
     click.echo(json.dumps(envelope, ensure_ascii=False, indent=2))
     raise SystemExit(_TASK_EXIT.get(envelope.get("status"), 1))
@@ -468,7 +462,8 @@ def budget_cmd(history_days, do_rebuild):
         st = tracker.status()
     except sqlite3.Error:
         click.echo(f"Não foi possível ler o banco de orçamento em {db_path}.")
-        click.echo("Apague esse arquivo e rode 'cli.py budget --rebuild' para refazê-lo a partir do log de eventos.")
+        click.echo("Apague esse arquivo e rode 'cli.py budget --rebuild': o gasto das tarefas volta do log de eventos.")
+        click.echo("O gasto do ask não fica no log e se perde: o período recomeça sem ele.")
         raise SystemExit(1)
     click.echo(f"Orçamento: {_ESTADO_ORCAMENTO.get(st.state, st.state)}")
     for rotulo, gasto, limite, saldo in (("Dia", st.daily_spent, st.daily_limit, st.daily_remaining),
