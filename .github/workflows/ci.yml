@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python (testes e fichas)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Instalar dependências
+        run: python -m pip install -r requirements.txt
+
+      - name: Conferir SQLite 3.43+ com FTS5
+        run: |
+          python - <<'PY'
+          import sqlite3
+          print("SQLite", sqlite3.sqlite_version)
+          assert sqlite3.sqlite_version_info >= (3, 43), "o índice pede SQLite 3.43 ou mais novo"
+          sqlite3.connect(":memory:").execute("create virtual table t using fts5(x)")
+          PY
+
+      - name: Testes
+        run: python -m pytest -q
+
+      - name: Validar fichas
+        run: python cli.py ficha validar
+
+  nexus:
+    name: Nexus (testes e build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nexus
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: nexus/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
