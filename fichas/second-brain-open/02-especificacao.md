@@ -18,6 +18,11 @@ aplica: sim
    registradas.
 7. Cada chamada ao servidor MCP gera um registro de rastreio com os campos sensíveis mascarados.
 8. O núcleo novo não cita o nome da organização que o usa.
+9. `sync` indexa o vault em um arquivo SQLite e `buscar` devolve os trechos relevantes sem serviço
+   nenhum. Com o índice já construído, nota ilegível falha sozinha e as outras são atualizadas. Na
+   primeira indexação e na reconstrução, uma nota ilegível aborta tudo: o `sync` lista as notas e não
+   grava índice parcial.
+10. Sem servidor de modelos, `ask` mostra as fontes, diz que a resposta não foi gerada e sai com 1.
 
 ## Critérios de aceite
 
@@ -32,6 +37,8 @@ Cada critério é um comportamento que um arquivo de teste do repositório exerc
 | 6 | `tests/test_evidence.py`, `tests/test_evidence_store.py` |
 | 7 | `tests/test_tracing.py`, `tests/test_trace_middleware.py` |
 | 8 | `tests/test_agnostic_core.py` |
+| 9 | `tests/test_indice_texto.py`, `tests/test_sync_consistency.py`, `tests/test_busca_cli.py`, `tests/test_sem_motor_vetorial.py` |
+| 10 | `tests/test_retrieval_contract.py`, `tests/test_busca_cli.py` |
 
-Os doze arquivos desta tabela passam, assim como o resto da suíte. O resultado está na
-[auditoria de construção mais recente](06-auditorias/2026-11-23b-construcao.md).
+Os arquivos desta tabela passam, assim como o resto da suíte. O resultado está na
+[auditoria de construção mais recente](06-auditorias/2026-11-23c-construcao.md).

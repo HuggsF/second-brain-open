@@ -13,3 +13,4 @@ recentes de cada etapa.
 |---|---|---|
 | 2026-11-23 | [construção](2026-11-23-construcao.md) | âmbar |
 | 2026-11-23 | [construção, segunda do dia](2026-11-23b-construcao.md) | verde |
+| 2026-11-23 | [construção, terceira do dia](2026-11-23c-construcao.md) | verde |

@@ -12,7 +12,8 @@ Na primeira instalação, e antes de registrar uma auditoria de construção.
 ## Passos
 
 1. Criar o ambiente: `python -m venv .venv` e `.venv/Scripts/python -m pip install -r requirements.txt`.
-2. Só para busca e respostas: `docker compose up -d` (banco vetorial e servidor de modelos).
+2. Apontar o vault: variável `BRAIN_VAULT_DIR` (o repositório não traz um). Depois, `cli.py sync` e
+   `cli.py buscar "uma pergunta"`. Nenhum serviço é necessário.
 3. Rodar a suíte: `.venv/Scripts/python -m pytest -q`.
 4. Validar as fichas: `.venv/Scripts/python cli.py ficha validar`.
 

@@ -6,8 +6,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TERMS = os.getenv("AGNOSTIC_FORBIDDEN_TERMS", r"(?!x)x")  # set to a regex of instance names to enforce
-SCOPES = ("core/protocol", "core/local_tasks", "profiles/example", "fichas")
-FILES = ("core/events.py", "mcp_servers/local_tasks_mcp.py", "core/ficha.py", "tests/test_ficha.py")
+SCOPES = ("core/protocol", "core/local_tasks", "profiles/example", "fichas", "ingestion")
+FILES = ("core/events.py", "mcp_servers/local_tasks_mcp.py", "core/ficha.py", "tests/test_ficha.py",
+         "core/indice_texto.py", "core/consulta_texto.py", "core/vault_docs.py", "core/sync_lock.py", "core/vault_vocab.py",
+         "core/citations.py", "core/chunker.py", "core/hasher.py", "core/retriever.py", "core/tools.py", "config.py", "cli.py",
+         "tests/test_indice_texto.py", "tests/test_consulta_texto.py", "tests/test_vault_docs.py", "tests/test_sync_lock.py",
+         "tests/test_vault_vocab.py", "tests/test_citations.py", "tests/test_sync_consistency.py",
+         "tests/test_retrieval_contract.py", "tests/test_sem_motor_vetorial.py", "tests/test_busca_cli.py",
+         "tests/test_config_busca.py")
 
 
 class TestAgnosticCore(unittest.TestCase):

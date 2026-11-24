@@ -186,39 +186,43 @@ class TestHostCommandsNeedHumanApproval(unittest.TestCase):
         )
 
 
-class _FakeEmbedder:
-    def get_embedding(self, text):
-        return [0.0]
-
-
-class _FakeStore:
-    def search(self, query_vector, limit, category=None, bounded_context=None):
-        return [{"score": 0.8, "payload": {"file_path": "systems/hub.md", "doc_title": "Hub", "section": "OAuth",
-                                           "category": "systems", "content": "Conteúdo da seção OAuth do Hub."}}]
-
-
 class TestRetrieverContent(unittest.TestCase):
+    """Fonte sem o texto do trecho por padrão; com o texto quando pedido."""
+
+    CONTEUDO = "Conteúdo da seção de autenticação do portal."
+
     def _retriever(self):
-        r = retriever_mod.BrainRetriever.__new__(retriever_mod.BrainRetriever)
-        r.embedder, r.store = _FakeEmbedder(), _FakeStore()
-        orig_query = r.query
-        def query(user_question, limit=4, category=None, bounded_context=None, include_content=False):
-            res = orig_query(user_question, limit=limit, category=category, bounded_context=bounded_context)
-            if include_content:
-                hits = r.store.search(None, limit, category)
-                for s, h in zip(res["sources"], hits):
-                    s["content"] = h["payload"].get("content")
-            return res
-        r.query = query
-        return r
+        import hashlib
+        import tempfile
+
+        from config import settings
+        from core.chunker import MarkdownChunker
+        from core.indice_texto import IndiceTexto
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        vault = Path(tmp.name) / "vault"
+        nota = vault / "systems" / "portal.md"
+        nota.parent.mkdir(parents=True)
+        nota.write_text(f"# Portal\n\n## Autenticação\n\n{self.CONTEUDO}\n", encoding="utf-8")
+        bruto = nota.read_bytes()
+        sha = hashlib.sha256(bruto).hexdigest()
+        trechos = MarkdownChunker().chunk_bytes(bruto, "systems/portal.md", vault)
+        for trecho in trechos:
+            trecho["metadata"]["doc_sha256"] = sha
+            trecho["metadata"]["space_id"] = settings.space_id
+        indice = IndiceTexto(Path(tmp.name) / "i.db")
+        indice.reconstruir([("systems/portal.md", sha, trechos)])
+        return retriever_mod.BrainRetriever(store=indice, vault_dir=vault, generator=lambda s, u: "")
 
     def test_default_sources_are_unchanged_for_mcp_clients(self):
-        sources = self._retriever().query("oauth")["sources"]
-        self.assertEqual(set(sources[0]), {"file_path", "doc_title", "section", "category", "score"})
+        sources = self._retriever().query("autenticação portal")["sources"]
+        self.assertEqual(set(sources[0]), {"file_path", "doc_title", "section", "category", "score",
+                                           "sha256", "line_start", "line_end", "stale"})
 
     def test_include_content_adds_the_chunk_text(self):
-        sources = self._retriever().query("oauth", include_content=True)["sources"]
-        self.assertEqual(sources[0]["content"], "Conteúdo da seção OAuth do Hub.")
+        sources = self._retriever().query("autenticação portal", include_content=True)["sources"]
+        self.assertIn(self.CONTEUDO, sources[0]["content"])
 
 
 class TestToolExecutorSearch(unittest.TestCase):

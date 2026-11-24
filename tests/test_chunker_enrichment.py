@@ -44,9 +44,3 @@ class TestRetrieverIncludeContent:
         sig = inspect.signature(BrainRetriever.query)
         assert "bounded_context" in sig.parameters
         assert "include_content" in sig.parameters
-
-    def test_qdrant_search_accepts_bounded_context(self):
-        from core.qdrant_store import QdrantStore
-        import inspect
-        sig = inspect.signature(QdrantStore.search)
-        assert "bounded_context" in sig.parameters

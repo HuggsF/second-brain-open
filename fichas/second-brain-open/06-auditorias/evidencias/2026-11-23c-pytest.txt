@@ -1,0 +1,35 @@
+.\.venv\Lib\site-packages\pytest_asyncio\plugin.py:306: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to "function" scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session". Set it to "fixture-scope" to keep the current behavior.
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+.......................................................................................................................... [  9%]
+........................................................................ [ 15%]
+............................................................... [ 20%]
+........................................................................ [ 25%]
+........................................................................ [ 31%]
+........................................................................ [ 37%]
+........................................................................ [ 43%]
+........................................................................ [ 48%]
+........................................................................ [ 54%]
+.................................................................. [ 59%]
+........................................................... [ 64%]
+........................................................................ [ 69%]
+........................................................... [ 74%]
+........................................................................ [ 80%]
+........................................................................ [ 86%]
+........................................................................................................................................................................ [ 99%]
+.........                                                                [100%]
+============================== warnings summary ===============================
+tests/test_local_tasks_mcp.py::LocalTasksMcpTests::test_classify_returns_result_envelope
+  .\.venv\Lib\site-packages\beartype\claw\_importlib\_clawimpfileloader.py:508: RuntimeWarning: coroutine 'Event.wait' was never awaited
+    return super().get_code(fullname)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_nexus_ws.py::TestWsServerProtocol::test_ws_connect_with_expired_cookie_gets_4001
+tests/test_nexus_ws.py::TestWsServerProtocol::test_ws_connect_without_cookie_gets_4001
+  .\.venv\Lib\site-packages\websockets\exceptions.py:139: DeprecationWarning: ConnectionClosed.code is deprecated; use Protocol.close_code or ConnectionClosed.rcvd.code
+    warnings.warn(  # deprecated in 13.1 - 2024-09-21
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1266 passed, 3 warnings, 111 subtests passed in 25.03s

@@ -28,8 +28,9 @@ para ficar de pé.
 
 ## Armadilhas
 
-- A busca depende de dois serviços locais (banco vetorial e servidor de modelos). Sem eles, `sync` e `ask`
-  não funcionam.
+- A busca é por palavras: pergunta com vocabulário diferente do da nota não acha nada.
+- O piso de relevância da busca não foi medido neste repositório.
+- A resposta do `ask` precisa de um servidor local de modelos; `sync` e `buscar` não precisam de nada.
 - O repositório não traz vault nem adaptadores de infraestrutura: quem instala precisa trazer os seus.
 - A interface de agentes é um protótipo com dados simulados.
 

@@ -55,9 +55,9 @@ MISSION_PATTERNS = [
         ],
     },
     {
-        "keywords": ["status", "saúde", "health", "qdrant", "brain"],
+        "keywords": ["status", "saúde", "health", "índice", "indice", "brain"],
         "steps": [
-            {"agent": "coder", "tool": "get_brain_status", "input": {}, "bubble": "Verificando status do Qdrant..."},
+            {"agent": "coder", "tool": "get_brain_status", "input": {}, "bubble": "Verificando o índice de busca..."},
         ],
     },
 ]
