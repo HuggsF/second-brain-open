@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TERMS = os.getenv("AGNOSTIC_FORBIDDEN_TERMS", r"(?!x)x")  # set to a regex of instance names to enforce
-SCOPES = ("core/protocol", "core/local_tasks", "profiles/example", "fichas", "ingestion")
+SCOPES = ("core/protocol", "core/local_tasks", "profiles/example", "fichas", "ingestion", "core/geracao")
 FILES = ("core/events.py", "mcp_servers/local_tasks_mcp.py", "core/ficha.py", "tests/test_ficha.py",
          "core/indice_texto.py", "core/consulta_texto.py", "core/vault_docs.py", "core/sync_lock.py", "core/vault_vocab.py",
          "core/citations.py", "core/chunker.py", "core/hasher.py", "core/retriever.py", "core/tools.py", "config.py", "cli.py",
@@ -17,7 +17,14 @@ FILES = ("core/events.py", "mcp_servers/local_tasks_mcp.py", "core/ficha.py", "t
          "core/cost.py", "core/budget.py", "tests/test_cost.py", "tests/test_budget.py", "tests/test_budget_wiring.py",
          "tests/test_answer_generation.py", "tests/test_providers.py", "tests/test_local_tasks.py",
          "tests/test_local_tasks_cli.py", "tests/test_local_tasks_mcp.py", "tests/test_openai_compat_client.py",
-         "tests/test_protocol.py")
+         "tests/test_protocol.py",
+         "core/triagem.py", "core/demand_lifecycle.py", "core/docs_registry.py", "core/produtos.py",
+         "tests/test_triagem.py", "tests/test_triagem_portoes.py", "tests/test_demand_lifecycle_v2.py",
+         "tests/test_docs_registry.py", "tests/test_produtos.py", "tests/test_demanda_cli.py",
+         "tests/test_artefato_eval_cli.py", "tests/fixtures/artefato_eval.json", "tests/test_geracao_contexto.py",
+         "tests/test_geracao_escrita.py", "tests/test_geracao_gancho.py", "tests/test_geracao_gerador.py",
+         "tests/test_geracao_plano.py", "tests/test_geracao_ponta_a_ponta.py", "tests/test_geracao_render.py",
+         "tests/test_geracao_schemas.py")
 
 
 class TestAgnosticCore(unittest.TestCase):

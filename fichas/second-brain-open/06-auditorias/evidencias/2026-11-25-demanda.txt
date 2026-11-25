@@ -1,0 +1,50 @@
+Sessão em pasta temporária: ficha `portal` criada por `ficha nova`, catálogo com um produto, e um cliente
+de IA falso que devolve respostas fixas (nenhum modelo foi chamado).
+
+$ python cli.py demanda nova 'Tela de reservas' --descricao 'O cliente quer ver a reserva no portal.'
+Demanda DEM-001 criada em intake.
+[saída 0]
+
+$ python cli.py gerar-artefatos DEM-001
+triagem: gerado
+[saída 0]
+
+$ python cli.py demanda mostrar DEM-001
+DEM-001: Tela de reservas
+Fase: intake
+Trilha: -
+Produto: portal
+Triagem: pendente de aprovação
+Trilha sugerida no rascunho: completa
+Artefatos: geracao, triagem
+Falta para sair de intake:
+  - triagem aprovada
+[saída 0]
+
+$ python cli.py demanda triar DEM-001 --aprovar-por gestor-demandas --trilha completa
+Triagem gravada e aprovada.
+[saída 0]
+
+$ python cli.py demanda avancar DEM-001 --ator gestor-demandas
+Demanda DEM-001: intake → spike.
+[saída 0]
+
+$ python cli.py gerar-artefatos DEM-001
+visao: gerado portal/demandas/dem-001/visao.mdx
+[saída 0]
+
+$ python cli.py demanda avancar DEM-001 --ator gestor-demandas
+Não avançou. Falta:
+  - registrar quem aprovou a visão ('cli.py demanda aprovar-visao')
+  - visao: a página portal/demandas/dem-001/visao.mdx ainda está em proposta
+[saída 1]
+
+$ python cli.py gerar-artefatos DEM-001
+Nada a gerar nesta fase.
+[saída 0]
+
+Cabeçalho de fichas/portal/demandas/dem-001/visao.mdx:
+title: Visão - Tela de reservas
+status: proposta
+demanda: DEM-001
+gerado_por: ia

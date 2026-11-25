@@ -28,6 +28,15 @@ aplica: sim
 11. Cada chamada de modelo registra o custo. Com o orçamento do dia ou do mês esgotado, nenhuma
     chamada vai a provedor de nuvem: a cadeia usa só provedores locais ou devolve `budget_exceeded`
     (saída 3 em `cli.py task`). `cli.py budget` mostra gasto, limite e estado.
+12. Uma demanda nasce em `intake` e só muda de fase quando o portão da transição aceita: triagem
+    aprovada por um papel, com trilha escolhida, e os artefatos que a trilha exige naquela fase. A
+    recusa diz o que falta.
+13. `gerar-artefatos` redige os rascunhos da fase pela cadeia de provedores e os grava em
+    `fichas/<projeto>/demandas/<id>/` com `status: proposta`. Rascunho não abre portão. Sem
+    `--refazer`, nenhuma página existente é alterada; com `--refazer`, só as que ainda estão em
+    `proposta`.
+14. O produto de uma demanda é um slug do catálogo do perfil, e esse slug é o de uma ficha. Produto
+    fora do catálogo ou sem ficha é recusado, e nada é gravado fora da ficha.
 
 ## Critérios de aceite
 
@@ -45,6 +54,9 @@ Cada critério é um comportamento que um arquivo de teste do repositório exerc
 | 9 | `tests/test_indice_texto.py`, `tests/test_sync_consistency.py`, `tests/test_busca_cli.py`, `tests/test_sem_motor_vetorial.py` |
 | 10 | `tests/test_retrieval_contract.py`, `tests/test_answer_generation.py`, `tests/test_busca_cli.py` |
 | 11 | `tests/test_cost.py`, `tests/test_budget.py`, `tests/test_budget_wiring.py`, `tests/test_local_tasks.py`, `tests/test_local_tasks_cli.py` |
+| 12 | `tests/test_demand_lifecycle_v2.py`, `tests/test_triagem.py`, `tests/test_triagem_portoes.py`, `tests/test_demanda_cli.py` |
+| 13 | `tests/test_geracao_gerador.py`, `tests/test_geracao_ponta_a_ponta.py`, `tests/test_geracao_escrita.py`, `tests/test_demanda_cli.py`, `tests/test_ficha.py` |
+| 14 | `tests/test_produtos.py`, `tests/test_docs_registry.py`, `tests/test_demanda_cli.py` |
 
 Os arquivos desta tabela passam, assim como o resto da suíte. O resultado está na
-[auditoria de construção mais recente](06-auditorias/2026-11-24-construcao.md).
+[auditoria de construção mais recente](06-auditorias/2026-11-25-construcao.md).
