@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "casos-de-uso@1",
+  "type": "object",
+  "required": [
+    "casos"
+  ],
+  "properties": {
+    "casos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "atores",
+          "pre_condicao",
+          "fluxo_principal",
+          "fluxos_alternativos",
+          "pos_condicao"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "atores": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pre_condicao": {
+            "type": "string"
+          },
+          "fluxo_principal": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fluxos_alternativos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pos_condicao": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

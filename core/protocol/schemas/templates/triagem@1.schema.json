@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "triagem@1",
+  "type": "object",
+  "required": [
+    "produto",
+    "t1",
+    "t2",
+    "t3",
+    "t4",
+    "trilha",
+    "atividade",
+    "faixa",
+    "criterios_de_aceite",
+    "mais_de_uma_sprint",
+    "justificativa"
+  ],
+  "properties": {
+    "produto": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "t1": {
+      "type": "boolean"
+    },
+    "t2": {
+      "type": "boolean"
+    },
+    "t3": {
+      "type": "boolean"
+    },
+    "t4": {
+      "type": "boolean"
+    },
+    "trilha": {
+      "type": "string",
+      "enum": [
+        "operacional",
+        "correcao_direta",
+        "leve",
+        "completa"
+      ]
+    },
+    "atividade": {
+      "type": "string"
+    },
+    "faixa": {
+      "type": "string"
+    },
+    "criterios_de_aceite": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mais_de_uma_sprint": {
+      "type": "boolean"
+    },
+    "justificativa": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
