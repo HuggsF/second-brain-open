@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "regras@1",
+  "type": "object",
+  "required": [
+    "regras"
+  ],
+  "properties": {
+    "regras": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "slug",
+          "titulo",
+          "regra",
+          "exemplos",
+          "por_que",
+          "se_nao_existisse",
+          "perguntas"
+        ],
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "regra": {
+            "type": "string"
+          },
+          "exemplos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "dado",
+                "quando",
+                "entao"
+              ],
+              "properties": {
+                "dado": {
+                  "type": "string"
+                },
+                "quando": {
+                  "type": "string"
+                },
+                "entao": {
+                  "type": "string"
+                }
+              }
+            },
+            "minItems": 2
+          },
+          "por_que": {
+            "type": "string"
+          },
+          "se_nao_existisse": {
+            "type": "string"
+          },
+          "perguntas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": true
+}

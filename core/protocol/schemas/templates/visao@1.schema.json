@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "visao@1",
+  "type": "object",
+  "required": [
+    "problema",
+    "cenario_atual",
+    "cenario_desejado",
+    "escopo_dentro",
+    "escopo_fora",
+    "setores",
+    "riscos"
+  ],
+  "properties": {
+    "problema": {
+      "type": "string"
+    },
+    "cenario_atual": {
+      "type": "string"
+    },
+    "cenario_desejado": {
+      "type": "string"
+    },
+    "escopo_dentro": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "escopo_fora": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "setores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "area",
+          "papel"
+        ],
+        "properties": {
+          "area": {
+            "type": "string"
+          },
+          "papel": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "riscos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "risco",
+          "mitigacao"
+        ],
+        "properties": {
+          "risco": {
+            "type": "string"
+          },
+          "mitigacao": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

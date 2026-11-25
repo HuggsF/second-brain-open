@@ -699,6 +699,427 @@ def task_eval(min_accuracy, profile_name):
         raise SystemExit(1)
 
 
+# ── Demandas ────────────────────────────────────────────────────────
+
+def _id_demanda(valor: str) -> str:
+    return valor.strip().upper()
+
+
+def _servico_demandas():
+    """(serviço, catálogo de produtos) com o banco em `.runtime/demands.db` e o catálogo do perfil ativo."""
+    from core import demand_lifecycle
+    from core.geracao import ligacao
+    from core.produtos import ProdutosInvalidos, ler_produtos
+    caminho = settings.base_dir / ".runtime" / "demands.db"
+    try:
+        svc = demand_lifecycle.DemandLifecycleService(caminho)
+    except (sqlite3.Error, OSError):
+        click.echo(f"Não foi possível ler o banco de demandas em {caminho}.")
+        raise SystemExit(1)
+    try:
+        catalogo = ligacao.caminho_produtos()
+    except LookupError as exc:
+        click.echo(f"Perfil {exc} não encontrado (variável BRAIN_PROFILE).")
+        raise SystemExit(1)
+    if not catalogo.parent.is_dir():
+        click.echo(f"Perfil {catalogo.parent.name} não encontrado em {catalogo.parent.parent} (variável BRAIN_PROFILE).")
+        raise SystemExit(1)
+    try:
+        produtos = ler_produtos(catalogo)
+    except ProdutosInvalidos as exc:
+        click.echo(f"Catálogo de produtos inválido: {exc}")
+        raise SystemExit(1)
+    if not produtos:
+        click.echo(f"Aviso: perfil sem catálogo de produtos ({catalogo}); o produto da triagem não é conferido "
+                   "contra um catálogo.", err=True)
+    svc.set_produtos(list(produtos) or None)
+    return svc, produtos
+
+
+def _erros_de_demanda(funcao):
+    """Erros esperados dos comandos de demanda viram mensagem e saída 1, sem traceback."""
+    import functools
+
+    @functools.wraps(funcao)
+    def embrulho(*args, **kwargs):
+        from core.demand_lifecycle import DemandNotFoundError
+        from core.docs_registry import DocsRegistryError
+        try:
+            return funcao(*args, **kwargs)
+        except DemandNotFoundError as exc:
+            achado = re.search(r"DEM-\d+", str(exc))
+            click.echo(f"Demanda {achado.group(0) if achado else '?'} não encontrada.")
+        except DocsRegistryError as exc:
+            click.echo(str(exc))
+        except (sqlite3.Error, OSError):
+            click.echo(f"Não foi possível ler o banco de demandas em {settings.base_dir / '.runtime' / 'demands.db'}.")
+        raise SystemExit(1)
+    return embrulho
+
+
+def _demanda_ou_sai(svc, demanda_id: str):
+    demanda = svc.get_demand(demanda_id)
+    if demanda is None:
+        click.echo(f"Demanda {demanda_id} não encontrada.")
+        raise SystemExit(1)
+    return demanda
+
+
+def _ficha_do_produto_ou_sai(produto) -> None:
+    """Com os rascunhos gravados na pasta de fichas, o produto tem de ser uma ficha existente."""
+    from core.docs_registry import docs_root
+    from core.produtos import SLUG_PRODUTO_RE
+    raiz = docs_root()
+    if raiz.resolve() != Path(settings.fichas_dir).resolve():
+        return
+    if not isinstance(produto, str) or not SLUG_PRODUTO_RE.match(produto):
+        click.echo(f"Triagem com produto inválido: {produto!r}.")
+        raise SystemExit(1)
+    if not (raiz / produto / "ficha.md").is_file():
+        click.echo(f"Produto {produto} não tem ficha em {raiz / produto}. Crie com 'cli.py ficha nova'.")
+        raise SystemExit(1)
+
+
+def _pendencia_legivel(item: str) -> str:
+    partes = item.split(":")
+    if item == "triagem":
+        return "triagem aprovada"
+    if item == "visao:aprovada_por":
+        return "registrar quem aprovou a visão ('cli.py demanda aprovar-visao')"
+    if item == "docs_repo":
+        return "a pasta de documentos, ou uma página dela, não pôde ser lida"
+    if len(partes) >= 3 and partes[-1] == "proposta":
+        return f"{partes[0]}: a página {':'.join(partes[1:-1])} ainda está em proposta"
+    if partes[0] == "regras" and len(partes) >= 2:
+        return f"regra ausente ou não aprovada: {':'.join(partes[1:])}"
+    if len(partes) >= 2:
+        return f"{partes[0]}: a página {':'.join(partes[1:])} não existe"
+    return f"artefato {item}"
+
+
+def _estado_da_triagem(triagem) -> str:
+    if not isinstance(triagem, dict) or not triagem:
+        return "ausente"
+    por = str(triagem.get("aprovada_por") or "").strip()
+    return f"aprovada por {por}" if por else "pendente de aprovação"
+
+
+def _erros_da_triagem(triagem: dict, produtos) -> list:
+    from core.triagem import erros_triagem
+    return erros_triagem(triagem, list(produtos) if produtos else None)
+
+
+def _json_ou_sai(texto: str, oque: str):
+    try:
+        return json.loads(texto)
+    except ValueError as exc:
+        click.echo(f"{oque}: não é JSON válido ({exc}).")
+        raise SystemExit(1)
+
+
+@cli.group("demanda")
+def demanda_grupo():
+    """Demandas: criar, triar e conduzir pelas fases. Quem aprova é sempre um papel (ex.: gestor-demandas)."""
+
+
+@demanda_grupo.command("nova")
+@click.argument("titulo")
+@click.option("--descricao", default="", help="Texto do pedido")
+@click.option("--prioridade", default="medium", show_default=True)
+@_erros_de_demanda
+def demanda_nova(titulo, descricao, prioridade):
+    """Cria uma demanda na fase intake."""
+    svc, _ = _servico_demandas()
+    demanda = svc.create_demand(titulo, descricao, source="cli", priority=prioridade)
+    click.echo(f"Demanda {demanda.id} criada em intake.")
+
+
+@demanda_grupo.command("listar")
+@click.option("--fase", default=None, help="Só as demandas nesta fase")
+@_erros_de_demanda
+def demanda_listar(fase):
+    """Lista as demandas: id, fase, trilha, produto e título."""
+    from core.demand_lifecycle import Phase
+    svc, _ = _servico_demandas()
+    try:
+        filtro = Phase(fase) if fase else None
+    except ValueError:
+        click.echo(f"Fase desconhecida: {fase}. Use uma de: {', '.join(p.value for p in Phase)}.")
+        raise SystemExit(1)
+    demandas = svc.list_demands(phase=filtro, limit=500)
+    if not demandas:
+        click.echo("Nenhuma demanda.")
+        return
+    for d in demandas:
+        triagem = (d.artefacts or {}).get("triagem")
+        triagem = triagem if isinstance(triagem, dict) else {}
+        click.echo(f"{d.id}  {d.phase.value}  {triagem.get('trilha') or '-'}  {triagem.get('produto') or '-'}  {d.title}")
+
+
+@demanda_grupo.command("mostrar")
+@click.argument("demanda")
+@_erros_de_demanda
+def demanda_mostrar(demanda):
+    """Mostra fase, triagem, artefatos e o que falta para sair da fase."""
+    svc, _ = _servico_demandas()
+    d = _demanda_ou_sai(svc, _id_demanda(demanda))
+    artefatos = d.artefacts or {}
+    triagem = artefatos.get("triagem") if isinstance(artefatos.get("triagem"), dict) else {}
+    click.echo(f"{d.id}: {d.title}")
+    click.echo(f"Fase: {d.phase.value}")
+    click.echo(f"Trilha: {triagem.get('trilha') or '-'}")
+    click.echo(f"Produto: {triagem.get('produto') or '-'}")
+    click.echo(f"Triagem: {_estado_da_triagem(artefatos.get('triagem'))}")
+    if triagem and not triagem.get("trilha") and triagem.get("trilha_sugerida"):
+        click.echo(f"Trilha sugerida no rascunho: {triagem['trilha_sugerida']}")
+    click.echo(f"Artefatos: {', '.join(sorted(artefatos)) or '-'}")
+    pendencias = svc.pendencias(d.id)
+    if pendencias:
+        click.echo(f"Falta para sair de {d.phase.value}:")
+        for item in pendencias:
+            click.echo(f"  - {_pendencia_legivel(item)}")
+    else:
+        click.echo(f"Nada falta para sair de {d.phase.value}.")
+
+
+@demanda_grupo.command("triar")
+@click.argument("demanda")
+@click.option("--arquivo", type=click.Path(dir_okay=False), default=None, help="JSON com a triagem inteira")
+@click.option("--aprovar-por", "aprovar_por", default=None, help="Papel que aprova a triagem já gravada (ex.: gestor-demandas)")
+@click.option("--trilha", type=click.Choice(["operacional", "correcao_direta", "leve", "completa"]), default=None,
+              help="Trilha escolhida por quem aprova (obrigatória com --aprovar-por)")
+@_erros_de_demanda
+def demanda_triar(demanda, arquivo, aprovar_por, trilha):
+    """Grava a triagem de um arquivo, ou aprova a que já está na demanda."""
+    if (arquivo is None) == (aprovar_por is None):
+        raise click.UsageError("informe exatamente um entre --arquivo e --aprovar-por")
+    if aprovar_por is not None and (trilha is None or not aprovar_por.strip()):
+        raise click.UsageError("--aprovar-por exige um papel e a --trilha escolhida")
+    if arquivo is not None and trilha is not None:
+        raise click.UsageError("--trilha só vale com --aprovar-por; no arquivo, a trilha vai no JSON")
+    svc, produtos = _servico_demandas()
+    d = _demanda_ou_sai(svc, _id_demanda(demanda))
+    if arquivo is not None:
+        try:
+            triagem = json.loads(Path(arquivo).read_text(encoding="utf-8-sig"))
+        except (OSError, ValueError) as exc:
+            click.echo(f"Arquivo de triagem inválido: {exc}")
+            raise SystemExit(1)
+        if not isinstance(triagem, dict):
+            click.echo("Arquivo de triagem inválido: esperado um objeto JSON.")
+            raise SystemExit(1)
+        aprovada = bool(str(triagem.get("aprovada_por") or "").strip())
+        erros = _erros_da_triagem(triagem, produtos)
+        if not aprovada:
+            # pendente: a aprovação e a trilha ficam para quem aprova
+            erros = [e for e in erros if "aprovada_por" not in e
+                     and not (e.startswith("trilha ausente") and not triagem.get("trilha"))]
+    else:
+        atual = (d.artefacts or {}).get("triagem")
+        if not isinstance(atual, dict) or not atual:
+            click.echo(f"Demanda {d.id} não tem triagem para aprovar.")
+            raise SystemExit(1)
+        from datetime import datetime, timezone
+        triagem = {**atual, "trilha": trilha, "aprovada_por": aprovar_por.strip(),
+                   "aprovada_em": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+        aprovada = True
+        erros = _erros_da_triagem(triagem, produtos)
+    if erros:
+        click.echo("Triagem recusada:")
+        for erro in erros:
+            click.echo(f"  - {erro}")
+        raise SystemExit(1)
+    _ficha_do_produto_ou_sai(triagem.get("produto"))
+    try:
+        svc.update_artefact(d.id, "triagem", triagem)
+    except ValueError as exc:
+        click.echo(f"Triagem recusada: {exc}")
+        raise SystemExit(1)
+    click.echo("Triagem gravada e aprovada." if aprovada else "Triagem gravada (pendente de aprovação).")
+
+
+@demanda_grupo.command("trilha")
+@click.argument("demanda")
+@click.argument("nova", type=click.Choice(["operacional", "correcao_direta", "leve", "completa"]))
+@click.option("--motivo", required=True, help="Por que a trilha muda")
+@click.option("--ator", required=True, help="Papel que decide a troca")
+@_erros_de_demanda
+def demanda_trilha(demanda, nova, motivo, ator):
+    """Troca a trilha de uma triagem já aprovada, registrando motivo e autor."""
+    svc, _ = _servico_demandas()
+    d = _demanda_ou_sai(svc, _id_demanda(demanda))
+    triagem = (d.artefacts or {}).get("triagem")
+    if not isinstance(triagem, dict) or not str(triagem.get("aprovada_por") or "").strip():
+        click.echo(f"Demanda {d.id} não tem triagem aprovada. A primeira trilha é escolhida em 'cli.py demanda triar'.")
+        raise SystemExit(1)
+    try:
+        svc.rebaixar_trilha(d.id, nova, motivo, ator)
+    except ValueError as exc:
+        click.echo(f"Trilha não trocada: {exc}")
+        raise SystemExit(1)
+    click.echo(f"Demanda {d.id}: trilha {nova}.")
+
+
+@demanda_grupo.command("aprovar-visao")
+@click.argument("demanda")
+@click.option("--por", required=True, help="Papel que aprovou a visão")
+@_erros_de_demanda
+def demanda_aprovar_visao(demanda, por):
+    """Registra quem aprovou a visão, preservando a página vinculada."""
+    svc, _ = _servico_demandas()
+    d = _demanda_ou_sai(svc, _id_demanda(demanda))
+    visao = (d.artefacts or {}).get("visao")
+    atual = visao if isinstance(visao, dict) else ({"pagina": visao} if isinstance(visao, str) and visao.strip() else {})
+    if not str(atual.get("pagina") or "").strip():
+        click.echo(f"Demanda {d.id} não tem visão gerada.")
+        raise SystemExit(1)
+    svc.update_artefact(d.id, "visao", {**atual, "aprovada_por": por.strip()})
+    click.echo(f"Demanda {d.id}: visão aprovada por {por.strip()}.")
+
+
+@demanda_grupo.command("artefato")
+@click.argument("demanda")
+@click.argument("nome")
+@click.option("--valor", default=None, help="Valor em JSON (texto entre aspas, objeto ou lista)")
+@click.option("--arquivo", type=click.Path(dir_okay=False), default=None, help="Arquivo JSON com o valor")
+@_erros_de_demanda
+def demanda_artefato(demanda, nome, valor, arquivo):
+    """Grava um artefato que não é gerado: evidence, teste_reproducao, aceite_area, ou rastreio
+    (o caminho de um arquivo JSON de rastreio)."""
+    if (valor is None) == (arquivo is None):
+        raise click.UsageError("informe exatamente um entre --valor e --arquivo")
+    if nome == "triagem":
+        click.echo("A triagem é gravada por 'cli.py demanda triar'.")
+        raise SystemExit(1)
+    if nome == "geracao":
+        click.echo("O registro de geração é mantido por 'cli.py gerar-artefatos'.")
+        raise SystemExit(1)
+    svc, _ = _servico_demandas()
+    d = _demanda_ou_sai(svc, _id_demanda(demanda))
+    if arquivo is not None:
+        try:
+            valor = Path(arquivo).read_text(encoding="utf-8-sig")
+        except (OSError, UnicodeDecodeError) as exc:
+            click.echo(f"Arquivo ilegível: {exc}")
+            raise SystemExit(1)
+    conteudo = _json_ou_sai(valor, "Valor do artefato")
+    svc.update_artefact(d.id, nome, conteudo)
+    click.echo(f"Demanda {d.id}: artefato {nome} gravado.")
+
+
+@demanda_grupo.command("avancar")
+@click.argument("demanda")
+@click.option("--ator", required=True, help="Papel que conduz a demanda")
+@click.option("--motivo", default="", help="Justificativa da mudança de fase")
+@_erros_de_demanda
+def demanda_avancar(demanda, ator, motivo):
+    """Tenta levar a demanda à próxima fase; se o portão recusar, lista o que falta."""
+    from core.demand_lifecycle import InvalidTransitionError, MissingArtefactError, Phase
+    from core.triagem import PROXIMA_FASE
+    svc, _ = _servico_demandas()
+    d = _demanda_ou_sai(svc, _id_demanda(demanda))
+    origem = d.phase.value
+    destino = PROXIMA_FASE.get(origem)
+    if destino is None:
+        click.echo(f"Demanda {d.id} está em {origem}, que não tem próxima fase.")
+        raise SystemExit(1)
+    try:
+        svc.transition(d.id, Phase(destino), actor=ator, reason=motivo)
+    except MissingArtefactError as exc:
+        click.echo("Não avançou. Falta:")
+        for item in exc.missing:
+            click.echo(f"  - {_pendencia_legivel(item)}")
+        if exc.detail:
+            click.echo(f"Detalhe: {exc.detail}")
+        raise SystemExit(1)
+    except InvalidTransitionError as exc:
+        click.echo(f"Não avançou: {exc}")
+        raise SystemExit(1)
+    click.echo(f"Demanda {d.id}: {origem} → {destino}.")
+
+
+@cli.command("gerar-artefatos")
+@click.argument("demanda")
+@click.option("--refazer", is_flag=True,
+              help="Apaga e regera as páginas ainda em proposta, inclusive as editadas à mão; "
+                   "páginas validadas ou aprovadas nunca são tocadas")
+@_erros_de_demanda
+def gerar_artefatos_cmd(demanda, refazer):
+    """Gera os rascunhos dos artefatos da fase atual da DEMANDA; sai com 1 se algum falhar."""
+    from core.geracao import ligacao
+    svc, _ = _servico_demandas()
+    d = _demanda_ou_sai(svc, _id_demanda(demanda))
+    triagem = (d.artefacts or {}).get("triagem")
+    if isinstance(triagem, dict) and str(triagem.get("aprovada_por") or "").strip():
+        _ficha_do_produto_ou_sai(triagem.get("produto"))
+    try:
+        resultados = ligacao.montar_gerador(svc, ligacao.caminho_produtos()).executar(d.id, refazer=refazer)
+    except ValueError as exc:
+        click.echo(f"Geração recusada: {exc}")
+        raise SystemExit(1)
+    if not resultados:
+        click.echo("Nada a gerar nesta fase.")
+        return
+    falhou = False
+    for artefato, reg in resultados.items():
+        estado = reg.get("estado", "")
+        caminho = reg.get("caminho")
+        if isinstance(caminho, list):
+            caminho = ", ".join(str(c) for c in caminho)
+        detalhe = reg.get("motivo") if estado == "falhou" else (caminho or reg.get("motivo"))
+        click.echo(f"{artefato}: {estado}" + (f" {detalhe}" if detalhe else ""))
+        falhou = falhou or estado == "falhou"
+    if falhou:
+        raise SystemExit(1)
+
+
+_ARTEFATO_EVAL = Path(__file__).resolve().parent / "tests" / "fixtures" / "artefato_eval.json"
+_ARTEFATO_TEMPLATES = ("triagem@1", "visao@1", "cronograma@1", "regras@1",
+                       "historias@1", "casos-de-uso@1", "rnf@1", "telas@1")
+
+
+@cli.command("artefato-eval")
+@click.option("--dataset", "dataset_path", type=click.Path(exists=True, dir_okay=False, path_type=Path),
+              default=None, help="JSON com demandas (titulo, descricao); padrão: tests/fixtures/artefato_eval.json")
+@click.option("--min-valid", type=float, default=0.6, show_default=True, help="Fração mínima de rascunhos válidos; abaixo disso sai com 1")
+def artefato_eval_cmd(dataset_path, min_valid):
+    """Mede se o modelo da cadeia gera rascunhos válidos nos 8 templates (chamadas reais e pagas)."""
+    from core.geracao import ligacao
+    from core.protocol import registry
+    try:
+        demandas = json.loads((dataset_path or _ARTEFATO_EVAL).read_text(encoding="utf-8"))
+        if not isinstance(demandas, list) or not demandas or not all(
+                isinstance(d, dict) and isinstance(d.get("titulo"), str) and isinstance(d.get("descricao"), str)
+                for d in demandas):
+            raise ValueError("esperada uma lista não vazia de objetos com titulo e descricao")
+    except (OSError, ValueError) as exc:
+        click.echo(f"Conjunto de demandas inválido: {exc}")
+        raise SystemExit(1)
+    total = validos = 0
+    custo_total = 0.0
+    for demanda in demandas:
+        texto = f"{demanda['titulo']}\n\n{demanda['descricao']}"
+        for template in _ARTEFATO_TEMPLATES:
+            ok, custo = False, 0.0
+            try:
+                env = ligacao._cliente_ia(template, texto)
+                env = env if isinstance(env, dict) else {}
+                cost = env.get("cost") if isinstance(env.get("cost"), dict) else {}
+                custo = float(cost.get("actual_usd") or 0.0)
+                payload = env.get("payload")
+                ok = env.get("status") == "ok" and isinstance(payload, dict) and not registry.validate(template, payload)
+            except Exception:
+                ok = False
+            total += 1
+            validos += int(ok)
+            custo_total += custo
+            click.echo(f"{template} | {'válido' if ok else 'inválido'} | {custo:.4f}")
+    fracao = validos / total if total else 0.0
+    click.echo(f"Válidos: {validos}/{total} ({fracao:.0%}, mínimo {min_valid:.0%}) | custo_usd total {custo_total:.4f}")
+    if fracao < min_valid:
+        raise SystemExit(1)
+
+
 @cli.group("ficha")
 def ficha_grupo():
     """Fichas de projeto: documentação mínima, auditorias por etapa e processos."""

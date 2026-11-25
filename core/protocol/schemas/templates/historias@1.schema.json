@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "historias@1",
+  "type": "object",
+  "required": [
+    "epico",
+    "historias"
+  ],
+  "properties": {
+    "epico": {
+      "type": "string"
+    },
+    "historias": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "persona",
+          "quero",
+          "para",
+          "regras_citadas",
+          "criterios"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "persona": {
+            "type": "string"
+          },
+          "quero": {
+            "type": "string"
+          },
+          "para": {
+            "type": "string"
+          },
+          "regras_citadas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "criterios": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

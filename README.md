@@ -60,6 +60,31 @@ export BRAIN_VAULT_DIR=/caminho/do/seu/vault      # o repositório não traz um
 `BRAIN_INDEX_PATH` muda o arquivo do índice. Caminho relativo, nas duas variáveis, resolve contra a raiz do
 repositório.
 
+## Demandas
+
+Uma demanda é um pedido de mudança em um projeto que tem ficha. Ela é triada, segue por fases com portões,
+e os rascunhos dos seus artefatos são gravados dentro da ficha, em `fichas/<projeto>/demandas/<id>/`.
+
+```bash
+.venv/Scripts/python cli.py demanda nova "Título" --descricao "Texto do pedido"
+.venv/Scripts/python cli.py gerar-artefatos DEM-001      # rascunho da triagem; depois, os da fase
+.venv/Scripts/python cli.py demanda mostrar DEM-001      # fase, triagem e o que falta
+.venv/Scripts/python cli.py demanda triar DEM-001 --aprovar-por gestor-demandas --trilha completa
+.venv/Scripts/python cli.py demanda avancar DEM-001 --ator gestor-demandas
+```
+
+A triagem responde quatro perguntas e escolhe uma trilha (`operacional`, `correcao_direta`, `leve`,
+`completa`); o guia está em `profiles/example/guia_triagem.md` e o catálogo de produtos em
+`profiles/example/produtos.yaml`. Quem aprova é um papel, não uma pessoa.
+
+As páginas geradas nascem com `status: proposta` e não abrem portão: uma pessoa revisa e troca o status.
+Página de regra exige mais (aprovação com aval de cada área e nenhuma pergunta em aberto); o runbook
+lista o que o portão confere.
+`gerar-artefatos` não altera página existente; com `--refazer`, apaga e regera só as que ainda estão em
+`proposta`. O passo a passo está no
+[runbook](fichas/second-brain-open/08-processos/runbook-conduzir-uma-demanda.md). `DOCS_REPO_PATH` aponta
+outra pasta de documentos, se você não quiser os rascunhos dentro de `fichas/`.
+
 ## Resposta, custo e orçamento
 
 `ask` e `task` geram pela cadeia de provedores do perfil ativo (`profiles/example/profile.yaml`, ou o que
@@ -96,6 +121,12 @@ provedor, mas não confere se ele a cumpre.
   não precisa de modelo.
 - A geração nunca foi testada aqui contra modelo real nem provedor de nuvem: os testes usam clientes
   falsos. O prazo de 120 segundos do perfil de exemplo é uma estimativa.
+- Demandas só pela linha de comando: não há API nem quadro, nem comando para bloquear, cancelar ou
+  devolver para retrabalho.
+- A trilha completa não chega a `done` sozinha: o portão de entrega pede um arquivo de rastreio entre
+  exemplos de regra e testes, e o verificador que o produz não está neste repositório.
+- Os rascunhos de artefatos nunca foram gerados aqui com modelo real, e o catálogo de atividades do guia
+  de triagem de exemplo é fictício.
 - Sem adaptadores de infraestrutura: `core/tools.py` e `core/bootstrap.py` aceitam um executor de comandos
   e um coletor de observações, mas nenhum vem implementado.
 - O dashboard estático do projeto original não foi incluído.

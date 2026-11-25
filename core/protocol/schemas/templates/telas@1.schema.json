@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "telas@1",
+  "type": "object",
+  "required": [
+    "telas"
+  ],
+  "properties": {
+    "telas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "nome",
+          "intencao",
+          "usuario",
+          "pior_caso",
+          "estados",
+          "fluxo"
+        ],
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "intencao": {
+            "type": "string"
+          },
+          "usuario": {
+            "type": "string"
+          },
+          "pior_caso": {
+            "type": "string"
+          },
+          "estados": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "estado",
+                "gatilho"
+              ],
+              "properties": {
+                "estado": {
+                  "type": "string"
+                },
+                "gatilho": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "fluxo": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

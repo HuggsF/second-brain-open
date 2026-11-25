@@ -1,0 +1,8 @@
+[
+  {"titulo": "Avisar o cliente quando a reserva estiver perto de vencer",
+   "descricao": "Hoje a reserva de estoque expira sem aviso. O atendimento quer que o portal mande uma mensagem ao cliente uma hora antes do vencimento, uma única vez por reserva. Vale para o produto portal."},
+  {"titulo": "Tela de consulta de reservas por cliente",
+   "descricao": "O atendimento precisa de uma tela que liste as reservas de um cliente, com filtro por situação e período, e exportação em planilha. Hoje a consulta é feita direto no banco."},
+  {"titulo": "Rotina noturna de conferência de estoque",
+   "descricao": "Criar uma rotina automática que, toda noite, compare o estoque reservado com o estoque físico informado pelo sistema do depósito e registre as diferenças para revisão da operação."}
+]

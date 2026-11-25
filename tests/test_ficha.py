@@ -546,3 +546,28 @@ class TestFichasDoRepositorio(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPastasDeDemandaNaFicha(unittest.TestCase):
+    """Rascunhos de demanda e regras (`.mdx`) ficam dentro da ficha e não são seção: o validador os ignora."""
+
+    def test_ficha_continua_valida_com_demandas_e_regras(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            shutil.copytree(ROOT / "fichas" / "second-brain-open", raiz / "fichas" / "second-brain-open")
+            for rel in ("04-decisoes", "06-auditorias/evidencias", "core", "requirements.txt"):
+                origem = ROOT / rel
+                if origem.is_file():
+                    shutil.copy(origem, raiz / rel)
+            pasta = raiz / "fichas" / "second-brain-open"
+            antes = ficha.validar(pasta, ROOT)
+            (pasta / "demandas" / "dem-001").mkdir(parents=True)
+            (pasta / "demandas" / "dem-001" / "visao.mdx").write_text(
+                "---\nstatus: proposta\n---\n# Visão\n\n<!-- preencher -->\n", encoding="utf-8")
+            (pasta / "regras").mkdir()
+            (pasta / "regras" / "x.mdx").write_text("sem frontmatter nenhum\n", encoding="utf-8")
+            depois = ficha.validar(pasta, ROOT)
+        self.assertTrue(antes.valida, antes.problemas)
+        self.assertEqual((depois.valida, depois.situacao, depois.problemas), (antes.valida, antes.situacao, antes.problemas))
+        self.assertEqual([(s.numero, s.situacao, s.problemas) for s in depois.secoes],
+                         [(s.numero, s.situacao, s.problemas) for s in antes.secoes])

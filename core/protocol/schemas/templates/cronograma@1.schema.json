@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "cronograma@1",
+  "type": "object",
+  "required": [
+    "marcos"
+  ],
+  "properties": {
+    "marcos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "nome",
+          "semana",
+          "portao"
+        ],
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "semana": {
+            "type": "string"
+          },
+          "portao": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}
