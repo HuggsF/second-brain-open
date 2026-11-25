@@ -713,14 +713,25 @@ def _servico_demandas():
     caminho = settings.base_dir / ".runtime" / "demands.db"
     try:
         svc = demand_lifecycle.DemandLifecycleService(caminho)
-    except sqlite3.Error:
+    except (sqlite3.Error, OSError):
         click.echo(f"Não foi possível ler o banco de demandas em {caminho}.")
         raise SystemExit(1)
     try:
-        produtos = ler_produtos(ligacao.caminho_produtos())
-    except (ProdutosInvalidos, LookupError) as exc:
+        catalogo = ligacao.caminho_produtos()
+    except LookupError as exc:
+        click.echo(f"Perfil {exc} não encontrado (variável BRAIN_PROFILE).")
+        raise SystemExit(1)
+    if not catalogo.parent.is_dir():
+        click.echo(f"Perfil {catalogo.parent.name} não encontrado em {catalogo.parent.parent} (variável BRAIN_PROFILE).")
+        raise SystemExit(1)
+    try:
+        produtos = ler_produtos(catalogo)
+    except ProdutosInvalidos as exc:
         click.echo(f"Catálogo de produtos inválido: {exc}")
         raise SystemExit(1)
+    if not produtos:
+        click.echo(f"Aviso: perfil sem catálogo de produtos ({catalogo}); o produto da triagem não é conferido "
+                   "contra um catálogo.", err=True)
     svc.set_produtos(list(produtos) or None)
     return svc, produtos
 
@@ -740,7 +751,7 @@ def _erros_de_demanda(funcao):
             click.echo(f"Demanda {achado.group(0) if achado else '?'} não encontrada.")
         except DocsRegistryError as exc:
             click.echo(str(exc))
-        except sqlite3.Error:
+        except (sqlite3.Error, OSError):
             click.echo(f"Não foi possível ler o banco de demandas em {settings.base_dir / '.runtime' / 'demands.db'}.")
         raise SystemExit(1)
     return embrulho
@@ -934,9 +945,13 @@ def demanda_triar(demanda, arquivo, aprovar_por, trilha):
 @click.option("--ator", required=True, help="Papel que decide a troca")
 @_erros_de_demanda
 def demanda_trilha(demanda, nova, motivo, ator):
-    """Troca a trilha já aprovada, registrando motivo e autor."""
+    """Troca a trilha de uma triagem já aprovada, registrando motivo e autor."""
     svc, _ = _servico_demandas()
     d = _demanda_ou_sai(svc, _id_demanda(demanda))
+    triagem = (d.artefacts or {}).get("triagem")
+    if not isinstance(triagem, dict) or not str(triagem.get("aprovada_por") or "").strip():
+        click.echo(f"Demanda {d.id} não tem triagem aprovada. A primeira trilha é escolhida em 'cli.py demanda triar'.")
+        raise SystemExit(1)
     try:
         svc.rebaixar_trilha(d.id, nova, motivo, ator)
     except ValueError as exc:
@@ -984,7 +999,7 @@ def demanda_artefato(demanda, nome, valor, arquivo):
     if arquivo is not None:
         try:
             valor = Path(arquivo).read_text(encoding="utf-8-sig")
-        except OSError as exc:
+        except (OSError, UnicodeDecodeError) as exc:
             click.echo(f"Arquivo ilegível: {exc}")
             raise SystemExit(1)
     conteudo = _json_ou_sai(valor, "Valor do artefato")
@@ -1071,7 +1086,15 @@ def artefato_eval_cmd(dataset_path, min_valid):
     """Mede se o modelo da cadeia gera rascunhos válidos nos 8 templates (chamadas reais e pagas)."""
     from core.geracao import ligacao
     from core.protocol import registry
-    demandas = json.loads((dataset_path or _ARTEFATO_EVAL).read_text(encoding="utf-8"))
+    try:
+        demandas = json.loads((dataset_path or _ARTEFATO_EVAL).read_text(encoding="utf-8"))
+        if not isinstance(demandas, list) or not demandas or not all(
+                isinstance(d, dict) and isinstance(d.get("titulo"), str) and isinstance(d.get("descricao"), str)
+                for d in demandas):
+            raise ValueError("esperada uma lista não vazia de objetos com titulo e descricao")
+    except (OSError, ValueError) as exc:
+        click.echo(f"Conjunto de demandas inválido: {exc}")
+        raise SystemExit(1)
     total = validos = 0
     custo_total = 0.0
     for demanda in demandas:

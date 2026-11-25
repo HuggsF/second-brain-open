@@ -39,12 +39,15 @@ aponta outra pasta de documentos, para quem preferir a opção 2.
 
 - As páginas geradas são Markdown com extensão `.mdx` e nascem com `status: proposta`. O portão só aceita
   a página depois que uma pessoa a revisa e troca o status. A visão precisa também do registro de quem a
-  aprovou.
+  aprovou. Página de regra precisa estar aprovada, com o aval de cada área registrado, pelo menos dois
+  exemplos e nenhuma pergunta em aberto.
 - Sem `--refazer`, `gerar-artefatos` nunca altera uma página existente. Com `--refazer`, apaga e regera as
   páginas ainda em `proposta`, inclusive as editadas à mão. Página fora de `proposta` nunca é tocada.
 - O validador de fichas ignora as pastas `demandas/` e `regras/`: elas não são seção da ficha.
 - O rascunho da triagem nasce sem trilha, só com uma sugestão. Quem aprova informa a trilha; trocar a
   trilha depois exige motivo e autor registrados.
+- Sem catálogo de produtos no perfil, o produto da triagem não é conferido contra uma lista: vale só a
+  exigência de existir uma ficha com aquele nome, e os comandos avisam isso.
 - Quem aprova é sempre um papel, não uma pessoa. O motor não confere isso: ele grava o texto que recebe.
 - A trilha completa não chega a `done` sozinha: o portão de entrega exige um arquivo de rastreio entre
   exemplos de regra e testes, e o verificador que o produz não faz parte deste repositório. Pelo mesmo

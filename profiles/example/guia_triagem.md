@@ -1,47 +1,47 @@
-Este guia orienta o rascunho da triagem de uma demanda. O rascunho é só uma sugestão: quem escolhe e aprova a trilha é o papel de gestor de demandas.
+Use este guia para redigir a triagem de uma demanda. O que sai daqui é uma proposta: a trilha só vale depois que o papel de gestor de demandas a escolhe e aprova.
 
-## As quatro perguntas
+## Quatro perguntas de sim ou não
 
-Responda `true` para SIM e `false` para NÃO.
+Cada resposta vai como `true` (sim) ou `false` (não).
 
-- T1: a demanda muda quem é afetado, quanto ou quando, em uma decisão que pertence a uma área de negócio? Exemplos: um valor, um prazo, um limite, quem recebe algo, um critério de inclusão ou de exclusão. SIM exige regras escritas, com dono e aval da área.
-- T2: a demanda cria ou altera uma tela?
-- T3: a demanda integra um sistema externo, ou roda sem uma pessoa acionando? Exemplos: rotina agendada, processamento em lote, envio automático de mensagem, sincronização entre sistemas.
-- T4: a demanda cabe em uma faixa pequena do catálogo de atividades (até 8 horas) e T1, T2 e T3 são NÃO?
+- T1, regra de negócio. O pedido altera uma decisão que é de uma área de negócio, e não do time técnico? Pense em quem passa a ser atingido, em que medida e em que momento: um preço, um limite, uma data de corte, o destinatário de algo, quem entra ou sai de uma lista. Se sim, a mudança precisa de regra escrita, com responsável e aprovação da área.
+- T2, tela. Alguma tela nasce ou muda por causa do pedido?
+- T3, integração ou automação. O pedido conversa com um sistema de fora, ou executa por conta própria, sem alguém clicar? Entram aqui tarefa agendada, carga em lote, mensagem disparada automaticamente e cópia de dados entre sistemas.
+- T4, mudança pequena. As três perguntas anteriores deram não e o esforço fica nas faixas menores do catálogo de atividades, com teto de 8 horas?
 
-Na dúvida entre SIM e NÃO em T1, T2 ou T3, responda SIM. A trilha mais pesada é o padrão, e rebaixar a trilha exige motivo escrito de quem aprova.
+Ficou em dúvida em T1, T2 ou T3? Marque sim. O caminho mais completo é o ponto de partida; para sair dele, quem aprova tem de registrar o motivo.
 
-## Trilha
+## Qual trilha propor
 
-O campo `trilha` recebe um destes valores:
+O campo `trilha` aceita quatro valores:
 
-- `operacional`: pedido de operação, sem mudança no produto. Exemplos: publicar uma versão, conferir um dado, liberar um acesso.
-- `correcao_direta`: defeito com causa conhecida e T1 = NÃO. Pedido de algo novo, como uma adição, uma automação ou uma tela, não é correção.
-- `leve`: T4 = SIM. Exige `criterios_de_aceite`.
-- `completa`: qualquer outro caso. Toda demanda com T1, T2 ou T3 = SIM que não seja correção de defeito cai aqui.
+- `operacional`: é serviço de operação e o produto não muda. Por exemplo, colocar uma versão no ar, checar uma informação ou conceder um acesso.
+- `correcao_direta`: é um defeito, a causa já se conhece e T1 é não. Funcionalidade nova, automação nova ou tela nova nunca entram aqui, mesmo que pequenas.
+- `leve`: T4 é sim. Só vale com `criterios_de_aceite` preenchido.
+- `completa`: todo o resto, o que inclui qualquer pedido com sim em T1, T2 ou T3 que não seja conserto de defeito.
 
 ## Atividade e faixa
 
-`atividade` é um item do catálogo de atividades e `faixa` é a letra da faixa de esforço. O catálogo abaixo é fictício, só para o exemplo funcionar; troque pelo catálogo da sua organização.
+`atividade` nomeia o tipo de trabalho e `faixa` é a letra que indica o tamanho do esforço. Os dois vêm de um catálogo de atividades. O catálogo a seguir é fictício e existe só para o exemplo rodar: substitua pelo da sua organização.
 
-Atividades:
+Tipos de atividade:
 
 - Evolução de sistema
 - Correção de defeito
 - Integração entre sistemas
 - Operação e suporte
 
-Faixas de esforço:
+Faixas:
 
 - A: até 4 horas
 - B: até 8 horas
 - C: até 40 horas
 - D: acima de 40 horas
 
-Se o texto do pedido não permitir escolher, deixe `atividade` e `faixa` vazios. Nunca use nesses campos o nome de uma tarefa ou de um modelo de documento.
+Quando o pedido não dá base para escolher, os dois campos ficam em branco. Eles não servem para guardar título de tarefa nem nome de documento.
 
-## Outros campos
+## Demais campos
 
-- `criterios_de_aceite`: frases verificáveis do que quem pediu vai conferir na entrega, tiradas do próprio pedido.
-- `mais_de_uma_sprint`: `true` quando o pedido junta entregas ou integrações que não cabem em duas semanas.
-- Justificativa: diga em uma ou duas frases por que escolheu o produto, a trilha e cada SIM. Se o pedido veio só com o título, diga isso.
+- `criterios_de_aceite`: o que a pessoa que pediu vai checar ao receber, escrito de um jeito que dê para conferir e extraído do texto do pedido.
+- `mais_de_uma_sprint`: marque `true` se o pedido reúne várias entregas ou integrações e passa de duas semanas de trabalho.
+- Justificativa: em poucas linhas, explique o produto escolhido, a trilha e o motivo de cada sim. Se só havia o título para ler, registre isso.

@@ -67,7 +67,7 @@ def _frontmatter(mdx: str) -> dict:
 
 
 def _erros_regra(rel: str, mdx: str, produto: str) -> list[str]:
-    """Light check of a rendered rule page (the full one is the docs repo's validator)."""
+    """Light check of a rendered rule page."""
     erros = []
     if not REGRA_REL_RE.match(rel) or not rel.startswith(f"{produto}/regras/"):
         erros.append(f"caminho de regra inválido: {rel}")

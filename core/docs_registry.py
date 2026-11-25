@@ -10,7 +10,7 @@ import yaml
 
 ENV_VAR = "DOCS_REPO_PATH"
 
-# Same rule as the documentation repository's page validator (validateRulePage).
+# Path and id shape of a rule page.
 REGRA_REL_RE = re.compile(r"^[^/]+/regras/[^/]+\.mdx$")
 RULE_ID_RE = re.compile(r"^[a-z0-9-]+\.[a-z0-9-]+$")
 _AVAL_CAMPOS = ("area", "pessoa", "data", "email")

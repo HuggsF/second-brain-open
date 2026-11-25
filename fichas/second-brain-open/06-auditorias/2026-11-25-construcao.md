@@ -29,7 +29,7 @@ nada mais foi alterado.
 
 ## Resultado
 
-Verde: 1737 testes passam e nenhum falha. Na sessão, a visão foi gravada em
+Verde: 1744 testes passam e nenhum falha. Na sessão, a visão foi gravada em
 `fichas/portal/demandas/dem-001/visao.mdx` com `status: proposta`, e o segundo avanço foi recusado dizendo
 que a página ainda está em proposta e que falta registrar quem a aprovou.
 

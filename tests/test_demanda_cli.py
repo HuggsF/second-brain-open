@@ -362,6 +362,58 @@ class TestGeracao(Ambiente):
         self.assertIn("visao.mdx", r.texto)
 
 
+class TestAchadosDaRevisao(Ambiente):
+    def test_trilha_nao_aprova_triagem_pendente(self):
+        did = self.nova()
+        self.assertEqual(self.rodar("gerar-artefatos", did).exit_code, 0)
+        r = self.rodar("demanda", "trilha", did, "leve", "--motivo", "atalho", "--ator", "gestor-demandas")
+        self.assertEqual(r.exit_code, 1, r.output)
+        self.assertIn("demanda triar", r.texto)
+        self.assertIn("Triagem: pendente de aprovação", self.rodar("demanda", "mostrar", did).texto)
+        self.assertEqual(self.rodar("demanda", "avancar", did, "--ator", "gestor-demandas").exit_code, 1)
+
+    def test_trilha_sem_triagem_recusa(self):
+        did = self.nova()
+        r = self.rodar("demanda", "trilha", did, "leve", "--motivo", "m", "--ator", "gestor-demandas")
+        self.assertEqual(r.exit_code, 1, r.output)
+        self.assertIn("demanda triar", r.texto)
+
+    def test_artefato_com_arquivo_que_nao_e_utf8_recusa(self):
+        did = self.nova()
+        arq = self.base / "ruim.json"
+        arq.write_bytes(bytes([34, 116, 255, 254, 34]))
+        r = self.rodar("demanda", "artefato", did, "evidence", "--arquivo", str(arq))
+        self.assertEqual(r.exit_code, 1, r.output)
+        self.assertIn("Arquivo ilegível", r.texto)
+
+    def test_runtime_sendo_um_arquivo_avisa_e_sai_1(self):
+        (self.base / ".runtime").write_text("não sou uma pasta", encoding="utf-8")
+        for args in (("demanda", "listar"), ("demanda", "nova", "x"), ("gerar-artefatos", "DEM-001")):
+            with self.subTest(args=args):
+                r = self.rodar(*args)
+                self.assertEqual(r.exit_code, 1, r.output)
+                self.assertIn("Não foi possível ler o banco de demandas", r.texto)
+
+    def test_perfil_inexistente_ou_invalido_recusa_dizendo_que_e_o_perfil(self):
+        from core.local_tasks import profile as perfil
+        for nome in ("perfil-que-nao-existe", "../x"):
+            with self.subTest(nome=nome):
+                with mock.patch.object(ligacao, "caminho_produtos", lambda p=None, nome=nome: (
+                        (_ for _ in ()).throw(perfil.ProfileNotFound(nome)) if not perfil._NAME_RE.match(nome)
+                        else self.base / "perfis" / nome / "produtos.yaml")):
+                    r = self.rodar("demanda", "nova", "x")
+                self.assertEqual(r.exit_code, 1, r.output)
+                self.assertIn("Perfil", r.texto)
+                self.assertIn("não encontrado", r.texto)
+                self.assertNotIn("Catálogo de produtos inválido", r.texto)
+
+    def test_perfil_sem_catalogo_avisa_que_nao_confere_o_produto(self):
+        self.produtos.unlink()
+        r = self.rodar("demanda", "nova", "x")
+        self.assertEqual(r.exit_code, 0, r.output)
+        self.assertIn("sem catálogo de produtos", r.texto)
+
+
 class TestArtefato(Ambiente):
     def test_artefato_recusa_triagem_geracao_e_json_invalido(self):
         did = self.nova()

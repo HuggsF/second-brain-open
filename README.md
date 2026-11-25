@@ -78,6 +78,8 @@ A triagem responde quatro perguntas e escolhe uma trilha (`operacional`, `correc
 `profiles/example/produtos.yaml`. Quem aprova é um papel, não uma pessoa.
 
 As páginas geradas nascem com `status: proposta` e não abrem portão: uma pessoa revisa e troca o status.
+Página de regra exige mais (aprovação com aval de cada área e nenhuma pergunta em aberto); o runbook
+lista o que o portão confere.
 `gerar-artefatos` não altera página existente; com `--refazer`, apaga e regera só as que ainda estão em
 `proposta`. O passo a passo está no
 [runbook](fichas/second-brain-open/08-processos/runbook-conduzir-uma-demanda.md). `DOCS_REPO_PATH` aponta

@@ -1,8 +1,8 @@
 [
-  {"titulo": "Agrupar avisos de reserva por cliente",
-   "descricao": "Hoje cada título vencido gera um aviso separado. A área financeira quer um único aviso por cliente, com a lista dos títulos, para reduzir ruído. Vale para o produto portal."},
-  {"titulo": "Tela de consulta de pedidos retidos",
-   "descricao": "A operação precisa de uma tela que liste pedidos retidos por motivo, com filtro por unidade e período, e exportação em planilha. Hoje a consulta é feita direto no banco."},
-  {"titulo": "Rotina noturna de conciliação de repasses",
-   "descricao": "Criar uma rotina automática que, toda noite, compare os repasses recebidos com os pedidos faturados e registre as divergências para revisão do financeiro."}
+  {"titulo": "Avisar o cliente quando a reserva estiver perto de vencer",
+   "descricao": "Hoje a reserva de estoque expira sem aviso. O atendimento quer que o portal mande uma mensagem ao cliente uma hora antes do vencimento, uma única vez por reserva. Vale para o produto portal."},
+  {"titulo": "Tela de consulta de reservas por cliente",
+   "descricao": "O atendimento precisa de uma tela que liste as reservas de um cliente, com filtro por situação e período, e exportação em planilha. Hoje a consulta é feita direto no banco."},
+  {"titulo": "Rotina noturna de conferência de estoque",
+   "descricao": "Criar uma rotina automática que, toda noite, compare o estoque reservado com o estoque físico informado pelo sistema do depósito e registre as diferenças para revisão da operação."}
 ]

@@ -36,7 +36,8 @@ aplica: sim
     `--refazer`, nenhuma página existente é alterada; com `--refazer`, só as que ainda estão em
     `proposta`.
 14. O produto de uma demanda é um slug do catálogo do perfil, e esse slug é o de uma ficha. Produto
-    fora do catálogo ou sem ficha é recusado, e nada é gravado fora da ficha.
+    fora do catálogo ou sem ficha é recusado, e nada é gravado fora da ficha. Perfil inexistente é
+    recusado; perfil sem catálogo só confere a ficha, e os comandos avisam.
 
 ## Critérios de aceite
 

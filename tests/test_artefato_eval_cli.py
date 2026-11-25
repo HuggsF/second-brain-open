@@ -84,3 +84,14 @@ def _minimo(schema):
 
 
 _VALIDOS = _gerar_validos()
+
+
+def test_artefato_eval_com_dataset_ruim_avisa_e_sai_1(tmp_path, monkeypatch):
+    monkeypatch.setattr(ligacao, "_cliente_ia", lambda template, texto: _envelope({}))
+    ruim = tmp_path / "d.json"
+    for conteudo in ("{aberto", '{"titulo": "x"}', '[{"titulo": "x"}]', "[1]", "[]"):
+        ruim.write_text(conteudo, encoding="utf-8")
+        r = CliRunner().invoke(cli_module.cli, ["artefato-eval", "--dataset", str(ruim)])
+        assert r.exit_code == 1, (conteudo, r.output)
+        assert r.exception is None or isinstance(r.exception, SystemExit), (conteudo, repr(r.exception))
+        assert "Conjunto de demandas inválido" in r.output, (conteudo, r.output)

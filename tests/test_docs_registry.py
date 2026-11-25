@@ -97,7 +97,7 @@ def test_nao_aprovada_sem_areas_ou_versao_nao_inteira(tmp_path):
     assert regras_aprovadas(tmp_path, rels) == rels
 
 
-# -- F4: mesma regra do validateRulePage (portal-docs scripts/regras.mjs) ----------
+# -- formato da página de regra ----------------------------------------
 
 def test_versao_zero_nao_aprova(tmp_path):
     _pagina(tmp_path, R, versao=0)
