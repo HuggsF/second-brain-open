@@ -1,0 +1,8 @@
+[
+  {"titulo": "Agrupar avisos de reserva por cliente",
+   "descricao": "Hoje cada título vencido gera um aviso separado. A área financeira quer um único aviso por cliente, com a lista dos títulos, para reduzir ruído. Vale para o produto portal."},
+  {"titulo": "Tela de consulta de pedidos retidos",
+   "descricao": "A operação precisa de uma tela que liste pedidos retidos por motivo, com filtro por unidade e período, e exportação em planilha. Hoje a consulta é feita direto no banco."},
+  {"titulo": "Rotina noturna de conciliação de repasses",
+   "descricao": "Criar uma rotina automática que, toda noite, compare os repasses recebidos com os pedidos faturados e registre as divergências para revisão do financeiro."}
+]
