@@ -1,0 +1,12 @@
+# Catálogo de produtos: o que a triagem de uma demanda pode escolher.
+# Cada slug é o de uma ficha em fichas/<slug>/, onde os rascunhos da demanda são gravados.
+# `pistas` são palavras que ajudam a reconhecer o produto no texto de um pedido.
+second-brain-open:
+  descricao: >-
+    Motor local de conhecimento e orquestração de agentes: vault em Markdown, busca de texto,
+    cadeia de provedores com custo e orçamento, fichas de projeto e demandas.
+  pistas: [vault, busca, índice, ficha, demanda, triagem, orçamento, provedor, agente, portão]
+rag-dojo:
+  descricao: >-
+    Projeto de estudo de geração com recuperação em seis espirais, de pacotes Python independentes.
+  pistas: [espiral, recuperação, trechos, embedding, benchmark, avaliação]

@@ -1,4 +1,4 @@
-"""Schemas de extração dos artefatos de fase (S2b)."""
+"""Schemas de extração dos artefatos de fase."""
 import pytest
 
 from core.protocol import registry

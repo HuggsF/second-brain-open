@@ -1,4 +1,4 @@
-"""Portões do ciclo de vida por trilha da triagem (spec §7.1)."""
+"""Portões do ciclo de vida por trilha da triagem."""
 
 import sys
 from pathlib import Path
@@ -544,7 +544,7 @@ def test_erros_rastreio_listas_invalidas(tmp_path, campo, valor):
     assert len(erros) == 1 and "arquivo inválido" in erros[0] and campo in erros[0]
 
 
-# -- S2b C1: rascunho gerado (status proposta) não abre portão ------------------
+# -- rascunho gerado (status proposta) não abre portão ------------------
 
 def _pagina_simples(root: Path, rel: str, status: str | None):
     linhas = ["---", "title: Rascunho"] + ([f"status: {status}"] if status else []) + ["---", "", "Corpo."]
@@ -592,7 +592,7 @@ def test_spec_dev_recusa_pagina_em_proposta_e_passa_validada(svc, docs, key):
 
 def test_spec_dev_aceita_pagina_aprovada_e_pagina_sem_status(svc, docs):
     dem = _completa_t2_t3_em_spec(svc, docs)
-    _pagina_simples(docs, _PAGINAS_SPEC["telas"], None)  # escrita à mão antes do S2b
+    _pagina_simples(docs, _PAGINAS_SPEC["telas"], None)  # escrita à mão antes de existir a geração
     _pagina_simples(docs, _PAGINAS_SPEC["rnf"], "aprovada")
     dem, _ = svc.transition(dem.id, Phase.DEV, actor="test")
     assert dem.phase == Phase.DEV

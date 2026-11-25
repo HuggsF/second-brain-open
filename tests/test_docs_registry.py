@@ -7,8 +7,8 @@ CORPO = ("## Regra\nTexto.\n\n## Exemplos\n| # | Caso |\n|---|---|\n| 1 | a |\n|
          "## Perguntas em aberto\nNenhuma.\n")
 
 
-def _pagina(root, rel, status="aprovada", versao=2, areas=("Comercial", "Financeiro"), avais=None, raw=None,
-            corpo=CORPO, dono="{ area: Comercial, pessoa: X }"):
+def _pagina(root, rel, status="aprovada", versao=2, areas=("Operações", "Atendimento"), avais=None, raw=None,
+            corpo=CORPO, dono="{ area: Operações, pessoa: X }"):
     p = root / rel
     p.parent.mkdir(parents=True, exist_ok=True)
     if raw is not None:
@@ -84,7 +84,7 @@ def test_regra_aprovada_com_aval_na_versao_passa(tmp_path):
 
 
 def test_aval_de_versao_anterior_nao_conta(tmp_path):
-    _pagina(tmp_path, R, avais=[{"area": "Comercial", "versao": 2}, {"area": "Financeiro", "versao": 1}])
+    _pagina(tmp_path, R, avais=[{"area": "Operações", "versao": 2}, {"area": "Atendimento", "versao": 1}])
     assert regras_aprovadas(tmp_path, [R]) == [R]
 
 
@@ -92,8 +92,8 @@ def test_nao_aprovada_sem_areas_ou_versao_nao_inteira(tmp_path):
     rels = [f"portal/regras/{n}.mdx" for n in "abcd"]
     _pagina(tmp_path, rels[0], status="validada")
     _pagina(tmp_path, rels[1], areas=(), avais=[])
-    _pagina(tmp_path, rels[2], versao="'2'", avais=[{"area": "Comercial", "versao": "'2'"}, {"area": "Financeiro", "versao": "'2'"}])
-    _pagina(tmp_path, rels[3], versao="true", avais=[{"area": "Comercial", "versao": "true"}, {"area": "Financeiro", "versao": "true"}])
+    _pagina(tmp_path, rels[2], versao="'2'", avais=[{"area": "Operações", "versao": "'2'"}, {"area": "Atendimento", "versao": "'2'"}])
+    _pagina(tmp_path, rels[3], versao="true", avais=[{"area": "Operações", "versao": "true"}, {"area": "Atendimento", "versao": "true"}])
     assert regras_aprovadas(tmp_path, rels) == rels
 
 
@@ -112,7 +112,7 @@ def test_versao_decimal_nao_aprova(tmp_path):
 def test_versao_1_ponto_0_aprova_como_no_js(tmp_path):
     # YAML 1.0 e inteiro em JS (Number.isInteger(1.0)); o aval pode vir como 1 ou 1.0
     _pagina(tmp_path, R, versao="1.0",
-            avais=[{"area": "Comercial", "versao": 1}, {"area": "Financeiro", "versao": "1.0"}])
+            avais=[{"area": "Operações", "versao": 1}, {"area": "Atendimento", "versao": "1.0"}])
     assert regras_aprovadas(tmp_path, [R]) == []
 
 
@@ -125,7 +125,7 @@ def test_versao_1_ponto_0_aprova_como_no_js(tmp_path):
     {"area": "''", "versao": 2},
 ])
 def test_aval_invalido_ao_lado_dos_validos_nao_aprova(tmp_path, invalido):
-    _pagina(tmp_path, R, avais=[{"area": "Comercial", "versao": 2}, {"area": "Financeiro", "versao": 2}, invalido])
+    _pagina(tmp_path, R, avais=[{"area": "Operações", "versao": 2}, {"area": "Atendimento", "versao": 2}, invalido])
     assert regras_aprovadas(tmp_path, [R]) == [R]
 
 
